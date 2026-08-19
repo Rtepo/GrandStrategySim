@@ -12,6 +12,7 @@ import {
   Globe,
   Play,
   Plus,
+  RefreshCw,
 } from "lucide-react";
 import { useGameStore } from "./store/gameStore";
 import { advanceTurn, newGame } from "./hooks/useTauriCommand";
@@ -25,6 +26,8 @@ import { ParliamentPage } from "./pages/ParliamentPage";
 import { GovernmentPage } from "./pages/GovernmentPage";
 import { RegionsPage } from "./pages/RegionsPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { UpdateBanner } from "./components/UpdateBanner";
+import { useUpdater } from "./hooks/useUpdater";
 
 const NAV_ITEMS = [
   { to: "/macro", label: "Macro", icon: TrendingUp },
@@ -38,7 +41,12 @@ const NAV_ITEMS = [
   { to: "/regions", label: "Regions", icon: Map },
 ];
 
-function Sidebar() {
+interface SidebarProps {
+  onCheckUpdates: () => void;
+  updateChecking: boolean;
+}
+
+function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
   const { gameStatus, selectedCountry, setSelectedCountry, loading, refreshStatus, bumpTurn } = useGameStore();
   const queryClient = useQueryClient();
 
@@ -110,6 +118,14 @@ function Sidebar() {
         >
           <Play size={16} />
           {loading ? "Processing..." : "Advance Turn"}
+        </button>
+        <button
+          onClick={onCheckUpdates}
+          disabled={updateChecking}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded bg-muted text-muted-foreground text-xs font-medium disabled:opacity-50 hover:bg-accent hover:text-accent-foreground"
+        >
+          <RefreshCw size={14} className={updateChecking ? "animate-spin" : ""} />
+          {updateChecking ? "Checking..." : "Check for Updates"}
         </button>
       </div>
     </aside>
@@ -203,11 +219,16 @@ function NewGameScreen({ onStart }: { onStart: () => void }) {
 
 export default function App() {
   const { refreshStatus, gameStatus } = useGameStore();
+  const updater = useUpdater();
 
   useEffect(() => {
     refreshStatus();
     const interval = setInterval(refreshStatus, 5000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    updater.checkForUpdates();
   }, []);
 
   if (!gameStatus) {
@@ -224,8 +245,16 @@ export default function App() {
 
   return (
     <div className="flex h-screen">
-      <Sidebar />
+      <Sidebar
+        onCheckUpdates={() => updater.checkForUpdates()}
+        updateChecking={updater.status === "checking"}
+      />
       <main className="flex-1 overflow-y-auto bg-background">
+        <UpdateBanner
+          state={updater}
+          onInstall={() => updater.downloadAndInstall()}
+          onDismiss={() => updater.dismiss()}
+        />
         <ErrorBoundary>
           <Routes>
             <Route path="/" element={<Navigate to="/macro" replace />} />
