@@ -1,0 +1,16 @@
+[package]
+name = "sim-engine-app"
+version = "0.1.2"
+edition = "2021"
+description = "Tauri desktop application for the Grand Strategy simulation engine."
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1", features = ["full"] }
+sim_engine = { path = "../state" }
