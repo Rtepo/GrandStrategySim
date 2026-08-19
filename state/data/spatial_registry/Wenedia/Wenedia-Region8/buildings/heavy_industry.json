@@ -1,0 +1,1492 @@
+[
+  {
+    "id": "B-WEN-0004",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-WEN-0004",
+    "rok_budowy": 1878,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 104,
+    "zatrudnienie_aktualne": 62,
+    "rezerwa_zakladowa": 37440.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "energy": 8.0,
+        "steel": 12.0
+      },
+      "outputs": {
+        "industrial_machinery": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 12,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-WEN-0004"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8772000293737131,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.52,
+      "energy": 0.832,
+      "food": 0.52,
+      "steel": 1.248
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-WEN-0517",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-WEN-0517",
+    "rok_budowy": 1883,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 791433.8562632442,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "coke": 8.0,
+        "fuels": 10.0,
+        "iron": 20.0
+      },
+      "outputs": {
+        "steel": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 99,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 99,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-WEN-0517"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7373567664487242,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "coke": 0.8,
+      "fuels": 1.0,
+      "food": 0.5,
+      "steel": 1.5,
+      "iron": 2.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-WEN-0518",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-WEN-0518",
+    "rok_budowy": 1879,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 743468.1680048658,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "steel": 10.0,
+        "iron": 5.0
+      },
+      "outputs": {
+        "agricultural_machinery": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 93,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 93,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-WEN-0518"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7402415984896621,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.30000000000000004,
+      "food": 0.5,
+      "steel": 1.0,
+      "iron": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-WEN-0519",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-WEN-0519",
+    "rok_budowy": 1888,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 101,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 581344.1416915467,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "clay": 20.0
+      },
+      "outputs": {
+        "bricks": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 72,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 72,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-WEN-0519"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9082680138666532,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "bricks": 2.5250000000000004,
+      "energy": 0.505,
+      "clay": 2.02,
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-WEN-0520",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-WEN-0520",
+    "rok_budowy": 1877,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 527622.5708421628,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "sulfur": 8.0,
+        "salt": 5.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "chemicals": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 66,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 66,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-WEN-0520"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8711786338563596,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.8,
+      "food": 0.5,
+      "sulfur": 0.8,
+      "salt": 0.5,
+      "chemicals": 1.5,
+      "water": 1.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-WEN-0521",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-WEN-0521",
+    "rok_budowy": 1885,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 431691.19432540593,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 5.0,
+        "steel": 10.0,
+        "iron": 5.0
+      },
+      "outputs": {
+        "construction_machinery": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 54,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 54,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-WEN-0521"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8061273603568045,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.5,
+      "food": 0.5,
+      "steel": 1.0,
+      "iron": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-WEN-0522",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-WEN-0522",
+    "rok_budowy": 1880,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 101,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 347191.64017689595,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "industrial_machinery": 2.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "mechanical_components": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 43,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 43,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-WEN-0522"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8117702673453455,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 1.5150000000000001,
+      "energy": 0.505,
+      "food": 0.505,
+      "steel": 1.01
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-WEN-0523",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-WEN-0523",
+    "rok_budowy": 1890,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 102,
+    "zatrudnienie_aktualne": 61,
+    "rezerwa_zakladowa": 326166.6801569734,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "energy": 8.0,
+        "steel": 12.0
+      },
+      "outputs": {
+        "industrial_machinery": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 40,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 40,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-WEN-0523"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8738847409095628,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.51,
+      "energy": 0.816,
+      "food": 0.51,
+      "steel": 1.224
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-WEN-0524",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-WEN-0524",
+    "rok_budowy": 1890,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 101,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 298746.29503593367,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "catalysts": 1.0,
+        "oil": 25.0
+      },
+      "outputs": {
+        "bitumen": 3.0,
+        "fuels": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 37,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 37,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-WEN-0524"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7092856146298854,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "bitumen": 0.30300000000000005,
+      "energy": 0.505,
+      "catalysts": 0.101,
+      "fuels": 1.818,
+      "food": 0.505,
+      "oil": 2.5250000000000004
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-WEN-0525",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-WEN-0525",
+    "rok_budowy": 1879,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 287794.1295502706,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "salt": 10.0,
+        "limestone": 8.0,
+        "ammonia": 3.0
+      },
+      "outputs": {
+        "soda_ash": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 36,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 36,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-WEN-0525"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7589658367761788,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.8,
+      "food": 0.5,
+      "salt": 1.0,
+      "limestone": 0.8,
+      "soda_ash": 1.2000000000000002,
+      "ammonia": 0.30000000000000004
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-WEN-0526",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-WEN-0526",
+    "rok_budowy": 1886,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 103,
+    "zatrudnienie_aktualne": 61,
+    "rezerwa_zakladowa": 247023.29453064897,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 10.0,
+        "clay": 8.0,
+        "limestone": 25.0
+      },
+      "outputs": {
+        "cement": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 30,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 30,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-WEN-0526"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7247137551778143,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 3.09,
+      "energy": 1.03,
+      "clay": 0.824,
+      "food": 0.515,
+      "limestone": 2.5749999999999997
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-WEN-0527",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-WEN-0527",
+    "rok_budowy": 1896,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 103,
+    "zatrudnienie_aktualne": 61,
+    "rezerwa_zakladowa": 214086.85525989576,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "coke": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 26,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 26,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-WEN-0527"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9605774690282896,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.515,
+      "coke": 1.545,
+      "food": 0.515,
+      "hard_coal": 2.06
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-WEN-0528",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-WEN-0528",
+    "rok_budowy": 1871,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 103,
+    "zatrudnienie_aktualne": 61,
+    "rezerwa_zakladowa": 214086.85525989576,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 3.0,
+        "timber": 5.0,
+        "fuels": 2.0,
+        "steel": 8.0
+      },
+      "outputs": {
+        "trucks": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 26,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 26,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-WEN-0528"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8193979384720727,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.309,
+      "timber": 0.515,
+      "fuels": 0.206,
+      "food": 0.515,
+      "steel": 0.824
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-WEN-0529",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-WEN-0529",
+    "rok_budowy": 1876,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 102,
+    "zatrudnienie_aktualne": 61,
+    "rezerwa_zakladowa": 203854.17509810836,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 12.0,
+        "sand": 20.0,
+        "soda_ash": 5.0
+      },
+      "outputs": {
+        "glass": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 25,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 25,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-WEN-0529"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7457576121515248,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 1.224,
+      "sand": 2.04,
+      "food": 0.51,
+      "glass": 1.8359999999999999,
+      "soda_ash": 0.51
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-WEN-0530",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-WEN-0530",
+    "rok_budowy": 1899,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 105,
+    "zatrudnienie_aktualne": 63,
+    "rezerwa_zakladowa": 142697.92256867583,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "coke": 10.0,
+        "fuels": 12.0,
+        "iron": 25.0
+      },
+      "outputs": {
+        "steel": 22.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 17,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 17,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-WEN-0530"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9218653381917006,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "coke": 1.05,
+      "fuels": 1.26,
+      "food": 0.525,
+      "steel": 2.31,
+      "iron": 2.625
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-WEN-0531",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-WEN-0531",
+    "rok_budowy": 1885,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 106,
+    "zatrudnienie_aktualne": 63,
+    "rezerwa_zakladowa": 93213.3208487821,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "chemicals": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "pharmaceuticals": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 106,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 11,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-WEN-0531"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8292584435784883,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.53,
+      "food": 0.53,
+      "chemicals": 1.06,
+      "water": 0.53,
+      "pharmaceuticals": 1.272
+    },
+    "pojemność_magazynu": 1060.0
+  },
+  {
+    "id": "B-WEN-0532",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-WEN-0532",
+    "rok_budowy": 1877,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 104,
+    "zatrudnienie_aktualne": 62,
+    "rezerwa_zakladowa": 83140.52631452262,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 10.0,
+        "energy": 5.0,
+        "steel": 25.0
+      },
+      "outputs": {
+        "trains": 3.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 10,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-WEN-0532"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7287589554293261,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 1.04,
+      "energy": 0.52,
+      "food": 0.52,
+      "steel": 2.6
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-WEN-0533",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-WEN-0533",
+    "rok_budowy": 1884,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 109,
+    "zatrudnienie_aktualne": 65,
+    "rezerwa_zakladowa": 78423.90030244875,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "rare_earth_elements": 1.0,
+        "chemicals": 8.0
+      },
+      "outputs": {
+        "catalysts": 6.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 109,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 9,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-WEN-0533"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7268633322306319,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.545,
+      "catalysts": 0.654,
+      "food": 0.545,
+      "rare_earth_elements": 0.109,
+      "chemicals": 0.872
+    },
+    "pojemność_magazynu": 1090.0
+  },
+  {
+    "id": "B-WEN-0534",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-WEN-0534",
+    "rok_budowy": 1873,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 139,
+    "zatrudnienie_aktualne": 83,
+    "rezerwa_zakladowa": 22224.102226382012,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 10.0,
+        "energy": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "prefabricates": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 139,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 2,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-WEN-0534"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7328580455279794,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.3900000000000001,
+      "energy": 0.6950000000000001,
+      "prefabricates": 2.7800000000000002,
+      "food": 0.6950000000000001,
+      "steel": 0.6950000000000001
+    },
+    "pojemność_magazynu": 1390.0
+  },
+  {
+    "id": "B-WEN-0535",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-WEN-0535",
+    "rok_budowy": 1896,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 112,
+    "zatrudnienie_aktualne": 67,
+    "rezerwa_zakladowa": 8953.595141563976,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "bitumen": 8.0,
+        "energy": 3.0,
+        "sand": 10.0,
+        "gravel": 8.0
+      },
+      "outputs": {
+        "asphalt": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 112,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-WEN-0535"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8026229967523673,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "asphalt": 2.24,
+      "bitumen": 0.896,
+      "energy": 0.336,
+      "sand": 1.12,
+      "food": 0.56,
+      "gravel": 0.896
+    },
+    "pojemność_magazynu": 1120.0
+  },
+  {
+    "id": "B-WEN-0536",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-WEN-0536",
+    "rok_budowy": 1873,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 5,
+    "zatrudnienie_aktualne": 3,
+    "rezerwa_zakladowa": 399.71406881982034,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "bauxite": 20.0,
+        "energy": 30.0,
+        "catalysts": 2.0
+      },
+      "outputs": {
+        "aluminum": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 5,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-WEN-0536"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.793606258013472,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "aluminum": 0.06,
+      "bauxite": 0.1,
+      "energy": 0.15,
+      "catalysts": 0.01,
+      "food": 0.025
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

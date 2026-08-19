@@ -1,0 +1,1513 @@
+[
+  {
+    "id": "B-HEL-0230",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-HEL-0230",
+    "rok_budowy": 1881,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 107,
+    "zatrudnienie_aktualne": 64,
+    "rezerwa_zakladowa": 22470.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Helwecja-Region8",
+    "cluster_info": {
+      "region_id": "Helwecja-Region8",
+      "scale_factor": 7,
+      "sector": "energy",
+      "owner_id": "KRS-HEL-0230"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8636253697244078,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 8.56,
+      "food": 0.535,
+      "water": 1.07,
+      "hard_coal": 2.14,
+      "heat": 2.675
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-HEL-2324",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-HEL-2324",
+    "rok_budowy": 1897,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 2952423.453585836,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 190,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region8",
+    "cluster_info": {
+      "region_id": "Helwecja-Region8",
+      "scale_factor": 190,
+      "sector": "energy",
+      "owner_id": "KRS-HEL-2324"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8113874141448727,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 3.0,
+      "food": 0.5,
+      "peat": 0.5,
+      "water": 1.0,
+      "brown_coal": 1.0,
+      "hard_coal": 2.0,
+      "heat": 1.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-2325",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-HEL-2325",
+    "rok_budowy": 1877,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 2548407.6125688273,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 164,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region8",
+    "cluster_info": {
+      "region_id": "Helwecja-Region8",
+      "scale_factor": 164,
+      "sector": "energy",
+      "owner_id": "KRS-HEL-2325"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8120808368799366,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.30000000000000004,
+      "food": 0.5,
+      "chemicals": 0.1,
+      "water": 5.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-2326",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-HEL-2326",
+    "rok_budowy": 1874,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 2548407.6125688273,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 164,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region8",
+    "cluster_info": {
+      "region_id": "Helwecja-Region8",
+      "scale_factor": 164,
+      "sector": "energy",
+      "owner_id": "KRS-HEL-2326"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.884085948555409,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 5.0,
+      "food": 0.5,
+      "water": 0.8,
+      "brown_coal": 0.8,
+      "hard_coal": 1.5,
+      "heat": 1.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-2327",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-HEL-2327",
+    "rok_budowy": 1893,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 2051157.3467017387,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 132,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region8",
+    "cluster_info": {
+      "region_id": "Helwecja-Region8",
+      "scale_factor": 132,
+      "sector": "energy",
+      "owner_id": "KRS-HEL-2327"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8700856592697801,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 8.0,
+      "food": 0.5,
+      "water": 1.0,
+      "hard_coal": 2.0,
+      "heat": 2.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-2328",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-HEL-2328",
+    "rok_budowy": 1876,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 1755915.0013431553,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 113,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region8",
+    "cluster_info": {
+      "region_id": "Helwecja-Region8",
+      "scale_factor": 113,
+      "sector": "energy",
+      "owner_id": "KRS-HEL-2328"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9283495680626838,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 3.0,
+      "food": 0.5,
+      "peat": 0.5,
+      "water": 1.0,
+      "brown_coal": 1.0,
+      "hard_coal": 2.0,
+      "heat": 1.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-2329",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-HEL-2329",
+    "rok_budowy": 1891,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 1647141.5056847297,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 106,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region8",
+    "cluster_info": {
+      "region_id": "Helwecja-Region8",
+      "scale_factor": 106,
+      "sector": "energy",
+      "owner_id": "KRS-HEL-2329"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.749803987811076,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.30000000000000004,
+      "food": 0.5,
+      "chemicals": 0.1,
+      "water": 5.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-2330",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-HEL-2330",
+    "rok_budowy": 1894,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 1600524.2932596903,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 103,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region8",
+    "cluster_info": {
+      "region_id": "Helwecja-Region8",
+      "scale_factor": 103,
+      "sector": "energy",
+      "owner_id": "KRS-HEL-2330"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8887045349709953,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 5.0,
+      "food": 0.5,
+      "water": 0.8,
+      "brown_coal": 0.8,
+      "hard_coal": 1.5,
+      "heat": 1.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-2331",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-HEL-2331",
+    "rok_budowy": 1887,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 1460672.6559845717,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 94,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region8",
+    "cluster_info": {
+      "region_id": "Helwecja-Region8",
+      "scale_factor": 94,
+      "sector": "energy",
+      "owner_id": "KRS-HEL-2331"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8521044043113858,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 8.0,
+      "food": 0.5,
+      "water": 1.0,
+      "hard_coal": 2.0,
+      "heat": 2.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-2332",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-HEL-2332",
+    "rok_budowy": 1887,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 1149891.2398176414,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 74,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region8",
+    "cluster_info": {
+      "region_id": "Helwecja-Region8",
+      "scale_factor": 74,
+      "sector": "energy",
+      "owner_id": "KRS-HEL-2332"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7046194632094465,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 3.0,
+      "food": 0.5,
+      "peat": 0.5,
+      "water": 1.0,
+      "brown_coal": 1.0,
+      "hard_coal": 2.0,
+      "heat": 1.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-2333",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-HEL-2333",
+    "rok_budowy": 1882,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 101,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 863195.3834036483,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 55,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Helwecja-Region8",
+    "cluster_info": {
+      "region_id": "Helwecja-Region8",
+      "scale_factor": 55,
+      "sector": "energy",
+      "owner_id": "KRS-HEL-2333"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7706712568492229,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.30300000000000005,
+      "food": 0.505,
+      "chemicals": 0.101,
+      "water": 5.050000000000001
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-HEL-2334",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-HEL-2334",
+    "rok_budowy": 1891,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 808031.6820340183,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 52,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region8",
+    "cluster_info": {
+      "region_id": "Helwecja-Region8",
+      "scale_factor": 52,
+      "sector": "energy",
+      "owner_id": "KRS-HEL-2334"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9308037585780028,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 5.0,
+      "food": 0.5,
+      "water": 0.8,
+      "brown_coal": 0.8,
+      "hard_coal": 1.5,
+      "heat": 1.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-2335",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-HEL-2335",
+    "rok_budowy": 1876,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 102,
+    "zatrudnienie_aktualne": 61,
+    "rezerwa_zakladowa": 649843.9412050509,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 41,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Helwecja-Region8",
+    "cluster_info": {
+      "region_id": "Helwecja-Region8",
+      "scale_factor": 41,
+      "sector": "energy",
+      "owner_id": "KRS-HEL-2335"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7820349887640802,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 8.16,
+      "food": 0.51,
+      "water": 1.02,
+      "hard_coal": 2.04,
+      "heat": 2.55
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-HEL-2336",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-HEL-2336",
+    "rok_budowy": 1892,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 559406.5491004742,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 36,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region8",
+    "cluster_info": {
+      "region_id": "Helwecja-Region8",
+      "scale_factor": 36,
+      "sector": "energy",
+      "owner_id": "KRS-HEL-2336"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7913579815347078,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 3.0,
+      "food": 0.5,
+      "peat": 0.5,
+      "water": 1.0,
+      "brown_coal": 1.0,
+      "hard_coal": 2.0,
+      "heat": 1.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-2337",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-HEL-2337",
+    "rok_budowy": 1874,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 102,
+    "zatrudnienie_aktualne": 61,
+    "rezerwa_zakladowa": 110948.96557159406,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Helwecja-Region8",
+    "cluster_info": {
+      "region_id": "Helwecja-Region8",
+      "scale_factor": 7,
+      "sector": "energy",
+      "owner_id": "KRS-HEL-2337"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7131730162603781,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.306,
+      "food": 0.51,
+      "chemicals": 0.102,
+      "water": 5.1
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-HEL-2338",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-HEL-2338",
+    "rok_budowy": 1873,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 103,
+    "zatrudnienie_aktualne": 61,
+    "rezerwa_zakladowa": 96031.45759558142,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 6,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Helwecja-Region8",
+    "cluster_info": {
+      "region_id": "Helwecja-Region8",
+      "scale_factor": 6,
+      "sector": "energy",
+      "owner_id": "KRS-HEL-2338"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7948914639822308,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 5.1499999999999995,
+      "food": 0.515,
+      "water": 0.824,
+      "brown_coal": 0.824,
+      "hard_coal": 1.545,
+      "heat": 1.545
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-HEL-2339",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-HEL-2339",
+    "rok_budowy": 1899,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 125,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 58271.515531299396,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 125,
+    "region_id": "Helwecja-Region8",
+    "cluster_info": {
+      "region_id": "Helwecja-Region8",
+      "scale_factor": 3,
+      "sector": "energy",
+      "owner_id": "KRS-HEL-2339"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7785593217534132,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 10.0,
+      "food": 0.625,
+      "water": 1.25,
+      "hard_coal": 2.5,
+      "heat": 3.125
+    },
+    "pojemność_magazynu": 1250.0
+  },
+  {
+    "id": "B-HEL-2340",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-HEL-2340",
+    "rok_budowy": 1889,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 113,
+    "zatrudnienie_aktualne": 68,
+    "rezerwa_zakladowa": 17559.150013431554,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 113,
+    "region_id": "Helwecja-Region8",
+    "cluster_info": {
+      "region_id": "Helwecja-Region8",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-HEL-2340"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7035302931206197,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 3.39,
+      "food": 0.5650000000000001,
+      "peat": 0.5650000000000001,
+      "water": 1.1300000000000001,
+      "brown_coal": 1.1300000000000001,
+      "hard_coal": 2.2600000000000002,
+      "heat": 1.1300000000000001
+    },
+    "pojemność_magazynu": 1130.0
+  },
+  {
+    "id": "B-HEL-2341",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-HEL-2341",
+    "rok_budowy": 1888,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 98,
+    "zatrudnienie_aktualne": 59,
+    "rezerwa_zakladowa": 15228.289392179577,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 98,
+    "region_id": "Helwecja-Region8",
+    "cluster_info": {
+      "region_id": "Helwecja-Region8",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-HEL-2341"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9367331000594399,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.29400000000000004,
+      "food": 0.49,
+      "chemicals": 0.098,
+      "water": 4.9
+    },
+    "pojemność_magazynu": 980.0
+  },
+  {
+    "id": "B-HEL-2342",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-HEL-2342",
+    "rok_budowy": 1896,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 86,
+    "zatrudnienie_aktualne": 52,
+    "rezerwa_zakladowa": 13363.600895177995,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 86,
+    "region_id": "Helwecja-Region8",
+    "cluster_info": {
+      "region_id": "Helwecja-Region8",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-HEL-2342"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9798457709138488,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 4.3,
+      "food": 0.42999999999999994,
+      "water": 0.688,
+      "brown_coal": 0.688,
+      "hard_coal": 1.2899999999999998,
+      "heat": 1.2899999999999998
+    },
+    "pojemność_magazynu": 860.0
+  },
+  {
+    "id": "B-HEL-2343",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-HEL-2343",
+    "rok_budowy": 1888,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 65,
+    "zatrudnienie_aktualne": 39,
+    "rezerwa_zakladowa": 10100.396025425229,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 65,
+    "region_id": "Helwecja-Region8",
+    "cluster_info": {
+      "region_id": "Helwecja-Region8",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-HEL-2343"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7280005019242921,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 5.2,
+      "food": 0.325,
+      "water": 0.65,
+      "hard_coal": 1.3,
+      "heat": 1.625
+    },
+    "pojemność_magazynu": 650.0
+  }
+]

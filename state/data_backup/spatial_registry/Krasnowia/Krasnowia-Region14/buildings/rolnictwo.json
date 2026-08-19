@@ -1,0 +1,1667 @@
+[
+    {
+        "id": "[ID-9XX-3391]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[KRS-2AG-5081]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-5081]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7045]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[ID-9AG-6961]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-6961]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6551]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[REG-4AG-2306]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-2306]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1577]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[KRS-2AG-5090]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-5090]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1979]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[ID-9AG-7900]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-7900]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8265]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[REG-4AG-3940]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-3940]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5495]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[KRS-2AG-3257]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-3257]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9639]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[ID-9AG-3961]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-3961]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7414]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[REG-4AG-7340]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-7340]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5169]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[KRS-2AG-3361]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-3361]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5513]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[ID-9AG-3972]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-3972]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2173]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[REG-4AG-1036]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-1036]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6565]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[KRS-2AG-2640]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-2640]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7480]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[ID-9AG-6244]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-6244]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7784]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[REG-4AG-9131]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-9131]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4046]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[KRS-2AG-6819]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-6819]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3798]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[ID-9AG-2662]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-2662]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2493]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[REG-4AG-2526]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-2526]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3779]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[KRS-2AG-9274]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-9274]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3213]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[ID-9AG-4980]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-4980]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1660]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[REG-4AG-2983]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-2983]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8660]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[KRS-2AG-2428]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-2428]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3446]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[ID-9AG-9765]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-9765]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5013]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[REG-4AG-8913]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-8913]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9803]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[KRS-2AG-6928]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-6928]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5592]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[ID-9AG-9861]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-9861]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6226]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[REG-4AG-2022]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-2022]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1477]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[KRS-2AG-2511]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-2511]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3021]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[ID-9AG-2818]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-2818]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9638]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[REG-4AG-1723]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-1723]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3248]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[KRS-2AG-2760]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-2760]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2045]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[ID-9AG-3047]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-3047]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2973]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[REG-4AG-9519]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-9519]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2146]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[KRS-2AG-9134]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-9134]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9057]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[ID-9AG-2853]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-2853]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3409]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[REG-4AG-9487]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-9487]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2817]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[KRS-2AG-7594]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-7594]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9755]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[ID-9AG-9387]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-9387]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4758]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[REG-4AG-2260]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-2260]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1043]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[KRS-2AG-7025]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-7025]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7532]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[ID-9AG-1224]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-1224]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3057]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[REG-4AG-6338]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-6338]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3772]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[KRS-2AG-9016]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-9016]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7311]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[ID-9AG-6326]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-6326]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4092]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[REG-4AG-1452]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-1452]"
+        }
+    }
+]

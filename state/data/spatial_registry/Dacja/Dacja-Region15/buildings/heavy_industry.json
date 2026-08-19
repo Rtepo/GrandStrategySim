@@ -1,0 +1,1513 @@
+[
+  {
+    "id": "B-DAC-0210",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-DAC-0210",
+    "rok_budowy": 1878,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 225,
+    "zatrudnienie_aktualne": 225,
+    "rezerwa_zakladowa": 97840.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "industrial_machinery": 2.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "mechanical_components": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Dacja-Region15",
+    "cluster_info": {
+      "region_id": "Dacja-Region15",
+      "scale_factor": 12,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-DAC-0210"
+    },
+    "ostatnia_produkcja": {
+      "mechanical_components": 40.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7710375903900454,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 1.5599999999999998,
+      "energy": 2.4850000000000003,
+      "food": 0.52
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-DAC-2228",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-DAC-2228",
+    "rok_budowy": 1879,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 686636.0207443773,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 5.0,
+        "steel": 10.0,
+        "iron": 5.0
+      },
+      "outputs": {
+        "construction_machinery": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 38,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region15",
+    "cluster_info": {
+      "region_id": "Dacja-Region15",
+      "scale_factor": 38,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-DAC-2228"
+    },
+    "ostatnia_produkcja": {
+      "construction_machinery": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7176206405686205,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.5,
+      "food": 0.5,
+      "iron": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-DAC-2229",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-DAC-2229",
+    "rok_budowy": 1874,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 669290.3359879463,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "clay": 20.0
+      },
+      "outputs": {
+        "bricks": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 37,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region15",
+    "cluster_info": {
+      "region_id": "Dacja-Region15",
+      "scale_factor": 37,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-DAC-2229"
+    },
+    "ostatnia_produkcja": {
+      "bricks": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7221943470537382,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "bricks": 5.590461383376823,
+      "energy": 0.0,
+      "clay": 2.220446049250313e-16,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-DAC-2230",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-DAC-2230",
+    "rok_budowy": 1892,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 574520.5519983475,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "coke": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 31,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Dacja-Region15",
+    "cluster_info": {
+      "region_id": "Dacja-Region15",
+      "scale_factor": 31,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-DAC-2230"
+    },
+    "ostatnia_produkcja": {
+      "coke": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9307637940483979,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "coke": 3.5213242421225983,
+      "food": 0.51,
+      "hard_coal": 2.220446049250313e-16
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-DAC-2231",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-DAC-2231",
+    "rok_budowy": 1881,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 503750.15819210926,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 12.0,
+        "sand": 20.0,
+        "soda_ash": 5.0
+      },
+      "outputs": {
+        "glass": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 27,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Dacja-Region15",
+    "cluster_info": {
+      "region_id": "Dacja-Region15",
+      "scale_factor": 27,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-DAC-2231"
+    },
+    "ostatnia_produkcja": {
+      "glass": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7682295123415736,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "sand": 3.039999999999999,
+      "food": 0.51,
+      "glass": 4.132107310225849
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-DAC-2232",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-DAC-2232",
+    "rok_budowy": 1871,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 441996.4341543435,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "coke": 8.0,
+        "fuels": 10.0,
+        "iron": 20.0
+      },
+      "outputs": {
+        "steel": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 24,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region15",
+    "cluster_info": {
+      "region_id": "Dacja-Region15",
+      "scale_factor": 24,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-DAC-2232"
+    },
+    "ostatnia_produkcja": {
+      "steel": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7955122287432216,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-DAC-2233",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-DAC-2233",
+    "rok_budowy": 1899,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 432979.7643858708,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "industrial_machinery": 2.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "mechanical_components": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 23,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Dacja-Region15",
+    "cluster_info": {
+      "region_id": "Dacja-Region15",
+      "scale_factor": 23,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-DAC-2233"
+    },
+    "ostatnia_produkcja": {
+      "mechanical_components": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7361126002244278,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 1.5299999999999998,
+      "energy": 0.51,
+      "food": 0.51
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-DAC-2234",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-DAC-2234",
+    "rok_budowy": 1895,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 411171.1152878964,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 3.0,
+        "timber": 5.0,
+        "fuels": 2.0,
+        "steel": 8.0
+      },
+      "outputs": {
+        "trucks": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 22,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Dacja-Region15",
+    "cluster_info": {
+      "region_id": "Dacja-Region15",
+      "scale_factor": 22,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-DAC-2234"
+    },
+    "ostatnia_produkcja": {
+      "trucks": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7294057430302601,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.30300000000000005,
+      "timber": 0.5049999999999998,
+      "fuels": 0.202,
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-DAC-2235",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-DAC-2235",
+    "rok_budowy": 1891,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 358613.69047591055,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "energy": 8.0,
+        "steel": 12.0
+      },
+      "outputs": {
+        "industrial_machinery": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 19,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Dacja-Region15",
+    "cluster_info": {
+      "region_id": "Dacja-Region15",
+      "scale_factor": 19,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-DAC-2235"
+    },
+    "ostatnia_produkcja": {
+      "industrial_machinery": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8040270183270859,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.505,
+      "energy": 0.8079999999999999,
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-DAC-2236",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-DAC-2236",
+    "rok_budowy": 1895,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 85,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 336570.472902293,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "sulfur": 8.0,
+        "salt": 5.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "chemicals": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 17,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Dacja-Region15",
+    "cluster_info": {
+      "region_id": "Dacja-Region15",
+      "scale_factor": 17,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-DAC-2236"
+    },
+    "ostatnia_produkcja": {
+      "chemicals": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7909835888998853,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.525,
+      "chemicals": 3.5559305593570043,
+      "water": 2.220446049250313e-16
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-DAC-2237",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-DAC-2237",
+    "rok_budowy": 1895,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 303230.9561028957,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 10.0,
+        "clay": 8.0,
+        "limestone": 25.0
+      },
+      "outputs": {
+        "cement": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 16,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region15",
+    "cluster_info": {
+      "region_id": "Dacja-Region15",
+      "scale_factor": 16,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-DAC-2237"
+    },
+    "ostatnia_produkcja": {
+      "cement": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7321450387212398,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 6.717905215337182,
+      "energy": 0.0,
+      "clay": 1.1102230246251563e-16,
+      "food": 0.5,
+      "limestone": 2.220446049250313e-16
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-DAC-2238",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-DAC-2238",
+    "rok_budowy": 1877,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 72,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 232498.21707717175,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "catalysts": 1.0,
+        "oil": 25.0
+      },
+      "outputs": {
+        "bitumen": 3.0,
+        "fuels": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region15",
+    "cluster_info": {
+      "region_id": "Dacja-Region15",
+      "scale_factor": 12,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-DAC-2238"
+    },
+    "ostatnia_produkcja": {
+      "bitumen": 0.0,
+      "fuels": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7604255904471581,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "bitumen": 0.6744482980159182,
+      "energy": 0.0,
+      "catalysts": 1.3877787807814457e-17,
+      "fuels": 4.0466897880955095,
+      "food": 0.5,
+      "oil": 2.220446049250313e-16
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-DAC-2239",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-DAC-2239",
+    "rok_budowy": 1886,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 77,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 209714.2584181684,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "steel": 10.0,
+        "iron": 5.0
+      },
+      "outputs": {
+        "agricultural_machinery": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 106,
+    "region_id": "Dacja-Region15",
+    "cluster_info": {
+      "region_id": "Dacja-Region15",
+      "scale_factor": 10,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-DAC-2239"
+    },
+    "ostatnia_produkcja": {
+      "agricultural_machinery": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8718186210269974,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.318,
+      "food": 0.53,
+      "iron": 0.53
+    },
+    "pojemność_magazynu": 1060.0
+  },
+  {
+    "id": "B-DAC-2240",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-DAC-2240",
+    "rok_budowy": 1877,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 78,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 193188.94420443033,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "salt": 10.0,
+        "limestone": 8.0,
+        "ammonia": 3.0
+      },
+      "outputs": {
+        "soda_ash": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Dacja-Region15",
+    "cluster_info": {
+      "region_id": "Dacja-Region15",
+      "scale_factor": 9,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-DAC-2240"
+    },
+    "ostatnia_produkcja": {
+      "soda_ash": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7736984184752427,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.535,
+      "salt": 1.1102230246251563e-16,
+      "soda_ash": 2.891974304831885
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-DAC-2241",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-DAC-2241",
+    "rok_budowy": 1896,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 65,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 127774.10853858588,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "coke": 10.0,
+        "fuels": 12.0,
+        "iron": 25.0
+      },
+      "outputs": {
+        "steel": 22.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 6,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region15",
+    "cluster_info": {
+      "region_id": "Dacja-Region15",
+      "scale_factor": 6,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-DAC-2241"
+    },
+    "ostatnia_produkcja": {
+      "steel": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7757802365977593,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.1102230246251563e-16,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-DAC-2242",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-DAC-2242",
+    "rok_budowy": 1878,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 65,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 63463.59276901953,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "chemicals": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "pharmaceuticals": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 109,
+    "region_id": "Dacja-Region15",
+    "cluster_info": {
+      "region_id": "Dacja-Region15",
+      "scale_factor": 2,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-DAC-2242"
+    },
+    "ostatnia_produkcja": {
+      "pharmaceuticals": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9105064219457287,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 5.551115123125783e-17,
+      "food": 0.545,
+      "water": 1.6653345369377348e-16,
+      "pharmaceuticals": 3.00208365369656
+    },
+    "pojemność_magazynu": 1090.0
+  },
+  {
+    "id": "B-DAC-2243",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-DAC-2243",
+    "rok_budowy": 1877,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 96,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 64856.18191516095,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 10.0,
+        "energy": 5.0,
+        "steel": 25.0
+      },
+      "outputs": {
+        "trains": 3.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 158,
+    "region_id": "Dacja-Region15",
+    "cluster_info": {
+      "region_id": "Dacja-Region15",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-DAC-2243"
+    },
+    "ostatnia_produkcja": {
+      "trains": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8088680967547217,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 1.58,
+      "energy": 0.79,
+      "food": 0.79
+    },
+    "pojemność_magazynu": 1580.0
+  },
+  {
+    "id": "B-DAC-2244",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-DAC-2244",
+    "rok_budowy": 1884,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 30,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 19875.928683086873,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "bitumen": 8.0,
+        "energy": 3.0,
+        "sand": 10.0,
+        "gravel": 8.0
+      },
+      "outputs": {
+        "asphalt": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 48,
+    "region_id": "Dacja-Region15",
+    "cluster_info": {
+      "region_id": "Dacja-Region15",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-DAC-2244"
+    },
+    "ostatnia_produkcja": {
+      "asphalt": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8235572245736643,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "asphalt": 2.1772255276124186,
+      "bitumen": 2.7755575615628914e-17,
+      "energy": 0.0,
+      "sand": 0.6000000000000001,
+      "food": 0.24,
+      "gravel": 0.23200000000000004
+    },
+    "pojemność_magazynu": 480.0
+  },
+  {
+    "id": "B-DAC-2245",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-DAC-2245",
+    "rok_budowy": 1876,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 15,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 9216.050646414817,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "rare_earth_elements": 1.0,
+        "chemicals": 8.0
+      },
+      "outputs": {
+        "catalysts": 6.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 22,
+    "region_id": "Dacja-Region15",
+    "cluster_info": {
+      "region_id": "Dacja-Region15",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-DAC-2245"
+    },
+    "ostatnia_produkcja": {
+      "catalysts": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7298566106888358,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "catalysts": 0.2954916318410649,
+      "food": 0.11,
+      "rare_earth_elements": 1.734723475976807e-18,
+      "chemicals": 1.3877787807814457e-17
+    },
+    "pojemność_magazynu": 220.0
+  },
+  {
+    "id": "B-DAC-2246",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-DAC-2246",
+    "rok_budowy": 1887,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 14,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 8245.680103721887,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "bauxite": 20.0,
+        "energy": 30.0,
+        "catalysts": 2.0
+      },
+      "outputs": {
+        "aluminum": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 19,
+    "region_id": "Dacja-Region15",
+    "cluster_info": {
+      "region_id": "Dacja-Region15",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-DAC-2246"
+    },
+    "ostatnia_produkcja": {
+      "aluminum": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8767397773911666,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "aluminum": 0.5208820531867026,
+      "bauxite": 2.7755575615628914e-17,
+      "energy": 0.0,
+      "food": 0.095
+    },
+    "pojemność_magazynu": 190.0
+  },
+  {
+    "id": "B-DAC-2247",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-DAC-2247",
+    "rok_budowy": 1885,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 7,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 3314.1979329501687,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 10.0,
+        "energy": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "prefabricates": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 7,
+    "region_id": "Dacja-Region15",
+    "cluster_info": {
+      "region_id": "Dacja-Region15",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-DAC-2247"
+    },
+    "ostatnia_produkcja": {
+      "prefabricates": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8091757404799702,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 0.07,
+      "energy": 0.035,
+      "prefabricates": 0.14,
+      "food": 0.035
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

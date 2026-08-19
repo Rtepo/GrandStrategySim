@@ -1,0 +1,1465 @@
+[
+  {
+    "id": "B-PER-0060",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-PER-0060",
+    "rok_budowy": 1875,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 45000.0,
+    "aktywna_metoda": {
+      "rok": 1895,
+      "eksperci": 0.08,
+      "sredni": 0.2,
+      "szeregowi": 0.72,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "seeds": 8.0
+      },
+      "outputs": {
+        "cereal": 40.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 15,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Persja-Region9",
+    "cluster_info": {
+      "region_id": "Persja-Region9",
+      "scale_factor": 15,
+      "sector": "agriculture",
+      "owner_id": "KRS-PER-0060"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7906029234006329,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.0,
+      "food": 0.5,
+      "cereal": 4.0,
+      "seeds": 0.8
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-PER-1512",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-PER-1512",
+    "rok_budowy": 1888,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 2692320.7271781643,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "industrial_fiber": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 698,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Persja-Region9",
+    "cluster_info": {
+      "region_id": "Persja-Region9",
+      "scale_factor": 698,
+      "sector": "agriculture",
+      "owner_id": "KRS-PER-1512"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8133174685243426,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "industrial_fiber": 1.2000000000000002,
+      "seeds": 0.5,
+      "water": 0.8
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-PER-1513",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-PER-1513",
+    "rok_budowy": 1871,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 2248743.5300069763,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fodder": 15.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "meat": 10.0,
+        "livestock": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 583,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Persja-Region9",
+    "cluster_info": {
+      "region_id": "Persja-Region9",
+      "scale_factor": 583,
+      "sector": "agriculture",
+      "owner_id": "KRS-PER-1513"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7082629170099527,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "meat": 1.0,
+      "food": 0.30000000000000004,
+      "fodder": 1.5,
+      "water": 1.0,
+      "livestock": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-PER-1514",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-PER-1514",
+    "rok_budowy": 1899,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 2129170.5464217,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "seeds": 5.0,
+        "draft_animals": 3.0
+      },
+      "outputs": {
+        "cereal": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 552,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Persja-Region9",
+    "cluster_info": {
+      "region_id": "Persja-Region9",
+      "scale_factor": 552,
+      "sector": "agriculture",
+      "owner_id": "KRS-PER-1514"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9847270849831871,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.30000000000000004,
+      "cereal": 1.5,
+      "seeds": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-PER-1515",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-PER-1515",
+    "rok_budowy": 1875,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 1870738.6141567472,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "vegetable": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 485,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Persja-Region9",
+    "cluster_info": {
+      "region_id": "Persja-Region9",
+      "scale_factor": 485,
+      "sector": "agriculture",
+      "owner_id": "KRS-PER-1515"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.734191499529157,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.2,
+      "vegetable": 1.8,
+      "seeds": 0.5,
+      "water": 0.8
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-PER-1516",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-PER-1516",
+    "rok_budowy": 1898,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 1512019.6634009175,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 2.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "timber": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 392,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Persja-Region9",
+    "cluster_info": {
+      "region_id": "Persja-Region9",
+      "scale_factor": 392,
+      "sector": "agriculture",
+      "owner_id": "KRS-PER-1516"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8707633908518532,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 1.0,
+      "food": 0.5,
+      "seeds": 0.2,
+      "water": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-PER-1517",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-PER-1517",
+    "rok_budowy": 1895,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 1488876.505287638,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 6.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "protein": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 386,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Persja-Region9",
+    "cluster_info": {
+      "region_id": "Persja-Region9",
+      "scale_factor": 386,
+      "sector": "agriculture",
+      "owner_id": "KRS-PER-1517"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9934587814870464,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.2,
+      "protein": 1.2000000000000002,
+      "seeds": 0.6000000000000001,
+      "water": 1.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-PER-1518",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-PER-1518",
+    "rok_budowy": 1885,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 1153300.7126450876,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "cereal": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "seeds": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 299,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Persja-Region9",
+    "cluster_info": {
+      "region_id": "Persja-Region9",
+      "scale_factor": 299,
+      "sector": "agriculture",
+      "owner_id": "KRS-PER-1518"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7692926327441018,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.2,
+      "cereal": 1.0,
+      "seeds": 1.2000000000000002,
+      "water": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-PER-1519",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-PER-1519",
+    "rok_budowy": 1875,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 810010.5339647772,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cereal": 8.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "fodder": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 210,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Persja-Region9",
+    "cluster_info": {
+      "region_id": "Persja-Region9",
+      "scale_factor": 210,
+      "sector": "agriculture",
+      "owner_id": "KRS-PER-1519"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8001973030034285,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "cereal": 0.8,
+      "fodder": 1.5,
+      "water": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-PER-1520",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-PER-1520",
+    "rok_budowy": 1878,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 659580.0062284615,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 4.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "luxury": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 171,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Persja-Region9",
+    "cluster_info": {
+      "region_id": "Persja-Region9",
+      "scale_factor": 171,
+      "sector": "agriculture",
+      "owner_id": "KRS-PER-1520"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9135618598265529,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.2,
+      "seeds": 0.4,
+      "luxury": 0.8,
+      "water": 1.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-PER-1521",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-PER-1521",
+    "rok_budowy": 1872,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 605579.303964143,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 5.0,
+        "seeds": 5.0,
+        "draft_animals": 5.0
+      },
+      "outputs": {
+        "cereal": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 157,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Persja-Region9",
+    "cluster_info": {
+      "region_id": "Persja-Region9",
+      "scale_factor": 157,
+      "sector": "agriculture",
+      "owner_id": "KRS-PER-1521"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7004329684155639,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "cereal": 2.5,
+      "seeds": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-PER-1522",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-PER-1522",
+    "rok_budowy": 1884,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 493720.7064166261,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 4.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "fruit": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 128,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Persja-Region9",
+    "cluster_info": {
+      "region_id": "Persja-Region9",
+      "scale_factor": 128,
+      "sector": "agriculture",
+      "owner_id": "KRS-PER-1522"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7553362184339292,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fruit": 1.5,
+      "food": 0.2,
+      "seeds": 0.4,
+      "water": 0.8
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-PER-1523",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-PER-1523",
+    "rok_budowy": 1889,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 435862.8111334278,
+    "aktywna_metoda": {
+      "rok": 1895,
+      "eksperci": 0.08,
+      "sredni": 0.2,
+      "szeregowi": 0.72,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "seeds": 8.0
+      },
+      "outputs": {
+        "cereal": 40.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 113,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Persja-Region9",
+    "cluster_info": {
+      "region_id": "Persja-Region9",
+      "scale_factor": 113,
+      "sector": "agriculture",
+      "owner_id": "KRS-PER-1523"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9998103188161231,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.0,
+      "food": 0.5,
+      "cereal": 4.0,
+      "seeds": 0.8
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-PER-1524",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-PER-1524",
+    "rok_budowy": 1897,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 351004.5647180702,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "industrial_fiber": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 91,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Persja-Region9",
+    "cluster_info": {
+      "region_id": "Persja-Region9",
+      "scale_factor": 91,
+      "sector": "agriculture",
+      "owner_id": "KRS-PER-1524"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8593782391836257,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "industrial_fiber": 1.2000000000000002,
+      "seeds": 0.5,
+      "water": 0.8
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-PER-1525",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-PER-1525",
+    "rok_budowy": 1873,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 258431.93226495275,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fodder": 15.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "meat": 10.0,
+        "livestock": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 67,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Persja-Region9",
+    "cluster_info": {
+      "region_id": "Persja-Region9",
+      "scale_factor": 67,
+      "sector": "agriculture",
+      "owner_id": "KRS-PER-1525"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9134723857558761,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "meat": 1.0,
+      "food": 0.30000000000000004,
+      "fodder": 1.5,
+      "water": 1.0,
+      "livestock": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-PER-1526",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-PER-1526",
+    "rok_budowy": 1894,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 254574.73924607286,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "seeds": 5.0,
+        "draft_animals": 3.0
+      },
+      "outputs": {
+        "cereal": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 66,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Persja-Region9",
+    "cluster_info": {
+      "region_id": "Persja-Region9",
+      "scale_factor": 66,
+      "sector": "agriculture",
+      "owner_id": "KRS-PER-1526"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7477949804562105,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.30000000000000004,
+      "cereal": 1.5,
+      "seeds": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-PER-1527",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-PER-1527",
+    "rok_budowy": 1894,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 254574.73924607286,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "vegetable": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 66,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Persja-Region9",
+    "cluster_info": {
+      "region_id": "Persja-Region9",
+      "scale_factor": 66,
+      "sector": "agriculture",
+      "owner_id": "KRS-PER-1527"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8987759820501247,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.2,
+      "vegetable": 1.8,
+      "seeds": 0.5,
+      "water": 0.8
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-PER-1528",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-PER-1528",
+    "rok_budowy": 1897,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 138858.9486796761,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 2.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "timber": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 36,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Persja-Region9",
+    "cluster_info": {
+      "region_id": "Persja-Region9",
+      "scale_factor": 36,
+      "sector": "agriculture",
+      "owner_id": "KRS-PER-1528"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9426992098155673,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 1.0,
+      "food": 0.5,
+      "seeds": 0.2,
+      "water": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-PER-1529",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-PER-1529",
+    "rok_budowy": 1879,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 104144.21150975708,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 6.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "protein": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 27,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Persja-Region9",
+    "cluster_info": {
+      "region_id": "Persja-Region9",
+      "scale_factor": 27,
+      "sector": "agriculture",
+      "owner_id": "KRS-PER-1529"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9322982009815431,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.2,
+      "protein": 1.2000000000000002,
+      "seeds": 0.6000000000000001,
+      "water": 1.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-PER-1530",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-PER-1530",
+    "rok_budowy": 1892,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 179,
+    "zatrudnienie_aktualne": 107,
+    "rezerwa_zakladowa": 6904.375503795005,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "cereal": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "seeds": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 179,
+    "region_id": "Persja-Region9",
+    "cluster_info": {
+      "region_id": "Persja-Region9",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-PER-1530"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7921020624056349,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.358,
+      "cereal": 1.79,
+      "seeds": 2.1479999999999997,
+      "water": 0.895
+    },
+    "pojemność_magazynu": 1790.0
+  },
+  {
+    "id": "B-PER-1531",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-PER-1531",
+    "rok_budowy": 1896,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 43,
+    "zatrudnienie_aktualne": 26,
+    "rezerwa_zakladowa": 1658.5929981183535,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cereal": 8.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "fodder": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 43,
+    "region_id": "Persja-Region9",
+    "cluster_info": {
+      "region_id": "Persja-Region9",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-PER-1531"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9241741516588766,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.21499999999999997,
+      "cereal": 0.344,
+      "fodder": 0.6449999999999999,
+      "water": 0.21499999999999997
+    },
+    "pojemność_magazynu": 430.0
+  }
+]

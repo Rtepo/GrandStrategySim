@@ -1,0 +1,72 @@
+[
+  {
+    "id": "B-ILI-0029",
+    "name": "Media Studio",
+    "wlasciciel_id": "KRS-ILI-0029",
+    "rok_budowy": 1880,
+    "sektor_pkb": "media_and_entertainment",
+    "pojemnosc_pracownikow": 40,
+    "zatrudnienie_aktualne": 40,
+    "rezerwa_zakladowa": 26300.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "paper": 10.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "radio": 0.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region13",
+    "cluster_info": {
+      "region_id": "Iliria-Region13",
+      "scale_factor": 2,
+      "sector": "media_and_entertainment",
+      "owner_id": "KRS-ILI-0029"
+    },
+    "ostatnia_produkcja": {
+      "radio": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.988,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 3.0,
+        "condition": 0.8195186733880883,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.5,
+      "food": 0.4,
+      "local_services": 2.0
+    },
+    "pojemność_magazynu": 1000.0
+  }
+]

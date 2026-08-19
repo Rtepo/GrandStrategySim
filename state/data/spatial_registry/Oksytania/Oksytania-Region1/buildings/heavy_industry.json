@@ -1,0 +1,1501 @@
+[
+  {
+    "id": "B-OKS-0004",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-OKS-0004",
+    "rok_budowy": 1886,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 50040.0,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "coke": 10.0,
+        "fuels": 12.0,
+        "iron": 25.0
+      },
+      "outputs": {
+        "steel": 22.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 12,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-OKS-0004"
+    },
+    "ostatnia_produkcja": {
+      "steel": 22.176000000000002
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9650007189985012,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.52
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-OKS-1190",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-OKS-1190",
+    "rok_budowy": 1890,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 2686256.8244255455,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 5.0,
+        "steel": 10.0,
+        "iron": 5.0
+      },
+      "outputs": {
+        "construction_machinery": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 812,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 812,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-OKS-1190"
+    },
+    "ostatnia_produkcja": {
+      "construction_machinery": 649.6
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9173181143320491,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.5,
+      "food": 0.5,
+      "iron": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-OKS-1191",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-OKS-1191",
+    "rok_budowy": 1878,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 2235564.4784325655,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "clay": 20.0
+      },
+      "outputs": {
+        "bricks": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 675,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 675,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-OKS-1191"
+    },
+    "ostatnia_produkcja": {
+      "bricks": 1687.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7252694271687022,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "bricks": 5.573231972435279,
+      "energy": 0.5,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-OKS-1192",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-OKS-1192",
+    "rok_budowy": 1884,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 2090816.571690295,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "coke": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 631,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 631,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-OKS-1192"
+    },
+    "ostatnia_produkcja": {
+      "coke": 946.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7891653906295222,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.5,
+      "coke": 3.373963560396862,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-OKS-1193",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-OKS-1193",
+    "rok_budowy": 1876,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 2067788.4956176607,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 12.0,
+        "sand": 20.0,
+        "soda_ash": 5.0
+      },
+      "outputs": {
+        "glass": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 624,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 624,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-OKS-1193"
+    },
+    "ostatnia_produkcja": {
+      "glass": 1123.2
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7275330854710645,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 1.2000000000000002,
+      "food": 0.5,
+      "glass": 4.014003437500147
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-OKS-1194",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-OKS-1194",
+    "rok_budowy": 1874,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 2011863.168012692,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "coke": 8.0,
+        "fuels": 10.0,
+        "iron": 20.0
+      },
+      "outputs": {
+        "steel": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 607,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 607,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-OKS-1194"
+    },
+    "ostatnia_produkcja": {
+      "steel": 910.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7753300064375402,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-OKS-1195",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-OKS-1195",
+    "rok_budowy": 1881,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 1824348.8342783863,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "industrial_machinery": 2.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "mechanical_components": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 550,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 550,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-OKS-1195"
+    },
+    "ostatnia_produkcja": {
+      "mechanical_components": 825.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7345098620547951,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 1.5,
+      "energy": 1.0,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-OKS-1196",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-OKS-1196",
+    "rok_budowy": 1899,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 1332679.7864466058,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 3.0,
+        "timber": 5.0,
+        "fuels": 2.0,
+        "steel": 8.0
+      },
+      "outputs": {
+        "trucks": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 401,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 401,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-OKS-1196"
+    },
+    "ostatnia_produkcja": {
+      "trucks": 180.45000000000002
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7681559743845561,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.30000000000000004,
+      "timber": 0.5,
+      "fuels": 0.2,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-OKS-1197",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-OKS-1197",
+    "rok_budowy": 1880,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 895146.3410665593,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "energy": 8.0,
+        "steel": 12.0
+      },
+      "outputs": {
+        "industrial_machinery": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 268,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 268,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-OKS-1197"
+    },
+    "ostatnia_produkcja": {
+      "industrial_machinery": 241.20000000000002
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9510580845287936,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.5,
+      "energy": 1.5200000000000002,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-OKS-1198",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-OKS-1198",
+    "rok_budowy": 1895,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 862249.089534225,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "sulfur": 8.0,
+        "salt": 5.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "chemicals": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 258,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 258,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-OKS-1198"
+    },
+    "ostatnia_produkcja": {
+      "chemicals": 348.29999999999995
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8412009042096525,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.72,
+      "food": 0.5,
+      "chemicals": 3.3984147743570405
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-OKS-1199",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-OKS-1199",
+    "rok_budowy": 1881,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 720790.9079451875,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 10.0,
+        "clay": 8.0,
+        "limestone": 25.0
+      },
+      "outputs": {
+        "cement": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 215,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 215,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-OKS-1199"
+    },
+    "ostatnia_produkcja": {
+      "cement": 580.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8393531504902823,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 6.795093049218657,
+      "energy": 0.8999999999999999,
+      "clay": 1.1102230246251563e-16,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-OKS-1200",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-OKS-1200",
+    "rok_budowy": 1891,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 569463.5508964497,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "catalysts": 1.0,
+        "oil": 25.0
+      },
+      "outputs": {
+        "bitumen": 3.0,
+        "fuels": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 169,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 169,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-OKS-1200"
+    },
+    "ostatnia_produkcja": {
+      "bitumen": 45.63,
+      "fuels": 273.78000000000003
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9606418493919051,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "bitumen": 0.6909078891723257,
+      "energy": 0.44999999999999996,
+      "catalysts": 1.3877787807814457e-17,
+      "fuels": 4.145447335033953,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-OKS-1201",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-OKS-1201",
+    "rok_budowy": 1875,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 349051.9656298099,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "steel": 10.0,
+        "iron": 5.0
+      },
+      "outputs": {
+        "agricultural_machinery": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 102,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 102,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-OKS-1201"
+    },
+    "ostatnia_produkcja": {
+      "agricultural_machinery": 73.44
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7358237909491134,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.30000000000000004,
+      "food": 0.5,
+      "iron": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-OKS-1202",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-OKS-1202",
+    "rok_budowy": 1875,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 296416.363178075,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "salt": 10.0,
+        "limestone": 8.0,
+        "ammonia": 3.0
+      },
+      "outputs": {
+        "soda_ash": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 86,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 86,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-OKS-1202"
+    },
+    "ostatnia_produkcja": {
+      "soda_ash": 92.88
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8458354838663953,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.72,
+      "food": 0.5,
+      "soda_ash": 2.7204740311561766
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-OKS-1203",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-OKS-1203",
+    "rok_budowy": 1873,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 270098.5619522076,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "coke": 10.0,
+        "fuels": 12.0,
+        "iron": 25.0
+      },
+      "outputs": {
+        "steel": 22.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 78,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 78,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-OKS-1203"
+    },
+    "ostatnia_produkcja": {
+      "steel": 154.44
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8239390081937534,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "coke": 1.1102230246251563e-16,
+      "fuels": 2.220446049250313e-16,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-OKS-1204",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-OKS-1204",
+    "rok_budowy": 1880,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 249406.19073836925,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "chemicals": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "pharmaceuticals": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 71,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 71,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-OKS-1204"
+    },
+    "ostatnia_produkcja": {
+      "pharmaceuticals": 76.67999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9212327849950107,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.44999999999999984,
+      "food": 0.505,
+      "pharmaceuticals": 2.77629582111494
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-OKS-1205",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-OKS-1205",
+    "rok_budowy": 1886,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 153050.1410001621,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 10.0,
+        "energy": 5.0,
+        "steel": 25.0
+      },
+      "outputs": {
+        "trains": 3.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 42,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 42,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-OKS-1205"
+    },
+    "ostatnia_produkcja": {
+      "trains": 11.34
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.806442368742399,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 1.01,
+      "energy": 0.9549999999999998,
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-OKS-1206",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-OKS-1206",
+    "rok_budowy": 1880,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 138509.55582287034,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "bitumen": 8.0,
+        "energy": 3.0,
+        "sand": 10.0,
+        "gravel": 8.0
+      },
+      "outputs": {
+        "asphalt": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 38,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 38,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-OKS-1206"
+    },
+    "ostatnia_produkcja": {
+      "asphalt": 68.4
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9864689270236664,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "asphalt": 4.622233938278407,
+      "energy": 0.27,
+      "food": 0.5,
+      "gravel": 0.72
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-OKS-1207",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-OKS-1207",
+    "rok_budowy": 1884,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 92,
+    "zatrudnienie_aktualne": 92,
+    "rezerwa_zakladowa": 91733.58888009995,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "rare_earth_elements": 1.0,
+        "chemicals": 8.0
+      },
+      "outputs": {
+        "catalysts": 6.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 23,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 23,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-OKS-1207"
+    },
+    "ostatnia_produkcja": {
+      "catalysts": 12.696000000000002
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9337652535874456,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.4600000000000002,
+      "catalysts": 1.4180607554852542,
+      "food": 0.515,
+      "rare_earth_elements": 6.938893903907228e-18
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-OKS-1208",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-OKS-1208",
+    "rok_budowy": 1885,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 85,
+    "zatrudnienie_aktualne": 85,
+    "rezerwa_zakladowa": 75825.80539611183,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "bauxite": 20.0,
+        "energy": 30.0,
+        "catalysts": 2.0
+      },
+      "outputs": {
+        "aluminum": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 18,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 18,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-OKS-1208"
+    },
+    "ostatnia_produkcja": {
+      "aluminum": 20.304
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9435636916339476,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "aluminum": 2.8950721879096113,
+      "bauxite": 2.220446049250313e-16,
+      "energy": 2.8200000000000007,
+      "food": 0.525
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-OKS-1209",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-OKS-1209",
+    "rok_budowy": 1891,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 72857.20328578376,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 10.0,
+        "energy": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "prefabricates": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 18,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 18,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-OKS-1209"
+    },
+    "ostatnia_produkcja": {
+      "prefabricates": 32.400000000000006
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7310722293752294,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.01,
+      "energy": 0.9549999999999998,
+      "prefabricates": 2.02,
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  }
+]

@@ -1,0 +1,1483 @@
+[
+  {
+    "id": "B-DAC-0003",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-DAC-0003",
+    "rok_budowy": 1879,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 20,
+    "zatrudnienie_aktualne": 20,
+    "rezerwa_zakladowa": 74000.0,
+    "aktywna_metoda": {
+      "rok": 1895,
+      "eksperci": 0.08,
+      "sredni": 0.2,
+      "szeregowi": 0.72,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "seeds": 8.0
+      },
+      "outputs": {
+        "cereal": 40.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 15,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region9",
+    "cluster_info": {
+      "region_id": "Dacja-Region9",
+      "scale_factor": 15,
+      "sector": "agriculture",
+      "owner_id": "KRS-DAC-0003"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 13.200000000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9141138771798439,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "cereal": 8.740764678549267,
+      "water": 10.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-DAC-1688",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-DAC-1688",
+    "rok_budowy": 1887,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 74,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 254459.51394389072,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "seeds": 5.0,
+        "draft_animals": 3.0
+      },
+      "outputs": {
+        "cereal": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 13,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Dacja-Region9",
+    "cluster_info": {
+      "region_id": "Dacja-Region9",
+      "scale_factor": 13,
+      "sector": "agriculture",
+      "owner_id": "KRS-DAC-1688"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9598050478006179,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 1.3877787807814457e-17,
+      "cereal": 3.3570271881611573,
+      "water": 6.375069034362363
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-DAC-1689",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-DAC-1689",
+    "rok_budowy": 1889,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 78,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 229958.7465399392,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 6.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "protein": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Dacja-Region9",
+    "cluster_info": {
+      "region_id": "Dacja-Region9",
+      "scale_factor": 11,
+      "sector": "agriculture",
+      "owner_id": "KRS-DAC-1689"
+    },
+    "ostatnia_produkcja": {
+      "protein": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9301190209904813,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "protein": 2.809807092072664,
+      "water": 6.85
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-DAC-1690",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-DAC-1690",
+    "rok_budowy": 1894,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 74,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 219134.9733371383,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cereal": 8.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "fodder": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Dacja-Region9",
+    "cluster_info": {
+      "region_id": "Dacja-Region9",
+      "scale_factor": 11,
+      "sector": "agriculture",
+      "owner_id": "KRS-DAC-1690"
+    },
+    "ostatnia_produkcja": {
+      "fodder": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.6904283016929572,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51,
+      "fodder": 3.276333257206087,
+      "water": 5.879999999999999
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-DAC-1691",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-DAC-1691",
+    "rok_budowy": 1884,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 78,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 213312.273800454,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 2.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "timber": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 108,
+    "region_id": "Dacja-Region9",
+    "cluster_info": {
+      "region_id": "Dacja-Region9",
+      "scale_factor": 10,
+      "sector": "agriculture",
+      "owner_id": "KRS-DAC-1691"
+    },
+    "ostatnia_produkcja": {
+      "timber": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.6790638109868669,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 0.2302979687905703,
+      "food": 0.54,
+      "water": 5.930000000000001
+    },
+    "pojemność_magazynu": 1080.0
+  },
+  {
+    "id": "B-DAC-1692",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-DAC-1692",
+    "rok_budowy": 1887,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 76,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 189235.7395753972,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "cereal": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "seeds": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Dacja-Region9",
+    "cluster_info": {
+      "region_id": "Dacja-Region9",
+      "scale_factor": 9,
+      "sector": "agriculture",
+      "owner_id": "KRS-DAC-1692"
+    },
+    "ostatnia_produkcja": {
+      "seeds": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.6840109830446027,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "seeds": 2.696575700827719,
+      "water": 5.905000000000001
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-DAC-1693",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-DAC-1693",
+    "rok_budowy": 1889,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 78,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 155846.4750708704,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "industrial_fiber": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Dacja-Region9",
+    "cluster_info": {
+      "region_id": "Dacja-Region9",
+      "scale_factor": 7,
+      "sector": "agriculture",
+      "owner_id": "KRS-DAC-1693"
+    },
+    "ostatnia_produkcja": {
+      "industrial_fiber": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8326564501473108,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.535,
+      "industrial_fiber": 2.78530561731577,
+      "water": 6.48
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-DAC-1694",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-DAC-1694",
+    "rok_budowy": 1896,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 79,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 139846.3213569416,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "vegetable": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 6,
+    "pojemnosc_budowlana": 109,
+    "region_id": "Dacja-Region9",
+    "cluster_info": {
+      "region_id": "Dacja-Region9",
+      "scale_factor": 6,
+      "sector": "agriculture",
+      "owner_id": "KRS-DAC-1694"
+    },
+    "ostatnia_produkcja": {
+      "vegetable": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9286109260974993,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "vegetable": 4.292908070508013,
+      "seeds": 2.7755575615628914e-17,
+      "water": 6.504
+    },
+    "pojemność_magazynu": 1090.0
+  },
+  {
+    "id": "B-DAC-1695",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-DAC-1695",
+    "rok_budowy": 1897,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 68,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 114692.94664466304,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fodder": 15.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "meat": 10.0,
+        "livestock": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Dacja-Region9",
+    "cluster_info": {
+      "region_id": "Dacja-Region9",
+      "scale_factor": 5,
+      "sector": "agriculture",
+      "owner_id": "KRS-DAC-1695"
+    },
+    "ostatnia_produkcja": {
+      "meat": 0.0,
+      "livestock": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7155230005233693,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "meat": 2.2321582633907795,
+      "food": 2.7755575615628914e-17,
+      "water": 6.72,
+      "livestock": 1.1160791316953895
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-DAC-1696",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-DAC-1696",
+    "rok_budowy": 1882,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 78,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 110673.92808242232,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 4.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "fruit": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 119,
+    "region_id": "Dacja-Region9",
+    "cluster_info": {
+      "region_id": "Dacja-Region9",
+      "scale_factor": 4,
+      "sector": "agriculture",
+      "owner_id": "KRS-DAC-1696"
+    },
+    "ostatnia_produkcja": {
+      "fruit": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7328493726970303,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fruit": 3.8372122510306745,
+      "water": 6.576
+    },
+    "pojemność_magazynu": 1190.0
+  },
+  {
+    "id": "B-DAC-1697",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-DAC-1697",
+    "rok_budowy": 1885,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 85,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 98382.20998349728,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 4.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "luxury": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 130,
+    "region_id": "Dacja-Region9",
+    "cluster_info": {
+      "region_id": "Dacja-Region9",
+      "scale_factor": 3,
+      "sector": "agriculture",
+      "owner_id": "KRS-DAC-1697"
+    },
+    "ostatnia_produkcja": {
+      "luxury": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.6838493274814085,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "luxury": 2.225712106429478,
+      "water": 7.15
+    },
+    "pojemność_magazynu": 1300.0
+  },
+  {
+    "id": "B-DAC-1698",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-DAC-1698",
+    "rok_budowy": 1893,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 85,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 97712.73144516267,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 5.0,
+        "seeds": 5.0,
+        "draft_animals": 5.0
+      },
+      "outputs": {
+        "cereal": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 129,
+    "region_id": "Dacja-Region9",
+    "cluster_info": {
+      "region_id": "Dacja-Region9",
+      "scale_factor": 3,
+      "sector": "agriculture",
+      "owner_id": "KRS-DAC-1698"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8094123451900159,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cereal": 6.981122596328665,
+      "water": 2.5
+    },
+    "pojemność_magazynu": 1290.0
+  },
+  {
+    "id": "B-DAC-1699",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-DAC-1699",
+    "rok_budowy": 1875,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 61050.76740395152,
+    "aktywna_metoda": {
+      "rok": 1895,
+      "eksperci": 0.08,
+      "sredni": 0.2,
+      "szeregowi": 0.72,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "seeds": 8.0
+      },
+      "outputs": {
+        "cereal": 40.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 149,
+    "region_id": "Dacja-Region9",
+    "cluster_info": {
+      "region_id": "Dacja-Region9",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-DAC-1699"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7846188319046782,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.745,
+      "cereal": 12.872617842417103,
+      "water": 2.5
+    },
+    "pojemność_magazynu": 1490.0
+  },
+  {
+    "id": "B-DAC-1700",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-DAC-1700",
+    "rok_budowy": 1885,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 76,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 51618.09861005297,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "seeds": 5.0,
+        "draft_animals": 3.0
+      },
+      "outputs": {
+        "cereal": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 126,
+    "region_id": "Dacja-Region9",
+    "cluster_info": {
+      "region_id": "Dacja-Region9",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-DAC-1700"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7811455577385967,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 2.7755575615628914e-17,
+      "cereal": 4.080812338281501,
+      "water": 2.5
+    },
+    "pojemność_magazynu": 1260.0
+  },
+  {
+    "id": "B-DAC-1701",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-DAC-1701",
+    "rok_budowy": 1893,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 37,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 24689.57076669189,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 6.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "protein": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 60,
+    "region_id": "Dacja-Region9",
+    "cluster_info": {
+      "region_id": "Dacja-Region9",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-DAC-1701"
+    },
+    "ostatnia_produkcja": {
+      "protein": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9349993016917387,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "protein": 1.576281827455324,
+      "seeds": 2.7755575615628914e-17,
+      "water": 3.42
+    },
+    "pojemność_magazynu": 600.0
+  },
+  {
+    "id": "B-DAC-1702",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-DAC-1702",
+    "rok_budowy": 1877,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 37,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 24466.41125391369,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cereal": 8.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "fodder": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 59,
+    "region_id": "Dacja-Region9",
+    "cluster_info": {
+      "region_id": "Dacja-Region9",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-DAC-1702"
+    },
+    "ostatnia_produkcja": {
+      "fodder": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8135645801223145,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.295,
+      "fodder": 1.9164667334567729,
+      "water": 2.795
+    },
+    "pojemność_magazynu": 590.0
+  },
+  {
+    "id": "B-DAC-1703",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-DAC-1703",
+    "rok_budowy": 1887,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 33,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 21877.4541772445,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 2.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "timber": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 53,
+    "region_id": "Dacja-Region9",
+    "cluster_info": {
+      "region_id": "Dacja-Region9",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-DAC-1703"
+    },
+    "ostatnia_produkcja": {
+      "timber": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.6954516870167012,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 0.005462724532743657,
+      "food": 0.265,
+      "water": 2.905000000000001
+    },
+    "pojemność_magazynu": 530.0
+  },
+  {
+    "id": "B-DAC-1704",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-DAC-1704",
+    "rok_budowy": 1885,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 20,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 12917.944896124143,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "cereal": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "seeds": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 31,
+    "region_id": "Dacja-Region9",
+    "cluster_info": {
+      "region_id": "Dacja-Region9",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-DAC-1704"
+    },
+    "ostatnia_produkcja": {
+      "seeds": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7517606104244346,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "seeds": 0.8010702521647236,
+      "water": 2.6500000000000004
+    },
+    "pojemność_magazynu": 310.0
+  },
+  {
+    "id": "B-DAC-1705",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-DAC-1705",
+    "rok_budowy": 1871,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 9,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 5077.914153338377,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "industrial_fiber": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 12,
+    "region_id": "Dacja-Region9",
+    "cluster_info": {
+      "region_id": "Dacja-Region9",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-DAC-1705"
+    },
+    "ostatnia_produkcja": {
+      "industrial_fiber": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8596855999958661,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.06,
+      "industrial_fiber": 0.3131310329581993,
+      "water": 2.588
+    },
+    "pojemność_magazynu": 120.0
+  },
+  {
+    "id": "B-DAC-1706",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-DAC-1706",
+    "rok_budowy": 1891,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 2,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 946.3190255563964,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "vegetable": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 2,
+    "region_id": "Dacja-Region9",
+    "cluster_info": {
+      "region_id": "Dacja-Region9",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-DAC-1706"
+    },
+    "ostatnia_produkcja": {
+      "vegetable": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8567472273295567,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "vegetable": 0.0782743086675776,
+      "water": 2.516
+    },
+    "pojemność_magazynu": 100.0
+  },
+  {
+    "id": "B-DAC-1707",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-DAC-1707",
+    "rok_budowy": 1888,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 2,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 946.3190255563964,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fodder": 15.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "meat": 10.0,
+        "livestock": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 2,
+    "region_id": "Dacja-Region9",
+    "cluster_info": {
+      "region_id": "Dacja-Region9",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-DAC-1707"
+    },
+    "ostatnia_produkcja": {
+      "meat": 0.0,
+      "livestock": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.6674104357899371,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "meat": 0.042744324022251125,
+      "water": 2.5200000000000022,
+      "livestock": 0.02137216201112556
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

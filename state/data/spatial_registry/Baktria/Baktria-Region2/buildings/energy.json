@@ -1,0 +1,1498 @@
+[
+  {
+    "id": "B-BAK-0007",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-BAK-0007",
+    "rok_budowy": 1879,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 43,
+    "zatrudnienie_aktualne": 43,
+    "rezerwa_zakladowa": 29670.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Baktria-Region2",
+    "cluster_info": {
+      "region_id": "Baktria-Region2",
+      "scale_factor": 7,
+      "sector": "energy",
+      "owner_id": "KRS-BAK-0007"
+    },
+    "ostatnia_produkcja": {
+      "energy": 0.0,
+      "heat": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8336941201620534,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "cereal": 8.678956418590204,
+      "seeds": 5.551115123125783e-17,
+      "water": 0.0
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-BAK-0541",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-BAK-0541",
+    "rok_budowy": 1896,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 50,
+    "zatrudnienie_aktualne": 50,
+    "rezerwa_zakladowa": 1907911.589672823,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 158,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region2",
+    "cluster_info": {
+      "region_id": "Baktria-Region2",
+      "scale_factor": 158,
+      "sector": "energy",
+      "owner_id": "KRS-BAK-0541"
+    },
+    "ostatnia_produkcja": {
+      "energy": 237.0,
+      "heat": 79.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8210614068167496,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 1.6
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-0542",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-BAK-0542",
+    "rok_budowy": 1877,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 50,
+    "zatrudnienie_aktualne": 50,
+    "rezerwa_zakladowa": 1523018.103156808,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 126,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region2",
+    "cluster_info": {
+      "region_id": "Baktria-Region2",
+      "scale_factor": 126,
+      "sector": "energy",
+      "owner_id": "KRS-BAK-0542"
+    },
+    "ostatnia_produkcja": {
+      "water": 315.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8672475744841074,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "chemicals": 0.04000000000000001,
+      "water": 0.8228773836835908
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-0543",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-BAK-0543",
+    "rok_budowy": 1899,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 50,
+    "zatrudnienie_aktualne": 50,
+    "rezerwa_zakladowa": 1198264.2239089203,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 99,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region2",
+    "cluster_info": {
+      "region_id": "Baktria-Region2",
+      "scale_factor": 99,
+      "sector": "energy",
+      "owner_id": "KRS-BAK-0543"
+    },
+    "ostatnia_produkcja": {
+      "energy": 247.5,
+      "heat": 74.25
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8703774034972451,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-0544",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-BAK-0544",
+    "rok_budowy": 1899,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 50,
+    "zatrudnienie_aktualne": 50,
+    "rezerwa_zakladowa": 1090012.9308262914,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 90,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region2",
+    "cluster_info": {
+      "region_id": "Baktria-Region2",
+      "scale_factor": 90,
+      "sector": "energy",
+      "owner_id": "KRS-BAK-0544"
+    },
+    "ostatnia_produkcja": {
+      "energy": 360.0,
+      "heat": 112.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7062685962174777,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 1.6
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-0545",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-BAK-0545",
+    "rok_budowy": 1894,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 50,
+    "zatrudnienie_aktualne": 50,
+    "rezerwa_zakladowa": 1053929.1664654152,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 87,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region2",
+    "cluster_info": {
+      "region_id": "Baktria-Region2",
+      "scale_factor": 87,
+      "sector": "energy",
+      "owner_id": "KRS-BAK-0545"
+    },
+    "ostatnia_produkcja": {
+      "energy": 130.5,
+      "heat": 43.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.849724693041068,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 1.6
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-0546",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-BAK-0546",
+    "rok_budowy": 1882,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 50,
+    "zatrudnienie_aktualne": 50,
+    "rezerwa_zakladowa": 1053929.1664654152,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 87,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region2",
+    "cluster_info": {
+      "region_id": "Baktria-Region2",
+      "scale_factor": 87,
+      "sector": "energy",
+      "owner_id": "KRS-BAK-0546"
+    },
+    "ostatnia_produkcja": {
+      "water": 217.49999999999997
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8219437669333581,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "chemicals": 0.04000000000000001,
+      "water": 0.7803013422295813
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-0547",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-BAK-0547",
+    "rok_budowy": 1895,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 50,
+    "zatrudnienie_aktualne": 50,
+    "rezerwa_zakladowa": 933649.9519291604,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 77,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region2",
+    "cluster_info": {
+      "region_id": "Baktria-Region2",
+      "scale_factor": 77,
+      "sector": "energy",
+      "owner_id": "KRS-BAK-0547"
+    },
+    "ostatnia_produkcja": {
+      "energy": 192.5,
+      "heat": 57.75
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7469204224635682,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 1.28
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-0548",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-BAK-0548",
+    "rok_budowy": 1895,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 50,
+    "zatrudnienie_aktualne": 50,
+    "rezerwa_zakladowa": 644979.8370421494,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 53,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region2",
+    "cluster_info": {
+      "region_id": "Baktria-Region2",
+      "scale_factor": 53,
+      "sector": "energy",
+      "owner_id": "KRS-BAK-0548"
+    },
+    "ostatnia_produkcja": {
+      "energy": 212.0,
+      "heat": 66.25
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7667412345523337,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 1.6
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-0549",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-BAK-0549",
+    "rok_budowy": 1890,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 50,
+    "zatrudnienie_aktualne": 50,
+    "rezerwa_zakladowa": 311205.01670404285,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 25,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Baktria-Region2",
+    "cluster_info": {
+      "region_id": "Baktria-Region2",
+      "scale_factor": 25,
+      "sector": "energy",
+      "owner_id": "KRS-BAK-0549"
+    },
+    "ostatnia_produkcja": {
+      "energy": 37.5,
+      "heat": 12.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.752933658932205,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505,
+      "water": 1.5999999999999996
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-BAK-0550",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-BAK-0550",
+    "rok_budowy": 1873,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 45,
+    "zatrudnienie_aktualne": 45,
+    "rezerwa_zakladowa": 189473.01002242573,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 15,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Baktria-Region2",
+    "cluster_info": {
+      "region_id": "Baktria-Region2",
+      "scale_factor": 15,
+      "sector": "energy",
+      "owner_id": "KRS-BAK-0550"
+    },
+    "ostatnia_produkcja": {
+      "water": 37.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.808024944498091,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505,
+      "chemicals": 0.04100000000000001,
+      "water": 0.817220579418839
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-BAK-0551",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-BAK-0551",
+    "rok_budowy": 1898,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 40,
+    "zatrudnienie_aktualne": 40,
+    "rezerwa_zakladowa": 151085.05744350553,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region2",
+    "cluster_info": {
+      "region_id": "Baktria-Region2",
+      "scale_factor": 12,
+      "sector": "energy",
+      "owner_id": "KRS-BAK-0551"
+    },
+    "ostatnia_produkcja": {
+      "energy": 27.0,
+      "heat": 8.100000000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8411657568221587,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 1.24
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-0552",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-BAK-0552",
+    "rok_budowy": 1881,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 42,
+    "zatrudnienie_aktualne": 42,
+    "rezerwa_zakladowa": 147345.5641492729,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 106,
+    "region_id": "Baktria-Region2",
+    "cluster_info": {
+      "region_id": "Baktria-Region2",
+      "scale_factor": 11,
+      "sector": "energy",
+      "owner_id": "KRS-BAK-0552"
+    },
+    "ostatnia_produkcja": {
+      "energy": 41.36,
+      "heat": 12.925
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9186558765770496,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.53,
+      "water": 1.63
+    },
+    "pojemność_magazynu": 1060.0
+  },
+  {
+    "id": "B-BAK-0553",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-BAK-0553",
+    "rok_budowy": 1877,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 42,
+    "zatrudnienie_aktualne": 42,
+    "rezerwa_zakladowa": 132090.3831177048,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Baktria-Region2",
+    "cluster_info": {
+      "region_id": "Baktria-Region2",
+      "scale_factor": 10,
+      "sector": "energy",
+      "owner_id": "KRS-BAK-0553"
+    },
+    "ostatnia_produkcja": {
+      "energy": 13.8,
+      "heat": 4.6000000000000005
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.937556024515678,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.52
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-BAK-0554",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-BAK-0554",
+    "rok_budowy": 1899,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 40,
+    "zatrudnienie_aktualne": 40,
+    "rezerwa_zakladowa": 115001.29308262916,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region2",
+    "cluster_info": {
+      "region_id": "Baktria-Region2",
+      "scale_factor": 9,
+      "sector": "energy",
+      "owner_id": "KRS-BAK-0554"
+    },
+    "ostatnia_produkcja": {
+      "water": 20.25
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7670622803493157,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "chemicals": 0.04000000000000001,
+      "water": 0.9787242988377569
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-0555",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-BAK-0555",
+    "rok_budowy": 1886,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 50,
+    "zatrudnienie_aktualne": 50,
+    "rezerwa_zakladowa": 68008.49040998229,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 124,
+    "region_id": "Baktria-Region2",
+    "cluster_info": {
+      "region_id": "Baktria-Region2",
+      "scale_factor": 4,
+      "sector": "energy",
+      "owner_id": "KRS-BAK-0555"
+    },
+    "ostatnia_produkcja": {
+      "energy": 11.0,
+      "heat": 3.3
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7805724938620666,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.62,
+      "water": 1.528,
+      "hard_coal": 2.220446049250313e-16
+    },
+    "pojemność_magazynu": 1240.0
+  },
+  {
+    "id": "B-BAK-0556",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-BAK-0556",
+    "rok_budowy": 1877,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 50,
+    "zatrudnienie_aktualne": 50,
+    "rezerwa_zakladowa": 53093.86780748671,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 124,
+    "region_id": "Baktria-Region2",
+    "cluster_info": {
+      "region_id": "Baktria-Region2",
+      "scale_factor": 3,
+      "sector": "energy",
+      "owner_id": "KRS-BAK-0556"
+    },
+    "ostatnia_produkcja": {
+      "energy": 13.200000000000001,
+      "heat": 4.125
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7657831994013058,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1240.0
+  },
+  {
+    "id": "B-BAK-0557",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-BAK-0557",
+    "rok_budowy": 1878,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 48,
+    "zatrudnienie_aktualne": 48,
+    "rezerwa_zakladowa": 50939.679589442894,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 119,
+    "region_id": "Baktria-Region2",
+    "cluster_info": {
+      "region_id": "Baktria-Region2",
+      "scale_factor": 3,
+      "sector": "energy",
+      "owner_id": "KRS-BAK-0557"
+    },
+    "ostatnia_produkcja": {
+      "energy": 4.7700000000000005,
+      "heat": 1.59
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9689906136775888,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1190.0
+  },
+  {
+    "id": "B-BAK-0558",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-BAK-0558",
+    "rok_budowy": 1872,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 5,
+    "zatrudnienie_aktualne": 5,
+    "rezerwa_zakladowa": 2413.62978897131,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 13,
+    "region_id": "Baktria-Region2",
+    "cluster_info": {
+      "region_id": "Baktria-Region2",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-BAK-0558"
+    },
+    "ostatnia_produkcja": {
+      "water": 0.3
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.721338831409795,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 130.0
+  },
+  {
+    "id": "B-BAK-0559",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-BAK-0559",
+    "rok_budowy": 1873,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 1,
+    "rezerwa_zakladowa": 510.8376436087638,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 3,
+    "region_id": "Baktria-Region2",
+    "cluster_info": {
+      "region_id": "Baktria-Region2",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-BAK-0559"
+    },
+    "ostatnia_produkcja": {
+      "energy": 0.05,
+      "heat": 0.015
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9312131641460404,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 100.0
+  },
+  {
+    "id": "B-BAK-0560",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-BAK-0560",
+    "rok_budowy": 1886,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 270.2792145362546,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 1,
+    "region_id": "Baktria-Region2",
+    "cluster_info": {
+      "region_id": "Baktria-Region2",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-BAK-0560"
+    },
+    "ostatnia_produkcja": {
+      "energy": 0.0,
+      "heat": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7979973638087734,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

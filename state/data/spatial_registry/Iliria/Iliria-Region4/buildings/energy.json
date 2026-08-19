@@ -1,0 +1,1484 @@
+[
+  {
+    "id": "B-ILI-0036",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ILI-0036",
+    "rok_budowy": 1887,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 86,
+    "zatrudnienie_aktualne": 86,
+    "rezerwa_zakladowa": 36920.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Iliria-Region4",
+    "cluster_info": {
+      "region_id": "Iliria-Region4",
+      "scale_factor": 7,
+      "sector": "energy",
+      "owner_id": "KRS-ILI-0036"
+    },
+    "ostatnia_produkcja": {
+      "energy": 53.760000000000005,
+      "heat": 16.8
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7012241702902857,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.535
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-ILI-0299",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ILI-0299",
+    "rok_budowy": 1875,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 2042258.3790568956,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 83,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region4",
+    "cluster_info": {
+      "region_id": "Iliria-Region4",
+      "scale_factor": 83,
+      "sector": "energy",
+      "owner_id": "KRS-ILI-0299"
+    },
+    "ostatnia_produkcja": {
+      "energy": 249.00000000000003,
+      "heat": 83.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7562523876884804,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-0300",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ILI-0300",
+    "rok_budowy": 1890,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 1846859.981075508,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 75,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region4",
+    "cluster_info": {
+      "region_id": "Iliria-Region4",
+      "scale_factor": 75,
+      "sector": "energy",
+      "owner_id": "KRS-ILI-0300"
+    },
+    "ostatnia_produkcja": {
+      "water": 2.469045167374563
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7486440003458237,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 2.7304601605416705
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-0301",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ILI-0301",
+    "rok_budowy": 1897,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 1822435.1813278347,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 74,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region4",
+    "cluster_info": {
+      "region_id": "Iliria-Region4",
+      "scale_factor": 74,
+      "sector": "energy",
+      "owner_id": "KRS-ILI-0301"
+    },
+    "ostatnia_produkcja": {
+      "energy": 370.0,
+      "heat": 111.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9628444976680252,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-0302",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ILI-0302",
+    "rok_budowy": 1890,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 1749160.7820848145,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 71,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region4",
+    "cluster_info": {
+      "region_id": "Iliria-Region4",
+      "scale_factor": 71,
+      "sector": "energy",
+      "owner_id": "KRS-ILI-0302"
+    },
+    "ostatnia_produkcja": {
+      "energy": 568.0,
+      "heat": 177.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.749915715960983,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-0303",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ILI-0303",
+    "rok_budowy": 1874,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 1553762.3841034267,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 63,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region4",
+    "cluster_info": {
+      "region_id": "Iliria-Region4",
+      "scale_factor": 63,
+      "sector": "energy",
+      "owner_id": "KRS-ILI-0303"
+    },
+    "ostatnia_produkcja": {
+      "energy": 189.0,
+      "heat": 63.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8345906006913383,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-0304",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ILI-0304",
+    "rok_budowy": 1893,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 902135.7188254063,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 36,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Iliria-Region4",
+    "cluster_info": {
+      "region_id": "Iliria-Region4",
+      "scale_factor": 36,
+      "sector": "energy",
+      "owner_id": "KRS-ILI-0304"
+    },
+    "ostatnia_produkcja": {
+      "water": 2.498446480859266
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6983086756102518,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505,
+      "water": 2.517556865685412
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ILI-0305",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ILI-0305",
+    "rok_budowy": 1879,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 91,
+    "zatrudnienie_aktualne": 91,
+    "rezerwa_zakladowa": 836338.759506688,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 33,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Iliria-Region4",
+    "cluster_info": {
+      "region_id": "Iliria-Region4",
+      "scale_factor": 33,
+      "sector": "energy",
+      "owner_id": "KRS-ILI-0305"
+    },
+    "ostatnia_produkcja": {
+      "energy": 150.15,
+      "heat": 45.045
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8789173150937626,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51,
+      "water": 1.1102230246251563e-16,
+      "brown_coal": 1.1102230246251563e-16
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ILI-0306",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ILI-0306",
+    "rok_budowy": 1884,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 803459.5278448056,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 32,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Iliria-Region4",
+    "cluster_info": {
+      "region_id": "Iliria-Region4",
+      "scale_factor": 32,
+      "sector": "energy",
+      "owner_id": "KRS-ILI-0306"
+    },
+    "ostatnia_produkcja": {
+      "energy": 230.39999999999998,
+      "heat": 72.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7695471847719265,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ILI-0307",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ILI-0307",
+    "rok_budowy": 1875,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 92,
+    "zatrudnienie_aktualne": 92,
+    "rezerwa_zakladowa": 743918.7684630058,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 29,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Iliria-Region4",
+    "cluster_info": {
+      "region_id": "Iliria-Region4",
+      "scale_factor": 29,
+      "sector": "energy",
+      "owner_id": "KRS-ILI-0307"
+    },
+    "ostatnia_produkcja": {
+      "energy": 80.04,
+      "heat": 26.68
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7045820188067647,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.515
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-ILI-0308",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ILI-0308",
+    "rok_budowy": 1888,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 91,
+    "zatrudnienie_aktualne": 91,
+    "rezerwa_zakladowa": 711772.2807935535,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 28,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Iliria-Region4",
+    "cluster_info": {
+      "region_id": "Iliria-Region4",
+      "scale_factor": 28,
+      "sector": "energy",
+      "owner_id": "KRS-ILI-0308"
+    },
+    "ostatnia_produkcja": {
+      "water": 2.5330680557145553
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7522204512995476,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51,
+      "water": 2.5397570949098958
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ILI-0309",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ILI-0309",
+    "rok_budowy": 1896,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 636582.3935656727,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 25,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Iliria-Region4",
+    "cluster_info": {
+      "region_id": "Iliria-Region4",
+      "scale_factor": 25,
+      "sector": "energy",
+      "owner_id": "KRS-ILI-0309"
+    },
+    "ostatnia_produkcja": {
+      "energy": 113.75,
+      "heat": 34.125
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8967092227547055,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51,
+      "water": 1.1102230246251563e-16,
+      "brown_coal": 1.1102230246251563e-16
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ILI-0310",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ILI-0310",
+    "rok_budowy": 1877,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 586755.8020804188,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 23,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Iliria-Region4",
+    "cluster_info": {
+      "region_id": "Iliria-Region4",
+      "scale_factor": 23,
+      "sector": "energy",
+      "owner_id": "KRS-ILI-0310"
+    },
+    "ostatnia_produkcja": {
+      "energy": 167.44,
+      "heat": 52.325
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9289781004072724,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ILI-0311",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ILI-0311",
+    "rok_budowy": 1881,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 561842.506337792,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 22,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Iliria-Region4",
+    "cluster_info": {
+      "region_id": "Iliria-Region4",
+      "scale_factor": 22,
+      "sector": "energy",
+      "owner_id": "KRS-ILI-0311"
+    },
+    "ostatnia_produkcja": {
+      "energy": 60.059999999999995,
+      "heat": 20.019999999999996
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9388170234469307,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ILI-0312",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ILI-0312",
+    "rok_budowy": 1876,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 41,
+    "zatrudnienie_aktualne": 41,
+    "rezerwa_zakladowa": 484893.3310619693,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 19,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Iliria-Region4",
+    "cluster_info": {
+      "region_id": "Iliria-Region4",
+      "scale_factor": 19,
+      "sector": "energy",
+      "owner_id": "KRS-ILI-0312"
+    },
+    "ostatnia_produkcja": {
+      "water": 43.7
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9872741402090304,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-ILI-0313",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ILI-0313",
+    "rok_budowy": 1889,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 42,
+    "zatrudnienie_aktualne": 42,
+    "rezerwa_zakladowa": 311821.5008509645,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Iliria-Region4",
+    "cluster_info": {
+      "region_id": "Iliria-Region4",
+      "scale_factor": 12,
+      "sector": "energy",
+      "owner_id": "KRS-ILI-0313"
+    },
+    "ostatnia_produkcja": {
+      "energy": 27.6,
+      "heat": 8.280000000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9174451725357615,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-ILI-0314",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ILI-0314",
+    "rok_budowy": 1893,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 43,
+    "zatrudnienie_aktualne": 43,
+    "rezerwa_zakladowa": 271037.83727487316,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 108,
+    "region_id": "Iliria-Region4",
+    "cluster_info": {
+      "region_id": "Iliria-Region4",
+      "scale_factor": 10,
+      "sector": "energy",
+      "owner_id": "KRS-ILI-0314"
+    },
+    "ostatnia_produkcja": {
+      "energy": 38.4,
+      "heat": 12.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7577185596635848,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1080.0
+  },
+  {
+    "id": "B-ILI-0315",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ILI-0315",
+    "rok_budowy": 1874,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 56,
+    "zatrudnienie_aktualne": 56,
+    "rezerwa_zakladowa": 77250.94329853216,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 139,
+    "region_id": "Iliria-Region4",
+    "cluster_info": {
+      "region_id": "Iliria-Region4",
+      "scale_factor": 2,
+      "sector": "energy",
+      "owner_id": "KRS-ILI-0315"
+    },
+    "ostatnia_produkcja": {
+      "energy": 3.7199999999999998,
+      "heat": 1.24
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9601415683687332,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1390.0
+  },
+  {
+    "id": "B-ILI-0316",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ILI-0316",
+    "rok_budowy": 1874,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 50,
+    "zatrudnienie_aktualne": 50,
+    "rezerwa_zakladowa": 68973.50337423013,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 124,
+    "region_id": "Iliria-Region4",
+    "cluster_info": {
+      "region_id": "Iliria-Region4",
+      "scale_factor": 2,
+      "sector": "energy",
+      "owner_id": "KRS-ILI-0316"
+    },
+    "ostatnia_produkcja": {
+      "water": 5.6000000000000005
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7519542992137777,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1240.0
+  },
+  {
+    "id": "B-ILI-0317",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ILI-0317",
+    "rok_budowy": 1894,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 58,
+    "zatrudnienie_aktualne": 32,
+    "rezerwa_zakladowa": 44577.46363917302,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 143,
+    "region_id": "Iliria-Region4",
+    "cluster_info": {
+      "region_id": "Iliria-Region4",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-ILI-0317"
+    },
+    "ostatnia_produkcja": {
+      "energy": 3.2,
+      "heat": 0.96
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8075861051514884,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51
+    },
+    "pojemność_magazynu": 1430.0
+  },
+  {
+    "id": "B-ILI-0318",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ILI-0318",
+    "rok_budowy": 1883,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 638.4959949534689,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 2,
+    "region_id": "Iliria-Region4",
+    "cluster_info": {
+      "region_id": "Iliria-Region4",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-ILI-0318"
+    },
+    "ostatnia_produkcja": {
+      "energy": 0.08,
+      "heat": 0.025
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7861373610734037,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

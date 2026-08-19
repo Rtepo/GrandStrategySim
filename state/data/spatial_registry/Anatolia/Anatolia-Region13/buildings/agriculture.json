@@ -1,0 +1,1455 @@
+[
+  {
+    "id": "B-ANA-0139",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANA-0139",
+    "rok_budowy": 1874,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 30,
+    "zatrudnienie_aktualne": 30,
+    "rezerwa_zakladowa": 122150.0,
+    "aktywna_metoda": {
+      "rok": 1895,
+      "eksperci": 0.08,
+      "sredni": 0.2,
+      "szeregowi": 0.72,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "seeds": 8.0
+      },
+      "outputs": {
+        "cereal": 40.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 15,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 15,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANA-0139"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 19.8
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.616489762738733,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.52,
+      "energy": 1.6959999999999995,
+      "food": 0.52
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANA-1017",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANA-1017",
+    "rok_budowy": 1886,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 96,
+    "zatrudnienie_aktualne": 96,
+    "rezerwa_zakladowa": 475040.3781948844,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "industrial_fiber": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 24,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 24,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANA-1017"
+    },
+    "ostatnia_produkcja": {
+      "industrial_fiber": 27.647999999999996
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8004458378693818,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.545,
+      "water": 8.411999999999999
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ANA-1018",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANA-1018",
+    "rok_budowy": 1895,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 94,
+    "zatrudnienie_aktualne": 94,
+    "rezerwa_zakladowa": 474440.3781948844,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "vegetable": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 24,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 24,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANA-1018"
+    },
+    "ostatnia_produkcja": {
+      "vegetable": 40.608
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7271620138707519,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 8.379999999999999
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ANA-1019",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANA-1019",
+    "rok_budowy": 1874,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 49,
+    "zatrudnienie_aktualne": 49,
+    "rezerwa_zakladowa": 432224.5133453107,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "cereal": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "seeds": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 22,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 22,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANA-1019"
+    },
+    "ostatnia_produkcja": {
+      "seeds": 14.256
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7023918082202897,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 7.84
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ANA-1020",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANA-1020",
+    "rok_budowy": 1893,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 32,
+    "zatrudnienie_aktualne": 32,
+    "rezerwa_zakladowa": 410441.5809205239,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cereal": 8.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "fodder": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 21,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 21,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANA-1020"
+    },
+    "ostatnia_produkcja": {
+      "fodder": 11.34
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8570000228293938,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.605,
+      "water": 7.72
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ANA-1021",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANA-1021",
+    "rok_budowy": 1886,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 32,
+    "zatrudnienie_aktualne": 32,
+    "rezerwa_zakladowa": 304488.53525780083,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 6.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "protein": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 15,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 15,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANA-1021"
+    },
+    "ostatnia_produkcja": {
+      "protein": 6.300000000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8420636096561954,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.52,
+      "water": 7.949999999999999
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-ANA-1022",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANA-1022",
+    "rok_budowy": 1893,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 15,
+    "zatrudnienie_aktualne": 15,
+    "rezerwa_zakladowa": 270453.94862582406,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fodder": 15.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "meat": 10.0,
+        "livestock": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 13,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 13,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANA-1022"
+    },
+    "ostatnia_produkcja": {
+      "meat": 2.21,
+      "livestock": 1.105
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7243221454697673,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.605,
+      "water": 7.77
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-ANA-1023",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANA-1023",
+    "rok_budowy": 1871,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 1,
+    "rezerwa_zakladowa": 254173.38464143444,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "seeds": 5.0,
+        "draft_animals": 3.0
+      },
+      "outputs": {
+        "cereal": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 12,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANA-1023"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 0.18
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.6419165206326968,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.515
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-ANA-1024",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANA-1024",
+    "rok_budowy": 1887,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 83,
+    "zatrudnienie_aktualne": 83,
+    "rezerwa_zakladowa": 233183.58497319152,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 2.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "timber": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 11,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANA-1024"
+    },
+    "ostatnia_produkcja": {
+      "timber": 10.229999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.6627680852984356,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANA-1025",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANA-1025",
+    "rok_budowy": 1899,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 96,
+    "zatrudnienie_aktualne": 96,
+    "rezerwa_zakladowa": 210243.30914947705,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 5.0,
+        "seeds": 5.0,
+        "draft_animals": 5.0
+      },
+      "outputs": {
+        "cereal": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 106,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 9,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANA-1025"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 23.849999999999998
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.6742812077715032,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.515
+    },
+    "pojemność_magazynu": 1060.0
+  },
+  {
+    "id": "B-ANA-1026",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANA-1026",
+    "rok_budowy": 1891,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 108,
+    "zatrudnienie_aktualne": 108,
+    "rezerwa_zakladowa": 201996.4041600422,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 4.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "fruit": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 7,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANA-1026"
+    },
+    "ostatnia_produkcja": {
+      "fruit": 12.6
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8386659359155625,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.52
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ANA-1027",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANA-1027",
+    "rok_budowy": 1876,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 115,
+    "zatrudnienie_aktualne": 115,
+    "rezerwa_zakladowa": 195152.33142951567,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 4.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "luxury": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 6,
+    "pojemnosc_budowlana": 109,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 6,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANA-1027"
+    },
+    "ostatnia_produkcja": {
+      "luxury": 6.144
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9096337073690615,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1090.0
+  },
+  {
+    "id": "B-ANA-1028",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANA-1028",
+    "rok_budowy": 1891,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 137,
+    "zatrudnienie_aktualne": 137,
+    "rezerwa_zakladowa": 182400.43914458994,
+    "aktywna_metoda": {
+      "rok": 1895,
+      "eksperci": 0.08,
+      "sredni": 0.2,
+      "szeregowi": 0.72,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "seeds": 8.0
+      },
+      "outputs": {
+        "cereal": 40.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 119,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 5,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANA-1028"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 30.6
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8829319963422587,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.525
+    },
+    "pojemność_magazynu": 1190.0
+  },
+  {
+    "id": "B-ANA-1029",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANA-1029",
+    "rok_budowy": 1897,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 103,
+    "zatrudnienie_aktualne": 103,
+    "rezerwa_zakladowa": 164261.34137259383,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "industrial_fiber": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 113,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 5,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANA-1029"
+    },
+    "ostatnia_produkcja": {
+      "industrial_fiber": 6.84
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8381512783690005,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1130.0
+  },
+  {
+    "id": "B-ANA-1030",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANA-1030",
+    "rok_budowy": 1899,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 106,
+    "zatrudnienie_aktualne": 106,
+    "rezerwa_zakladowa": 154325.56435193814,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "vegetable": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 120,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 4,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANA-1030"
+    },
+    "ostatnia_produkcja": {
+      "vegetable": 8.495999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9027672400058019,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.53
+    },
+    "pojemność_magazynu": 1200.0
+  },
+  {
+    "id": "B-ANA-1031",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANA-1031",
+    "rok_budowy": 1883,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 51,
+    "zatrudnienie_aktualne": 51,
+    "rezerwa_zakladowa": 118835.5266059594,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "cereal": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "seeds": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 3,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANA-1031"
+    },
+    "ostatnia_produkcja": {
+      "seeds": 2.052
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7750582707069436,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.53
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-ANA-1032",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANA-1032",
+    "rok_budowy": 1875,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 57,
+    "zatrudnienie_aktualne": 57,
+    "rezerwa_zakladowa": 113421.07788583986,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cereal": 8.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "fodder": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 2,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANA-1032"
+    },
+    "ostatnia_produkcja": {
+      "fodder": 1.92
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.693740430373564,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.525
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-ANA-1033",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANA-1033",
+    "rok_budowy": 1878,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 109,
+    "zatrudnienie_aktualne": 109,
+    "rezerwa_zakladowa": 169658.04529517447,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 6.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "protein": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 198,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANA-1033"
+    },
+    "ostatnia_produkcja": {
+      "protein": 1.452
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8138680244555542,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.745
+    },
+    "pojemność_magazynu": 1980.0
+  },
+  {
+    "id": "B-ANA-1034",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANA-1034",
+    "rok_budowy": 1884,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 1264,
+    "zatrudnienie_aktualne": 1264,
+    "rezerwa_zakladowa": 279935.7770206557,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fodder": 15.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "meat": 10.0,
+        "livestock": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 85,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANA-1034"
+    },
+    "ostatnia_produkcja": {
+      "meat": 14.05,
+      "livestock": 7.025
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7137663024559023,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51
+    },
+    "pojemność_magazynu": 850.0
+  },
+  {
+    "id": "B-ANA-1035",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANA-1035",
+    "rok_budowy": 1890,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 1264,
+    "zatrudnienie_aktualne": 1264,
+    "rezerwa_zakladowa": 232241.70429012922,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "seeds": 5.0,
+        "draft_animals": 3.0
+      },
+      "outputs": {
+        "cereal": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 32,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANA-1035"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 21.075
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.839935223162395,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51
+    },
+    "pojemność_magazynu": 320.0
+  },
+  {
+    "id": "B-ANA-1036",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANA-1036",
+    "rok_budowy": 1875,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 663,
+    "zatrudnienie_aktualne": 663,
+    "rezerwa_zakladowa": 118397.15540413113,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 2.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "timber": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 17,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANA-1036"
+    },
+    "ostatnia_produkcja": {
+      "timber": 7.37
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7511530647783674,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 170.0
+  }
+]

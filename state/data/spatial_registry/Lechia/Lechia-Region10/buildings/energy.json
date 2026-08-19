@@ -1,0 +1,1495 @@
+[
+  {
+    "id": "B-LEC-0254",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-LEC-0254",
+    "rok_budowy": 1873,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 78,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 35470.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Lechia-Region10",
+    "cluster_info": {
+      "region_id": "Lechia-Region10",
+      "scale_factor": 7,
+      "sector": "energy",
+      "owner_id": "KRS-LEC-0254"
+    },
+    "ostatnia_produkcja": {
+      "energy": 0.0,
+      "heat": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7296379204787089,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.535
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-LEC-1087",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-LEC-1087",
+    "rok_budowy": 1880,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 787822.4198040467,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 101,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Lechia-Region10",
+    "cluster_info": {
+      "region_id": "Lechia-Region10",
+      "scale_factor": 101,
+      "sector": "energy",
+      "owner_id": "KRS-LEC-1087"
+    },
+    "ostatnia_produkcja": {
+      "energy": 272.7,
+      "heat": 90.9
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9683977077002199,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-LEC-1088",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-LEC-1088",
+    "rok_budowy": 1871,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 649824.3647894642,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 83,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Lechia-Region10",
+    "cluster_info": {
+      "region_id": "Lechia-Region10",
+      "scale_factor": 83,
+      "sector": "energy",
+      "owner_id": "KRS-LEC-1088"
+    },
+    "ostatnia_produkcja": {
+      "water": 373.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9082845341240707,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.5,
+      "chemicals": 0.04000000000000001,
+      "water": 0.861443486385232
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-LEC-1089",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-LEC-1089",
+    "rok_budowy": 1877,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 588491.8958940941,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 75,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Lechia-Region10",
+    "cluster_info": {
+      "region_id": "Lechia-Region10",
+      "scale_factor": 75,
+      "sector": "energy",
+      "owner_id": "KRS-LEC-1089"
+    },
+    "ostatnia_produkcja": {
+      "energy": 337.5,
+      "heat": 101.25
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9704808609720927,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-LEC-1090",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-LEC-1090",
+    "rok_budowy": 1899,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 493579.90027850895,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 62,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Lechia-Region10",
+    "cluster_info": {
+      "region_id": "Lechia-Region10",
+      "scale_factor": 62,
+      "sector": "energy",
+      "owner_id": "KRS-LEC-1090"
+    },
+    "ostatnia_produkcja": {
+      "energy": 446.4,
+      "heat": 139.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7599033399228321,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-LEC-1091",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-LEC-1091",
+    "rok_budowy": 1871,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 485836.6760804685,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 61,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Lechia-Region10",
+    "cluster_info": {
+      "region_id": "Lechia-Region10",
+      "scale_factor": 61,
+      "sector": "energy",
+      "owner_id": "KRS-LEC-1091"
+    },
+    "ostatnia_produkcja": {
+      "energy": 164.70000000000002,
+      "heat": 54.900000000000006
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8575554144195856,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-LEC-1092",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-LEC-1092",
+    "rok_budowy": 1891,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 427494.16504374775,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 54,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Lechia-Region10",
+    "cluster_info": {
+      "region_id": "Lechia-Region10",
+      "scale_factor": 54,
+      "sector": "energy",
+      "owner_id": "KRS-LEC-1092"
+    },
+    "ostatnia_produkcja": {
+      "water": 243.00000000000003
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7227111623024515,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.5,
+      "chemicals": 0.04000000000000001,
+      "water": 0.0870435849511888
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-LEC-1093",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-LEC-1093",
+    "rok_budowy": 1872,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 74,
+    "zatrudnienie_aktualne": 74,
+    "rezerwa_zakladowa": 231306.91395647105,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 28,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Lechia-Region10",
+    "cluster_info": {
+      "region_id": "Lechia-Region10",
+      "scale_factor": 28,
+      "sector": "energy",
+      "owner_id": "KRS-LEC-1093"
+    },
+    "ostatnia_produkcja": {
+      "energy": 114.8,
+      "heat": 34.44
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7938180132894089,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51,
+      "water": 1.1102230246251563e-16,
+      "brown_coal": 1.1102230246251563e-16
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-LEC-1094",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-LEC-1094",
+    "rok_budowy": 1877,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 73,
+    "rezerwa_zakladowa": 229010.2775451331,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 28,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Lechia-Region10",
+    "cluster_info": {
+      "region_id": "Lechia-Region10",
+      "scale_factor": 28,
+      "sector": "energy",
+      "owner_id": "KRS-LEC-1094"
+    },
+    "ostatnia_produkcja": {
+      "energy": 181.44,
+      "heat": 56.699999999999996
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.787202900312617,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-LEC-1095",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-LEC-1095",
+    "rok_budowy": 1891,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 73,
+    "rezerwa_zakladowa": 205780.6049510117,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 25,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Lechia-Region10",
+    "cluster_info": {
+      "region_id": "Lechia-Region10",
+      "scale_factor": 25,
+      "sector": "energy",
+      "owner_id": "KRS-LEC-1095"
+    },
+    "ostatnia_produkcja": {
+      "energy": 60.75,
+      "heat": 20.25
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9174719594344412,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-LEC-1096",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-LEC-1096",
+    "rok_budowy": 1880,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 74,
+    "zatrudnienie_aktualne": 74,
+    "rezerwa_zakladowa": 192207.46503567265,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 23,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Lechia-Region10",
+    "cluster_info": {
+      "region_id": "Lechia-Region10",
+      "scale_factor": 23,
+      "sector": "energy",
+      "owner_id": "KRS-LEC-1096"
+    },
+    "ostatnia_produkcja": {
+      "water": 94.3
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9366406921358064,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.51,
+      "chemicals": 0.040999999999999995,
+      "water": 0.27289384361876573
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-LEC-1097",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-LEC-1097",
+    "rok_budowy": 1883,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 72,
+    "zatrudnienie_aktualne": 72,
+    "rezerwa_zakladowa": 150148.05501458258,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 18,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Lechia-Region10",
+    "cluster_info": {
+      "region_id": "Lechia-Region10",
+      "scale_factor": 18,
+      "sector": "energy",
+      "owner_id": "KRS-LEC-1097"
+    },
+    "ostatnia_produkcja": {
+      "energy": 72.89999999999999,
+      "heat": 21.87
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7898774890873926,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-LEC-1098",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-LEC-1098",
+    "rok_budowy": 1885,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 74,
+    "zatrudnienie_aktualne": 74,
+    "rezerwa_zakladowa": 145288.12633071453,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 17,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Lechia-Region10",
+    "cluster_info": {
+      "region_id": "Lechia-Region10",
+      "scale_factor": 17,
+      "sector": "energy",
+      "owner_id": "KRS-LEC-1098"
+    },
+    "ostatnia_produkcja": {
+      "energy": 111.52,
+      "heat": 34.849999999999994
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9138999535972183,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-LEC-1099",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-LEC-1099",
+    "rok_budowy": 1894,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 73,
+    "rezerwa_zakladowa": 112861.91457452608,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 13,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Lechia-Region10",
+    "cluster_info": {
+      "region_id": "Lechia-Region10",
+      "scale_factor": 13,
+      "sector": "energy",
+      "owner_id": "KRS-LEC-1099"
+    },
+    "ostatnia_produkcja": {
+      "energy": 31.589999999999996,
+      "heat": 10.53
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9511540416089491,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-LEC-1100",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-LEC-1100",
+    "rok_budowy": 1875,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 80,
+    "zatrudnienie_aktualne": 80,
+    "rezerwa_zakladowa": 72432.50131179366,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 110,
+    "region_id": "Lechia-Region10",
+    "cluster_info": {
+      "region_id": "Lechia-Region10",
+      "scale_factor": 7,
+      "sector": "energy",
+      "owner_id": "KRS-LEC-1100"
+    },
+    "ostatnia_produkcja": {
+      "water": 31.15
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7200511768927177,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.55,
+      "chemicals": 0.044,
+      "water": 1.3029981345292638
+    },
+    "pojemność_magazynu": 1100.0
+  },
+  {
+    "id": "B-LEC-1101",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-LEC-1101",
+    "rok_budowy": 1877,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 83,
+    "zatrudnienie_aktualne": 83,
+    "rezerwa_zakladowa": 66289.26090554139,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 6,
+    "pojemnosc_budowlana": 114,
+    "region_id": "Lechia-Region10",
+    "cluster_info": {
+      "region_id": "Lechia-Region10",
+      "scale_factor": 6,
+      "sector": "energy",
+      "owner_id": "KRS-LEC-1101"
+    },
+    "ostatnia_produkcja": {
+      "energy": 27.6,
+      "heat": 8.280000000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7229246696545655,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5700000000000001
+    },
+    "pojemność_magazynu": 1140.0
+  },
+  {
+    "id": "B-LEC-1102",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-LEC-1102",
+    "rok_budowy": 1880,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 45,
+    "zatrudnienie_aktualne": 45,
+    "rezerwa_zakladowa": 11999.935167152751,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 60,
+    "region_id": "Lechia-Region10",
+    "cluster_info": {
+      "region_id": "Lechia-Region10",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-LEC-1102"
+    },
+    "ostatnia_produkcja": {
+      "energy": 3.92,
+      "heat": 1.225
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7795769129951807,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.3
+    },
+    "pojemność_magazynu": 600.0
+  },
+  {
+    "id": "B-LEC-1103",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-LEC-1103",
+    "rok_budowy": 1890,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 32,
+    "zatrudnienie_aktualne": 32,
+    "rezerwa_zakladowa": 8469.954617006926,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 42,
+    "region_id": "Lechia-Region10",
+    "cluster_info": {
+      "region_id": "Lechia-Region10",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-LEC-1103"
+    },
+    "ostatnia_produkcja": {
+      "energy": 1.05,
+      "heat": 0.35000000000000003
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8968555155517451,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.21,
+      "hard_coal": 1.1102230246251563e-16
+    },
+    "pojemność_magazynu": 420.0
+  },
+  {
+    "id": "B-LEC-1104",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-LEC-1104",
+    "rok_budowy": 1877,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 20,
+    "zatrudnienie_aktualne": 20,
+    "rezerwa_zakladowa": 5293.305239099526,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 26,
+    "region_id": "Lechia-Region10",
+    "cluster_info": {
+      "region_id": "Lechia-Region10",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-LEC-1104"
+    },
+    "ostatnia_produkcja": {
+      "water": 1.0999999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8575498924659388,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.13,
+      "chemicals": 0.009999999999999998,
+      "water": 0.31700362778767466
+    },
+    "pojemność_magazynu": 260.0
+  },
+  {
+    "id": "B-LEC-1105",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-LEC-1105",
+    "rok_budowy": 1892,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 11,
+    "zatrudnienie_aktualne": 11,
+    "rezerwa_zakladowa": 2873.3182056689757,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 14,
+    "region_id": "Lechia-Region10",
+    "cluster_info": {
+      "region_id": "Lechia-Region10",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-LEC-1105"
+    },
+    "ostatnia_produkcja": {
+      "energy": 0.6,
+      "heat": 0.18
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7796482060700711,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.07
+    },
+    "pojemność_magazynu": 140.0
+  },
+  {
+    "id": "B-LEC-1106",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-LEC-1106",
+    "rok_budowy": 1882,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 226.66558611921252,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 1,
+    "region_id": "Lechia-Region10",
+    "cluster_info": {
+      "region_id": "Lechia-Region10",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-LEC-1106"
+    },
+    "ostatnia_produkcja": {
+      "energy": 0.0,
+      "heat": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7420031129430866,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.005
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

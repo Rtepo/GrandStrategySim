@@ -1,0 +1,1638 @@
+[
+  {
+    "id": "B-ELD-0048",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-ELD-0048",
+    "rok_budowy": 1972,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 55,
+    "zatrudnienie_aktualne": 55,
+    "rezerwa_zakladowa": 62150.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 125,
+    "region_id": "Eldoria-Region8",
+    "cluster_info": {
+      "region_id": "Eldoria-Region8",
+      "scale_factor": 2,
+      "sector": "export_services",
+      "owner_id": "KRS-ELD-0048"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.7971968187107165,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.625
+    },
+    "pojemność_magazynu": 1250.0
+  },
+  {
+    "id": "B-ELD-1497",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-ELD-1497",
+    "rok_budowy": 1960,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 4437470.993852055,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 145,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region8",
+    "cluster_info": {
+      "region_id": "Eldoria-Region8",
+      "scale_factor": 145,
+      "sector": "export_services",
+      "owner_id": "KRS-ELD-1497"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.8163695656484559,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ELD-1497_Export_Company_18",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Eldoria-Region8",
+      "typ_budynku_docelowy": "Export Company",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 2350,
+      "zwiększenie_kapitału": 8914186.147909576,
+      "nowy_budynek": false,
+      "koszt_całkowity": 9135687.844952554,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 5,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 5,
+      "investor_id": "KRS-ELD-1497",
+      "main_contractor_id": "KRS-ELD-2472",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 1827137.568990511,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 2740706.353485766,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 2740706.353485766,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 1827137.568990511,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 9135687.844952554,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.06944589165591988,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ELD-1498",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-ELD-1498",
+    "rok_budowy": 1946,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 4437470.993852055,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 145,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region8",
+    "cluster_info": {
+      "region_id": "Eldoria-Region8",
+      "scale_factor": 145,
+      "sector": "export_services",
+      "owner_id": "KRS-ELD-1498"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.8980086064367738,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ELD-1498_Export_Company_18",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Eldoria-Region8",
+      "typ_budynku_docelowy": "Export Company",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 2350,
+      "zwiększenie_kapitału": 8918298.204893097,
+      "nowy_budynek": false,
+      "koszt_całkowity": 9142301.820762593,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 5,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 5,
+      "investor_id": "KRS-ELD-1498",
+      "main_contractor_id": "KRS-ELD-2336",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 1828460.3641525188,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 2742690.546228778,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 2742690.546228778,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 1828460.3641525188,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 9142301.820762593,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ELD-1499",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-ELD-1499",
+    "rok_budowy": 1969,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 3060842.954423127,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 99,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region8",
+    "cluster_info": {
+      "region_id": "Eldoria-Region8",
+      "scale_factor": 99,
+      "sector": "export_services",
+      "owner_id": "KRS-ELD-1499"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.7239636126327164,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ELD-1499_Export_Company_21",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Eldoria-Region8",
+      "typ_budynku_docelowy": "Export Company",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 1604,
+      "zwiększenie_kapitału": 12003568.062683182,
+      "nowy_budynek": false,
+      "koszt_całkowity": 12301349.994841509,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 2,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 2,
+      "investor_id": "KRS-ELD-1499",
+      "main_contractor_id": "KRS-ELD-2324",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 2460269.998968302,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 3690404.9984524525,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 3690404.9984524525,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 2460269.998968302,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 12301349.994841509,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ELD-1500",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-ELD-1500",
+    "rok_budowy": 1962,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 3030916.2579138023,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 98,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region8",
+    "cluster_info": {
+      "region_id": "Eldoria-Region8",
+      "scale_factor": 98,
+      "sector": "export_services",
+      "owner_id": "KRS-ELD-1500"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.8652532500222022,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ELD-1500_Export_Company_21",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Eldoria-Region8",
+      "typ_budynku_docelowy": "Export Company",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 1588,
+      "zwiększenie_kapitału": 11893950.215292651,
+      "nowy_budynek": false,
+      "koszt_całkowity": 12190827.793078573,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 2,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 2,
+      "investor_id": "KRS-ELD-1500",
+      "main_contractor_id": "KRS-ELD-2452",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 2438165.558615715,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 3657248.337923572,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 3657248.337923572,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 2438165.558615715,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 12190827.793078573,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ELD-1501",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-ELD-1501",
+    "rok_budowy": 1957,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 2821429.382348531,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 91,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region8",
+    "cluster_info": {
+      "region_id": "Eldoria-Region8",
+      "scale_factor": 91,
+      "sector": "export_services",
+      "owner_id": "KRS-ELD-1501"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.7993409390594908,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ELD-1501_Export_Company_21",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Eldoria-Region8",
+      "typ_budynku_docelowy": "Export Company",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 1475,
+      "zwiększenie_kapitału": 11129939.205656856,
+      "nowy_budynek": false,
+      "koszt_całkowity": 11430878.819906073,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 2,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 2,
+      "investor_id": "KRS-ELD-1501",
+      "main_contractor_id": "KRS-ELD-2476",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 2286175.7639812147,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 3429263.6459718216,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 3429263.6459718216,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 2286175.7639812147,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 11430878.819906073,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ELD-1502",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-ELD-1502",
+    "rok_budowy": 1948,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 2667306.89532551,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 85,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Eldoria-Region8",
+    "cluster_info": {
+      "region_id": "Eldoria-Region8",
+      "scale_factor": 85,
+      "sector": "export_services",
+      "owner_id": "KRS-ELD-1502"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.8028272791242275,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ELD-1503",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-ELD-1503",
+    "rok_budowy": 1960,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 2641869.203292584,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 85,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region8",
+    "cluster_info": {
+      "region_id": "Eldoria-Region8",
+      "scale_factor": 85,
+      "sector": "export_services",
+      "owner_id": "KRS-ELD-1503"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.6940569499552961,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-1504",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-ELD-1504",
+    "rok_budowy": 1949,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 2522162.4172552857,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 81,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region8",
+    "cluster_info": {
+      "region_id": "Eldoria-Region8",
+      "scale_factor": 81,
+      "sector": "export_services",
+      "owner_id": "KRS-ELD-1504"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.6580379033821169,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-1505",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-ELD-1505",
+    "rok_budowy": 1954,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 2274369.370158079,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 72,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Eldoria-Region8",
+    "cluster_info": {
+      "region_id": "Eldoria-Region8",
+      "scale_factor": 72,
+      "sector": "export_services",
+      "owner_id": "KRS-ELD-1505"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.7970188146531685,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ELD-1506",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-ELD-1506",
+    "rok_budowy": 1955,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1504654.7359382522,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 47,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region8",
+    "cluster_info": {
+      "region_id": "Eldoria-Region8",
+      "scale_factor": 47,
+      "sector": "export_services",
+      "owner_id": "KRS-ELD-1506"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.6016386237078585,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-1507",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-ELD-1507",
+    "rok_budowy": 1961,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 83,
+    "zatrudnienie_aktualne": 83,
+    "rezerwa_zakladowa": 994410.4247335233,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 29,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Eldoria-Region8",
+    "cluster_info": {
+      "region_id": "Eldoria-Region8",
+      "scale_factor": 29,
+      "sector": "export_services",
+      "owner_id": "KRS-ELD-1507"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.6097716941163597,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.515
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-ELD-1508",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-ELD-1508",
+    "rok_budowy": 1958,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 974652.9407581151,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 29,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Eldoria-Region8",
+    "cluster_info": {
+      "region_id": "Eldoria-Region8",
+      "scale_factor": 29,
+      "sector": "export_services",
+      "owner_id": "KRS-ELD-1508"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.7223751695702396,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ELD-1509",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-ELD-1509",
+    "rok_budowy": 1955,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 965974.198770411,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 29,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region8",
+    "cluster_info": {
+      "region_id": "Eldoria-Region8",
+      "scale_factor": 29,
+      "sector": "export_services",
+      "owner_id": "KRS-ELD-1509"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.6844792096741185,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-1510",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-ELD-1510",
+    "rok_budowy": 1946,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 793297.1599116086,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 23,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Eldoria-Region8",
+    "cluster_info": {
+      "region_id": "Eldoria-Region8",
+      "scale_factor": 23,
+      "sector": "export_services",
+      "owner_id": "KRS-ELD-1510"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.8299912036642486,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ELD-1511",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-ELD-1511",
+    "rok_budowy": 1955,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 793297.1599116086,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 23,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Eldoria-Region8",
+    "cluster_info": {
+      "region_id": "Eldoria-Region8",
+      "scale_factor": 23,
+      "sector": "export_services",
+      "owner_id": "KRS-ELD-1511"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.7142039128082165,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ELD-1512",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-ELD-1512",
+    "rok_budowy": 1971,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 72,
+    "zatrudnienie_aktualne": 72,
+    "rezerwa_zakladowa": 446870.3581118942,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region8",
+    "cluster_info": {
+      "region_id": "Eldoria-Region8",
+      "scale_factor": 12,
+      "sector": "export_services",
+      "owner_id": "KRS-ELD-1512"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.6099949671302094,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-1513",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-ELD-1513",
+    "rok_budowy": 1969,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 331130.4318774515,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 111,
+    "region_id": "Eldoria-Region8",
+    "cluster_info": {
+      "region_id": "Eldoria-Region8",
+      "scale_factor": 7,
+      "sector": "export_services",
+      "owner_id": "KRS-ELD-1513"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.7595650874005059,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.555
+    },
+    "pojemność_magazynu": 1110.0
+  },
+  {
+    "id": "B-ELD-1514",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-ELD-1514",
+    "rok_budowy": 1961,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 73,
+    "rezerwa_zakladowa": 298336.8755652716,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region8",
+    "cluster_info": {
+      "region_id": "Eldoria-Region8",
+      "scale_factor": 7,
+      "sector": "export_services",
+      "owner_id": "KRS-ELD-1514"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.84435698178231,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-1515",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-ELD-1515",
+    "rok_budowy": 1968,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 73,
+    "rezerwa_zakladowa": 270305.7808465066,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 6,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Eldoria-Region8",
+    "cluster_info": {
+      "region_id": "Eldoria-Region8",
+      "scale_factor": 6,
+      "sector": "export_services",
+      "owner_id": "KRS-ELD-1515"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.7068489616654898,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ELD-1516",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-ELD-1516",
+    "rok_budowy": 1954,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 21,
+    "zatrudnienie_aktualne": 9,
+    "rezerwa_zakladowa": 36076.54288298385,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 32,
+    "region_id": "Eldoria-Region8",
+    "cluster_info": {
+      "region_id": "Eldoria-Region8",
+      "scale_factor": 1,
+      "sector": "export_services",
+      "owner_id": "KRS-ELD-1516"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.6719291675033721,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.16
+    },
+    "pojemność_magazynu": 320.0
+  }
+]

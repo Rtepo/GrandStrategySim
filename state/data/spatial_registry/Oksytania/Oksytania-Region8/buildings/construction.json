@@ -1,0 +1,1537 @@
+[
+  {
+    "id": "B-OKS-0218",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-OKS-0218",
+    "rok_budowy": 1889,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 73,
+    "rezerwa_zakladowa": 27200.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region8",
+    "cluster_info": {
+      "region_id": "Oksytania-Region8",
+      "scale_factor": 5,
+      "sector": "construction",
+      "owner_id": "KRS-OKS-0218"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 12.15,
+      "renovation_services": 4.050000000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8729785770149191,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.5,
+      "food": 0.5,
+      "construction_services": 3.0,
+      "renovation_services": 1.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-OKS-1147",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-OKS-1147",
+    "rok_budowy": 1883,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 155515.30459686337,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 43,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region8",
+    "cluster_info": {
+      "region_id": "Oksytania-Region8",
+      "scale_factor": 43,
+      "sector": "construction",
+      "owner_id": "KRS-OKS-1147"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 38.7,
+      "renovation_services": 19.35
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9158615040978607,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.18062391553916,
+      "renovation_services": 1.09031195776958
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-OKS-1148",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-OKS-1148",
+    "rok_budowy": 1878,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 146928.33269100654,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 40,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Oksytania-Region8",
+    "cluster_info": {
+      "region_id": "Oksytania-Region8",
+      "scale_factor": 40,
+      "sector": "construction",
+      "owner_id": "KRS-OKS-1148"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 72.0,
+      "renovation_services": 28.8
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8340803520990366,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.01,
+      "food": 0.505,
+      "construction_services": 2.02,
+      "renovation_services": 0.808
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-OKS-1149",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-OKS-1149",
+    "rok_budowy": 1898,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 91,
+    "zatrudnienie_aktualne": 91,
+    "rezerwa_zakladowa": 118080.78910122837,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 31,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Oksytania-Region8",
+    "cluster_info": {
+      "region_id": "Oksytania-Region8",
+      "scale_factor": 31,
+      "sector": "construction",
+      "owner_id": "KRS-OKS-1149"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 84.63000000000001,
+      "renovation_services": 28.21
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9178642473416984,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.5299999999999998,
+      "food": 0.51,
+      "construction_services": 3.0599999999999996,
+      "renovation_services": 1.02
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-OKS-1150",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-OKS-1150",
+    "rok_budowy": 1884,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 103564.1245664294,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 27,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Oksytania-Region8",
+    "cluster_info": {
+      "region_id": "Oksytania-Region8",
+      "scale_factor": 27,
+      "sector": "construction",
+      "owner_id": "KRS-OKS-1150"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 24.3,
+      "renovation_services": 12.15
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7125304958105444,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.16221707836102,
+      "renovation_services": 1.08110853918051
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-OKS-1151",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-OKS-1151",
+    "rok_budowy": 1875,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 103564.1245664294,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 27,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Oksytania-Region8",
+    "cluster_info": {
+      "region_id": "Oksytania-Region8",
+      "scale_factor": 27,
+      "sector": "construction",
+      "owner_id": "KRS-OKS-1151"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 48.6,
+      "renovation_services": 19.44
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8893275006425083,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.01,
+      "food": 0.505,
+      "construction_services": 2.02,
+      "renovation_services": 0.808
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-OKS-1152",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-OKS-1152",
+    "rok_budowy": 1878,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 86158.993049558,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 22,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region8",
+    "cluster_info": {
+      "region_id": "Oksytania-Region8",
+      "scale_factor": 22,
+      "sector": "construction",
+      "owner_id": "KRS-OKS-1152"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 59.4,
+      "renovation_services": 19.8
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9347334311061936,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.5,
+      "food": 0.5,
+      "construction_services": 3.0,
+      "renovation_services": 1.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-OKS-1153",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-OKS-1153",
+    "rok_budowy": 1886,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 83,
+    "zatrudnienie_aktualne": 83,
+    "rezerwa_zakladowa": 67778.19115712345,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 16,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Oksytania-Region8",
+    "cluster_info": {
+      "region_id": "Oksytania-Region8",
+      "scale_factor": 16,
+      "sector": "construction",
+      "owner_id": "KRS-OKS-1153"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 14.719999999999999,
+      "renovation_services": 7.359999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7079637892537011,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.204110783942341,
+      "renovation_services": 1.1020553919711706
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-OKS-1154",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-OKS-1154",
+    "rok_budowy": 1894,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 63085.62475912744,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 15,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Oksytania-Region8",
+    "cluster_info": {
+      "region_id": "Oksytania-Region8",
+      "scale_factor": 15,
+      "sector": "construction",
+      "owner_id": "KRS-OKS-1154"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 27.0,
+      "renovation_services": 10.8
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7676609217051101,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.01,
+      "food": 0.505,
+      "construction_services": 2.02,
+      "renovation_services": 0.808
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-OKS-1155",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-OKS-1155",
+    "rok_budowy": 1879,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 83,
+    "zatrudnienie_aktualne": 83,
+    "rezerwa_zakladowa": 60974.66726248302,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 14,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Oksytania-Region8",
+    "cluster_info": {
+      "region_id": "Oksytania-Region8",
+      "scale_factor": 14,
+      "sector": "construction",
+      "owner_id": "KRS-OKS-1155"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 38.64,
+      "renovation_services": 12.88
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8497563529284565,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.545,
+      "food": 0.515,
+      "construction_services": 3.09,
+      "renovation_services": 1.03
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-OKS-1156",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-OKS-1156",
+    "rok_budowy": 1889,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 77,
+    "zatrudnienie_aktualne": 77,
+    "rezerwa_zakladowa": 54860.10870865354,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 106,
+    "region_id": "Oksytania-Region8",
+    "cluster_info": {
+      "region_id": "Oksytania-Region8",
+      "scale_factor": 12,
+      "sector": "construction",
+      "owner_id": "KRS-OKS-1156"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 10.2,
+      "renovation_services": 5.1
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8447681386515173,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 1.1102230246251563e-16,
+      "construction_services": 2.296701953385824,
+      "renovation_services": 1.148350976692912
+    },
+    "pojemność_magazynu": 1060.0
+  },
+  {
+    "id": "B-OKS-1157",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-OKS-1157",
+    "rok_budowy": 1884,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 76,
+    "zatrudnienie_aktualne": 76,
+    "rezerwa_zakladowa": 50895.97135101796,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Oksytania-Region8",
+    "cluster_info": {
+      "region_id": "Oksytania-Region8",
+      "scale_factor": 11,
+      "sector": "construction",
+      "owner_id": "KRS-OKS-1157"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 18.700000000000003,
+      "renovation_services": 7.48
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8668159463705389,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.05,
+      "food": 0.525,
+      "construction_services": 2.1,
+      "renovation_services": 0.84
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-OKS-1158",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-OKS-1158",
+    "rok_budowy": 1875,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 78,
+    "zatrudnienie_aktualne": 78,
+    "rezerwa_zakladowa": 48338.692074103215,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Oksytania-Region8",
+    "cluster_info": {
+      "region_id": "Oksytania-Region8",
+      "scale_factor": 10,
+      "sector": "construction",
+      "owner_id": "KRS-OKS-1158"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 25.8,
+      "renovation_services": 8.6
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7390944621656298,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.605,
+      "food": 0.535,
+      "construction_services": 3.21,
+      "renovation_services": 1.07
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-OKS-1159",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-OKS-1159",
+    "rok_budowy": 1879,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 77,
+    "zatrudnienie_aktualne": 77,
+    "rezerwa_zakladowa": 37405.89674671456,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 106,
+    "region_id": "Oksytania-Region8",
+    "cluster_info": {
+      "region_id": "Oksytania-Region8",
+      "scale_factor": 7,
+      "sector": "construction",
+      "owner_id": "KRS-OKS-1159"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 6.02,
+      "renovation_services": 3.01
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7595881529903603,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 1.1102230246251563e-16,
+      "construction_services": 2.279023968151136,
+      "renovation_services": 1.139511984075568
+    },
+    "pojemność_magazynu": 1060.0
+  },
+  {
+    "id": "B-OKS-1160",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-OKS-1160",
+    "rok_budowy": 1876,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 31879.88233750213,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 111,
+    "region_id": "Oksytania-Region8",
+    "cluster_info": {
+      "region_id": "Oksytania-Region8",
+      "scale_factor": 5,
+      "sector": "construction",
+      "owner_id": "KRS-OKS-1160"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 9.0,
+      "renovation_services": 3.6
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9434705214046659,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.11,
+      "food": 0.555,
+      "construction_services": 2.22,
+      "renovation_services": 0.888
+    },
+    "pojemność_magazynu": 1110.0
+  },
+  {
+    "id": "B-OKS-1161",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-OKS-1161",
+    "rok_budowy": 1879,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 74,
+    "zatrudnienie_aktualne": 74,
+    "rezerwa_zakladowa": 29193.675661488447,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Oksytania-Region8",
+    "cluster_info": {
+      "region_id": "Oksytania-Region8",
+      "scale_factor": 5,
+      "sector": "construction",
+      "owner_id": "KRS-OKS-1161"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 12.299999999999999,
+      "renovation_services": 4.1
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.909234292416562,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.5299999999999998,
+      "food": 0.51,
+      "construction_services": 3.0599999999999996,
+      "renovation_services": 1.02
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-OKS-1162",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-OKS-1162",
+    "rok_budowy": 1876,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 27236.89474331223,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 123,
+    "region_id": "Oksytania-Region8",
+    "cluster_info": {
+      "region_id": "Oksytania-Region8",
+      "scale_factor": 3,
+      "sector": "construction",
+      "owner_id": "KRS-OKS-1162"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 3.0,
+      "renovation_services": 1.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8567429206758506,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.6679238772549696,
+      "renovation_services": 1.3339619386274848
+    },
+    "pojemność_magazynu": 1230.0
+  },
+  {
+    "id": "B-OKS-1163",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-OKS-1163",
+    "rok_budowy": 1892,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 98,
+    "zatrudnienie_aktualne": 98,
+    "rezerwa_zakladowa": 20692.566397996008,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 133,
+    "region_id": "Oksytania-Region8",
+    "cluster_info": {
+      "region_id": "Oksytania-Region8",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-OKS-1163"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 2.16,
+      "renovation_services": 0.864
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8175722824397531,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.33,
+      "food": 0.665,
+      "construction_services": 2.66,
+      "renovation_services": 1.064
+    },
+    "pojemność_magazynu": 1330.0
+  },
+  {
+    "id": "B-OKS-1164",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-OKS-1164",
+    "rok_budowy": 1899,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 54,
+    "zatrudnienie_aktualne": 54,
+    "rezerwa_zakladowa": 11277.9306816219,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 72,
+    "region_id": "Oksytania-Region8",
+    "cluster_info": {
+      "region_id": "Oksytania-Region8",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-OKS-1164"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 1.77,
+      "renovation_services": 0.59
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9282346464403836,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.0799999999999998,
+      "food": 0.36,
+      "construction_services": 2.1599999999999997,
+      "renovation_services": 0.72
+    },
+    "pojemność_magazynu": 720.0
+  },
+  {
+    "id": "B-OKS-1165",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-OKS-1165",
+    "rok_budowy": 1872,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 19,
+    "zatrudnienie_aktualne": 19,
+    "rezerwa_zakladowa": 3975.6703755631593,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 25,
+    "region_id": "Oksytania-Region8",
+    "cluster_info": {
+      "region_id": "Oksytania-Region8",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-OKS-1165"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.21000000000000002,
+      "renovation_services": 0.10500000000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9821405860698448,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 0.5484001655286819,
+      "renovation_services": 0.27420008276434094
+    },
+    "pojemność_magazynu": 250.0
+  },
+  {
+    "id": "B-OKS-1166",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-OKS-1166",
+    "rok_budowy": 1899,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 17,
+    "zatrudnienie_aktualne": 17,
+    "rezerwa_zakladowa": 3476.58993049558,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 22,
+    "region_id": "Oksytania-Region8",
+    "cluster_info": {
+      "region_id": "Oksytania-Region8",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-OKS-1166"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.36,
+      "renovation_services": 0.144
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7748535994368103,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.21999999999999997,
+      "food": 0.11,
+      "construction_services": 0.43999999999999995,
+      "renovation_services": 0.176
+    },
+    "pojemność_magazynu": 220.0
+  }
+]

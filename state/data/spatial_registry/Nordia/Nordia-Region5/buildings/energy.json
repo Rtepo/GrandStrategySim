@@ -1,0 +1,1492 @@
+[
+  {
+    "id": "B-NOR-0089",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-NOR-0089",
+    "rok_budowy": 1893,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 86,
+    "zatrudnienie_aktualne": 86,
+    "rezerwa_zakladowa": 36920.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Nordia-Region5",
+    "cluster_info": {
+      "region_id": "Nordia-Region5",
+      "scale_factor": 7,
+      "sector": "energy",
+      "owner_id": "KRS-NOR-0089"
+    },
+    "ostatnia_produkcja": {
+      "energy": 53.760000000000005,
+      "heat": 16.8
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7709978973492597,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.535
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-NOR-0585",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-NOR-0585",
+    "rok_budowy": 1872,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 2437869.9041503924,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 95,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Nordia-Region5",
+    "cluster_info": {
+      "region_id": "Nordia-Region5",
+      "scale_factor": 95,
+      "sector": "energy",
+      "owner_id": "KRS-NOR-0585"
+    },
+    "ostatnia_produkcja": {
+      "energy": 256.5,
+      "heat": 85.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9764855962478599,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-NOR-0586",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-NOR-0586",
+    "rok_budowy": 1871,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 2029639.1834513787,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 79,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Nordia-Region5",
+    "cluster_info": {
+      "region_id": "Nordia-Region5",
+      "scale_factor": 79,
+      "sector": "energy",
+      "owner_id": "KRS-NOR-0586"
+    },
+    "ostatnia_produkcja": {
+      "water": 355.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8015796355129727,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.5,
+      "chemicals": 0.04000000000000001,
+      "water": 1.2611633458799814
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-NOR-0587",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-NOR-0587",
+    "rok_budowy": 1894,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1799559.4030581836,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 70,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Nordia-Region5",
+    "cluster_info": {
+      "region_id": "Nordia-Region5",
+      "scale_factor": 70,
+      "sector": "energy",
+      "owner_id": "KRS-NOR-0587"
+    },
+    "ostatnia_produkcja": {
+      "energy": 315.0,
+      "heat": 94.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.800238282487884,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-NOR-0588",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-NOR-0588",
+    "rok_budowy": 1893,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1493386.3625339237,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 58,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Nordia-Region5",
+    "cluster_info": {
+      "region_id": "Nordia-Region5",
+      "scale_factor": 58,
+      "sector": "energy",
+      "owner_id": "KRS-NOR-0588"
+    },
+    "ostatnia_produkcja": {
+      "energy": 417.59999999999997,
+      "heat": 130.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.711203753273797,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-NOR-0589",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-NOR-0589",
+    "rok_budowy": 1871,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1430926.0334268874,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 55,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Nordia-Region5",
+    "cluster_info": {
+      "region_id": "Nordia-Region5",
+      "scale_factor": 55,
+      "sector": "energy",
+      "owner_id": "KRS-NOR-0589"
+    },
+    "ostatnia_produkcja": {
+      "energy": 148.5,
+      "heat": 49.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9759474632954208,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-NOR-0590",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-NOR-0590",
+    "rok_budowy": 1889,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1173230.3909856349,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 45,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Nordia-Region5",
+    "cluster_info": {
+      "region_id": "Nordia-Region5",
+      "scale_factor": 45,
+      "sector": "energy",
+      "owner_id": "KRS-NOR-0590"
+    },
+    "ostatnia_produkcja": {
+      "water": 202.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9508867993514808,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.505,
+      "chemicals": 0.04100000000000001,
+      "water": 0.033480646801065106
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-NOR-0591",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-NOR-0591",
+    "rok_budowy": 1892,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1161698.9019659753,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 45,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Nordia-Region5",
+    "cluster_info": {
+      "region_id": "Nordia-Region5",
+      "scale_factor": 45,
+      "sector": "energy",
+      "owner_id": "KRS-NOR-0591"
+    },
+    "ostatnia_produkcja": {
+      "energy": 202.5,
+      "heat": 60.75
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7882068686312181,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-NOR-0592",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-NOR-0592",
+    "rok_budowy": 1891,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 941304.312788508,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 36,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Nordia-Region5",
+    "cluster_info": {
+      "region_id": "Nordia-Region5",
+      "scale_factor": 36,
+      "sector": "energy",
+      "owner_id": "KRS-NOR-0592"
+    },
+    "ostatnia_produkcja": {
+      "energy": 259.20000000000005,
+      "heat": 81.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.690189184031987,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-NOR-0593",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-NOR-0593",
+    "rok_budowy": 1895,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 612318.2942249285,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 23,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Nordia-Region5",
+    "cluster_info": {
+      "region_id": "Nordia-Region5",
+      "scale_factor": 23,
+      "sector": "energy",
+      "owner_id": "KRS-NOR-0593"
+    },
+    "ostatnia_produkcja": {
+      "energy": 62.79,
+      "heat": 20.93
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7704820567570724,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-NOR-0594",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-NOR-0594",
+    "rok_budowy": 1885,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 574867.2409611435,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 22,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Nordia-Region5",
+    "cluster_info": {
+      "region_id": "Nordia-Region5",
+      "scale_factor": 22,
+      "sector": "energy",
+      "owner_id": "KRS-NOR-0594"
+    },
+    "ostatnia_produkcja": {
+      "water": 99.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.92424099946331,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.5,
+      "chemicals": 0.04000000000000001,
+      "water": 1.376439204548257
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-NOR-0595",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-NOR-0595",
+    "rok_budowy": 1890,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 84,
+    "zatrudnienie_aktualne": 84,
+    "rezerwa_zakladowa": 518214.9400632816,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 19,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Nordia-Region5",
+    "cluster_info": {
+      "region_id": "Nordia-Region5",
+      "scale_factor": 19,
+      "sector": "energy",
+      "owner_id": "KRS-NOR-0595"
+    },
+    "ostatnia_produkcja": {
+      "energy": 88.35,
+      "heat": 26.505
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9096391442389588,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.52
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-NOR-0596",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-NOR-0596",
+    "rok_budowy": 1873,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 319723.0405242601,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Nordia-Region5",
+    "cluster_info": {
+      "region_id": "Nordia-Region5",
+      "scale_factor": 12,
+      "sector": "energy",
+      "owner_id": "KRS-NOR-0596"
+    },
+    "ostatnia_produkcja": {
+      "energy": 86.4,
+      "heat": 27.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7529664122410453,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-NOR-0597",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-NOR-0597",
+    "rok_budowy": 1889,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 96,
+    "zatrudnienie_aktualne": 95,
+    "rezerwa_zakladowa": 137548.63940795648,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 119,
+    "region_id": "Nordia-Region5",
+    "cluster_info": {
+      "region_id": "Nordia-Region5",
+      "scale_factor": 4,
+      "sector": "energy",
+      "owner_id": "KRS-NOR-0597"
+    },
+    "ostatnia_produkcja": {
+      "energy": 12.84,
+      "heat": 4.28
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7743940752041634,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.595
+    },
+    "pojemność_magazynu": 1190.0
+  },
+  {
+    "id": "B-NOR-0598",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-NOR-0598",
+    "rok_budowy": 1887,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 83,
+    "rezerwa_zakladowa": 128334.02499397624,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 111,
+    "region_id": "Nordia-Region5",
+    "cluster_info": {
+      "region_id": "Nordia-Region5",
+      "scale_factor": 4,
+      "sector": "energy",
+      "owner_id": "KRS-NOR-0598"
+    },
+    "ostatnia_produkcja": {
+      "water": 20.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7653591886828222,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.555,
+      "chemicals": 0.045,
+      "water": 4.649836126338554
+    },
+    "pojemność_magazynu": 1110.0
+  },
+  {
+    "id": "B-NOR-0599",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-NOR-0599",
+    "rok_budowy": 1886,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 56,
+    "rezerwa_zakladowa": 90093.26013106502,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Nordia-Region5",
+    "cluster_info": {
+      "region_id": "Nordia-Region5",
+      "scale_factor": 3,
+      "sector": "energy",
+      "owner_id": "KRS-NOR-0599"
+    },
+    "ostatnia_produkcja": {
+      "energy": 13.5,
+      "heat": 4.050000000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8651662259128807,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-NOR-0600",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-NOR-0600",
+    "rok_budowy": 1894,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 115,
+    "zatrudnienie_aktualne": 56,
+    "rezerwa_zakladowa": 91710.95292407488,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 142,
+    "region_id": "Nordia-Region5",
+    "cluster_info": {
+      "region_id": "Nordia-Region5",
+      "scale_factor": 2,
+      "sector": "energy",
+      "owner_id": "KRS-NOR-0600"
+    },
+    "ostatnia_produkcja": {
+      "energy": 20.48,
+      "heat": 6.4
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7592776943432242,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.71
+    },
+    "pojemność_magazynu": 1420.0
+  },
+  {
+    "id": "B-NOR-0601",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-NOR-0601",
+    "rok_budowy": 1876,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 111,
+    "zatrudnienie_aktualne": 52,
+    "rezerwa_zakladowa": 88459.51091970605,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 137,
+    "region_id": "Nordia-Region5",
+    "cluster_info": {
+      "region_id": "Nordia-Region5",
+      "scale_factor": 2,
+      "sector": "energy",
+      "owner_id": "KRS-NOR-0601"
+    },
+    "ostatnia_produkcja": {
+      "energy": 7.38,
+      "heat": 2.46
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7382250897421344,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.685
+    },
+    "pojemność_magazynu": 1370.0
+  },
+  {
+    "id": "B-NOR-0602",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-NOR-0602",
+    "rok_budowy": 1880,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 66,
+    "zatrudnienie_aktualne": 15,
+    "rezerwa_zakladowa": 31666.680235387554,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 81,
+    "region_id": "Nordia-Region5",
+    "cluster_info": {
+      "region_id": "Nordia-Region5",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-NOR-0602"
+    },
+    "ostatnia_produkcja": {
+      "water": 2.65
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7006679373967417,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.405,
+      "chemicals": 0.032,
+      "water": 1.9441675352786443
+    },
+    "pojemność_magazynu": 810.0
+  },
+  {
+    "id": "B-NOR-0603",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-NOR-0603",
+    "rok_budowy": 1890,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 5,
+    "zatrudnienie_aktualne": 1,
+    "rezerwa_zakladowa": 2025.7210021844169,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 5,
+    "region_id": "Nordia-Region5",
+    "cluster_info": {
+      "region_id": "Nordia-Region5",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-NOR-0603"
+    },
+    "ostatnia_produkcja": {
+      "energy": 0.15,
+      "heat": 0.045
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8632904668168385,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.025
+    },
+    "pojemność_magazynu": 100.0
+  },
+  {
+    "id": "B-NOR-0604",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-NOR-0604",
+    "rok_budowy": 1878,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 405.14420043688335,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 1,
+    "region_id": "Nordia-Region5",
+    "cluster_info": {
+      "region_id": "Nordia-Region5",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-NOR-0604"
+    },
+    "ostatnia_produkcja": {
+      "energy": 0.0,
+      "heat": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9488746939984576,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.005
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

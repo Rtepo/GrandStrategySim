@@ -1,0 +1,75 @@
+[
+  {
+    "id": "B-ELD-0232",
+    "name": "Transport Depot",
+    "wlasciciel_id": "KRS-ELD-0232",
+    "rok_budowy": 1956,
+    "sektor_pkb": "transport_logistics",
+    "pojemnosc_pracownikow": 43,
+    "zatrudnienie_aktualne": 43,
+    "rezerwa_zakladowa": 60100.0,
+    "aktywna_metoda": {
+      "rok": 1960,
+      "eksperci": 0.25,
+      "sredni": 0.4,
+      "szeregowi": 0.35,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "aluminum": 8.0,
+        "fuels": 25.0
+      },
+      "outputs": {
+        "passenger_transport": 40.0,
+        "freight_capacity": 60.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region3",
+    "cluster_info": {
+      "region_id": "Eldoria-Region3",
+      "scale_factor": 4,
+      "sector": "transport_logistics",
+      "owner_id": "KRS-ELD-0232"
+    },
+    "ostatnia_produkcja": {
+      "passenger_transport": 3.839307313600475e-17,
+      "freight_capacity": 5.758960970400712e-17
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 4.0,
+        "condition": 0.6662811947567676,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "aluminum": 6.938893903907228e-18,
+      "fuels": 0.003748657793947536,
+      "food": 0.5,
+      "freight_capacity": 8.650261167476984e-16
+    },
+    "pojemność_magazynu": 1000.0
+  }
+]

@@ -1,0 +1,1878 @@
+[
+  {
+    "id": "B-ELD-0004",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ELD-0004",
+    "rok_budowy": 1954,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 128790.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.2,
+      "sredni": 0.4,
+      "szeregowi": 0.4,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 20.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "industrial_machinery": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Eldoria-Region13",
+    "cluster_info": {
+      "region_id": "Eldoria-Region13",
+      "scale_factor": 12,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ELD-0004"
+    },
+    "ostatnia_produkcja": {
+      "industrial_machinery": 13.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8644832346880265,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 8.36,
+      "food": 0.52
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-ELD-2007",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ELD-2007",
+    "rok_budowy": 1964,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 3447604.507489477,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "clay": 20.0
+      },
+      "outputs": {
+        "bricks": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 112,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region13",
+    "cluster_info": {
+      "region_id": "Eldoria-Region13",
+      "scale_factor": 112,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ELD-2007"
+    },
+    "ostatnia_produkcja": {
+      "bricks": 0.00022840423882924786
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.727947283375445,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "bricks": 0.00022840423882924786,
+      "energy": 4.965037050247193,
+      "clay": 0.00014820098876953112,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ELD-2007_Heavy_Industry_Plant_0",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Eldoria-Region13",
+      "typ_budynku_docelowy": "Heavy Industry Plant",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {
+        "bricks": 12.896272024141822
+      },
+      "zwiększenie_pojemności": 2017,
+      "zwiększenie_kapitału": 16068748.780226696,
+      "nowy_budynek": false,
+      "koszt_całkowity": 16488903.420362333,
+      "koszt_wydany": 3297780.6840724666,
+      "czas_trwania": 0,
+      "turny_minione": 23,
+      "postęp": 0.0,
+      "wstrzymany": false,
+      "consecutive_hold_turns": 0,
+      "investor_id": "KRS-ELD-2007",
+      "main_contractor_id": "KRS-ELD-2515",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 3297780.6840724666,
+          "released": true,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 4946671.0261087,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 4946671.0261087,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 3297780.6840724666,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 1,
+      "contract_price": 16488903.420362333,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.021959470136715387,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ELD-2008",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ELD-2008",
+    "rok_budowy": 1957,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 2939197.573316967,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 12.0,
+        "sand": 20.0,
+        "soda_ash": 5.0
+      },
+      "outputs": {
+        "glass": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 95,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region13",
+    "cluster_info": {
+      "region_id": "Eldoria-Region13",
+      "scale_factor": 95,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ELD-2008"
+    },
+    "ostatnia_produkcja": {
+      "glass": 0.9103369678033676
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7773361102682083,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 11.435399999999992,
+      "sand": 1.3689999999999976,
+      "food": 0.5,
+      "glass": 0.9103369678033676,
+      "soda_ash": 0.7477499999999996
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ELD-2008_Heavy_Industry_Plant_14",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Eldoria-Region13",
+      "typ_budynku_docelowy": "Heavy Industry Plant",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {
+        "glass": 5.201732110880649
+      },
+      "zwiększenie_pojemności": 1540,
+      "zwiększenie_kapitału": 6224552.525297714,
+      "nowy_budynek": false,
+      "koszt_całkowity": 6393930.099318605,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 9,
+      "postęp": 0.0,
+      "wstrzymany": false,
+      "consecutive_hold_turns": 0,
+      "investor_id": "KRS-ELD-2008",
+      "main_contractor_id": "KRS-ELD-2328",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 1278786.019863721,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 1918179.0297955815,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 1918179.0297955815,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 1278786.019863721,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 6393930.099318605,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.04553060104091871,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ELD-2009",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ELD-2009",
+    "rok_budowy": 1958,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 2909291.2830715254,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 10.0,
+        "clay": 8.0,
+        "limestone": 25.0
+      },
+      "outputs": {
+        "cement": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 94,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region13",
+    "cluster_info": {
+      "region_id": "Eldoria-Region13",
+      "scale_factor": 94,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ELD-2009"
+    },
+    "ostatnia_produkcja": {
+      "cement": 0.00008885636861052316
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8189883923034385,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 0.00008885636861052316,
+      "energy": 10.57842346830368,
+      "clay": 0.5187387746429444,
+      "food": 0.5,
+      "limestone": 0.00005867075920104984
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ELD-2009_Heavy_Industry_Plant_3",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Eldoria-Region13",
+      "typ_budynku_docelowy": "Heavy Industry Plant",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {
+        "cement": 13.279462419341343
+      },
+      "zwiększenie_pojemności": 1523,
+      "zwiększenie_kapitału": 22489460.56361663,
+      "nowy_budynek": false,
+      "koszt_całkowity": 23057960.999564264,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 20,
+      "postęp": 0.0,
+      "wstrzymany": false,
+      "consecutive_hold_turns": 0,
+      "investor_id": "KRS-ELD-2009",
+      "main_contractor_id": "KRS-ELD-2462",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 4611592.199912853,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 6917388.299869279,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 6917388.299869279,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 4611592.199912853,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 23057960.999564264,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.08548659384010943,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ELD-2010",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ELD-2010",
+    "rok_budowy": 1949,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 2909291.2830715254,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "sulfur": 8.0,
+        "salt": 5.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "chemicals": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 94,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region13",
+    "cluster_info": {
+      "region_id": "Eldoria-Region13",
+      "scale_factor": 94,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ELD-2010"
+    },
+    "ostatnia_produkcja": {
+      "chemicals": 0.017939223751275223
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8119222034146234,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 7.783594436645505,
+      "food": 0.5,
+      "sulfur": 0.007594436645507811,
+      "salt": 0.7547465229034422,
+      "chemicals": 0.9443577190166454,
+      "water": 1.4274930458068855
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ELD-2010_Heavy_Industry_Plant_21",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Eldoria-Region13",
+      "typ_budynku_docelowy": "Heavy Industry Plant",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 1523,
+      "zwiększenie_kapitału": 11456735.86809072,
+      "nowy_budynek": false,
+      "koszt_całkowity": 11764637.81082475,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 2,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 2,
+      "investor_id": "KRS-ELD-2010",
+      "main_contractor_id": "KRS-ELD-2479",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 2352927.56216495,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 3529391.343247425,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 3529391.343247425,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 2352927.56216495,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 11764637.81082475,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.02672364545535455,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ELD-2011",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ELD-2011",
+    "rok_budowy": 1958,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 2242680.0735006286,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 5.0,
+        "steel": 10.0,
+        "iron": 5.0
+      },
+      "outputs": {
+        "construction_machinery": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 71,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Eldoria-Region13",
+    "cluster_info": {
+      "region_id": "Eldoria-Region13",
+      "scale_factor": 71,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ELD-2011"
+    },
+    "ostatnia_produkcja": {
+      "construction_machinery": 46.008
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8639903128710275,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.5783315690328935,
+      "food": 0.505,
+      "iron": 0.505
+    },
+    "pojemność_magazynu": 1010.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ELD-2011_Heavy_Industry_Plant_21",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Eldoria-Region13",
+      "typ_budynku_docelowy": "Heavy Industry Plant",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 1162,
+      "zwiększenie_kapitału": 9024372.612281343,
+      "nowy_budynek": false,
+      "koszt_całkowity": 9247025.429512,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 2,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 2,
+      "investor_id": "KRS-ELD-2011",
+      "main_contractor_id": "KRS-ELD-2509",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 1849405.0859024,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 2774107.6288536,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 2774107.6288536,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 1849405.0859024,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 9247025.429512,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ELD-2012",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ELD-2012",
+    "rok_budowy": 1974,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1819805.1294300817,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "catalysts": 1.0,
+        "oil": 25.0
+      },
+      "outputs": {
+        "bitumen": 3.0,
+        "fuels": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 57,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Eldoria-Region13",
+    "cluster_info": {
+      "region_id": "Eldoria-Region13",
+      "scale_factor": 57,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ELD-2012"
+    },
+    "ostatnia_produkcja": {
+      "bitumen": 3.1507990751865736e-23,
+      "fuels": 1.8904794451119441e-22
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8427941191780667,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "bitumen": 0.06186357379550557,
+      "energy": 6.120000000000002,
+      "catalysts": 8.271806125530277e-24,
+      "fuels": 0.007183726542592139,
+      "food": 0.505,
+      "oil": 4.050000000000001
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ELD-2013",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ELD-2013",
+    "rok_budowy": 1966,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1759394.4231342897,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "coke": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 55,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Eldoria-Region13",
+    "cluster_info": {
+      "region_id": "Eldoria-Region13",
+      "scale_factor": 55,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ELD-2013"
+    },
+    "ostatnia_produkcja": {
+      "coke": 1.5125775545246845e-22
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8433030812379466,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 6.120000000000002,
+      "coke": 0.10856461378415672,
+      "food": 0.505,
+      "hard_coal": 1.5881867761018131e-22
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ELD-2014",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ELD-2014",
+    "rok_budowy": 1956,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1742945.9634992967,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "energy": 8.0,
+        "steel": 12.0
+      },
+      "outputs": {
+        "industrial_machinery": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 55,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region13",
+    "cluster_info": {
+      "region_id": "Eldoria-Region13",
+      "scale_factor": 55,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ELD-2014"
+    },
+    "ostatnia_produkcja": {
+      "industrial_machinery": 44.55
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6774480514994774,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.5,
+      "energy": 10.591999999999997,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-2015",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ELD-2015",
+    "rok_budowy": 1974,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1742945.9634992967,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "chemicals": 5.0,
+        "ammonia": 8.0
+      },
+      "outputs": {
+        "fertilizers": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 55,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region13",
+    "cluster_info": {
+      "region_id": "Eldoria-Region13",
+      "scale_factor": 55,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ELD-2015"
+    },
+    "ostatnia_produkcja": {
+      "fertilizers": 4.765998268630407e-19
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6903827931016638,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 6.120000000000003,
+      "fertilizers": 0.06800896882655844,
+      "food": 0.5,
+      "chemicals": 1.215,
+      "ammonia": 1.7349352342136208e-19
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-2016",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ELD-2016",
+    "rok_budowy": 1954,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1729189.0699863934,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "coke": 8.0,
+        "fuels": 10.0,
+        "iron": 20.0
+      },
+      "outputs": {
+        "steel": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 54,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Eldoria-Region13",
+    "cluster_info": {
+      "region_id": "Eldoria-Region13",
+      "scale_factor": 54,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ELD-2016"
+    },
+    "ostatnia_produkcja": {
+      "steel": 65.61
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7479537729057861,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "coke": 2.592,
+      "fuels": 0.07325388403806013,
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ELD-2017",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ELD-2017",
+    "rok_budowy": 1964,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1638573.010542705,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "salt": 10.0,
+        "limestone": 8.0,
+        "ammonia": 3.0
+      },
+      "outputs": {
+        "soda_ash": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 51,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Eldoria-Region13",
+    "cluster_info": {
+      "region_id": "Eldoria-Region13",
+      "scale_factor": 51,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ELD-2017"
+    },
+    "ostatnia_produkcja": {
+      "soda_ash": 1.6312075573811043e-23
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7265799477900948,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 9.791999999999998,
+      "food": 0.505,
+      "salt": 4.02,
+      "limestone": 1.1280000000000001,
+      "soda_ash": 2.7423817909509114,
+      "ammonia": 3.308722450212111e-24
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ELD-2018",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ELD-2018",
+    "rok_budowy": 1966,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1608367.6573948087,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "industrial_machinery": 2.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "mechanical_components": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 50,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Eldoria-Region13",
+    "cluster_info": {
+      "region_id": "Eldoria-Region13",
+      "scale_factor": 50,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ELD-2018"
+    },
+    "ostatnia_produkcja": {
+      "mechanical_components": 60.75
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7961456591804209,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 1.515,
+      "energy": 6.625000000000003,
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ELD-2019",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ELD-2019",
+    "rok_budowy": 1955,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1384070.4805539956,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "steel": 10.0,
+        "iron": 5.0
+      },
+      "outputs": {
+        "agricultural_machinery": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 43,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region13",
+    "cluster_info": {
+      "region_id": "Eldoria-Region13",
+      "scale_factor": 43,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ELD-2019"
+    },
+    "ostatnia_produkcja": {
+      "agricultural_machinery": 27.864
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7366567883019751,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.37333156903289355,
+      "food": 0.5,
+      "iron": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-2020",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ELD-2020",
+    "rok_budowy": 1963,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 557888.1278288914,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 3.0,
+        "timber": 5.0,
+        "fuels": 2.0,
+        "steel": 8.0
+      },
+      "outputs": {
+        "trucks": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 15,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Eldoria-Region13",
+    "cluster_info": {
+      "region_id": "Eldoria-Region13",
+      "scale_factor": 15,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ELD-2020"
+    },
+    "ostatnia_produkcja": {
+      "trucks": 5.625
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8269242200908374,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.312,
+      "timber": 2.02,
+      "fuels": 0.2812599160445977,
+      "food": 0.52
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-ELD-2021",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ELD-2021",
+    "rok_budowy": 1956,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 430088.26848085516,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "coke": 10.0,
+        "fuels": 12.0,
+        "iron": 25.0
+      },
+      "outputs": {
+        "steel": 22.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Eldoria-Region13",
+    "cluster_info": {
+      "region_id": "Eldoria-Region13",
+      "scale_factor": 11,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ELD-2021"
+    },
+    "ostatnia_produkcja": {
+      "steel": 18.15
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8734346842683522,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "coke": 3.0,
+      "fuels": 0.07324165584442895,
+      "food": 0.515
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-ELD-2022",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ELD-2022",
+    "rok_budowy": 1965,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 76,
+    "zatrudnienie_aktualne": 76,
+    "rezerwa_zakladowa": 233165.18673884976,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "energy": 3.0,
+        "steel": 8.0
+      },
+      "outputs": {
+        "office_machinery": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 116,
+    "region_id": "Eldoria-Region13",
+    "cluster_info": {
+      "region_id": "Eldoria-Region13",
+      "scale_factor": 4,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ELD-2022"
+    },
+    "ostatnia_produkcja": {
+      "office_machinery": 3.04
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.846721453618557,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.5800000000000001,
+      "energy": 3.8219999999999983,
+      "food": 0.5800000000000001
+    },
+    "pojemność_magazynu": 1160.0
+  },
+  {
+    "id": "B-ELD-2023",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ELD-2023",
+    "rok_budowy": 1974,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 76,
+    "zatrudnienie_aktualne": 76,
+    "rezerwa_zakladowa": 198473.89005413733,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 10.0,
+        "energy": 5.0,
+        "steel": 25.0
+      },
+      "outputs": {
+        "trains": 3.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 116,
+    "region_id": "Eldoria-Region13",
+    "cluster_info": {
+      "region_id": "Eldoria-Region13",
+      "scale_factor": 3,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ELD-2023"
+    },
+    "ostatnia_produkcja": {
+      "trains": 0.684
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7046378268238345,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 1.16,
+      "energy": 6.369999999999999,
+      "food": 0.5800000000000001
+    },
+    "pojemność_magazynu": 1160.0
+  },
+  {
+    "id": "B-ELD-2024",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ELD-2024",
+    "rok_budowy": 1965,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 99,
+    "zatrudnienie_aktualne": 43,
+    "rezerwa_zakladowa": 167709.43536816264,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "chemicals": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "pharmaceuticals": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 150,
+    "region_id": "Eldoria-Region13",
+    "cluster_info": {
+      "region_id": "Eldoria-Region13",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ELD-2024"
+    },
+    "ostatnia_produkcja": {
+      "pharmaceuticals": 0.33179876835097494
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.802542239003017,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 3.5475781250000007,
+      "food": 0.75,
+      "chemicals": 0.30515625,
+      "water": 0.297578125,
+      "pharmaceuticals": 5.1580311500896165
+    },
+    "pojemność_magazynu": 1500.0
+  },
+  {
+    "id": "B-ELD-2025",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ELD-2025",
+    "rok_budowy": 1957,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 35,
+    "zatrudnienie_aktualne": 15,
+    "rezerwa_zakladowa": 61097.52253744738,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "rare_earth_elements": 1.0,
+        "chemicals": 8.0
+      },
+      "outputs": {
+        "catalysts": 6.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 56,
+    "region_id": "Eldoria-Region13",
+    "cluster_info": {
+      "region_id": "Eldoria-Region13",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ELD-2025"
+    },
+    "ostatnia_produkcja": {
+      "catalysts": 5.9375856608065314e-24
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6135940685013574,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 1.45,
+      "catalysts": 0.748121890245266,
+      "food": 0.28,
+      "rare_earth_elements": 8.271806125530277e-25,
+      "chemicals": 0.376
+    },
+    "pojemność_magazynu": 560.0
+  },
+  {
+    "id": "B-ELD-2026",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ELD-2026",
+    "rok_budowy": 1962,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 3,
+    "zatrudnienie_aktualne": 1,
+    "rezerwa_zakladowa": 4497.188707363253,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "bitumen": 8.0,
+        "energy": 3.0,
+        "sand": 10.0,
+        "gravel": 8.0
+      },
+      "outputs": {
+        "asphalt": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 3,
+    "region_id": "Eldoria-Region13",
+    "cluster_info": {
+      "region_id": "Eldoria-Region13",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ELD-2026"
+    },
+    "ostatnia_produkcja": {
+      "asphalt": 0.012769032045546625
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8653225142333201,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "asphalt": 0.24095748863765276,
+      "bitumen": 0.027000000000000114,
+      "energy": 0.04500000000000001,
+      "sand": 0.06999999999999998,
+      "food": 0.015,
+      "gravel": 0.03999999999999998
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

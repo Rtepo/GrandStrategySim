@@ -1,0 +1,1421 @@
+[
+  {
+    "id": "B-SAR-0023",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-SAR-0023",
+    "rok_budowy": 1896,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 43,
+    "zatrudnienie_aktualne": 43,
+    "rezerwa_zakladowa": 53170.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Sarmatia-Region15",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region15",
+      "scale_factor": 7,
+      "sector": "energy",
+      "owner_id": "KRS-SAR-0023"
+    },
+    "ostatnia_produkcja": {
+      "energy": 0.0,
+      "heat": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6998155868935717,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.535
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-SAR-0585",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-SAR-0585",
+    "rok_budowy": 1885,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 374392.452409733,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 39,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Sarmatia-Region15",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region15",
+      "scale_factor": 39,
+      "sector": "energy",
+      "owner_id": "KRS-SAR-0585"
+    },
+    "ostatnia_produkcja": {
+      "energy": 1.17,
+      "heat": 0.39
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.692034431035969,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.245,
+      "water": 2.229011660664903
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-SAR-0586",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-SAR-0586",
+    "rok_budowy": 1884,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 342163.2660834594,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 35,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Sarmatia-Region15",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region15",
+      "scale_factor": 35,
+      "sector": "energy",
+      "owner_id": "KRS-SAR-0586"
+    },
+    "ostatnia_produkcja": {
+      "water": 1.7500000000000002
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8341595644258167,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.19
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-SAR-0587",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-SAR-0587",
+    "rok_budowy": 1896,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 271733.9341831055,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 28,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Sarmatia-Region15",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region15",
+      "scale_factor": 28,
+      "sector": "energy",
+      "owner_id": "KRS-SAR-0587"
+    },
+    "ostatnia_produkcja": {
+      "energy": 1.4000000000000001,
+      "heat": 0.42
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9421291389348719,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.11
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-SAR-0588",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-SAR-0588",
+    "rok_budowy": 1882,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 264949.064471963,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 25,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Sarmatia-Region15",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region15",
+      "scale_factor": 25,
+      "sector": "energy",
+      "owner_id": "KRS-SAR-0588"
+    },
+    "ostatnia_produkcja": {
+      "energy": 162.0,
+      "heat": 50.625
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9396397505596953,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-SAR-0589",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-SAR-0589",
+    "rok_budowy": 1876,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 60,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 253184.82132893975,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 24,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Sarmatia-Region15",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region15",
+      "scale_factor": 24,
+      "sector": "energy",
+      "owner_id": "KRS-SAR-0589"
+    },
+    "ostatnia_produkcja": {
+      "energy": 43.199999999999996,
+      "heat": 14.399999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.874467452391743,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 3.659656112658726
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-SAR-0590",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-SAR-0590",
+    "rok_budowy": 1872,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 53,
+    "zatrudnienie_aktualne": 53,
+    "rezerwa_zakladowa": 249703.3824572293,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 24,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Sarmatia-Region15",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region15",
+      "scale_factor": 24,
+      "sector": "energy",
+      "owner_id": "KRS-SAR-0590"
+    },
+    "ostatnia_produkcja": {
+      "water": 70.8
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7108021105826262,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51,
+      "water": 1.1102230246251563e-16,
+      "brown_coal": 1.1102230246251563e-16
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-SAR-0591",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-SAR-0591",
+    "rok_budowy": 1899,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 50,
+    "zatrudnienie_aktualne": 50,
+    "rezerwa_zakladowa": 218275.45063732908,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 21,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Sarmatia-Region15",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region15",
+      "scale_factor": 21,
+      "sector": "energy",
+      "owner_id": "KRS-SAR-0591"
+    },
+    "ostatnia_produkcja": {
+      "energy": 58.8,
+      "heat": 17.64
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8507248916088335,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-SAR-0592",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-SAR-0592",
+    "rok_budowy": 1883,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 60,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 182439.8808859598,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 16,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Sarmatia-Region15",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region15",
+      "scale_factor": 16,
+      "sector": "energy",
+      "owner_id": "KRS-SAR-0592"
+    },
+    "ostatnia_produkcja": {
+      "energy": 85.76,
+      "heat": 26.8
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8375267927746568,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-SAR-0593",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-SAR-0593",
+    "rok_budowy": 1886,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 74,
+    "zatrudnienie_aktualne": 74,
+    "rezerwa_zakladowa": 150240.98981825262,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Sarmatia-Region15",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region15",
+      "scale_factor": 12,
+      "sector": "energy",
+      "owner_id": "KRS-SAR-0593"
+    },
+    "ostatnia_produkcja": {
+      "energy": 29.52,
+      "heat": 9.84
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6871311345964309,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 3.6393659641670064
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-SAR-0594",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-SAR-0594",
+    "rok_budowy": 1883,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 68,
+    "zatrudnienie_aktualne": 68,
+    "rezerwa_zakladowa": 131370.47414336284,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Sarmatia-Region15",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region15",
+      "scale_factor": 11,
+      "sector": "energy",
+      "owner_id": "KRS-SAR-0594"
+    },
+    "ostatnia_produkcja": {
+      "water": 41.8
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8895476405099983,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.52
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-SAR-0595",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-SAR-0595",
+    "rok_budowy": 1892,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 43,
+    "zatrudnienie_aktualne": 43,
+    "rezerwa_zakladowa": 122731.17555372488,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Sarmatia-Region15",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region15",
+      "scale_factor": 10,
+      "sector": "energy",
+      "owner_id": "KRS-SAR-0595"
+    },
+    "ostatnia_produkcja": {
+      "energy": 24.0,
+      "heat": 7.199999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6658357872172994,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.535
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-SAR-0596",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-SAR-0596",
+    "rok_budowy": 1884,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 55,
+    "zatrudnienie_aktualne": 55,
+    "rezerwa_zakladowa": 97860.99255852294,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 106,
+    "region_id": "Sarmatia-Region15",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region15",
+      "scale_factor": 7,
+      "sector": "energy",
+      "owner_id": "KRS-SAR-0596"
+    },
+    "ostatnia_produkcja": {
+      "energy": 34.16,
+      "heat": 10.674999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7003122573864301,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.53,
+      "peat": 6.162975822039155e-33,
+      "water": 1.232595164407831e-32,
+      "brown_coal": 1.232595164407831e-32
+    },
+    "pojemność_magazynu": 1060.0
+  },
+  {
+    "id": "B-SAR-0597",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-SAR-0597",
+    "rok_budowy": 1875,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 62,
+    "zatrudnienie_aktualne": 62,
+    "rezerwa_zakladowa": 92711.2143449815,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 6,
+    "pojemnosc_budowlana": 111,
+    "region_id": "Sarmatia-Region15",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region15",
+      "scale_factor": 6,
+      "sector": "energy",
+      "owner_id": "KRS-SAR-0597"
+    },
+    "ostatnia_produkcja": {
+      "energy": 12.239999999999998,
+      "heat": 4.08
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9139369586818373,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51,
+      "water": 3.906681703930836
+    },
+    "pojemność_magazynu": 1110.0
+  },
+  {
+    "id": "B-SAR-0598",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-SAR-0598",
+    "rok_budowy": 1875,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 42,
+    "zatrudnienie_aktualne": 42,
+    "rezerwa_zakladowa": 84987.63519119873,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 6,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Sarmatia-Region15",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region15",
+      "scale_factor": 6,
+      "sector": "energy",
+      "owner_id": "KRS-SAR-0598"
+    },
+    "ostatnia_produkcja": {
+      "water": 14.099999999999998
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7943596390288601,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.525,
+      "brown_coal": 0.6000000000000001,
+      "hard_coal": 1.1250000000000002
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-SAR-0599",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-SAR-0599",
+    "rok_budowy": 1871,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 45,
+    "zatrudnienie_aktualne": 45,
+    "rezerwa_zakladowa": 85402.21101390991,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 119,
+    "region_id": "Sarmatia-Region15",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region15",
+      "scale_factor": 5,
+      "sector": "energy",
+      "owner_id": "KRS-SAR-0599"
+    },
+    "ostatnia_produkcja": {
+      "energy": 12.5,
+      "heat": 3.75
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8651670387110055,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5650000000000001
+    },
+    "pojemność_magazynu": 1190.0
+  },
+  {
+    "id": "B-SAR-0600",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-SAR-0600",
+    "rok_budowy": 1872,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 31,
+    "zatrudnienie_aktualne": 31,
+    "rezerwa_zakladowa": 73240.58777686243,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Sarmatia-Region15",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region15",
+      "scale_factor": 5,
+      "sector": "energy",
+      "owner_id": "KRS-SAR-0600"
+    },
+    "ostatnia_produkcja": {
+      "energy": 14.0,
+      "heat": 4.375
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7505035708518808,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.655
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-SAR-0601",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-SAR-0601",
+    "rok_budowy": 1886,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 27,
+    "zatrudnienie_aktualne": 27,
+    "rezerwa_zakladowa": 67993.42946929687,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 112,
+    "region_id": "Sarmatia-Region15",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region15",
+      "scale_factor": 4,
+      "sector": "energy",
+      "owner_id": "KRS-SAR-0601"
+    },
+    "ostatnia_produkcja": {
+      "energy": 3.5999999999999996,
+      "heat": 1.2
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9490994276499511,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.67,
+      "water": 4.69064058704317
+    },
+    "pojemność_magazynu": 1120.0
+  },
+  {
+    "id": "B-SAR-0602",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-SAR-0602",
+    "rok_budowy": 1877,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 32,
+    "zatrudnienie_aktualne": 32,
+    "rezerwa_zakladowa": 65722.58111471923,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 126,
+    "region_id": "Sarmatia-Region15",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region15",
+      "scale_factor": 3,
+      "sector": "energy",
+      "owner_id": "KRS-SAR-0602"
+    },
+    "ostatnia_produkcja": {
+      "water": 5.4
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7139263082558969,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.6,
+      "brown_coal": 0.6549999999999705,
+      "hard_coal": 1.2281249999999444
+    },
+    "pojemność_magazynu": 1260.0
+  },
+  {
+    "id": "B-SAR-0603",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-SAR-0603",
+    "rok_budowy": 1878,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 77,
+    "zatrudnienie_aktualne": 33,
+    "rezerwa_zakladowa": 67256.05074540789,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 181,
+    "region_id": "Sarmatia-Region15",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region15",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-SAR-0603"
+    },
+    "ostatnia_produkcja": {
+      "energy": 3.05,
+      "heat": 0.915
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8001911970225604,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.95
+    },
+    "pojemność_magazynu": 1810.0
+  }
+]

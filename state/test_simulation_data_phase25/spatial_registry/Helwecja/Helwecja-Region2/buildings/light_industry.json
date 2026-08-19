@@ -1,0 +1,1888 @@
+[
+  {
+    "id": "B-HEL-0096",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-HEL-0096",
+    "rok_budowy": 1966,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 48,
+    "zatrudnienie_aktualne": 48,
+    "rezerwa_zakladowa": 79350.0,
+    "aktywna_metoda": {
+      "rok": 1965,
+      "eksperci": 0.25,
+      "sredni": 0.4,
+      "szeregowi": 0.35,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "electronic_components": 3.0,
+        "energy": 15.0,
+        "fibers": 25.0
+      },
+      "outputs": {
+        "clothing": 60.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 10,
+      "sector": "light_industry",
+      "owner_id": "KRS-HEL-0096"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 1.0076816401570325e-17
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8088891636727068,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "electronic_components": 4.336808689942018e-19,
+      "energy": 4.84799999999996,
+      "food": 0.5,
+      "clothing": 2.8324147985629,
+      "fibers": 2.3999999999999995
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-2229",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-HEL-2229",
+    "rok_budowy": 1952,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 8803913.030727087,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 15.0,
+        "energy": 8.0,
+        "chemicals": 3.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "paper": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 72,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 72,
+      "sector": "light_industry",
+      "owner_id": "KRS-HEL-2229"
+    },
+    "ostatnia_produkcja": {
+      "paper": 104.976
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.61726370626075,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 11.407999999999998,
+      "paper": 3.034070360552322,
+      "food": 0.5,
+      "chemicals": 0.8490000000000001,
+      "water": 5.35
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-HEL-2229_Factory_20",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Helwecja-Region2",
+      "typ_budynku_docelowy": "Factory",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 1167,
+      "zwiększenie_kapitału": 16580530.613778096,
+      "nowy_budynek": false,
+      "koszt_całkowity": 16989967.976763073,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 3,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 3,
+      "investor_id": "KRS-HEL-2229",
+      "main_contractor_id": "KRS-HEL-1967",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 3397993.5953526148,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 5096990.393028921,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 5096990.393028921,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 3397993.5953526148,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 16989967.976763073,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-HEL-2230",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-HEL-2230",
+    "rok_budowy": 1960,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 7836600.471757411,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 12.0,
+        "energy": 3.0,
+        "steel": 3.0
+      },
+      "outputs": {
+        "furniture": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 64,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 64,
+      "sector": "light_industry",
+      "owner_id": "KRS-HEL-2230"
+    },
+    "ostatnia_produkcja": {
+      "furniture": 51.84
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8767960940707225,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 4.457999999999999,
+      "furniture": 1.0,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-HEL-2230_Factory_19",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Helwecja-Region2",
+      "typ_budynku_docelowy": "Factory",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {
+        "steel": 0.243
+      },
+      "zwiększenie_pojemności": 1037,
+      "zwiększenie_kapitału": 27544506.798058264,
+      "nowy_budynek": false,
+      "koszt_całkowity": 28223786.90433504,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 4,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 1,
+      "investor_id": "KRS-HEL-2230",
+      "main_contractor_id": "KRS-HEL-2013",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 5644757.380867008,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 8467136.071300512,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 8467136.071300512,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 5644757.380867008,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 28223786.90433504,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0209931808874725,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-HEL-2231",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-HEL-2231",
+    "rok_budowy": 1970,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 7787812.265905064,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "cereal": 10.0,
+        "vegetable": 5.0,
+        "protein": 3.0,
+        "livestock": 3.0
+      },
+      "outputs": {
+        "food": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 63,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 63,
+      "sector": "light_industry",
+      "owner_id": "KRS-HEL-2231"
+    },
+    "ostatnia_produkcja": {
+      "food": 91.854
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8699383926610373,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 3.887999999999999,
+      "food": 0.001333991005122811,
+      "cereal": 11.220000000000004,
+      "protein": 1.3877787807814457e-17,
+      "livestock": 1.3877787807814457e-17
+    },
+    "pojemność_magazynu": 1010.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-HEL-2231_Factory_21",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Helwecja-Region2",
+      "typ_budynku_docelowy": "Factory",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 1032,
+      "zwiększenie_kapitału": 14266591.53108453,
+      "nowy_budynek": false,
+      "koszt_całkowity": 14618960.535713704,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 2,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 2,
+      "investor_id": "KRS-HEL-2231",
+      "main_contractor_id": "KRS-HEL-1914",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 2923792.107142741,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 4385688.160714111,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 4385688.160714111,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 2923792.107142741,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 14618960.535713704,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.03584309185067896,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-HEL-2232",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-HEL-2232",
+    "rok_budowy": 1968,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 7348894.192272573,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 10.0,
+        "energy": 5.0,
+        "silver": 1.0,
+        "luxury": 3.0,
+        "gold": 1.0
+      },
+      "outputs": {
+        "luxury_furniture": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 60,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 60,
+      "sector": "light_industry",
+      "owner_id": "KRS-HEL-2232"
+    },
+    "ostatnia_produkcja": {
+      "luxury_furniture": 24.3
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8953098810392102,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 6.480000000000003,
+      "luxury_furniture": 1.0989673214372542,
+      "food": 0.5,
+      "silver": 1.3877787807814457e-17,
+      "luxury": 6.938893903907228e-17,
+      "gold": 1.3877787807814457e-17
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-HEL-2232_Factory_22",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Helwecja-Region2",
+      "typ_budynku_docelowy": "Factory",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 973,
+      "zwiększenie_kapitału": 13415137.464015242,
+      "nowy_budynek": false,
+      "koszt_całkowity": 13748594.34410361,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 1,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 1,
+      "investor_id": "KRS-HEL-2232",
+      "main_contractor_id": "KRS-HEL-1943",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 2749718.868820722,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 4124578.303231083,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 4124578.303231083,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 2749718.868820722,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 13748594.34410361,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-HEL-2233",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-HEL-2233",
+    "rok_budowy": 1964,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 7177196.213055454,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "industrial_fiber": 12.0
+      },
+      "outputs": {
+        "fibers": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 58,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 58,
+      "sector": "light_industry",
+      "owner_id": "KRS-HEL-2233"
+    },
+    "ostatnia_produkcja": {
+      "fibers": 0.69782195469324
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7433905736069132,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 3.0384492187499985,
+      "food": 0.505,
+      "industrial_fiber": 0.48979687500000013,
+      "fibers": 8.17935437866969
+    },
+    "pojemność_magazynu": 1010.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-HEL-2233_Factory_21",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Helwecja-Region2",
+      "typ_budynku_docelowy": "Factory",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 950,
+      "zwiększenie_kapitału": 13186395.180473285,
+      "nowy_budynek": false,
+      "koszt_całkowity": 13522085.935433768,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 2,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 2,
+      "investor_id": "KRS-HEL-2233",
+      "main_contractor_id": "KRS-HEL-1995",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 2704417.1870867535,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 4056625.7806301303,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 4056625.7806301303,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 2704417.1870867535,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 13522085.935433768,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-HEL-2234",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-HEL-2234",
+    "rok_budowy": 1955,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 6688703.3707757685,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "silver": 1.0,
+        "luxury": 5.0,
+        "fibers": 8.0,
+        "gold": 1.0
+      },
+      "outputs": {
+        "luxury_clothing": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 54,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 54,
+      "sector": "light_industry",
+      "owner_id": "KRS-HEL-2234"
+    },
+    "ostatnia_produkcja": {
+      "luxury_clothing": 21.869999999999997
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7982382666737382,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 3.8879999999999986,
+      "food": 0.505,
+      "luxury_clothing": 1.1001502566007144,
+      "fibers": 1.944
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-HEL-2235",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-HEL-2235",
+    "rok_budowy": 1960,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 6260667.563431687,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 15.0,
+        "energy": 3.0
+      },
+      "outputs": {
+        "planks": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 51,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 51,
+      "sector": "light_industry",
+      "owner_id": "KRS-HEL-2235"
+    },
+    "ostatnia_produkcja": {
+      "planks": 0.0055125346095590624
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8074438685066682,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "planks": 4.880936143383998,
+      "timber": 0.0059326171875,
+      "energy": 3.4031865234374994,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-2236",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-HEL-2236",
+    "rok_budowy": 1955,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 6018839.423689268,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fibers": 10.0
+      },
+      "outputs": {
+        "clothing": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 49,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 49,
+      "sector": "light_industry",
+      "owner_id": "KRS-HEL-2236"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 0.04978529372283984
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6617361042698746,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5278624514739977,
+      "clothing": 1.4560005650364523,
+      "fibers": 0.05495806940438021
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-2237",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-HEL-2237",
+    "rok_budowy": 1955,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 5467471.265076552,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "fibers": 15.0
+      },
+      "outputs": {
+        "clothing": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 44,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 44,
+      "sector": "light_industry",
+      "owner_id": "KRS-HEL-2237"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 0.5014290268282274
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7838078249989281,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 5.373369140625001,
+      "food": 0.505,
+      "clothing": 6.103571035287223,
+      "fibers": 0.325107421875
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-HEL-2238",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-HEL-2238",
+    "rok_budowy": 1959,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 3600558.026265077,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 3.0,
+        "energy": 5.0,
+        "steel": 8.0,
+        "glass": 5.0
+      },
+      "outputs": {
+        "medical_equipment": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 29,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 29,
+      "sector": "light_industry",
+      "owner_id": "KRS-HEL-2238"
+    },
+    "ostatnia_produkcja": {
+      "medical_equipment": 0.15745645890074944
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6128130832609237,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.14220166106045584,
+      "energy": 6.717002768434096,
+      "food": 0.5,
+      "steel": 0.14026519016848377,
+      "glass": 1.857002768434093,
+      "medical_equipment": 1.2726036195698296
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-2239",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-HEL-2239",
+    "rok_budowy": 1973,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 3358729.8865226577,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 10.0,
+        "fibers": 20.0
+      },
+      "outputs": {
+        "clothing": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 27,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 27,
+      "sector": "light_industry",
+      "owner_id": "KRS-HEL-2239"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 0.7310116468850204
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6213085098845097,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 10.746738281250003,
+      "food": 0.5,
+      "clothing": 8.865310612273879,
+      "fibers": 0.43347656249999994
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-2240",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-HEL-2240",
+    "rok_budowy": 1962,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 3237815.816651448,
+    "aktywna_metoda": {
+      "rok": 1935,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "electronic_components": 5.0,
+        "energy": 5.0,
+        "plastics": 3.0,
+        "steel": 8.0
+      },
+      "outputs": {
+        "agd": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 26,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 26,
+      "sector": "light_industry",
+      "owner_id": "KRS-HEL-2240"
+    },
+    "ostatnia_produkcja": {
+      "agd": 0.241189187388989
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7369359798014106,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "agd": 1.9239186083912565,
+      "electronic_components": 0.23724085008294576,
+      "energy": 6.717240850082948,
+      "plastics": 0.1423445100497675,
+      "food": 0.5,
+      "steel": 0.1401382132890956
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-2241",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-HEL-2241",
+    "rok_budowy": 1964,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 1955622.3795101875,
+    "aktywna_metoda": {
+      "rok": 1935,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "chemicals": 10.0
+      },
+      "outputs": {
+        "clothing": 40.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 15,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 15,
+      "sector": "light_industry",
+      "owner_id": "KRS-HEL-2241"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 0.875851260364235
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8390084024282326,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 9.149999999999997,
+      "food": 0.515,
+      "clothing": 4.621577504308591,
+      "chemicals": 0.1875
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-HEL-2242",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-HEL-2242",
+    "rok_budowy": 1946,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 44,
+    "rezerwa_zakladowa": 695916.0528496082,
+    "aktywna_metoda": {
+      "rok": 1935,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "plastics": 10.0,
+        "chemicals": 3.0
+      },
+      "outputs": {
+        "fibers": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 5,
+      "sector": "light_industry",
+      "owner_id": "KRS-HEL-2242"
+    },
+    "ostatnia_produkcja": {
+      "fibers": 2.487533912148005e-22
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8735233858646722,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 5.545000000000001,
+      "plastics": 1.0587911840678754e-22,
+      "food": 0.505,
+      "chemicals": 0.16500000000000004,
+      "fibers": 0.05101621455599448
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-HEL-2243",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-HEL-2243",
+    "rok_budowy": 1954,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 79,
+    "zatrudnienie_aktualne": 38,
+    "rezerwa_zakladowa": 614498.7818436252,
+    "aktywna_metoda": {
+      "rok": 1965,
+      "eksperci": 0.25,
+      "sredni": 0.4,
+      "szeregowi": 0.35,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "electronic_components": 3.0,
+        "energy": 15.0,
+        "fibers": 25.0
+      },
+      "outputs": {
+        "clothing": 60.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 108,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 4,
+      "sector": "light_industry",
+      "owner_id": "KRS-HEL-2243"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 10.08
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8898693557444838,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 16.874999999999996,
+      "food": 0.54,
+      "clothing": 3.1583522198330876,
+      "fibers": 5.125
+    },
+    "pojemność_magazynu": 1080.0
+  },
+  {
+    "id": "B-HEL-2244",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-HEL-2244",
+    "rok_budowy": 1949,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 80,
+    "zatrudnienie_aktualne": 29,
+    "rezerwa_zakladowa": 492416.4305749915,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 15.0,
+        "energy": 8.0,
+        "chemicals": 3.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "paper": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 110,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 3,
+      "sector": "light_industry",
+      "owner_id": "KRS-HEL-2244"
+    },
+    "ostatnia_produkcja": {
+      "paper": 0.19090857746745843
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8922400452919278,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 1.8,
+      "energy": 7.936000000000001,
+      "paper": 4.923691210337979,
+      "food": 0.55,
+      "chemicals": 0.026999999999999996,
+      "water": 3.770000000000001
+    },
+    "pojemność_magazynu": 1100.0
+  },
+  {
+    "id": "B-HEL-2245",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-HEL-2245",
+    "rok_budowy": 1952,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 77,
+    "zatrudnienie_aktualne": 30,
+    "rezerwa_zakladowa": 470679.3200943101,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 12.0,
+        "energy": 3.0,
+        "steel": 3.0
+      },
+      "outputs": {
+        "furniture": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 3,
+      "sector": "light_industry",
+      "owner_id": "KRS-HEL-2245"
+    },
+    "ostatnia_produkcja": {
+      "furniture": 0.09671362572280377
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6890368072237504,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "planks": 0.9540000000000001,
+      "energy": 3.1694999999999993,
+      "furniture": 1.3402828271684115,
+      "food": 0.525,
+      "steel": 0.025500000000000002
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-HEL-2246",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-HEL-2246",
+    "rok_budowy": 1971,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 72,
+    "zatrudnienie_aktualne": 72,
+    "rezerwa_zakladowa": 352942.6723192368,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "cereal": 10.0,
+        "vegetable": 5.0,
+        "protein": 3.0,
+        "livestock": 3.0
+      },
+      "outputs": {
+        "food": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 109,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 2,
+      "sector": "light_industry",
+      "owner_id": "KRS-HEL-2246"
+    },
+    "ostatnia_produkcja": {
+      "food": 2.88
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.998,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8304224555542141,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 2.5020000000000007,
+      "food": 0.00011565623287660559,
+      "cereal": 7.23,
+      "vegetable": 5.551115123125783e-17
+    },
+    "pojemność_magazynu": 1090.0
+  },
+  {
+    "id": "B-HEL-2247",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-HEL-2247",
+    "rok_budowy": 1946,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 99,
+    "zatrudnienie_aktualne": 11,
+    "rezerwa_zakladowa": 277474.8536274208,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 10.0,
+        "energy": 5.0,
+        "silver": 1.0,
+        "luxury": 3.0,
+        "gold": 1.0
+      },
+      "outputs": {
+        "luxury_furniture": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 134,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 1,
+      "sector": "light_industry",
+      "owner_id": "KRS-HEL-2247"
+    },
+    "ostatnia_produkcja": {
+      "luxury_furniture": 0.065
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7179250344259261,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 2.2549999999999994,
+      "luxury_furniture": 1.4488449712797409,
+      "food": 0.67
+    },
+    "pojemność_magazynu": 1340.0
+  },
+  {
+    "id": "B-HEL-2248",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-HEL-2248",
+    "rok_budowy": 1959,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 9,
+    "zatrudnienie_aktualne": 1,
+    "rezerwa_zakladowa": 23700.54768583305,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "industrial_fiber": 12.0
+      },
+      "outputs": {
+        "fibers": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 11,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 1,
+      "sector": "light_industry",
+      "owner_id": "KRS-HEL-2248"
+    },
+    "ostatnia_produkcja": {
+      "fibers": 0.008423843193011303
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6158954620075368,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.10053515625000004,
+      "food": 0.05499999999999999,
+      "industrial_fiber": 0.006140625,
+      "fibers": 0.44638390121250554
+    },
+    "pojemność_magazynu": 110.0
+  }
+]

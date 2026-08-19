@@ -1,0 +1,1470 @@
+[
+  {
+    "id": "B-IBE-0089",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-IBE-0089",
+    "rok_budowy": 1896,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 58550.0,
+    "aktywna_metoda": {
+      "rok": 1895,
+      "eksperci": 0.08,
+      "sredni": 0.2,
+      "szeregowi": 0.72,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "seeds": 8.0
+      },
+      "outputs": {
+        "cereal": 40.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 15,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iberia-Region2",
+    "cluster_info": {
+      "region_id": "Iberia-Region2",
+      "scale_factor": 15,
+      "sector": "agriculture",
+      "owner_id": "KRS-IBE-0089"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7569160154164578,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.4,
+      "food": 0.5,
+      "cereal": 6.759594472928323,
+      "seeds": 0.32000000000000006
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-IBE-1093",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-IBE-1093",
+    "rok_budowy": 1899,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 665318.5755064583,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "seeds": 5.0,
+        "draft_animals": 3.0
+      },
+      "outputs": {
+        "cereal": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 54,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iberia-Region2",
+    "cluster_info": {
+      "region_id": "Iberia-Region2",
+      "scale_factor": 54,
+      "sector": "agriculture",
+      "owner_id": "KRS-IBE-1093"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 72.9
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8668344965319905,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 1.3877787807814457e-17,
+      "cereal": 3.25653741529729
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-IBE-1094",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-IBE-1094",
+    "rok_budowy": 1893,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 544704.0244867437,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 6.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "protein": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 44,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iberia-Region2",
+    "cluster_info": {
+      "region_id": "Iberia-Region2",
+      "scale_factor": 44,
+      "sector": "agriculture",
+      "owner_id": "KRS-IBE-1094"
+    },
+    "ostatnia_produkcja": {
+      "protein": 47.519999999999996
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8659216180426023,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "protein": 2.605015453839062,
+      "seeds": 5.551115123125783e-17
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-IBE-1095",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-IBE-1095",
+    "rok_budowy": 1879,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 456646.63134439173,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cereal": 8.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "fodder": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 36,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Iberia-Region2",
+    "cluster_info": {
+      "region_id": "Iberia-Region2",
+      "scale_factor": 36,
+      "sector": "agriculture",
+      "owner_id": "KRS-IBE-1095"
+    },
+    "ostatnia_produkcja": {
+      "fodder": 49.14
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8212686828980582,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51,
+      "fodder": 3.3080161121359257
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-IBE-1096",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-IBE-1096",
+    "rok_budowy": 1879,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 387455.108161115,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 2.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "timber": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 31,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iberia-Region2",
+    "cluster_info": {
+      "region_id": "Iberia-Region2",
+      "scale_factor": 31,
+      "sector": "agriculture",
+      "owner_id": "KRS-IBE-1096"
+    },
+    "ostatnia_produkcja": {
+      "timber": 27.9
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8675257249448592,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 0.5711602787786778,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-IBE-1097",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-IBE-1097",
+    "rok_budowy": 1894,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 363332.19795717206,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "cereal": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "seeds": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 29,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iberia-Region2",
+    "cluster_info": {
+      "region_id": "Iberia-Region2",
+      "scale_factor": 29,
+      "sector": "agriculture",
+      "owner_id": "KRS-IBE-1097"
+    },
+    "ostatnia_produkcja": {
+      "seeds": 31.32
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8592230461097976,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "seeds": 2.603441641991271
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-IBE-1098",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-IBE-1098",
+    "rok_budowy": 1884,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 309014.42089626106,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "industrial_fiber": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 24,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Iberia-Region2",
+    "cluster_info": {
+      "region_id": "Iberia-Region2",
+      "scale_factor": 24,
+      "sector": "agriculture",
+      "owner_id": "KRS-IBE-1098"
+    },
+    "ostatnia_produkcja": {
+      "industrial_fiber": 26.208000000000002
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.848387260809353,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51,
+      "industrial_fiber": 2.652911756994632
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-IBE-1099",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-IBE-1099",
+    "rok_budowy": 1894,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 293787.6020187968,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "vegetable": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 23,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Iberia-Region2",
+    "cluster_info": {
+      "region_id": "Iberia-Region2",
+      "scale_factor": 23,
+      "sector": "agriculture",
+      "owner_id": "KRS-IBE-1099"
+    },
+    "ostatnia_produkcja": {
+      "vegetable": 37.26
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.924735274424818,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 1.3877787807814457e-17,
+      "vegetable": 3.967524026817056,
+      "water": 5.551115123125783e-17
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-IBE-1100",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-IBE-1100",
+    "rok_budowy": 1886,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 247500.9998762067,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fodder": 15.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "meat": 10.0,
+        "livestock": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 19,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Iberia-Region2",
+    "cluster_info": {
+      "region_id": "Iberia-Region2",
+      "scale_factor": 19,
+      "sector": "agriculture",
+      "owner_id": "KRS-IBE-1100"
+    },
+    "ostatnia_produkcja": {
+      "meat": 17.29,
+      "livestock": 8.645
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7408464158838429,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "meat": 2.1892833247594554,
+      "food": 2.7755575615628914e-17,
+      "water": 5.551115123125783e-17,
+      "livestock": 1.0946416623797277
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-IBE-1101",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-IBE-1101",
+    "rok_budowy": 1898,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 247500.9998762067,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 4.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "fruit": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 19,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Iberia-Region2",
+    "cluster_info": {
+      "region_id": "Iberia-Region2",
+      "scale_factor": 19,
+      "sector": "agriculture",
+      "owner_id": "KRS-IBE-1101"
+    },
+    "ostatnia_produkcja": {
+      "fruit": 25.935000000000002
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8516051646188434,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fruit": 3.3171036447339266
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-IBE-1102",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-IBE-1102",
+    "rok_budowy": 1897,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 218594.73673351464,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 4.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "luxury": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 17,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iberia-Region2",
+    "cluster_info": {
+      "region_id": "Iberia-Region2",
+      "scale_factor": 17,
+      "sector": "agriculture",
+      "owner_id": "KRS-IBE-1102"
+    },
+    "ostatnia_produkcja": {
+      "luxury": 12.24
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7298411267096767,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "luxury": 1.715362467004632
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-IBE-1103",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-IBE-1103",
+    "rok_budowy": 1878,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 83,
+    "zatrudnienie_aktualne": 83,
+    "rezerwa_zakladowa": 200249.4813254589,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 5.0,
+        "seeds": 5.0,
+        "draft_animals": 5.0
+      },
+      "outputs": {
+        "cereal": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 15,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Iberia-Region2",
+    "cluster_info": {
+      "region_id": "Iberia-Region2",
+      "scale_factor": 15,
+      "sector": "agriculture",
+      "owner_id": "KRS-IBE-1103"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 34.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.962381752367986,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cereal": 5.638543784522785
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-IBE-1104",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-IBE-1104",
+    "rok_budowy": 1891,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 83,
+    "zatrudnienie_aktualne": 83,
+    "rezerwa_zakladowa": 187826.18257042833,
+    "aktywna_metoda": {
+      "rok": 1895,
+      "eksperci": 0.08,
+      "sredni": 0.2,
+      "szeregowi": 0.72,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "seeds": 8.0
+      },
+      "outputs": {
+        "cereal": 40.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 14,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Iberia-Region2",
+    "cluster_info": {
+      "region_id": "Iberia-Region2",
+      "scale_factor": 14,
+      "sector": "agriculture",
+      "owner_id": "KRS-IBE-1104"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 51.52
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9804658581738127,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.515,
+      "cereal": 9.03625764677448
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-IBE-1105",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-IBE-1105",
+    "rok_budowy": 1894,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 170348.91632562884,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "seeds": 5.0,
+        "draft_animals": 3.0
+      },
+      "outputs": {
+        "cereal": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 13,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iberia-Region2",
+    "cluster_info": {
+      "region_id": "Iberia-Region2",
+      "scale_factor": 13,
+      "sector": "agriculture",
+      "owner_id": "KRS-IBE-1105"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 17.549999999999997
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9690096935417519,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 1.3877787807814457e-17,
+      "cereal": 3.2865446573664725
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-IBE-1106",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-IBE-1106",
+    "rok_budowy": 1879,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 149079.52624411968,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 6.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "protein": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Iberia-Region2",
+    "cluster_info": {
+      "region_id": "Iberia-Region2",
+      "scale_factor": 11,
+      "sector": "agriculture",
+      "owner_id": "KRS-IBE-1106"
+    },
+    "ostatnia_produkcja": {
+      "protein": 12.011999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.936616193296134,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "protein": 2.6740554956111273,
+      "seeds": 2.7755575615628914e-17
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-IBE-1107",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-IBE-1107",
+    "rok_budowy": 1881,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 83,
+    "zatrudnienie_aktualne": 83,
+    "rezerwa_zakladowa": 100863.09128521416,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cereal": 8.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "fodder": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Iberia-Region2",
+    "cluster_info": {
+      "region_id": "Iberia-Region2",
+      "scale_factor": 7,
+      "sector": "agriculture",
+      "owner_id": "KRS-IBE-1107"
+    },
+    "ostatnia_produkcja": {
+      "fodder": 9.66
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8961735832189375,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.515,
+      "fodder": 3.3630986480101326
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-IBE-1108",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-IBE-1108",
+    "rok_budowy": 1888,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 99868.78942807615,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 2.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "timber": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Iberia-Region2",
+    "cluster_info": {
+      "region_id": "Iberia-Region2",
+      "scale_factor": 7,
+      "sector": "agriculture",
+      "owner_id": "KRS-IBE-1108"
+    },
+    "ostatnia_produkcja": {
+      "timber": 6.37
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9326229223312884,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 0.5975821024470445,
+      "food": 0.51
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-IBE-1109",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-IBE-1109",
+    "rok_budowy": 1881,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 92,
+    "zatrudnienie_aktualne": 92,
+    "rezerwa_zakladowa": 97900.35289748471,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "cereal": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "seeds": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 6,
+    "pojemnosc_budowlana": 114,
+    "region_id": "Iberia-Region2",
+    "cluster_info": {
+      "region_id": "Iberia-Region2",
+      "scale_factor": 6,
+      "sector": "agriculture",
+      "owner_id": "KRS-IBE-1109"
+    },
+    "ostatnia_produkcja": {
+      "seeds": 7.343999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7515774769160916,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 4.163336342344337e-17,
+      "seeds": 2.9390877589961533,
+      "water": 1.1102230246251563e-16
+    },
+    "pojemność_magazynu": 1140.0
+  },
+  {
+    "id": "B-IBE-1110",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-IBE-1110",
+    "rok_budowy": 1880,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 95,
+    "zatrudnienie_aktualne": 95,
+    "rezerwa_zakladowa": 72880.06808130525,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "industrial_fiber": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 118,
+    "region_id": "Iberia-Region2",
+    "cluster_info": {
+      "region_id": "Iberia-Region2",
+      "scale_factor": 4,
+      "sector": "agriculture",
+      "owner_id": "KRS-IBE-1110"
+    },
+    "ostatnia_produkcja": {
+      "industrial_fiber": 5.088
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7997406290354322,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.59,
+      "industrial_fiber": 3.055562510224038,
+      "water": 5.551115123125783e-17
+    },
+    "pojemność_magazynu": 1180.0
+  },
+  {
+    "id": "B-IBE-1111",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-IBE-1111",
+    "rok_budowy": 1887,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 105,
+    "zatrudnienie_aktualne": 105,
+    "rezerwa_zakladowa": 64639.67489768865,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "vegetable": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 130,
+    "region_id": "Iberia-Region2",
+    "cluster_info": {
+      "region_id": "Iberia-Region2",
+      "scale_factor": 3,
+      "sector": "agriculture",
+      "owner_id": "KRS-IBE-1111"
+    },
+    "ostatnia_produkcja": {
+      "vegetable": 6.318
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7022007989667568,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "vegetable": 5.004771872570832
+    },
+    "pojemność_magazynu": 1300.0
+  },
+  {
+    "id": "B-IBE-1112",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-IBE-1112",
+    "rok_budowy": 1880,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 29,
+    "zatrudnienie_aktualne": 28,
+    "rezerwa_zakladowa": 9021.509285690008,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fodder": 15.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "meat": 10.0,
+        "livestock": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 35,
+    "region_id": "Iberia-Region2",
+    "cluster_info": {
+      "region_id": "Iberia-Region2",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-IBE-1112"
+    },
+    "ostatnia_produkcja": {
+      "meat": 0.32,
+      "livestock": 0.16
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8098116892253979,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "meat": 0.7559511673353405,
+      "livestock": 0.37797558366767026
+    },
+    "pojemność_magazynu": 350.0
+  }
+]

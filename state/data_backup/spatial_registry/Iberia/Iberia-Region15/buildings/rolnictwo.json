@@ -1,0 +1,1667 @@
+[
+    {
+        "id": "[ID-9XX-4277]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[KRS-2AG-4754]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-4754]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5191]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[ID-9AG-1143]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-1143]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7656]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[REG-4AG-7710]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-7710]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7394]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[KRS-2AG-4118]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-4118]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1798]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[ID-9AG-3214]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-3214]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6585]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[REG-4AG-7798]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-7798]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9132]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[KRS-2AG-9005]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-9005]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8849]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[ID-9AG-5184]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-5184]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5744]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[REG-4AG-1021]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-1021]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8327]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[KRS-2AG-5009]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-5009]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4202]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[ID-9AG-3968]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-3968]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8702]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[REG-4AG-6991]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-6991]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3674]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[KRS-2AG-4154]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-4154]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7070]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[ID-9AG-5776]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-5776]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5074]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[REG-4AG-9346]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-9346]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5522]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[KRS-2AG-3966]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-3966]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5716]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[ID-9AG-9244]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-9244]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3160]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[REG-4AG-6947]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-6947]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6330]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[KRS-2AG-1323]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-1323]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2142]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[ID-9AG-9662]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-9662]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5490]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[REG-4AG-1487]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-1487]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2898]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[KRS-2AG-3848]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-3848]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8277]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[ID-9AG-1112]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-1112]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2178]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[REG-4AG-4247]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-4247]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8459]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[KRS-2AG-7908]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-7908]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3477]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[ID-9AG-3464]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-3464]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8886]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[REG-4AG-7335]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-7335]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5582]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[KRS-2AG-8175]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-8175]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8271]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[ID-9AG-7767]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-7767]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7034]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[REG-4AG-4095]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-4095]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7784]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[KRS-2AG-7989]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-7989]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6183]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[ID-9AG-7295]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-7295]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4275]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[REG-4AG-3270]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-3270]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9352]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[KRS-2AG-4672]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-4672]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4400]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[ID-9AG-5255]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-5255]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6536]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[REG-4AG-7817]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-7817]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2857]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[KRS-2AG-2845]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-2845]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3166]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[ID-9AG-4977]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-4977]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3397]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[REG-4AG-9877]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-9877]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1963]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[KRS-2AG-2228]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-2228]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4720]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[ID-9AG-7824]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-7824]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4177]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[REG-4AG-2982]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-2982]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6561]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[KRS-2AG-9027]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-9027]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3737]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[ID-9AG-7707]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-7707]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6588]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[REG-4AG-8180]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region15",
+        "cluster_info": {
+            "region_id": "Iberia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-8180]"
+        }
+    }
+]

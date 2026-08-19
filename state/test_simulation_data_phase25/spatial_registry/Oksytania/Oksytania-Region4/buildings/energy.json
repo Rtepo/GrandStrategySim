@@ -1,0 +1,1702 @@
+[
+  {
+    "id": "B-OKS-0006",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-OKS-0006",
+    "rok_budowy": 1952,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 46,
+    "zatrudnienie_aktualne": 46,
+    "rezerwa_zakladowa": 68370.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "fuels": 15.0
+      },
+      "outputs": {
+        "energy": 90.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Oksytania-Region4",
+    "cluster_info": {
+      "region_id": "Oksytania-Region4",
+      "scale_factor": 7,
+      "sector": "energy",
+      "owner_id": "KRS-OKS-0006"
+    },
+    "ostatnia_produkcja": {
+      "energy": 28.98
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6021814556933359,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.008001547746544213,
+      "food": 0.535
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-OKS-0081",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-OKS-0081",
+    "rok_budowy": 1957,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 72,
+    "zatrudnienie_aktualne": 72,
+    "rezerwa_zakladowa": 3222086.5423270315,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 35,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region4",
+    "cluster_info": {
+      "region_id": "Oksytania-Region4",
+      "scale_factor": 35,
+      "sector": "energy",
+      "owner_id": "KRS-OKS-0081"
+    },
+    "ostatnia_produkcja": {
+      "water": 4.429038516873536
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7196514903416111,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 4.4541403351671764
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-OKS-0081_Power_Plant_18",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Oksytania-Region4",
+      "typ_budynku_docelowy": "Power Plant",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 511,
+      "zwiększenie_kapitału": 11696218.023076555,
+      "nowy_budynek": false,
+      "koszt_całkowity": 12007788.86047688,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 5,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 5,
+      "investor_id": "KRS-OKS-0081",
+      "main_contractor_id": "KRS-OKS-0588",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 2401557.772095376,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 3602336.6581430635,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 3602336.6581430635,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 2401557.772095376,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 12007788.86047688,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-OKS-0082",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-OKS-0082",
+    "rok_budowy": 1959,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 73,
+    "rezerwa_zakladowa": 3073626.855878856,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 33,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Oksytania-Region4",
+    "cluster_info": {
+      "region_id": "Oksytania-Region4",
+      "scale_factor": 33,
+      "sector": "energy",
+      "owner_id": "KRS-OKS-0082"
+    },
+    "ostatnia_produkcja": {
+      "energy": 72.27,
+      "heat": 24.089999999999996
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7476022789509718,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505,
+      "peat": 1.9699999999999998,
+      "water": 6.079999999999957,
+      "brown_coal": 0.81
+    },
+    "pojemność_magazynu": 1010.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-OKS-0082_Power_Plant_18",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Oksytania-Region4",
+      "typ_budynku_docelowy": "Power Plant",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 487,
+      "zwiększenie_kapitału": 11184287.70951268,
+      "nowy_budynek": false,
+      "koszt_całkowity": 11460708.921161463,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 5,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 5,
+      "investor_id": "KRS-OKS-0082",
+      "main_contractor_id": "KRS-OKS-0589",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 2292141.784232293,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 3438212.676348439,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 3438212.676348439,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 2292141.784232293,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 11460708.921161463,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-OKS-0083",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-OKS-0083",
+    "rok_budowy": 1971,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 72,
+    "zatrudnienie_aktualne": 72,
+    "rezerwa_zakladowa": 2770402.750566027,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 30,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region4",
+    "cluster_info": {
+      "region_id": "Oksytania-Region4",
+      "scale_factor": 30,
+      "sector": "energy",
+      "owner_id": "KRS-OKS-0083"
+    },
+    "ostatnia_produkcja": {
+      "energy": 108.0,
+      "heat": 32.400000000000006
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6493322082199798,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 3.456
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-OKS-0083_Power_Plant_21",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Oksytania-Region4",
+      "typ_budynku_docelowy": "Power Plant",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 438,
+      "zwiększenie_kapitału": 5335178.1599328285,
+      "nowy_budynek": false,
+      "koszt_całkowity": 5475384.133035348,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 2,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 2,
+      "investor_id": "KRS-OKS-0083",
+      "main_contractor_id": "KRS-OKS-0552",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 1095076.8266070697,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 1642615.2399106042,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 1642615.2399106042,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 1095076.8266070697,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 5475384.133035348,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.04818583102483439,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-OKS-0084",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-OKS-0084",
+    "rok_budowy": 1960,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 2577689.149774707,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "water": 15.0
+      },
+      "outputs": {
+        "energy": 60.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 27,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Oksytania-Region4",
+    "cluster_info": {
+      "region_id": "Oksytania-Region4",
+      "scale_factor": 27,
+      "sector": "energy",
+      "owner_id": "KRS-OKS-0084"
+    },
+    "ostatnia_produkcja": {
+      "energy": 121.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.811514798246508,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.515,
+      "water": 6.685000000000007
+    },
+    "pojemność_magazynu": 1030.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-OKS-0084_Power_Plant_21",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Oksytania-Region4",
+      "typ_budynku_docelowy": "Power Plant",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 406,
+      "zwiększenie_kapitału": 4980996.291702378,
+      "nowy_budynek": false,
+      "koszt_całkowity": 5119870.746744198,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 2,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 2,
+      "investor_id": "KRS-OKS-0084",
+      "main_contractor_id": "KRS-OKS-0602",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 1023974.1493488397,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 1535961.2240232592,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 1535961.2240232592,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 1023974.1493488397,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 5119870.746744198,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-OKS-0085",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-OKS-0085",
+    "rok_budowy": 1966,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 72,
+    "zatrudnienie_aktualne": 72,
+    "rezerwa_zakladowa": 2412295.7171572233,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 26,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region4",
+    "cluster_info": {
+      "region_id": "Oksytania-Region4",
+      "scale_factor": 26,
+      "sector": "energy",
+      "owner_id": "KRS-OKS-0085"
+    },
+    "ostatnia_produkcja": {
+      "energy": 149.76000000000002,
+      "heat": 46.800000000000004
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.659347244288789,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 5.039999999999999
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-OKS-0085_Power_Plant_21",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Oksytania-Region4",
+      "typ_budynku_docelowy": "Power Plant",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 380,
+      "zwiększenie_kapitału": 4690295.245968105,
+      "nowy_budynek": false,
+      "koszt_całkowity": 4806936.334888113,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 2,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 2,
+      "investor_id": "KRS-OKS-0085",
+      "main_contractor_id": "KRS-OKS-0589",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 961387.2669776226,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 1442080.9004664337,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 1442080.9004664337,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 961387.2669776226,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 4806936.334888113,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-OKS-0086",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-OKS-0086",
+    "rok_budowy": 1967,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 73,
+    "rezerwa_zakladowa": 1984512.5446501812,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "fuels": 15.0
+      },
+      "outputs": {
+        "energy": 90.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 21,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Oksytania-Region4",
+    "cluster_info": {
+      "region_id": "Oksytania-Region4",
+      "scale_factor": 21,
+      "sector": "energy",
+      "owner_id": "KRS-OKS-0086"
+    },
+    "ostatnia_produkcja": {
+      "energy": 6.044481924924946e-81
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8566714834162018,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 2.635549485807631e-82,
+      "energy": 6.044481924924946e-81,
+      "fuels": 0.0981998201816522,
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-OKS-0087",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-OKS-0087",
+    "rok_budowy": 1963,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 73,
+    "rezerwa_zakladowa": 1622824.4409072893,
+    "aktywna_metoda": {
+      "rok": 1955,
+      "eksperci": 0.3,
+      "sredni": 0.45,
+      "szeregowi": 0.25,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "electronic_components": 10.0,
+        "water": 20.0,
+        "uranium": 5.0
+      },
+      "outputs": {
+        "energy": 200.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 17,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Oksytania-Region4",
+    "cluster_info": {
+      "region_id": "Oksytania-Region4",
+      "scale_factor": 17,
+      "sector": "energy",
+      "owner_id": "KRS-OKS-0087"
+    },
+    "ostatnia_produkcja": {
+      "energy": 248.20000000000002
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7036633666192071,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505,
+      "water": 10.780999999999999
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-OKS-0088",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-OKS-0088",
+    "rok_budowy": 1947,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 73,
+    "rezerwa_zakladowa": 1622824.4409072893,
+    "aktywna_metoda": {
+      "rok": 1975,
+      "eksperci": 0.3,
+      "sredni": 0.45,
+      "szeregowi": 0.25,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "electronic_components": 5.0,
+        "natural_gas": 15.0
+      },
+      "outputs": {
+        "energy": 250.0,
+        "heat": 40.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 17,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Oksytania-Region4",
+    "cluster_info": {
+      "region_id": "Oksytania-Region4",
+      "scale_factor": 17,
+      "sector": "energy",
+      "owner_id": "KRS-OKS-0088"
+    },
+    "ostatnia_produkcja": {
+      "energy": 310.25,
+      "heat": 49.64
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6087735304425921,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "natural_gas": 1.095,
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-OKS-0089",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-OKS-0089",
+    "rok_budowy": 1946,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 65,
+    "zatrudnienie_aktualne": 65,
+    "rezerwa_zakladowa": 1061594.3418742097,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region4",
+    "cluster_info": {
+      "region_id": "Oksytania-Region4",
+      "scale_factor": 11,
+      "sector": "energy",
+      "owner_id": "KRS-OKS-0089"
+    },
+    "ostatnia_produkcja": {
+      "water": 35.75
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7106397585956343,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 0.7744963116319302
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-OKS-0090",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-OKS-0090",
+    "rok_budowy": 1968,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 70,
+    "zatrudnienie_aktualne": 70,
+    "rezerwa_zakladowa": 1040536.3143685496,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Oksytania-Region4",
+    "cluster_info": {
+      "region_id": "Oksytania-Region4",
+      "scale_factor": 10,
+      "sector": "energy",
+      "owner_id": "KRS-OKS-0090"
+    },
+    "ostatnia_produkcja": {
+      "energy": 21.0,
+      "heat": 7.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7113973833106405,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.535,
+      "peat": 1.54,
+      "water": 4.930000000000044
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-OKS-0091",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-OKS-0091",
+    "rok_budowy": 1957,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 59,
+    "zatrudnienie_aktualne": 59,
+    "rezerwa_zakladowa": 966067.583522009,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region4",
+    "cluster_info": {
+      "region_id": "Oksytania-Region4",
+      "scale_factor": 10,
+      "sector": "energy",
+      "owner_id": "KRS-OKS-0091"
+    },
+    "ostatnia_produkcja": {
+      "energy": 29.5,
+      "heat": 8.85
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8797600625886538,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 3.6379999999999844
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-OKS-0092",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-OKS-0092",
+    "rok_budowy": 1950,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 63,
+    "zatrudnienie_aktualne": 63,
+    "rezerwa_zakladowa": 841949.0514948397,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "water": 15.0
+      },
+      "outputs": {
+        "energy": 60.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Oksytania-Region4",
+    "cluster_info": {
+      "region_id": "Oksytania-Region4",
+      "scale_factor": 8,
+      "sector": "energy",
+      "owner_id": "KRS-OKS-0092"
+    },
+    "ostatnia_produkcja": {
+      "energy": 30.240000000000002
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7337495976301242,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.535,
+      "water": 6.615000000000001
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-OKS-0093",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-OKS-0093",
+    "rok_budowy": 1973,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 63,
+    "zatrudnienie_aktualne": 63,
+    "rezerwa_zakladowa": 746155.4200579847,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Oksytania-Region4",
+    "cluster_info": {
+      "region_id": "Oksytania-Region4",
+      "scale_factor": 7,
+      "sector": "energy",
+      "owner_id": "KRS-OKS-0093"
+    },
+    "ostatnia_produkcja": {
+      "energy": 35.28,
+      "heat": 11.025
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7363770440049519,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.535,
+      "water": 4.41
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-OKS-0094",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-OKS-0094",
+    "rok_budowy": 1963,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 78,
+    "zatrudnienie_aktualne": 45,
+    "rezerwa_zakladowa": 448175.9630747156,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "fuels": 15.0
+      },
+      "outputs": {
+        "energy": 90.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 132,
+    "region_id": "Oksytania-Region4",
+    "cluster_info": {
+      "region_id": "Oksytania-Region4",
+      "scale_factor": 3,
+      "sector": "energy",
+      "owner_id": "KRS-OKS-0094"
+    },
+    "ostatnia_produkcja": {
+      "energy": 11.34
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7782372420400755,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.031044861124661045,
+      "food": 0.66
+    },
+    "pojemność_magazynu": 1320.0
+  },
+  {
+    "id": "B-OKS-0095",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-OKS-0095",
+    "rok_budowy": 1948,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 66,
+    "zatrudnienie_aktualne": 29,
+    "rezerwa_zakladowa": 377274.10531282896,
+    "aktywna_metoda": {
+      "rok": 1955,
+      "eksperci": 0.3,
+      "sredni": 0.45,
+      "szeregowi": 0.25,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "electronic_components": 10.0,
+        "water": 20.0,
+        "uranium": 5.0
+      },
+      "outputs": {
+        "energy": 200.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 111,
+    "region_id": "Oksytania-Region4",
+    "cluster_info": {
+      "region_id": "Oksytania-Region4",
+      "scale_factor": 3,
+      "sector": "energy",
+      "owner_id": "KRS-OKS-0095"
+    },
+    "ostatnia_produkcja": {
+      "energy": 19.2
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6596819919811582,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.555,
+      "water": 7.699999999999999
+    },
+    "pojemność_magazynu": 1110.0
+  },
+  {
+    "id": "B-OKS-0096",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-OKS-0096",
+    "rok_budowy": 1946,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 14,
+    "rezerwa_zakladowa": 247578.61611408746,
+    "aktywna_metoda": {
+      "rok": 1975,
+      "eksperci": 0.3,
+      "sredni": 0.45,
+      "szeregowi": 0.25,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "electronic_components": 5.0,
+        "natural_gas": 15.0
+      },
+      "outputs": {
+        "energy": 250.0,
+        "heat": 40.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 163,
+    "region_id": "Oksytania-Region4",
+    "cluster_info": {
+      "region_id": "Oksytania-Region4",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-OKS-0096"
+    },
+    "ostatnia_produkcja": {
+      "energy": 4.0,
+      "heat": 0.64
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6164641904187949,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "natural_gas": 0.33000000000000007,
+      "food": 0.8150000000000001
+    },
+    "pojemność_magazynu": 1630.0
+  },
+  {
+    "id": "B-OKS-0097",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-OKS-0097",
+    "rok_budowy": 1966,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 9,
+    "zatrudnienie_aktualne": 1,
+    "rezerwa_zakladowa": 20247.9434187421,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 11,
+    "region_id": "Oksytania-Region4",
+    "cluster_info": {
+      "region_id": "Oksytania-Region4",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-OKS-0097"
+    },
+    "ostatnia_produkcja": {
+      "water": 0.05
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6557233622837774,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.05499999999999999,
+      "water": 0.057824192688304896
+    },
+    "pojemność_magazynu": 110.0
+  },
+  {
+    "id": "B-OKS-0098",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-OKS-0098",
+    "rok_budowy": 1946,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 4,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 8181.070334088035,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 4,
+    "region_id": "Oksytania-Region4",
+    "cluster_info": {
+      "region_id": "Oksytania-Region4",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-OKS-0098"
+    },
+    "ostatnia_produkcja": {
+      "energy": 0.0,
+      "heat": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8995393939044853,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.02,
+      "peat": 0.055,
+      "water": 0.11
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

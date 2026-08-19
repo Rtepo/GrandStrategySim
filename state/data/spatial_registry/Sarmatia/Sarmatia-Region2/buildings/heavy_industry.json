@@ -1,0 +1,1586 @@
+[
+  {
+    "id": "B-SAR-0096",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-SAR-0096",
+    "rok_budowy": 1876,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 31,
+    "rezerwa_zakladowa": 19550.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "catalysts": 1.0,
+        "oil": 25.0
+      },
+      "outputs": {
+        "bitumen": 3.0,
+        "fuels": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Sarmatia-Region2",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region2",
+      "scale_factor": 2,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-SAR-0096"
+    },
+    "ostatnia_produkcja": {
+      "bitumen": 0.54,
+      "fuels": 3.2399999999999998
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8432368993215483,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "bitumen": 0.6798742955488715,
+      "energy": 0.5,
+      "fuels": 4.079245773293229,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-SAR-0099",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-SAR-0099",
+    "rok_budowy": 1876,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 84,
+    "zatrudnienie_aktualne": 84,
+    "rezerwa_zakladowa": 51490.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "energy": 8.0,
+        "steel": 12.0
+      },
+      "outputs": {
+        "industrial_machinery": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Sarmatia-Region2",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region2",
+      "scale_factor": 12,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-SAR-0099"
+    },
+    "ostatnia_produkcja": {
+      "industrial_machinery": 11.16
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7595579680901163,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.52,
+      "energy": 1.6639999999999995,
+      "food": 0.52
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-SAR-1305",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-SAR-1305",
+    "rok_budowy": 1899,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 1877373.400311715,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 5.0,
+        "steel": 10.0,
+        "iron": 5.0
+      },
+      "outputs": {
+        "construction_machinery": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 90,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Sarmatia-Region2",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region2",
+      "scale_factor": 90,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-SAR-1305"
+    },
+    "ostatnia_produkcja": {
+      "construction_machinery": 72.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9246737698427392,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.5,
+      "food": 0.5,
+      "iron": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-SAR-1306",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-SAR-1306",
+    "rok_budowy": 1897,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 1545284.7958118543,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "clay": 20.0
+      },
+      "outputs": {
+        "bricks": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 74,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Sarmatia-Region2",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region2",
+      "scale_factor": 74,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-SAR-1306"
+    },
+    "ostatnia_produkcja": {
+      "bricks": 166.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9320700326776191,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "bricks": 5.735189499275945,
+      "energy": 0.0,
+      "clay": 2.220446049250313e-16,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-SAR-1307",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-SAR-1307",
+    "rok_budowy": 1871,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 1463512.6446868891,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "coke": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 70,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Sarmatia-Region2",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region2",
+      "scale_factor": 70,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-SAR-1307"
+    },
+    "ostatnia_produkcja": {
+      "coke": 105.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7022041069052879,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "coke": 3.3331009108658107,
+      "food": 0.5,
+      "hard_coal": 2.220446049250313e-16
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-SAR-1308",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-SAR-1308",
+    "rok_budowy": 1897,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 101,
+    "zatrudnienie_aktualne": 101,
+    "rezerwa_zakladowa": 1394547.8984975433,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 12.0,
+        "sand": 20.0,
+        "soda_ash": 5.0
+      },
+      "outputs": {
+        "glass": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 66,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Sarmatia-Region2",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region2",
+      "scale_factor": 66,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-SAR-1308"
+    },
+    "ostatnia_produkcja": {
+      "glass": 119.988
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8121376172367654,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 2.220446049250313e-16,
+      "sand": 1.1102230246251563e-16,
+      "food": 0.505,
+      "glass": 4.102312678557268
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-SAR-1309",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-SAR-1309",
+    "rok_budowy": 1878,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1089587.9646245462,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "coke": 8.0,
+        "fuels": 10.0,
+        "iron": 20.0
+      },
+      "outputs": {
+        "steel": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 52,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Sarmatia-Region2",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region2",
+      "scale_factor": 52,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-SAR-1309"
+    },
+    "ostatnia_produkcja": {
+      "steel": 70.19999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8368816852621472,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-SAR-1310",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-SAR-1310",
+    "rok_budowy": 1889,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 703298.9492487716,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "industrial_machinery": 2.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "mechanical_components": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 33,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Sarmatia-Region2",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region2",
+      "scale_factor": 33,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-SAR-1310"
+    },
+    "ostatnia_produkcja": {
+      "mechanical_components": 44.550000000000004
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9128814744543156,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 1.515,
+      "energy": 0.5049999999999998,
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-SAR-1311",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-SAR-1311",
+    "rok_budowy": 1887,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 83,
+    "zatrudnienie_aktualne": 83,
+    "rezerwa_zakladowa": 632001.0385256768,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 3.0,
+        "timber": 5.0,
+        "fuels": 2.0,
+        "steel": 8.0
+      },
+      "outputs": {
+        "trucks": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 29,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Sarmatia-Region2",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region2",
+      "scale_factor": 29,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-SAR-1311"
+    },
+    "ostatnia_produkcja": {
+      "trucks": 13.34
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8419272733092557,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.309,
+      "timber": 0.515,
+      "fuels": 0.206,
+      "food": 0.515
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-SAR-1312",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-SAR-1312",
+    "rok_budowy": 1879,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 598799.1084535032,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "energy": 8.0,
+        "steel": 12.0
+      },
+      "outputs": {
+        "industrial_machinery": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 28,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Sarmatia-Region2",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region2",
+      "scale_factor": 28,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-SAR-1312"
+    },
+    "ostatnia_produkcja": {
+      "industrial_machinery": 25.2
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9181765807183203,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.505,
+      "energy": 0.808,
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-SAR-1313",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-SAR-1313",
+    "rok_budowy": 1880,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 583636.2604953847,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "sulfur": 8.0,
+        "salt": 5.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "chemicals": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 27,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Sarmatia-Region2",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region2",
+      "scale_factor": 27,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-SAR-1313"
+    },
+    "ostatnia_produkcja": {
+      "chemicals": 36.855
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9297390180464328,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.51,
+      "sulfur": 2.220446049250313e-16,
+      "salt": 1.3877787807814454e-16,
+      "chemicals": 3.508814811798995,
+      "water": 2.775557561562891e-16
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-SAR-1314",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-SAR-1314",
+    "rok_budowy": 1894,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 86,
+    "zatrudnienie_aktualne": 86,
+    "rezerwa_zakladowa": 280148.60511113796,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 10.0,
+        "clay": 8.0,
+        "limestone": 25.0
+      },
+      "outputs": {
+        "cement": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Sarmatia-Region2",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region2",
+      "scale_factor": 12,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-SAR-1314"
+    },
+    "ostatnia_produkcja": {
+      "cement": 34.559999999999995
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7448471106888997,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 7.175708829318592,
+      "energy": 1.1102230246251565e-16,
+      "clay": 1.1102230246251563e-16,
+      "food": 0.535
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-SAR-1315",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-SAR-1315",
+    "rok_budowy": 1887,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 86,
+    "zatrudnienie_aktualne": 86,
+    "rezerwa_zakladowa": 235865.5042592816,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "catalysts": 1.0,
+        "oil": 25.0
+      },
+      "outputs": {
+        "bitumen": 3.0,
+        "fuels": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Sarmatia-Region2",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region2",
+      "scale_factor": 10,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-SAR-1315"
+    },
+    "ostatnia_produkcja": {
+      "bitumen": 2.88,
+      "fuels": 17.28
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7238239866737385,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "bitumen": 0.7154568506919448,
+      "energy": 5.551115123125783e-17,
+      "catalysts": 1.3877787807814457e-17,
+      "fuels": 4.292741104151669,
+      "food": 0.535
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-SAR-1316",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-SAR-1316",
+    "rok_budowy": 1894,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 85,
+    "zatrudnienie_aktualne": 85,
+    "rezerwa_zakladowa": 209749.20703273005,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "steel": 10.0,
+        "iron": 5.0
+      },
+      "outputs": {
+        "agricultural_machinery": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Sarmatia-Region2",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region2",
+      "scale_factor": 9,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-SAR-1316"
+    },
+    "ostatnia_produkcja": {
+      "agricultural_machinery": 6.768
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9246228150626725,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.315,
+      "food": 0.525,
+      "iron": 0.525
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-SAR-1317",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-SAR-1317",
+    "rok_budowy": 1892,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 198804.17549742252,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "salt": 10.0,
+        "limestone": 8.0,
+        "ammonia": 3.0
+      },
+      "outputs": {
+        "soda_ash": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 111,
+    "region_id": "Sarmatia-Region2",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region2",
+      "scale_factor": 8,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-SAR-1317"
+    },
+    "ostatnia_produkcja": {
+      "soda_ash": 9.600000000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8931012332620876,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.555,
+      "salt": 3.3306690738754696e-16,
+      "limestone": 2.220446049250313e-16,
+      "soda_ash": 3.039439172956882,
+      "ammonia": 8.326672684688674e-17
+    },
+    "pojemność_magazynu": 1110.0
+  },
+  {
+    "id": "B-SAR-1318",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-SAR-1318",
+    "rok_budowy": 1898,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 85,
+    "zatrudnienie_aktualne": 85,
+    "rezerwa_zakladowa": 144566.13802182005,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "coke": 10.0,
+        "fuels": 12.0,
+        "iron": 25.0
+      },
+      "outputs": {
+        "steel": 22.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 6,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Sarmatia-Region2",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region2",
+      "scale_factor": 6,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-SAR-1318"
+    },
+    "ostatnia_produkcja": {
+      "steel": 12.408
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8959184467423363,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.525,
+      "iron": 2.220446049250313e-16
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-SAR-1319",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-SAR-1319",
+    "rok_budowy": 1899,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 93,
+    "zatrudnienie_aktualne": 93,
+    "rezerwa_zakladowa": 134534.96724213735,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "chemicals": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "pharmaceuticals": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 115,
+    "region_id": "Sarmatia-Region2",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region2",
+      "scale_factor": 5,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-SAR-1319"
+    },
+    "ostatnia_produkcja": {
+      "pharmaceuticals": 8.548382135281362e-17
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9042972747670316,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 1.942890293094024e-16,
+      "food": 0.5750000000000001,
+      "water": 1.1102230246251563e-16,
+      "pharmaceuticals": 3.1538183526521286
+    },
+    "pojemność_magazynu": 1150.0
+  },
+  {
+    "id": "B-SAR-1320",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-SAR-1320",
+    "rok_budowy": 1881,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 106,
+    "zatrudnienie_aktualne": 92,
+    "rezerwa_zakladowa": 71965.75898685213,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 10.0,
+        "energy": 5.0,
+        "steel": 25.0
+      },
+      "outputs": {
+        "trains": 3.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 131,
+    "region_id": "Sarmatia-Region2",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region2",
+      "scale_factor": 2,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-SAR-1320"
+    },
+    "ostatnia_produkcja": {
+      "trains": 0.708
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9576884374550768,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 1.31,
+      "energy": 0.6550000000000001,
+      "food": 0.655
+    },
+    "pojemność_magazynu": 1310.0
+  },
+  {
+    "id": "B-SAR-1321",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-SAR-1321",
+    "rok_budowy": 1888,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 105,
+    "zatrudnienie_aktualne": 91,
+    "rezerwa_zakladowa": 71401.89823122731,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "bitumen": 8.0,
+        "energy": 3.0,
+        "sand": 10.0,
+        "gravel": 8.0
+      },
+      "outputs": {
+        "asphalt": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 130,
+    "region_id": "Sarmatia-Region2",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region2",
+      "scale_factor": 2,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-SAR-1321"
+    },
+    "ostatnia_produkcja": {
+      "asphalt": 4.680000000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8245400425583725,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "asphalt": 5.877015600136807,
+      "energy": 5.551115123125783e-17,
+      "food": 0.65,
+      "gravel": 1.5370000000000439
+    },
+    "pojemność_magazynu": 1300.0
+  },
+  {
+    "id": "B-SAR-1322",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-SAR-1322",
+    "rok_budowy": 1873,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 72,
+    "zatrudnienie_aktualne": 32,
+    "rezerwa_zakladowa": 29902.942869679908,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "rare_earth_elements": 1.0,
+        "chemicals": 8.0
+      },
+      "outputs": {
+        "catalysts": 6.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 87,
+    "region_id": "Sarmatia-Region2",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region2",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-SAR-1322"
+    },
+    "ostatnia_produkcja": {
+      "catalysts": 0.342
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6949083774136754,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "catalysts": 1.158724525271324,
+      "food": 0.43499999999999994,
+      "rare_earth_elements": 6.938893903907228e-18,
+      "chemicals": 5.551115123125783e-17
+    },
+    "pojemność_magazynu": 870.0
+  },
+  {
+    "id": "B-SAR-1323",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-SAR-1323",
+    "rok_budowy": 1883,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 3,
+    "zatrudnienie_aktualne": 1,
+    "rezerwa_zakladowa": 1070.7911334372384,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "bauxite": 20.0,
+        "energy": 30.0,
+        "catalysts": 2.0
+      },
+      "outputs": {
+        "aluminum": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 3,
+    "region_id": "Sarmatia-Region2",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region2",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-SAR-1323"
+    },
+    "ostatnia_produkcja": {
+      "aluminum": 0.024
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8507067924374359,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "aluminum": 0.08167229588574497,
+      "energy": 0.0,
+      "food": 0.015
+    },
+    "pojemność_magazynu": 100.0
+  },
+  {
+    "id": "B-SAR-1324",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-SAR-1324",
+    "rok_budowy": 1896,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 2,
+    "zatrudnienie_aktualne": 1,
+    "rezerwa_zakladowa": 713.8607556248255,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 10.0,
+        "energy": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "prefabricates": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 2,
+    "region_id": "Sarmatia-Region2",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region2",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-SAR-1324"
+    },
+    "ostatnia_produkcja": {
+      "prefabricates": 0.04
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7382595849009058,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 0.02,
+      "energy": 0.01,
+      "prefabricates": 0.04,
+      "food": 0.01
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

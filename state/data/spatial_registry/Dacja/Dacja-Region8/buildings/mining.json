@@ -1,0 +1,1243 @@
+[
+  {
+    "id": "B-DAC-0223",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-DAC-0223",
+    "rok_budowy": 1887,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 8650,
+    "zatrudnienie_aktualne": 3928,
+    "rezerwa_zakladowa": 1322350.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "hard_coal": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 150,
+    "region_id": "Dacja-Region8",
+    "cluster_info": {
+      "region_id": "Dacja-Region8",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-DAC-0223"
+    },
+    "ostatnia_produkcja": {
+      "hard_coal": 86.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.988,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.822508183207884,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "hard_coal": 3.401460763141052
+    },
+    "pojemność_magazynu": 1500.0
+  },
+  {
+    "id": "B-DAC-1653",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-DAC-1653",
+    "rok_budowy": 1891,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 686605.4667200377,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 2.0,
+        "fuels": 5.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "oil": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 38,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region8",
+    "cluster_info": {
+      "region_id": "Dacja-Region8",
+      "scale_factor": 38,
+      "sector": "mining",
+      "owner_id": "KRS-DAC-1653"
+    },
+    "ostatnia_produkcja": {
+      "oil": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6771374012690948,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "oil": 6.66620961668742
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-DAC-1654",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-DAC-1654",
+    "rok_budowy": 1888,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 91,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 664754.0194199944,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "copper": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 36,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Dacja-Region8",
+    "cluster_info": {
+      "region_id": "Dacja-Region8",
+      "scale_factor": 36,
+      "sector": "mining",
+      "owner_id": "KRS-DAC-1654"
+    },
+    "ostatnia_produkcja": {
+      "copper": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9105358236535593,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "copper": 1.8728688666456297,
+      "fuels": 1.3877787807814457e-17
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-DAC-1655",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-DAC-1655",
+    "rok_budowy": 1892,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 533781.5557955238,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "stone": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 29,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Dacja-Region8",
+    "cluster_info": {
+      "region_id": "Dacja-Region8",
+      "scale_factor": 29,
+      "sector": "mining",
+      "owner_id": "KRS-DAC-1655"
+    },
+    "ostatnia_produkcja": {
+      "stone": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7219159444065949,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "stone": 5.646126165541993
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-DAC-1656",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-DAC-1656",
+    "rok_budowy": 1891,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 511356.6596884488,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "iron": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 28,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region8",
+    "cluster_info": {
+      "region_id": "Dacja-Region8",
+      "scale_factor": 28,
+      "sector": "mining",
+      "owner_id": "KRS-DAC-1656"
+    },
+    "ostatnia_produkcja": {
+      "iron": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7771984695382939,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.3877787807814457e-17,
+      "iron": 2.704098382148964
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-DAC-1657",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-DAC-1657",
+    "rok_budowy": 1894,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 362193.7880272192,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "brown_coal": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 19,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Dacja-Region8",
+    "cluster_info": {
+      "region_id": "Dacja-Region8",
+      "scale_factor": 19,
+      "sector": "mining",
+      "owner_id": "KRS-DAC-1657"
+    },
+    "ostatnia_produkcja": {
+      "brown_coal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7933539153972876,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "brown_coal": 4.146557639734757
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-DAC-1658",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-DAC-1658",
+    "rok_budowy": 1885,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 84,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 351346.16676313436,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "limestone": 22.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 18,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Dacja-Region8",
+    "cluster_info": {
+      "region_id": "Dacja-Region8",
+      "scale_factor": 18,
+      "sector": "mining",
+      "owner_id": "KRS-DAC-1658"
+    },
+    "ostatnia_produkcja": {
+      "limestone": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.78087118203352,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 2.7755575615628914e-17,
+      "limestone": 5.158435141718974
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-DAC-1659",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-DAC-1659",
+    "rok_budowy": 1871,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 326810.23139277514,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "sand": 20.0,
+        "gravel": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 17,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Dacja-Region8",
+    "cluster_info": {
+      "region_id": "Dacja-Region8",
+      "scale_factor": 17,
+      "sector": "mining",
+      "owner_id": "KRS-DAC-1659"
+    },
+    "ostatnia_produkcja": {
+      "sand": 0.0,
+      "gravel": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7039528239633471,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "sand": 0.8301538871994367,
+      "food": 1.3877787807814457e-17,
+      "gravel": 0.8176154153995614
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-DAC-1660",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-DAC-1660",
+    "rok_budowy": 1871,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 323561.6016732381,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "clay": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 17,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Dacja-Region8",
+    "cluster_info": {
+      "region_id": "Dacja-Region8",
+      "scale_factor": 17,
+      "sector": "mining",
+      "owner_id": "KRS-DAC-1660"
+    },
+    "ostatnia_produkcja": {
+      "clay": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8826856457644451,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "clay": 4.618634645602724
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-DAC-1661",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-DAC-1661",
+    "rok_budowy": 1895,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 239532.72549104385,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "salt": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Dacja-Region8",
+    "cluster_info": {
+      "region_id": "Dacja-Region8",
+      "scale_factor": 12,
+      "sector": "mining",
+      "owner_id": "KRS-DAC-1661"
+    },
+    "ostatnia_produkcja": {
+      "salt": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7956808769004252,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "salt": 4.188547562465432
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-DAC-1662",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-DAC-1662",
+    "rok_budowy": 1890,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 79,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 196753.27969798868,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "hard_coal": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 109,
+    "region_id": "Dacja-Region8",
+    "cluster_info": {
+      "region_id": "Dacja-Region8",
+      "scale_factor": 9,
+      "sector": "mining",
+      "owner_id": "KRS-DAC-1662"
+    },
+    "ostatnia_produkcja": {
+      "hard_coal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8469636834979803,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 2.7755575615628914e-17,
+      "hard_coal": 2.480039275271378
+    },
+    "pojemność_magazynu": 1090.0
+  },
+  {
+    "id": "B-DAC-1663",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-DAC-1663",
+    "rok_budowy": 1896,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 76,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 187798.0833815672,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0
+      },
+      "outputs": {
+        "peat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Dacja-Region8",
+    "cluster_info": {
+      "region_id": "Dacja-Region8",
+      "scale_factor": 9,
+      "sector": "mining",
+      "owner_id": "KRS-DAC-1663"
+    },
+    "ostatnia_produkcja": {
+      "peat": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9389209909697593,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "peat": 3.5943523136670064
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-DAC-1664",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-DAC-1664",
+    "rok_budowy": 1887,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 164796.6360815238,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 2.0,
+        "fuels": 5.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "hard_coal": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Dacja-Region8",
+    "cluster_info": {
+      "region_id": "Dacja-Region8",
+      "scale_factor": 8,
+      "sector": "mining",
+      "owner_id": "KRS-DAC-1664"
+    },
+    "ostatnia_produkcja": {
+      "hard_coal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8387235405306522,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 1.3877787807814457e-17,
+      "hard_coal": 3.443111846713486
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-DAC-1665",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-DAC-1665",
+    "rok_budowy": 1892,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 123581.33193768976,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "bauxite": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 112,
+    "region_id": "Dacja-Region8",
+    "cluster_info": {
+      "region_id": "Dacja-Region8",
+      "scale_factor": 5,
+      "sector": "mining",
+      "owner_id": "KRS-DAC-1665"
+    },
+    "ostatnia_produkcja": {
+      "bauxite": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9295891513107605,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "bauxite": 3.865934300213198
+    },
+    "pojemność_magazynu": 1120.0
+  },
+  {
+    "id": "B-DAC-1666",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-DAC-1666",
+    "rok_budowy": 1871,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 93872.95621575108,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "tin": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 124,
+    "region_id": "Dacja-Region8",
+    "cluster_info": {
+      "region_id": "Dacja-Region8",
+      "scale_factor": 3,
+      "sector": "mining",
+      "owner_id": "KRS-DAC-1666"
+    },
+    "ostatnia_produkcja": {
+      "tin": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9254850209134261,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "tin": 2.2814649023642577
+    },
+    "pojemność_magazynu": 1240.0
+  },
+  {
+    "id": "B-DAC-1667",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-DAC-1667",
+    "rok_budowy": 1893,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 67,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 77375.3349516662,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 2.0,
+        "fuels": 3.0
+      },
+      "outputs": {
+        "sulfur": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Dacja-Region8",
+    "cluster_info": {
+      "region_id": "Dacja-Region8",
+      "scale_factor": 3,
+      "sector": "mining",
+      "owner_id": "KRS-DAC-1667"
+    },
+    "ostatnia_produkcja": {
+      "sulfur": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6904420719664921,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "fuels": 1.3877787807814457e-17,
+      "food": 0.51,
+      "sulfur": 2.270759874346919
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-DAC-1668",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-DAC-1668",
+    "rok_budowy": 1872,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 71568.40652977087,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "lead": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 123,
+    "region_id": "Dacja-Region8",
+    "cluster_info": {
+      "region_id": "Dacja-Region8",
+      "scale_factor": 2,
+      "sector": "mining",
+      "owner_id": "KRS-DAC-1668"
+    },
+    "ostatnia_produkcja": {
+      "lead": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8345096406192051,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "lead": 2.2350289887405297,
+      "fuels": 2.7755575615628914e-17
+    },
+    "pojemność_magazynu": 1230.0
+  },
+  {
+    "id": "B-DAC-1669",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-DAC-1669",
+    "rok_budowy": 1885,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 59,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 58139.76140631778,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "fuels": 5.0,
+        "chemicals": 2.0
+      },
+      "outputs": {
+        "silver": 3.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region8",
+    "cluster_info": {
+      "region_id": "Dacja-Region8",
+      "scale_factor": 2,
+      "sector": "mining",
+      "owner_id": "KRS-DAC-1669"
+    },
+    "ostatnia_produkcja": {
+      "silver": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6833327908187364,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.5,
+      "silver": 0.6672031978571545
+    },
+    "pojemność_magazynu": 1000.0
+  }
+]

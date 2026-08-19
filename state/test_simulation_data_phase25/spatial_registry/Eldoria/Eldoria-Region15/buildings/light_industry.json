@@ -1,0 +1,1886 @@
+[
+  {
+    "id": "B-ELD-0137",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ELD-0137",
+    "rok_budowy": 1967,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 48,
+    "zatrudnienie_aktualne": 48,
+    "rezerwa_zakladowa": 79350.0,
+    "aktywna_metoda": {
+      "rok": 1965,
+      "eksperci": 0.25,
+      "sredni": 0.4,
+      "szeregowi": 0.35,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "electronic_components": 3.0,
+        "energy": 15.0,
+        "fibers": 25.0
+      },
+      "outputs": {
+        "clothing": 60.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region15",
+    "cluster_info": {
+      "region_id": "Eldoria-Region15",
+      "scale_factor": 10,
+      "sector": "light_industry",
+      "owner_id": "KRS-ELD-0137"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 1.0038369412413616e-17
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7867259833796288,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "electronic_components": 4.336808689942018e-19,
+      "energy": 2.0700000000000003,
+      "food": 0.5,
+      "clothing": 1.0038369412413616e-17,
+      "fibers": 1.1999999999999993
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-0417",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ELD-0417",
+    "rok_budowy": 1951,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 2162907.0916753905,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 15.0,
+        "energy": 8.0,
+        "chemicals": 3.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "paper": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 69,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region15",
+    "cluster_info": {
+      "region_id": "Eldoria-Region15",
+      "scale_factor": 69,
+      "sector": "light_industry",
+      "owner_id": "KRS-ELD-0417"
+    },
+    "ostatnia_produkcja": {
+      "paper": 100.602
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8761583915593226,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 10.831999999999997,
+      "paper": 3.089991612576814,
+      "food": 0.5,
+      "chemicals": 0.3630000000000001,
+      "water": 12.408000000000005
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ELD-0417_Factory_20",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Eldoria-Region15",
+      "typ_budynku_docelowy": "Factory",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {
+        "timber": 1.2150000000000003
+      },
+      "zwiększenie_pojemności": 1118,
+      "zwiększenie_kapitału": 8940399.259579988,
+      "nowy_budynek": false,
+      "koszt_całkowity": 9165459.330133304,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 3,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 2,
+      "investor_id": "KRS-ELD-0417",
+      "main_contractor_id": "KRS-ELD-2435",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 1833091.866026661,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 2749637.799039991,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 2749637.799039991,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 1833091.866026661,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 9165459.330133304,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.014031808427924185,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ELD-0418",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ELD-0418",
+    "rok_budowy": 1957,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1444713.3206578635,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 12.0,
+        "energy": 3.0,
+        "steel": 3.0
+      },
+      "outputs": {
+        "furniture": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 45,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region15",
+    "cluster_info": {
+      "region_id": "Eldoria-Region15",
+      "scale_factor": 45,
+      "sector": "light_industry",
+      "owner_id": "KRS-ELD-0418"
+    },
+    "ostatnia_produkcja": {
+      "furniture": 36.45
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7447600237307878,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 4.241999999999999,
+      "furniture": 1.0,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ELD-0418_Factory_19",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Eldoria-Region15",
+      "typ_budynku_docelowy": "Factory",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 730,
+      "zwiększenie_kapitału": 5199216.91903718,
+      "nowy_budynek": false,
+      "koszt_całkowity": 5328503.275664046,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 4,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 4,
+      "investor_id": "KRS-ELD-0418",
+      "main_contractor_id": "KRS-ELD-2342",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 1065700.6551328094,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 1598550.9826992138,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 1598550.9826992138,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 1065700.6551328094,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 5328503.275664046,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ELD-0419",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ELD-0419",
+    "rok_budowy": 1964,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1427955.466000788,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "cereal": 10.0,
+        "vegetable": 5.0,
+        "protein": 3.0,
+        "livestock": 3.0
+      },
+      "outputs": {
+        "food": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 44,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Eldoria-Region15",
+    "cluster_info": {
+      "region_id": "Eldoria-Region15",
+      "scale_factor": 44,
+      "sector": "light_industry",
+      "owner_id": "KRS-ELD-0419"
+    },
+    "ostatnia_produkcja": {
+      "food": 64.152
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6181589342448379,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 3.941999999999999,
+      "food": 0.07765353655954108,
+      "cereal": 11.520000000000003,
+      "protein": 1.3877787807814457e-17,
+      "livestock": 1.3877787807814457e-17
+    },
+    "pojemność_magazynu": 1010.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ELD-0419_Factory_21",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Eldoria-Region15",
+      "typ_budynku_docelowy": "Factory",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 721,
+      "zwiększenie_kapitału": 5477504.445863959,
+      "nowy_budynek": false,
+      "koszt_całkowity": 5621680.22497536,
+      "koszt_wydany": 1124336.044995072,
+      "czas_trwania": 0,
+      "turny_minione": 2,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 2,
+      "investor_id": "KRS-ELD-0419",
+      "main_contractor_id": "KRS-ELD-2512",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 1124336.044995072,
+          "released": true,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 1686504.0674926077,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 1686504.0674926077,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 1124336.044995072,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 1,
+      "contract_price": 5621680.22497536,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ELD-0420",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ELD-0420",
+    "rok_budowy": 1961,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 1320229.4107297964,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 10.0,
+        "energy": 5.0,
+        "silver": 1.0,
+        "luxury": 3.0,
+        "gold": 1.0
+      },
+      "outputs": {
+        "luxury_furniture": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 40,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Eldoria-Region15",
+    "cluster_info": {
+      "region_id": "Eldoria-Region15",
+      "scale_factor": 40,
+      "sector": "light_industry",
+      "owner_id": "KRS-ELD-0420"
+    },
+    "ostatnia_produkcja": {
+      "luxury_furniture": 16.4
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6390696577586981,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 6.650000000000001,
+      "luxury_furniture": 1.0948084800913873,
+      "food": 0.51
+    },
+    "pojemność_magazynu": 1020.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ELD-0420_Factory_22",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Eldoria-Region15",
+      "typ_budynku_docelowy": "Factory",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 662,
+      "zwiększenie_kapitału": 5612109.121191016,
+      "nowy_budynek": false,
+      "koszt_całkowity": 5755430.092762212,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 1,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 1,
+      "investor_id": "KRS-ELD-0420",
+      "main_contractor_id": "KRS-ELD-2362",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 1151086.0185524425,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 1726629.0278286636,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 1726629.0278286636,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 1151086.0185524425,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 5755430.092762212,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.00456681475969796,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ELD-0421",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ELD-0421",
+    "rok_budowy": 1950,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1025766.9542309728,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "industrial_fiber": 12.0
+      },
+      "outputs": {
+        "fibers": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 31,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region15",
+    "cluster_info": {
+      "region_id": "Eldoria-Region15",
+      "scale_factor": 31,
+      "sector": "light_industry",
+      "owner_id": "KRS-ELD-0421"
+    },
+    "ostatnia_produkcja": {
+      "fibers": 0.22525301009178572
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8128344127917283,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 2.936750976562499,
+      "food": 0.5,
+      "industrial_fiber": 0.15500390625,
+      "fibers": 9.144125623561626
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ELD-0421_Factory_21",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Eldoria-Region15",
+      "typ_budynku_docelowy": "Factory",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 503,
+      "zwiększenie_kapitału": 4583452.784345125,
+      "nowy_budynek": false,
+      "koszt_całkowity": 4702251.906184306,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 2,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 2,
+      "investor_id": "KRS-ELD-0421",
+      "main_contractor_id": "KRS-ELD-2480",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 940450.3812368613,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 1410675.571855292,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 1410675.571855292,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 940450.3812368613,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 4702251.906184306,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ELD-0422",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ELD-0422",
+    "rok_budowy": 1951,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 984473.8227791025,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "silver": 1.0,
+        "luxury": 5.0,
+        "fibers": 8.0,
+        "gold": 1.0
+      },
+      "outputs": {
+        "luxury_clothing": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 29,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Eldoria-Region15",
+    "cluster_info": {
+      "region_id": "Eldoria-Region15",
+      "scale_factor": 29,
+      "sector": "light_industry",
+      "owner_id": "KRS-ELD-0422"
+    },
+    "ostatnia_produkcja": {
+      "luxury_clothing": 11.89
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6720477869619244,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 3.99,
+      "food": 0.51,
+      "luxury_clothing": 1.0981722492701163,
+      "luxury": 5.551115123125783e-17,
+      "fibers": 0.656
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ELD-0423",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ELD-0423",
+    "rok_budowy": 1972,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 801334.411169633,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 15.0,
+        "energy": 3.0
+      },
+      "outputs": {
+        "planks": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 23,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Eldoria-Region15",
+    "cluster_info": {
+      "region_id": "Eldoria-Region15",
+      "scale_factor": 23,
+      "sector": "light_industry",
+      "owner_id": "KRS-ELD-0423"
+    },
+    "ostatnia_produkcja": {
+      "planks": 0.14365975365571784
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7496383550064196,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "planks": 5.927097523611538,
+      "timber": 0.15616172790527344,
+      "energy": 3.283232345581055,
+      "food": 0.51
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ELD-0424",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ELD-0424",
+    "rok_budowy": 1955,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 679241.4700966533,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fibers": 10.0
+      },
+      "outputs": {
+        "clothing": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 19,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Eldoria-Region15",
+    "cluster_info": {
+      "region_id": "Eldoria-Region15",
+      "scale_factor": 19,
+      "sector": "light_industry",
+      "owner_id": "KRS-ELD-0424"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 0.06000803573740634
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8601597399810674,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.12770756364473818,
+      "clothing": 0.06000803573740634,
+      "fibers": 0.06400000000000022
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ELD-0425",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ELD-0425",
+    "rok_budowy": 1968,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 85,
+    "zatrudnienie_aktualne": 85,
+    "rezerwa_zakladowa": 637056.617194286,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "fibers": 15.0
+      },
+      "outputs": {
+        "clothing": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 17,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Eldoria-Region15",
+    "cluster_info": {
+      "region_id": "Eldoria-Region15",
+      "scale_factor": 17,
+      "sector": "light_industry",
+      "owner_id": "KRS-ELD-0425"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 0.06014088201164081
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6492845480949592,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 6.053307189941405,
+      "food": 0.525,
+      "clothing": 0.06014088201164081,
+      "fibers": 0.03992156982421876
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-ELD-0426",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ELD-0426",
+    "rok_budowy": 1961,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 606820.5878040818,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 3.0,
+        "energy": 5.0,
+        "steel": 8.0,
+        "glass": 5.0
+      },
+      "outputs": {
+        "medical_equipment": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 17,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region15",
+    "cluster_info": {
+      "region_id": "Eldoria-Region15",
+      "scale_factor": 17,
+      "sector": "light_industry",
+      "owner_id": "KRS-ELD-0426"
+    },
+    "ostatnia_produkcja": {
+      "medical_equipment": 11.016
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7495526113529287,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.30000000000000004,
+      "energy": 7.070000000000003,
+      "food": 0.5,
+      "glass": 2.5250000000000004,
+      "medical_equipment": 0.8
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-0427",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ELD-0427",
+    "rok_budowy": 1969,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 77,
+    "zatrudnienie_aktualne": 77,
+    "rezerwa_zakladowa": 474342.6986392895,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 10.0,
+        "fibers": 20.0
+      },
+      "outputs": {
+        "clothing": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 106,
+    "region_id": "Eldoria-Region15",
+    "cluster_info": {
+      "region_id": "Eldoria-Region15",
+      "scale_factor": 12,
+      "sector": "light_industry",
+      "owner_id": "KRS-ELD-0427"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 0.08127219059671764
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6182694562020452,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 11.064109497070312,
+      "food": 0.53,
+      "clothing": 0.08127219059671764,
+      "fibers": 0.048218994140625
+    },
+    "pojemność_magazynu": 1060.0
+  },
+  {
+    "id": "B-ELD-0428",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ELD-0428",
+    "rok_budowy": 1955,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 74,
+    "zatrudnienie_aktualne": 74,
+    "rezerwa_zakladowa": 273189.41160946945,
+    "aktywna_metoda": {
+      "rok": 1935,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "electronic_components": 5.0,
+        "energy": 5.0,
+        "plastics": 3.0,
+        "steel": 8.0
+      },
+      "outputs": {
+        "agd": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 6,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Eldoria-Region15",
+    "cluster_info": {
+      "region_id": "Eldoria-Region15",
+      "scale_factor": 6,
+      "sector": "light_industry",
+      "owner_id": "KRS-ELD-0428"
+    },
+    "ostatnia_produkcja": {
+      "agd": 5.328
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7157066449239643,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "agd": 1.224,
+      "electronic_components": 0.51,
+      "energy": 6.5550000000000015,
+      "plastics": 0.306,
+      "food": 0.51
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ELD-0429",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ELD-0429",
+    "rok_budowy": 1949,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 69,
+    "zatrudnienie_aktualne": 69,
+    "rezerwa_zakladowa": 212630.8995464298,
+    "aktywna_metoda": {
+      "rok": 1935,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "chemicals": 10.0
+      },
+      "outputs": {
+        "clothing": 40.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 106,
+    "region_id": "Eldoria-Region15",
+    "cluster_info": {
+      "region_id": "Eldoria-Region15",
+      "scale_factor": 4,
+      "sector": "light_industry",
+      "owner_id": "KRS-ELD-0429"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 0.09841624505944918
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7052895686637177,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 8.705249999999996,
+      "food": 0.53,
+      "clothing": 0.09841624505944918,
+      "chemicals": 0.021562500000000012
+    },
+    "pojemność_magazynu": 1060.0
+  },
+  {
+    "id": "B-ELD-0430",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ELD-0430",
+    "rok_budowy": 1958,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 115,
+    "zatrudnienie_aktualne": 50,
+    "rezerwa_zakladowa": 194319.80099418008,
+    "aktywna_metoda": {
+      "rok": 1935,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "plastics": 10.0,
+        "chemicals": 3.0
+      },
+      "outputs": {
+        "fibers": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 173,
+    "region_id": "Eldoria-Region15",
+    "cluster_info": {
+      "region_id": "Eldoria-Region15",
+      "scale_factor": 1,
+      "sector": "light_industry",
+      "owner_id": "KRS-ELD-0430"
+    },
+    "ostatnia_produkcja": {
+      "fibers": 1.628661127151989e-17
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8678701162836074,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 5.214999999999999,
+      "plastics": 6.938893903907228e-18,
+      "food": 0.865,
+      "chemicals": 0.16499999999999995,
+      "fibers": 0.02186312046825851
+    },
+    "pojemność_magazynu": 1730.0
+  },
+  {
+    "id": "B-ELD-0431",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ELD-0431",
+    "rok_budowy": 1961,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 111,
+    "zatrudnienie_aktualne": 48,
+    "rezerwa_zakladowa": 187624.31656663626,
+    "aktywna_metoda": {
+      "rok": 1965,
+      "eksperci": 0.25,
+      "sredni": 0.4,
+      "szeregowi": 0.35,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "electronic_components": 3.0,
+        "energy": 15.0,
+        "fibers": 25.0
+      },
+      "outputs": {
+        "clothing": 60.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 167,
+    "region_id": "Eldoria-Region15",
+    "cluster_info": {
+      "region_id": "Eldoria-Region15",
+      "scale_factor": 1,
+      "sector": "light_industry",
+      "owner_id": "KRS-ELD-0431"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 2.94
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8966220673995724,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 15.180000000000001,
+      "food": 0.8350000000000001,
+      "fibers": 4.161000000000001
+    },
+    "pojemność_magazynu": 1670.0
+  },
+  {
+    "id": "B-ELD-0432",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ELD-0432",
+    "rok_budowy": 1947,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 41,
+    "zatrudnienie_aktualne": 17,
+    "rezerwa_zakladowa": 72249.57610757263,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 15.0,
+        "energy": 8.0,
+        "chemicals": 3.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "paper": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 67,
+    "region_id": "Eldoria-Region15",
+    "cluster_info": {
+      "region_id": "Eldoria-Region15",
+      "scale_factor": 1,
+      "sector": "light_industry",
+      "owner_id": "KRS-ELD-0432"
+    },
+    "ostatnia_produkcja": {
+      "paper": 0.11718305219305829
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7232259923349601,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 0.7753124999999997,
+      "energy": 2.8135000000000003,
+      "paper": 3.255340159337151,
+      "food": 0.335,
+      "chemicals": 0.017062499999999998,
+      "water": 3.816875
+    },
+    "pojemność_magazynu": 670.0
+  },
+  {
+    "id": "B-ELD-0433",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ELD-0433",
+    "rok_budowy": 1950,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 40,
+    "zatrudnienie_aktualne": 25,
+    "rezerwa_zakladowa": 69901.83389380074,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 12.0,
+        "energy": 3.0,
+        "steel": 3.0
+      },
+      "outputs": {
+        "furniture": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 64,
+    "region_id": "Eldoria-Region15",
+    "cluster_info": {
+      "region_id": "Eldoria-Region15",
+      "scale_factor": 1,
+      "sector": "light_industry",
+      "owner_id": "KRS-ELD-0433"
+    },
+    "ostatnia_produkcja": {
+      "furniture": 0.28
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8849323591771044,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "planks": 0.768,
+      "energy": 1.461,
+      "furniture": 0.64,
+      "food": 0.32
+    },
+    "pojemność_magazynu": 640.0
+  },
+  {
+    "id": "B-ELD-0434",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ELD-0434",
+    "rok_budowy": 1949,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 37,
+    "zatrudnienie_aktualne": 37,
+    "rezerwa_zakladowa": 65404.091680028825,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "cereal": 10.0,
+        "vegetable": 5.0,
+        "protein": 3.0,
+        "livestock": 3.0
+      },
+      "outputs": {
+        "food": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 61,
+    "region_id": "Eldoria-Region15",
+    "cluster_info": {
+      "region_id": "Eldoria-Region15",
+      "scale_factor": 1,
+      "sector": "light_industry",
+      "owner_id": "KRS-ELD-0434"
+    },
+    "ostatnia_produkcja": {
+      "food": 0.6659999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6418429380829849,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 1.623,
+      "food": 0.05217327453497682,
+      "cereal": 6.300000000000001,
+      "protein": 5.5511151231257815e-18,
+      "livestock": 5.5511151231257815e-18
+    },
+    "pojemność_magazynu": 610.0
+  },
+  {
+    "id": "B-ELD-0435",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ELD-0435",
+    "rok_budowy": 1956,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 14,
+    "zatrudnienie_aktualne": 6,
+    "rezerwa_zakladowa": 24483.442900994,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 10.0,
+        "energy": 5.0,
+        "silver": 1.0,
+        "luxury": 3.0,
+        "gold": 1.0
+      },
+      "outputs": {
+        "luxury_furniture": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 22,
+    "region_id": "Eldoria-Region15",
+    "cluster_info": {
+      "region_id": "Eldoria-Region15",
+      "scale_factor": 1,
+      "sector": "light_industry",
+      "owner_id": "KRS-ELD-0435"
+    },
+    "ostatnia_produkcja": {
+      "luxury_furniture": 0.03
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.773429854442797,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.6200000000000003,
+      "luxury_furniture": 0.23909043179774153,
+      "food": 0.11,
+      "silver": 1.734723475976807e-18,
+      "luxury": 1.3877787807814457e-17,
+      "gold": 1.734723475976807e-18
+    },
+    "pojemność_magazynu": 220.0
+  },
+  {
+    "id": "B-ELD-0436",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ELD-0436",
+    "rok_budowy": 1953,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 14,
+    "zatrudnienie_aktualne": 6,
+    "rezerwa_zakladowa": 24134.195496403365,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "industrial_fiber": 12.0
+      },
+      "outputs": {
+        "fibers": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 21,
+    "region_id": "Eldoria-Region15",
+    "cluster_info": {
+      "region_id": "Eldoria-Region15",
+      "scale_factor": 1,
+      "sector": "light_industry",
+      "owner_id": "KRS-ELD-0436"
+    },
+    "ostatnia_produkcja": {
+      "fibers": 0.016657165856363027
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7547023741281179,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.26989453124999996,
+      "food": 0.105,
+      "industrial_fiber": 0.011578125000000003,
+      "fibers": 1.2396743822289544
+    },
+    "pojemność_magazynu": 210.0
+  }
+]

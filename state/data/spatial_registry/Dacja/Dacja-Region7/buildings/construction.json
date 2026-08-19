@@ -1,0 +1,1542 @@
+[
+  {
+    "id": "B-DAC-0196",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-DAC-0196",
+    "rok_budowy": 1885,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 5680,
+    "zatrudnienie_aktualne": 3932,
+    "rezerwa_zakladowa": 880550.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region7",
+    "cluster_info": {
+      "region_id": "Dacja-Region7",
+      "scale_factor": 5,
+      "sector": "construction",
+      "owner_id": "KRS-DAC-0196"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 852.0,
+      "renovation_services": 284.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8759036869250146,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.5,
+      "food": 0.5,
+      "construction_services": 3.0,
+      "renovation_services": 1.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-DAC-1375",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-DAC-1375",
+    "rok_budowy": 1876,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 1119286.5552984346,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 63,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region7",
+    "cluster_info": {
+      "region_id": "Dacja-Region7",
+      "scale_factor": 63,
+      "sector": "construction",
+      "owner_id": "KRS-DAC-1375"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.0,
+      "renovation_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9069403631679169,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 5.551115123125783e-17,
+      "construction_services": 2.183786671104455,
+      "renovation_services": 1.0918933355522276
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-DAC-1376",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-DAC-1376",
+    "rok_budowy": 1883,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 963317.0473986584,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 54,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region7",
+    "cluster_info": {
+      "region_id": "Dacja-Region7",
+      "scale_factor": 54,
+      "sector": "construction",
+      "owner_id": "KRS-DAC-1376"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.0,
+      "renovation_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7934150668273722,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.0,
+      "food": 0.5,
+      "construction_services": 2.0,
+      "renovation_services": 0.8
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-DAC-1377",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-DAC-1377",
+    "rok_budowy": 1898,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 902712.2387709672,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 50,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Dacja-Region7",
+    "cluster_info": {
+      "region_id": "Dacja-Region7",
+      "scale_factor": 50,
+      "sector": "construction",
+      "owner_id": "KRS-DAC-1377"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.0,
+      "renovation_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.6989959224416422,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.515,
+      "food": 0.505,
+      "construction_services": 3.03,
+      "renovation_services": 1.01
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-DAC-1378",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-DAC-1378",
+    "rok_budowy": 1872,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 770887.6488544871,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 43,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region7",
+    "cluster_info": {
+      "region_id": "Dacja-Region7",
+      "scale_factor": 43,
+      "sector": "construction",
+      "owner_id": "KRS-DAC-1378"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.0,
+      "renovation_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7929323966444959,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 5.551115123125783e-17,
+      "construction_services": 2.161465111343028,
+      "renovation_services": 1.080732555671514
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-DAC-1379",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-DAC-1379",
+    "rok_budowy": 1892,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 768464.8576029356,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 42,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Dacja-Region7",
+    "cluster_info": {
+      "region_id": "Dacja-Region7",
+      "scale_factor": 42,
+      "sector": "construction",
+      "owner_id": "KRS-DAC-1379"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.0,
+      "renovation_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.6848132147731985,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.02,
+      "food": 0.51,
+      "construction_services": 2.04,
+      "renovation_services": 0.816
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-DAC-1380",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-DAC-1380",
+    "rok_budowy": 1875,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 736227.7582100923,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 41,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region7",
+    "cluster_info": {
+      "region_id": "Dacja-Region7",
+      "scale_factor": 41,
+      "sector": "construction",
+      "owner_id": "KRS-DAC-1380"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.0,
+      "renovation_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8920712816160336,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.5,
+      "food": 0.5,
+      "construction_services": 3.0,
+      "renovation_services": 1.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-DAC-1381",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-DAC-1381",
+    "rok_budowy": 1888,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 715435.2249170116,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 39,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Dacja-Region7",
+    "cluster_info": {
+      "region_id": "Dacja-Region7",
+      "scale_factor": 39,
+      "sector": "construction",
+      "owner_id": "KRS-DAC-1381"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.0,
+      "renovation_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7286718700479379,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 2.7755575615628914e-17,
+      "construction_services": 2.1918596133531523,
+      "renovation_services": 1.095929806676576
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-DAC-1382",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-DAC-1382",
+    "rok_budowy": 1887,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 655866.8119150966,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 36,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Dacja-Region7",
+    "cluster_info": {
+      "region_id": "Dacja-Region7",
+      "scale_factor": 36,
+      "sector": "construction",
+      "owner_id": "KRS-DAC-1382"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.0,
+      "renovation_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.834894037809466,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.01,
+      "food": 0.505,
+      "construction_services": 2.02,
+      "renovation_services": 0.808
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-DAC-1383",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-DAC-1383",
+    "rok_budowy": 1878,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 574022.871087881,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 31,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Dacja-Region7",
+    "cluster_info": {
+      "region_id": "Dacja-Region7",
+      "scale_factor": 31,
+      "sector": "construction",
+      "owner_id": "KRS-DAC-1383"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.0,
+      "renovation_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8295660612464368,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.5299999999999998,
+      "food": 0.51,
+      "construction_services": 3.0599999999999996,
+      "renovation_services": 1.02
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-DAC-1384",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-DAC-1384",
+    "rok_budowy": 1879,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 538669.7826305984,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 29,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Dacja-Region7",
+    "cluster_info": {
+      "region_id": "Dacja-Region7",
+      "scale_factor": 29,
+      "sector": "construction",
+      "owner_id": "KRS-DAC-1384"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.0,
+      "renovation_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8520393921759676,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 2.7755575615628914e-17,
+      "construction_services": 2.216496756824868,
+      "renovation_services": 1.108248378412434
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-DAC-1385",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-DAC-1385",
+    "rok_budowy": 1879,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 510938.46902152646,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 28,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region7",
+    "cluster_info": {
+      "region_id": "Dacja-Region7",
+      "scale_factor": 28,
+      "sector": "construction",
+      "owner_id": "KRS-DAC-1385"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.0,
+      "renovation_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.6675242119969477,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.0,
+      "food": 0.5,
+      "construction_services": 2.0,
+      "renovation_services": 0.8
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-DAC-1386",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-DAC-1386",
+    "rok_budowy": 1899,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 510938.46902152646,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 28,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region7",
+    "cluster_info": {
+      "region_id": "Dacja-Region7",
+      "scale_factor": 28,
+      "sector": "construction",
+      "owner_id": "KRS-DAC-1386"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.0,
+      "renovation_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8981662115568851,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.5,
+      "food": 0.5,
+      "construction_services": 3.0,
+      "renovation_services": 1.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-DAC-1387",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-DAC-1387",
+    "rok_budowy": 1872,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 83,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 383346.87363726593,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 20,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Dacja-Region7",
+    "cluster_info": {
+      "region_id": "Dacja-Region7",
+      "scale_factor": 20,
+      "sector": "construction",
+      "owner_id": "KRS-DAC-1387"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.0,
+      "renovation_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7129302882172889,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 1.6653345369377348e-16,
+      "construction_services": 2.2101690474912297,
+      "renovation_services": 1.1050845237456148
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-DAC-1388",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-DAC-1388",
+    "rok_budowy": 1896,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 86,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 99256.68511623568,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 131,
+    "region_id": "Dacja-Region7",
+    "cluster_info": {
+      "region_id": "Dacja-Region7",
+      "scale_factor": 3,
+      "sector": "construction",
+      "owner_id": "KRS-DAC-1388"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.0,
+      "renovation_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8140753702881246,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.31,
+      "food": 0.655,
+      "construction_services": 2.62,
+      "renovation_services": 1.048
+    },
+    "pojemność_magazynu": 1310.0
+  },
+  {
+    "id": "B-DAC-1389",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-DAC-1389",
+    "rok_budowy": 1871,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 99,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 87193.23706014818,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 149,
+    "region_id": "Dacja-Region7",
+    "cluster_info": {
+      "region_id": "Dacja-Region7",
+      "scale_factor": 2,
+      "sector": "construction",
+      "owner_id": "KRS-DAC-1389"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.0,
+      "renovation_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.6666675213304107,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 2.235,
+      "food": 0.745,
+      "construction_services": 4.47,
+      "renovation_services": 1.49
+    },
+    "pojemność_magazynu": 1490.0
+  },
+  {
+    "id": "B-DAC-1390",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-DAC-1390",
+    "rok_budowy": 1892,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 80034.05018282082,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 137,
+    "region_id": "Dacja-Region7",
+    "cluster_info": {
+      "region_id": "Dacja-Region7",
+      "scale_factor": 2,
+      "sector": "construction",
+      "owner_id": "KRS-DAC-1390"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.0,
+      "renovation_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8785828314680938,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 2.220446049250313e-16,
+      "construction_services": 2.984179719068105,
+      "renovation_services": 1.4920898595340526
+    },
+    "pojemność_magazynu": 1370.0
+  },
+  {
+    "id": "B-DAC-1391",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-DAC-1391",
+    "rok_budowy": 1872,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 72,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 69791.86877327369,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 120,
+    "region_id": "Dacja-Region7",
+    "cluster_info": {
+      "region_id": "Dacja-Region7",
+      "scale_factor": 2,
+      "sector": "construction",
+      "owner_id": "KRS-DAC-1391"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.0,
+      "renovation_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9399008558593253,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.2,
+      "food": 0.6,
+      "construction_services": 2.4,
+      "renovation_services": 0.96
+    },
+    "pojemność_magazynu": 1200.0
+  },
+  {
+    "id": "B-DAC-1392",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-DAC-1392",
+    "rok_budowy": 1884,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 114,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 77403.59665895304,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 189,
+    "region_id": "Dacja-Region7",
+    "cluster_info": {
+      "region_id": "Dacja-Region7",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-DAC-1392"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.0,
+      "renovation_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7438712448674549,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 2.835,
+      "food": 0.945,
+      "construction_services": 5.67,
+      "renovation_services": 1.89
+    },
+    "pojemność_magazynu": 1890.0
+  },
+  {
+    "id": "B-DAC-1393",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-DAC-1393",
+    "rok_budowy": 1884,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 3,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 1419.8983596659214,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 3,
+    "region_id": "Dacja-Region7",
+    "cluster_info": {
+      "region_id": "Dacja-Region7",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-DAC-1393"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.0,
+      "renovation_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9182774062590365,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 3.469446951953614e-18,
+      "construction_services": 0.06558182518623729,
+      "renovation_services": 0.03279091259311864
+    },
+    "pojemność_magazynu": 100.0
+  },
+  {
+    "id": "B-DAC-1394",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-DAC-1394",
+    "rok_budowy": 1886,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 473.29945322197375,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 1,
+    "region_id": "Dacja-Region7",
+    "cluster_info": {
+      "region_id": "Dacja-Region7",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-DAC-1394"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.0,
+      "renovation_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9210370982771405,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.01,
+      "food": 0.005,
+      "construction_services": 0.02,
+      "renovation_services": 0.008
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

@@ -77,8 +77,8 @@ export function VipsPage() {
                         <TableCell className="text-xs text-muted-foreground">{vip.roles}</TableCell>
                         <TableCell className="text-right">{vip.age}</TableCell>
                         <TableCell className="text-right">
-                          <Badge variant={vip.health > 70 ? "success" : vip.health > 40 ? "default" : "destructive"}>
-                            {vip.health.toFixed(0)}
+                          <Badge variant={vip.health > 0.7 ? "success" : vip.health > 0.4 ? "default" : "destructive"}>
+                            {(vip.health * 100).toFixed(0)}%
                           </Badge>
                         </TableCell>
                         <TableCell>{vip.faction}</TableCell>
@@ -136,6 +136,11 @@ export function VipsPage() {
 }
 
 function VipDossierPanel({ dossier }: { dossier: VipDossier }) {
+  const { gameStatus } = useGameStore();
+  const currentYear = gameStatus?.year ?? 0;
+  const birthYear = Math.max(0, currentYear - dossier.age);
+  const healthPct = (dossier.health * 100).toFixed(0);
+  const healthColor = dossier.health > 0.7 ? "text-green-500" : dossier.health > 0.4 ? "text-yellow-500" : "text-red-500";
   return (
     <Card>
       <CardHeader>
@@ -145,14 +150,14 @@ function VipDossierPanel({ dossier }: { dossier: VipDossier }) {
         <div className="grid grid-cols-2 gap-2 text-sm">
           <Field label="Gender" value={dossier.gender} />
           <Field label="Age" value={String(dossier.age)} />
-          <Field label="Health" value={dossier.health.toFixed(0)} />
+          <Field label="Health" value={`${healthPct}%`} valueClassName={healthColor} />
           <Field label="Incapacity" value={dossier.incapacity} />
           <Field label="Ideology" value={dossier.ideology} />
           <Field label="Religion" value={dossier.religion} />
           <Field label="Nationality" value={dossier.nationality} />
           <Field label="Faction" value={dossier.faction} />
           <Field label="Influence" value={dossier.base_influence.toFixed(1)} />
-          <Field label="Born Turn" value={String(dossier.born_turn)} />
+          <Field label="Birth Year" value={String(birthYear)} />
           {dossier.is_dead && (
             <>
               <Field label="Death Turn" value={String(dossier.death_turn)} />
@@ -181,11 +186,11 @@ function VipDossierPanel({ dossier }: { dossier: VipDossier }) {
   );
 }
 
-function Field({ label, value }: { label: string; value: string }) {
+function Field({ label, value, valueClassName }: { label: string; value: string; valueClassName?: string }) {
   return (
     <div>
       <span className="text-xs text-muted-foreground">{label}: </span>
-      <span className="text-foreground">{value}</span>
+      <span className={valueClassName ?? "text-foreground"}>{value}</span>
     </div>
   );
 }

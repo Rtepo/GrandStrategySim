@@ -1,0 +1,1535 @@
+[
+  {
+    "id": "B-LEC-0062",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-LEC-0062",
+    "rok_budowy": 1878,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 27200.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Lechia-Region11",
+    "cluster_info": {
+      "region_id": "Lechia-Region11",
+      "scale_factor": 5,
+      "sector": "construction",
+      "owner_id": "KRS-LEC-0062"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.0,
+      "renovation_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8485430710824364,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.5,
+      "food": 0.5,
+      "construction_services": 3.0,
+      "renovation_services": 1.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-LEC-2035",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-LEC-2035",
+    "rok_budowy": 1882,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 374010.8997198396,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 47,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Lechia-Region11",
+    "cluster_info": {
+      "region_id": "Lechia-Region11",
+      "scale_factor": 47,
+      "sector": "construction",
+      "owner_id": "KRS-LEC-2035"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 42.300000000000004,
+      "renovation_services": 21.150000000000002
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8021177540121491,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.1583540865750104,
+      "renovation_services": 1.0791770432875052
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-LEC-2036",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-LEC-2036",
+    "rok_budowy": 1896,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 73,
+    "rezerwa_zakladowa": 299202.31537298736,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 37,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Lechia-Region11",
+    "cluster_info": {
+      "region_id": "Lechia-Region11",
+      "scale_factor": 37,
+      "sector": "construction",
+      "owner_id": "KRS-LEC-2036"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 59.94,
+      "renovation_services": 23.976
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.804931982553914,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.01,
+      "food": 0.505,
+      "construction_services": 2.02,
+      "renovation_services": 0.808
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-LEC-2037",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-LEC-2037",
+    "rok_budowy": 1888,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 295210.30293005344,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 36,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Lechia-Region11",
+    "cluster_info": {
+      "region_id": "Lechia-Region11",
+      "scale_factor": 36,
+      "sector": "construction",
+      "owner_id": "KRS-LEC-2037"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 98.28,
+      "renovation_services": 32.76
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9335769946929455,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.5299999999999998,
+      "food": 0.51,
+      "construction_services": 3.0599999999999996,
+      "renovation_services": 1.02
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-LEC-2038",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-LEC-2038",
+    "rok_budowy": 1888,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 74,
+    "zatrudnienie_aktualne": 74,
+    "rezerwa_zakladowa": 286526.6834042186,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 35,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Lechia-Region11",
+    "cluster_info": {
+      "region_id": "Lechia-Region11",
+      "scale_factor": 35,
+      "sector": "construction",
+      "owner_id": "KRS-LEC-2038"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 28.700000000000003,
+      "renovation_services": 14.350000000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.972214321188394,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.2354887131745915,
+      "renovation_services": 1.1177443565872958
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-LEC-2039",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-LEC-2039",
+    "rok_budowy": 1891,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 72,
+    "zatrudnienie_aktualne": 72,
+    "rezerwa_zakladowa": 242550.57428925933,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 30,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Lechia-Region11",
+    "cluster_info": {
+      "region_id": "Lechia-Region11",
+      "scale_factor": 30,
+      "sector": "construction",
+      "owner_id": "KRS-LEC-2039"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 48.6,
+      "renovation_services": 19.44
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.6974933314968542,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.0,
+      "food": 0.5,
+      "construction_services": 2.0,
+      "renovation_services": 0.8
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-LEC-2040",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-LEC-2040",
+    "rok_budowy": 1895,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 74,
+    "zatrudnienie_aktualne": 74,
+    "rezerwa_zakladowa": 231691.34672337488,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 28,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Lechia-Region11",
+    "cluster_info": {
+      "region_id": "Lechia-Region11",
+      "scale_factor": 28,
+      "sector": "construction",
+      "owner_id": "KRS-LEC-2040"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 68.88,
+      "renovation_services": 22.959999999999997
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7409455118287861,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.5299999999999998,
+      "food": 0.51,
+      "construction_services": 3.0599999999999996,
+      "renovation_services": 1.02
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-LEC-2041",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-LEC-2041",
+    "rok_budowy": 1874,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 226081.3323661434,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 27,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Lechia-Region11",
+    "cluster_info": {
+      "region_id": "Lechia-Region11",
+      "scale_factor": 27,
+      "sector": "construction",
+      "owner_id": "KRS-LEC-2041"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 22.41,
+      "renovation_services": 11.205
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9452406430676031,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.2519607835777804,
+      "renovation_services": 1.1259803917888902
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-LEC-2042",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-LEC-2042",
+    "rok_budowy": 1893,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 72,
+    "zatrudnienie_aktualne": 72,
+    "rezerwa_zakladowa": 219510.51686033345,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 27,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Lechia-Region11",
+    "cluster_info": {
+      "region_id": "Lechia-Region11",
+      "scale_factor": 27,
+      "sector": "construction",
+      "owner_id": "KRS-LEC-2042"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 43.739999999999995,
+      "renovation_services": 17.496
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7024485327049369,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.0,
+      "food": 0.5,
+      "construction_services": 2.0,
+      "renovation_services": 0.8
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-LEC-2043",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-LEC-2043",
+    "rok_budowy": 1883,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 73,
+    "rezerwa_zakladowa": 213877.30269453168,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 26,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Lechia-Region11",
+    "cluster_info": {
+      "region_id": "Lechia-Region11",
+      "scale_factor": 26,
+      "sector": "construction",
+      "owner_id": "KRS-LEC-2043"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 63.17999999999999,
+      "renovation_services": 21.06
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7871676788895409,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.515,
+      "food": 0.505,
+      "construction_services": 3.03,
+      "renovation_services": 1.01
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-LEC-2044",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-LEC-2044",
+    "rok_budowy": 1874,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 202350.0732143497,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 24,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Lechia-Region11",
+    "cluster_info": {
+      "region_id": "Lechia-Region11",
+      "scale_factor": 24,
+      "sector": "construction",
+      "owner_id": "KRS-LEC-2044"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 19.92,
+      "renovation_services": 9.96
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7491110574423805,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.212408671984012,
+      "renovation_services": 1.106204335992006
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-LEC-2045",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-LEC-2045",
+    "rok_budowy": 1887,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 74,
+    "zatrudnienie_aktualne": 74,
+    "rezerwa_zakladowa": 122020.67336168744,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 14,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Lechia-Region11",
+    "cluster_info": {
+      "region_id": "Lechia-Region11",
+      "scale_factor": 14,
+      "sector": "construction",
+      "owner_id": "KRS-LEC-2045"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 22.959999999999997,
+      "renovation_services": 9.184
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8634274597752855,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.02,
+      "food": 0.51,
+      "construction_services": 2.04,
+      "renovation_services": 0.816
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-LEC-2046",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-LEC-2046",
+    "rok_budowy": 1896,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 116433.8588130262,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 13,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Lechia-Region11",
+    "cluster_info": {
+      "region_id": "Lechia-Region11",
+      "scale_factor": 13,
+      "sector": "construction",
+      "owner_id": "KRS-LEC-2046"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 32.760000000000005,
+      "renovation_services": 10.920000000000002
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7614091069959275,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.5599999999999998,
+      "food": 0.52,
+      "construction_services": 3.1199999999999997,
+      "renovation_services": 1.04
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-LEC-2047",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-LEC-2047",
+    "rok_budowy": 1893,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 73,
+    "rezerwa_zakladowa": 113038.65134726584,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 13,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Lechia-Region11",
+    "cluster_info": {
+      "region_id": "Lechia-Region11",
+      "scale_factor": 13,
+      "sector": "construction",
+      "owner_id": "KRS-LEC-2047"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 10.53,
+      "renovation_services": 5.265
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.70841894075955,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.1614040291695673,
+      "renovation_services": 1.0807020145847837
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-LEC-2048",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-LEC-2048",
+    "rok_budowy": 1885,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 78,
+    "zatrudnienie_aktualne": 78,
+    "rezerwa_zakladowa": 95176.20482983584,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Lechia-Region11",
+    "cluster_info": {
+      "region_id": "Lechia-Region11",
+      "scale_factor": 10,
+      "sector": "construction",
+      "owner_id": "KRS-LEC-2048"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 17.2,
+      "renovation_services": 6.88
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.893403600522136,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.07,
+      "food": 0.535,
+      "construction_services": 2.14,
+      "renovation_services": 0.856
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-LEC-2049",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-LEC-2049",
+    "rok_budowy": 1898,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 76,
+    "zatrudnienie_aktualne": 76,
+    "rezerwa_zakladowa": 84534.9791782489,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Lechia-Region11",
+    "cluster_info": {
+      "region_id": "Lechia-Region11",
+      "scale_factor": 9,
+      "sector": "construction",
+      "owner_id": "KRS-LEC-2049"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 22.68,
+      "renovation_services": 7.5600000000000005
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7579655677276664,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.5599999999999998,
+      "food": 0.52,
+      "construction_services": 3.1199999999999997,
+      "renovation_services": 1.04
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-LEC-2050",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-LEC-2050",
+    "rok_budowy": 1890,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 74,
+    "zatrudnienie_aktualne": 74,
+    "rezerwa_zakladowa": 82852.57573251336,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Lechia-Region11",
+    "cluster_info": {
+      "region_id": "Lechia-Region11",
+      "scale_factor": 9,
+      "sector": "construction",
+      "owner_id": "KRS-LEC-2050"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 7.38,
+      "renovation_services": 3.69
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7011836249992696,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.181362456668275,
+      "renovation_services": 1.0906812283341376
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-LEC-2051",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-LEC-2051",
+    "rok_budowy": 1881,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 84,
+    "zatrudnienie_aktualne": 84,
+    "rezerwa_zakladowa": 58160.11007210805,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 115,
+    "region_id": "Lechia-Region11",
+    "cluster_info": {
+      "region_id": "Lechia-Region11",
+      "scale_factor": 5,
+      "sector": "construction",
+      "owner_id": "KRS-LEC-2051"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 9.3,
+      "renovation_services": 3.72
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.98652243893617,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.15,
+      "food": 0.5750000000000001,
+      "construction_services": 2.3000000000000003,
+      "renovation_services": 0.92
+    },
+    "pojemność_magazynu": 1150.0
+  },
+  {
+    "id": "B-LEC-2052",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-LEC-2052",
+    "rok_budowy": 1880,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 87,
+    "zatrudnienie_aktualne": 87,
+    "rezerwa_zakladowa": 42248.06891471112,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 120,
+    "region_id": "Lechia-Region11",
+    "cluster_info": {
+      "region_id": "Lechia-Region11",
+      "scale_factor": 3,
+      "sector": "construction",
+      "owner_id": "KRS-LEC-2052"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 8.729999999999999,
+      "renovation_services": 2.9099999999999997
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9560660729509671,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.7999999999999998,
+      "food": 0.6,
+      "construction_services": 3.5999999999999996,
+      "renovation_services": 1.2
+    },
+    "pojemność_magazynu": 1200.0
+  },
+  {
+    "id": "B-LEC-2053",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-LEC-2053",
+    "rok_budowy": 1884,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 37743.252451752356,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 137,
+    "region_id": "Lechia-Region11",
+    "cluster_info": {
+      "region_id": "Lechia-Region11",
+      "scale_factor": 2,
+      "sector": "construction",
+      "owner_id": "KRS-LEC-2053"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 2.22,
+      "renovation_services": 1.11
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7014337425207787,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.9299368323885737,
+      "renovation_services": 1.4649684161942869
+    },
+    "pojemność_magazynu": 1370.0
+  },
+  {
+    "id": "B-LEC-2054",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-LEC-2054",
+    "rok_budowy": 1875,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 17,
+    "zatrudnienie_aktualne": 17,
+    "rezerwa_zakladowa": 4312.804020024815,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 21,
+    "region_id": "Lechia-Region11",
+    "cluster_info": {
+      "region_id": "Lechia-Region11",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-LEC-2054"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.36,
+      "renovation_services": 0.144
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9437275827671512,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.21,
+      "food": 0.105,
+      "construction_services": 0.42,
+      "renovation_services": 0.168
+    },
+    "pojemność_magazynu": 210.0
+  }
+]

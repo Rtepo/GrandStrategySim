@@ -1,0 +1,1168 @@
+[
+  {
+    "id": "B-ANG-0071",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANG-0071",
+    "rok_budowy": 1885,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 27,
+    "zatrudnienie_aktualne": 14,
+    "rezerwa_zakladowa": 26250.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 5,
+      "sector": "construction",
+      "owner_id": "KRS-ANG-0071"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 4.5,
+      "renovation_services": 1.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7882921226528645,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.5,
+      "food": 0.5,
+      "construction_services": 3.0,
+      "renovation_services": 1.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-0241",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANG-0241",
+    "rok_budowy": 1889,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 10,
+    "zatrudnienie_aktualne": 10,
+    "rezerwa_zakladowa": 290617.5868452718,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 53,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 53,
+      "sector": "construction",
+      "owner_id": "KRS-ANG-0241"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 5.83,
+      "renovation_services": 2.915
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9401943415422573,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.74
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ANG-0242",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANG-0242",
+    "rok_budowy": 1878,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 7,
+    "zatrudnienie_aktualne": 7,
+    "rezerwa_zakladowa": 233306.3895754984,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 42,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 42,
+      "sector": "construction",
+      "owner_id": "KRS-ANG-0242"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 6.720000000000001,
+      "renovation_services": 2.688
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9430879685529805,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.095
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ANG-0243",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANG-0243",
+    "rok_budowy": 1876,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 7,
+    "zatrudnienie_aktualne": 7,
+    "rezerwa_zakladowa": 215702.76269317392,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 39,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 39,
+      "sector": "construction",
+      "owner_id": "KRS-ANG-0243"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 8.190000000000001,
+      "renovation_services": 2.7300000000000004
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8975951257788465,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.075
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-0244",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANG-0244",
+    "rok_budowy": 1894,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 9,
+    "zatrudnienie_aktualne": 9,
+    "rezerwa_zakladowa": 152529.87863135824,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 26,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 26,
+      "sector": "construction",
+      "owner_id": "KRS-ANG-0244"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 2.6,
+      "renovation_services": 1.3
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8154168803873945,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 3.779999999999999,
+      "construction_services": 2.209183048470628,
+      "renovation_services": 1.104591524235314
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ANG-0245",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANG-0245",
+    "rok_budowy": 1895,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 8,
+    "zatrudnienie_aktualne": 8,
+    "rezerwa_zakladowa": 150749.1935467371,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 26,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 26,
+      "sector": "construction",
+      "owner_id": "KRS-ANG-0245"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 4.680000000000001,
+      "renovation_services": 1.872
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8189760067784342,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.01,
+      "food": 0.505,
+      "construction_services": 2.02,
+      "renovation_services": 0.808
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ANG-0246",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANG-0246",
+    "rok_budowy": 1888,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 12,
+    "zatrudnienie_aktualne": 12,
+    "rezerwa_zakladowa": 78080.39702157097,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 12,
+      "sector": "construction",
+      "owner_id": "KRS-ANG-0246"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 5.04,
+      "renovation_services": 1.6800000000000002
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9446560065126571,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.515,
+      "food": 0.505,
+      "construction_services": 3.03,
+      "renovation_services": 1.01
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ANG-0247",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANG-0247",
+    "rok_budowy": 1889,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 19,
+    "zatrudnienie_aktualne": 19,
+    "rezerwa_zakladowa": 52384.39826258306,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 7,
+      "sector": "construction",
+      "owner_id": "KRS-ANG-0247"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 1.54,
+      "renovation_services": 0.77
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8868390218212119,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 3.4299999999999997,
+      "construction_services": 2.20164464593614,
+      "renovation_services": 1.10082232296807
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ANG-0248",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANG-0248",
+    "rok_budowy": 1892,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 9,
+    "zatrudnienie_aktualne": 9,
+    "rezerwa_zakladowa": 46440.41440397609,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 117,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 5,
+      "sector": "construction",
+      "owner_id": "KRS-ANG-0248"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 1.1,
+      "renovation_services": 0.44
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7288428030195613,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.1700000000000002,
+      "food": 0.5850000000000001,
+      "construction_services": 2.3400000000000003,
+      "renovation_services": 0.936
+    },
+    "pojemność_magazynu": 1170.0
+  },
+  {
+    "id": "B-ANG-0249",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANG-0249",
+    "rok_budowy": 1884,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 16,
+    "zatrudnienie_aktualne": 16,
+    "rezerwa_zakladowa": 35242.25671308216,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 145,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 2,
+      "sector": "construction",
+      "owner_id": "KRS-ANG-0249"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 1.0799999999999998,
+      "renovation_services": 0.36
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8579839150311341,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 2.175,
+      "food": 0.725,
+      "construction_services": 4.35,
+      "renovation_services": 1.45
+    },
+    "pojemność_magazynu": 1450.0
+  },
+  {
+    "id": "B-ANG-0250",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANG-0250",
+    "rok_budowy": 1872,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 8,
+    "zatrudnienie_aktualne": 8,
+    "rezerwa_zakladowa": 32578.094366333935,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 139,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 2,
+      "sector": "construction",
+      "owner_id": "KRS-ANG-0250"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.18,
+      "renovation_services": 0.09
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7175482624185805,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 4.33,
+      "construction_services": 2.9839176413323156,
+      "renovation_services": 1.4919588206661578
+    },
+    "pojemność_magazynu": 1390.0
+  },
+  {
+    "id": "B-ANG-0251",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANG-0251",
+    "rok_budowy": 1884,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 7,
+    "zatrudnienie_aktualne": 7,
+    "rezerwa_zakladowa": 30816.29241071041,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 134,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 2,
+      "sector": "construction",
+      "owner_id": "KRS-ANG-0251"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.28,
+      "renovation_services": 0.112
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7301403297445125,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.34,
+      "food": 0.67,
+      "construction_services": 2.68,
+      "renovation_services": 1.072
+    },
+    "pojemność_magazynu": 1340.0
+  },
+  {
+    "id": "B-ANG-0252",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANG-0252",
+    "rok_budowy": 1872,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 15,
+    "zatrudnienie_aktualne": 12,
+    "rezerwa_zakladowa": 32507.714418974,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 176,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-ANG-0252"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.38999999999999996,
+      "renovation_services": 0.13
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9580683273699069,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 2.6399999999999997,
+      "food": 0.8799999999999999,
+      "construction_services": 5.279999999999999,
+      "renovation_services": 1.7599999999999998
+    },
+    "pojemność_magazynu": 1760.0
+  },
+  {
+    "id": "B-ANG-0253",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANG-0253",
+    "rok_budowy": 1877,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 9,
+    "zatrudnienie_aktualne": 6,
+    "rezerwa_zakladowa": 24258.14620535521,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 134,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-ANG-0253"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.08,
+      "renovation_services": 0.04
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.6655164634153352,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 3.52,
+      "construction_services": 2.86256356404383,
+      "renovation_services": 1.431281782021915
+    },
+    "pojemność_magazynu": 1340.0
+  },
+  {
+    "id": "B-ANG-0254",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANG-0254",
+    "rok_budowy": 1882,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 6,
+    "zatrudnienie_aktualne": 6,
+    "rezerwa_zakladowa": 19628.6413162964,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 109,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-ANG-0254"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.14,
+      "renovation_services": 0.056
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9539250675442549,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.09,
+      "food": 0.545,
+      "construction_services": 2.18,
+      "renovation_services": 0.872
+    },
+    "pojemność_magazynu": 1090.0
+  },
+  {
+    "id": "B-ANG-0255",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANG-0255",
+    "rok_budowy": 1891,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 7450.748409181148,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 43,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-ANG-0255"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.0,
+      "renovation_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7456944275138844,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 0.6449999999999999,
+      "food": 0.21499999999999997,
+      "construction_services": 1.2899999999999998,
+      "renovation_services": 0.42999999999999994
+    },
+    "pojemność_magazynu": 430.0
+  }
+]

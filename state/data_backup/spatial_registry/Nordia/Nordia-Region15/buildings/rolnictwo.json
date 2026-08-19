@@ -1,0 +1,1667 @@
+[
+    {
+        "id": "[ID-9XX-6030]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[KRS-2AG-8041]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-8041]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8355]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[ID-9AG-4355]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-4355]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5144]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[REG-4AG-4457]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-4457]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2013]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[KRS-2AG-5509]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-5509]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3292]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[ID-9AG-9857]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-9857]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9571]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[REG-4AG-9934]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-9934]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3122]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[KRS-2AG-1092]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-1092]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4063]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[ID-9AG-1047]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-1047]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2387]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[REG-4AG-9557]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-9557]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1827]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[KRS-2AG-5517]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-5517]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6537]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[ID-9AG-3826]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-3826]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1703]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[REG-4AG-6303]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-6303]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6536]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[KRS-2AG-3641]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-3641]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4455]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[ID-9AG-7329]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-7329]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9471]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[REG-4AG-7976]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-7976]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7755]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[KRS-2AG-5082]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-5082]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8337]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[ID-9AG-1804]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-1804]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7646]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[REG-4AG-8492]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-8492]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8086]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[KRS-2AG-2670]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-2670]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4045]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[ID-9AG-4011]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-4011]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1376]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[REG-4AG-2709]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-2709]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8372]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[KRS-2AG-9502]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-9502]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5390]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[ID-9AG-1620]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-1620]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8229]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[REG-4AG-7818]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-7818]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2899]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[KRS-2AG-9631]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-9631]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9387]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[ID-9AG-2821]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-2821]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1967]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[REG-4AG-8481]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-8481]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6823]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[KRS-2AG-9891]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-9891]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5012]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[ID-9AG-7148]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-7148]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1675]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[REG-4AG-2212]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-2212]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6303]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[KRS-2AG-4321]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-4321]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9583]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[ID-9AG-1856]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-1856]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5342]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[REG-4AG-9478]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-9478]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4782]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[KRS-2AG-7518]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-7518]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4082]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[ID-9AG-8619]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-8619]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7013]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[REG-4AG-1941]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-1941]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7184]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[KRS-2AG-5986]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-5986]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6278]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[ID-9AG-8256]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-8256]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6463]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[REG-4AG-2668]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-2668]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9147]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[KRS-2AG-5771]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-5771]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4999]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[ID-9AG-1397]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-1397]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4324]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[REG-4AG-1031]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-1031]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9853]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[KRS-2AG-2771]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-2771]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1269]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[ID-9AG-3783]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-3783]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4063]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[REG-4AG-1838]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region15",
+        "cluster_info": {
+            "region_id": "Nordia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-1838]"
+        }
+    }
+]

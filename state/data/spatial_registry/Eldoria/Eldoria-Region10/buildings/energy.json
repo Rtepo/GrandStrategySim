@@ -1,0 +1,1523 @@
+[
+  {
+    "id": "B-ELD-0234",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ELD-0234",
+    "rok_budowy": 1884,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 86,
+    "zatrudnienie_aktualne": 86,
+    "rezerwa_zakladowa": 36920.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Eldoria-Region10",
+    "cluster_info": {
+      "region_id": "Eldoria-Region10",
+      "scale_factor": 7,
+      "sector": "energy",
+      "owner_id": "KRS-ELD-0234"
+    },
+    "ostatnia_produkcja": {
+      "energy": 0.0,
+      "heat": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7197767734008642,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.535,
+      "water": 5.551115123125783e-17,
+      "hard_coal": 5.551115123125785e-16
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-ELD-1680",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ELD-1680",
+    "rok_budowy": 1896,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 842210.1263036333,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 80,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region10",
+    "cluster_info": {
+      "region_id": "Eldoria-Region10",
+      "scale_factor": 80,
+      "sector": "energy",
+      "owner_id": "KRS-ELD-1680"
+    },
+    "ostatnia_produkcja": {
+      "energy": 240.0,
+      "heat": 80.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9521643378001532,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 0.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-1681",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ELD-1681",
+    "rok_budowy": 1871,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 831869.999724838,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 79,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region10",
+    "cluster_info": {
+      "region_id": "Eldoria-Region10",
+      "scale_factor": 79,
+      "sector": "energy",
+      "owner_id": "KRS-ELD-1681"
+    },
+    "ostatnia_produkcja": {
+      "water": 395.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7250786479876842,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.5,
+      "chemicals": 0.04000000000000001,
+      "water": 5.689268523077269
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-1682",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ELD-1682",
+    "rok_budowy": 1875,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 769829.2402520655,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 73,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region10",
+    "cluster_info": {
+      "region_id": "Eldoria-Region10",
+      "scale_factor": 73,
+      "sector": "energy",
+      "owner_id": "KRS-ELD-1682"
+    },
+    "ostatnia_produkcja": {
+      "energy": 365.0,
+      "heat": 109.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9375424841782963,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 0.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-1683",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ELD-1683",
+    "rok_budowy": 1893,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 718128.6073580883,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 68,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region10",
+    "cluster_info": {
+      "region_id": "Eldoria-Region10",
+      "scale_factor": 68,
+      "sector": "energy",
+      "owner_id": "KRS-ELD-1683"
+    },
+    "ostatnia_produkcja": {
+      "energy": 544.0,
+      "heat": 170.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.806612651384022,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 0.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-1684",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ELD-1684",
+    "rok_budowy": 1880,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 651105.1985195857,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 61,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Eldoria-Region10",
+    "cluster_info": {
+      "region_id": "Eldoria-Region10",
+      "scale_factor": 61,
+      "sector": "energy",
+      "owner_id": "KRS-ELD-1684"
+    },
+    "ostatnia_produkcja": {
+      "energy": 164.70000000000002,
+      "heat": 54.900000000000006
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.919258247280236,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505,
+      "peat": 1.1102230246251563e-16,
+      "water": 0.0,
+      "brown_coal": 2.220446049250313e-16,
+      "hard_coal": 4.440892098500626e-16
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ELD-1685",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ELD-1685",
+    "rok_budowy": 1881,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 567556.9757629186,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 53,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Eldoria-Region10",
+    "cluster_info": {
+      "region_id": "Eldoria-Region10",
+      "scale_factor": 53,
+      "sector": "energy",
+      "owner_id": "KRS-ELD-1685"
+    },
+    "ostatnia_produkcja": {
+      "water": 238.49999999999997
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9546591524851243,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.505,
+      "chemicals": 0.04100000000000001,
+      "water": 0.20002586456708737
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ELD-1686",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ELD-1686",
+    "rok_budowy": 1878,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 536226.3922291684,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 50,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Eldoria-Region10",
+    "cluster_info": {
+      "region_id": "Eldoria-Region10",
+      "scale_factor": 50,
+      "sector": "energy",
+      "owner_id": "KRS-ELD-1686"
+    },
+    "ostatnia_produkcja": {
+      "energy": 225.0,
+      "heat": 67.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8977780670748191,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505,
+      "water": 0.0,
+      "brown_coal": 5.551115123125783e-17
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ELD-1687",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ELD-1687",
+    "rok_budowy": 1884,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 531006.3289397708,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 50,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region10",
+    "cluster_info": {
+      "region_id": "Eldoria-Region10",
+      "scale_factor": 50,
+      "sector": "energy",
+      "owner_id": "KRS-ELD-1687"
+    },
+    "ostatnia_produkcja": {
+      "energy": 360.0,
+      "heat": 112.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.711741251600454,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 0.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-1688",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ELD-1688",
+    "rok_budowy": 1891,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 484008.75300625176,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 45,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Eldoria-Region10",
+    "cluster_info": {
+      "region_id": "Eldoria-Region10",
+      "scale_factor": 45,
+      "sector": "energy",
+      "owner_id": "KRS-ELD-1688"
+    },
+    "ostatnia_produkcja": {
+      "energy": 121.5,
+      "heat": 40.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7324857790578568,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505,
+      "peat": 1.1102230246251563e-16,
+      "water": 0.0,
+      "brown_coal": 2.220446049250313e-16,
+      "hard_coal": 4.440892098500626e-16
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ELD-1689",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ELD-1689",
+    "rok_budowy": 1880,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 479305.6960457937,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 45,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region10",
+    "cluster_info": {
+      "region_id": "Eldoria-Region10",
+      "scale_factor": 45,
+      "sector": "energy",
+      "owner_id": "KRS-ELD-1689"
+    },
+    "ostatnia_produkcja": {
+      "water": 202.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8301413139057483,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.5,
+      "chemicals": 0.04000000000000001,
+      "water": 1.2880053105842657
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-1690",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ELD-1690",
+    "rok_budowy": 1890,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 326905.83533750114,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 30,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Eldoria-Region10",
+    "cluster_info": {
+      "region_id": "Eldoria-Region10",
+      "scale_factor": 30,
+      "sector": "energy",
+      "owner_id": "KRS-ELD-1690"
+    },
+    "ostatnia_produkcja": {
+      "energy": 135.0,
+      "heat": 40.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7630698161606341,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505,
+      "water": 0.0,
+      "brown_coal": 5.551115123125783e-17
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ELD-1691",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ELD-1691",
+    "rok_budowy": 1878,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 83,
+    "zatrudnienie_aktualne": 83,
+    "rezerwa_zakladowa": 226906.6075231856,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 20,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Eldoria-Region10",
+    "cluster_info": {
+      "region_id": "Eldoria-Region10",
+      "scale_factor": 20,
+      "sector": "energy",
+      "owner_id": "KRS-ELD-1691"
+    },
+    "ostatnia_produkcja": {
+      "energy": 147.20000000000002,
+      "heat": 46.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8367157895051174,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.515,
+      "water": 2.220446049250313e-16
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-ELD-1692",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ELD-1692",
+    "rok_budowy": 1887,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 203594.72398668385,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 18,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Eldoria-Region10",
+    "cluster_info": {
+      "region_id": "Eldoria-Region10",
+      "scale_factor": 18,
+      "sector": "energy",
+      "owner_id": "KRS-ELD-1692"
+    },
+    "ostatnia_produkcja": {
+      "energy": 49.14,
+      "heat": 16.38
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8810647877515456,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51,
+      "water": 0.0
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ELD-1693",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ELD-1693",
+    "rok_budowy": 1889,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 85,
+    "zatrudnienie_aktualne": 85,
+    "rezerwa_zakladowa": 133628.46198508702,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Eldoria-Region10",
+    "cluster_info": {
+      "region_id": "Eldoria-Region10",
+      "scale_factor": 11,
+      "sector": "energy",
+      "owner_id": "KRS-ELD-1693"
+    },
+    "ostatnia_produkcja": {
+      "water": 51.7
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7662738624507424,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.525,
+      "chemicals": 0.042,
+      "water": 0.7643825195956051
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-ELD-1694",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ELD-1694",
+    "rok_budowy": 1892,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 94,
+    "zatrudnienie_aktualne": 94,
+    "rezerwa_zakladowa": 87667.2809884161,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 6,
+    "pojemnosc_budowlana": 116,
+    "region_id": "Eldoria-Region10",
+    "cluster_info": {
+      "region_id": "Eldoria-Region10",
+      "scale_factor": 6,
+      "sector": "energy",
+      "owner_id": "KRS-ELD-1694"
+    },
+    "ostatnia_produkcja": {
+      "energy": 31.2,
+      "heat": 9.36
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8524100095829922,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5800000000000001,
+      "water": 0.0,
+      "brown_coal": 1.1102230246251563e-16,
+      "hard_coal": 1.1102230246251563e-16
+    },
+    "pojemność_magazynu": 1160.0
+  },
+  {
+    "id": "B-ELD-1695",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ELD-1695",
+    "rok_budowy": 1891,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 92,
+    "zatrudnienie_aktualne": 92,
+    "rezerwa_zakladowa": 50763.232899480325,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 114,
+    "region_id": "Eldoria-Region10",
+    "cluster_info": {
+      "region_id": "Eldoria-Region10",
+      "scale_factor": 3,
+      "sector": "energy",
+      "owner_id": "KRS-ELD-1695"
+    },
+    "ostatnia_produkcja": {
+      "energy": 24.48,
+      "heat": 7.6499999999999995
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.911078770923682,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5700000000000001,
+      "water": 0.0,
+      "hard_coal": 4.440892098500626e-16
+    },
+    "pojemność_magazynu": 1140.0
+  },
+  {
+    "id": "B-ELD-1696",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ELD-1696",
+    "rok_budowy": 1884,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 34587.05568916674,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Eldoria-Region10",
+    "cluster_info": {
+      "region_id": "Eldoria-Region10",
+      "scale_factor": 2,
+      "sector": "energy",
+      "owner_id": "KRS-ELD-1696"
+    },
+    "ostatnia_produkcja": {
+      "energy": 5.46,
+      "heat": 1.8199999999999998
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8405479084982924,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505,
+      "peat": 1.1102230246251563e-16,
+      "water": 0.0,
+      "brown_coal": 2.220446049250313e-16,
+      "hard_coal": 4.440892098500626e-16
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ELD-1697",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ELD-1697",
+    "rok_budowy": 1886,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 93,
+    "zatrudnienie_aktualne": 93,
+    "rezerwa_zakladowa": 27287.744299826776,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 114,
+    "region_id": "Eldoria-Region10",
+    "cluster_info": {
+      "region_id": "Eldoria-Region10",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-ELD-1697"
+    },
+    "ostatnia_produkcja": {
+      "water": 5.1499999999999995
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.748371095060325,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.5700000000000001,
+      "chemicals": 0.046,
+      "water": 4.255979655606145
+    },
+    "pojemność_magazynu": 1140.0
+  },
+  {
+    "id": "B-ELD-1698",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ELD-1698",
+    "rok_budowy": 1885,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 79,
+    "zatrudnienie_aktualne": 79,
+    "rezerwa_zakladowa": 23026.5215156436,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 96,
+    "region_id": "Eldoria-Region10",
+    "cluster_info": {
+      "region_id": "Eldoria-Region10",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-ELD-1698"
+    },
+    "ostatnia_produkcja": {
+      "energy": 4.35,
+      "heat": 1.305
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8983816599574551,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.48,
+      "water": 0.0
+    },
+    "pojemność_magazynu": 960.0
+  },
+  {
+    "id": "B-ELD-1699",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ELD-1699",
+    "rok_budowy": 1891,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 42,
+    "zatrudnienie_aktualne": 42,
+    "rezerwa_zakladowa": 12223.464555185665,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 51,
+    "region_id": "Eldoria-Region10",
+    "cluster_info": {
+      "region_id": "Eldoria-Region10",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-ELD-1699"
+    },
+    "ostatnia_produkcja": {
+      "energy": 3.6799999999999997,
+      "heat": 1.15
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7071428485412976,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.255,
+      "water": 0.0
+    },
+    "pojemność_magazynu": 510.0
+  }
+]

@@ -1,0 +1,1425 @@
+[
+  {
+    "id": "B-BAK-0109",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-BAK-0109",
+    "rok_budowy": 1970,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 55,
+    "zatrudnienie_aktualne": 55,
+    "rezerwa_zakladowa": 60600.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 125,
+    "region_id": "Baktria-Region10",
+    "cluster_info": {
+      "region_id": "Baktria-Region10",
+      "scale_factor": 2,
+      "sector": "export_services",
+      "owner_id": "KRS-BAK-0109"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.8733716521415592,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.625
+    },
+    "pojemność_magazynu": 1250.0
+  },
+  {
+    "id": "B-BAK-2148",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-BAK-2148",
+    "rok_budowy": 1963,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 2107249.277903991,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 107,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region10",
+    "cluster_info": {
+      "region_id": "Baktria-Region10",
+      "scale_factor": 107,
+      "sector": "export_services",
+      "owner_id": "KRS-BAK-2148"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.6014659143583513,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-BAK-2148_Export_Company_18",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Baktria-Region10",
+      "typ_budynku_docelowy": "Export Company",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 1734,
+      "zwiększenie_kapitału": 7774243.765512723,
+      "nowy_budynek": false,
+      "koszt_całkowity": 7967073.297760928,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 5,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 5,
+      "investor_id": "KRS-BAK-2148",
+      "main_contractor_id": "KRS-BAK-0363",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 1593414.6595521858,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 2390121.989328278,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 2390121.989328278,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 1593414.6595521858,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 7967073.297760928,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-BAK-2149",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-BAK-2149",
+    "rok_budowy": 1952,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1788118.0842183102,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 90,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region10",
+    "cluster_info": {
+      "region_id": "Baktria-Region10",
+      "scale_factor": 90,
+      "sector": "export_services",
+      "owner_id": "KRS-BAK-2149"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.612241592178389,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-BAK-2149_Export_Company_18",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Baktria-Region10",
+      "typ_budynku_docelowy": "Export Company",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 1459,
+      "zwiększenie_kapitału": 6689330.671912229,
+      "nowy_budynek": false,
+      "koszt_całkowity": 6857043.12031113,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 5,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 5,
+      "investor_id": "KRS-BAK-2149",
+      "main_contractor_id": "KRS-BAK-0460",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 1371408.6240622262,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 2057112.9360933388,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 2057112.9360933388,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 1371408.6240622262,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 6857043.12031113,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.08854815799491764,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-BAK-2150",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-BAK-2150",
+    "rok_budowy": 1951,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 1648338.6989544602,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 82,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region10",
+    "cluster_info": {
+      "region_id": "Baktria-Region10",
+      "scale_factor": 82,
+      "sector": "export_services",
+      "owner_id": "KRS-BAK-2150"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.7276657354390919,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-2151",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-BAK-2151",
+    "rok_budowy": 1962,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 1610793.852638498,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 80,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region10",
+    "cluster_info": {
+      "region_id": "Baktria-Region10",
+      "scale_factor": 80,
+      "sector": "export_services",
+      "owner_id": "KRS-BAK-2151"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.7483663514006097,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-2152",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-BAK-2152",
+    "rok_budowy": 1948,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1393897.1979007043,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 69,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region10",
+    "cluster_info": {
+      "region_id": "Baktria-Region10",
+      "scale_factor": 69,
+      "sector": "export_services",
+      "owner_id": "KRS-BAK-2152"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.7106463540754678,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-2153",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-BAK-2153",
+    "rok_budowy": 1951,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1160418.253815418,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 56,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Baktria-Region10",
+    "cluster_info": {
+      "region_id": "Baktria-Region10",
+      "scale_factor": 56,
+      "sector": "export_services",
+      "owner_id": "KRS-BAK-2153"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.821101973218729,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-BAK-2154",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-BAK-2154",
+    "rok_budowy": 1969,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 962131.4652671362,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 46,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region10",
+    "cluster_info": {
+      "region_id": "Baktria-Region10",
+      "scale_factor": 46,
+      "sector": "export_services",
+      "owner_id": "KRS-BAK-2154"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.6414069507046144,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-2155",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-BAK-2155",
+    "rok_budowy": 1974,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 951856.6325302465,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 45,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Baktria-Region10",
+    "cluster_info": {
+      "region_id": "Baktria-Region10",
+      "scale_factor": 45,
+      "sector": "export_services",
+      "owner_id": "KRS-BAK-2155"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.6212495611434917,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-BAK-2156",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-BAK-2156",
+    "rok_budowy": 1967,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 762255.1586346362,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 35,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Baktria-Region10",
+    "cluster_info": {
+      "region_id": "Baktria-Region10",
+      "scale_factor": 35,
+      "sector": "export_services",
+      "owner_id": "KRS-BAK-2156"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.6522640354521011,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-BAK-2157",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-BAK-2157",
+    "rok_budowy": 1952,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 750877.6351187888,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 34,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Baktria-Region10",
+    "cluster_info": {
+      "region_id": "Baktria-Region10",
+      "scale_factor": 34,
+      "sector": "export_services",
+      "owner_id": "KRS-BAK-2157"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.8058872860395551,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-BAK-2158",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-BAK-2158",
+    "rok_budowy": 1949,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 553693.5373494648,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 24,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Baktria-Region10",
+    "cluster_info": {
+      "region_id": "Baktria-Region10",
+      "scale_factor": 24,
+      "sector": "export_services",
+      "owner_id": "KRS-BAK-2158"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.7426111636081114,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-BAK-2159",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-BAK-2159",
+    "rok_budowy": 1955,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 84,
+    "zatrudnienie_aktualne": 84,
+    "rezerwa_zakladowa": 531763.0418546103,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 22,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Baktria-Region10",
+    "cluster_info": {
+      "region_id": "Baktria-Region10",
+      "scale_factor": 22,
+      "sector": "export_services",
+      "owner_id": "KRS-BAK-2159"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.692017351852386,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.52
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-BAK-2160",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-BAK-2160",
+    "rok_budowy": 1956,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 521103.17566509865,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 22,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Baktria-Region10",
+    "cluster_info": {
+      "region_id": "Baktria-Region10",
+      "scale_factor": 22,
+      "sector": "export_services",
+      "owner_id": "KRS-BAK-2160"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.6821933272490163,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-BAK-2161",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-BAK-2161",
+    "rok_budowy": 1974,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 417731.1936856808,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 17,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region10",
+    "cluster_info": {
+      "region_id": "Baktria-Region10",
+      "scale_factor": 17,
+      "sector": "export_services",
+      "owner_id": "KRS-BAK-2161"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.8580325899846253,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-2162",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-BAK-2162",
+    "rok_budowy": 1965,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 84,
+    "zatrudnienie_aktualne": 84,
+    "rezerwa_zakladowa": 336529.8410116057,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Baktria-Region10",
+    "cluster_info": {
+      "region_id": "Baktria-Region10",
+      "scale_factor": 12,
+      "sector": "export_services",
+      "owner_id": "KRS-BAK-2162"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.7520116582382116,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.52
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-BAK-2163",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-BAK-2163",
+    "rok_budowy": 1947,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 78,
+    "zatrudnienie_aktualne": 78,
+    "rezerwa_zakladowa": 155946.3056423803,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 106,
+    "region_id": "Baktria-Region10",
+    "cluster_info": {
+      "region_id": "Baktria-Region10",
+      "scale_factor": 3,
+      "sector": "export_services",
+      "owner_id": "KRS-BAK-2163"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.8384853636014763,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.53
+    },
+    "pojemność_magazynu": 1060.0
+  },
+  {
+    "id": "B-BAK-2164",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-BAK-2164",
+    "rok_budowy": 1965,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 89,
+    "zatrudnienie_aktualne": 89,
+    "rezerwa_zakladowa": 155279.26404231455,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 121,
+    "region_id": "Baktria-Region10",
+    "cluster_info": {
+      "region_id": "Baktria-Region10",
+      "scale_factor": 2,
+      "sector": "export_services",
+      "owner_id": "KRS-BAK-2164"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.7125849979443829,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.605
+    },
+    "pojemność_magazynu": 1210.0
+  },
+  {
+    "id": "B-BAK-2165",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-BAK-2165",
+    "rok_budowy": 1971,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 132,
+    "zatrudnienie_aktualne": 91,
+    "rezerwa_zakladowa": 196790.3616843662,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 180,
+    "region_id": "Baktria-Region10",
+    "cluster_info": {
+      "region_id": "Baktria-Region10",
+      "scale_factor": 1,
+      "sector": "export_services",
+      "owner_id": "KRS-BAK-2165"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.855472130082371,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.8999999999999999
+    },
+    "pojemność_magazynu": 1800.0
+  },
+  {
+    "id": "B-BAK-2166",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-BAK-2166",
+    "rok_budowy": 1947,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 85,
+    "zatrudnienie_aktualne": 58,
+    "rezerwa_zakladowa": 126488.2866316784,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 115,
+    "region_id": "Baktria-Region10",
+    "cluster_info": {
+      "region_id": "Baktria-Region10",
+      "scale_factor": 1,
+      "sector": "export_services",
+      "owner_id": "KRS-BAK-2166"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.7998284031055725,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5750000000000001
+    },
+    "pojemność_magazynu": 1150.0
+  },
+  {
+    "id": "B-BAK-2167",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-BAK-2167",
+    "rok_budowy": 1951,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 38,
+    "zatrudnienie_aktualne": 26,
+    "rezerwa_zakladowa": 56423.93581057042,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 51,
+    "region_id": "Baktria-Region10",
+    "cluster_info": {
+      "region_id": "Baktria-Region10",
+      "scale_factor": 1,
+      "sector": "export_services",
+      "owner_id": "KRS-BAK-2167"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.8711483982259522,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.255
+    },
+    "pojemność_magazynu": 510.0
+  }
+]

@@ -1,0 +1,1745 @@
+[
+  {
+    "id": "B-BAK-0003",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-BAK-0003",
+    "rok_budowy": 1960,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 44,
+    "zatrudnienie_aktualne": 44,
+    "rezerwa_zakladowa": 48500.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "catalysts": 1.0,
+        "oil": 25.0
+      },
+      "outputs": {
+        "bitumen": 3.0,
+        "fuels": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 2,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-BAK-0003"
+    },
+    "ostatnia_produkcja": {
+      "bitumen": 0.264,
+      "fuels": 1.5839999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6528894126938515,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "bitumen": 0.4077578636186098,
+      "energy": 4.099999999999998,
+      "fuels": 0.006221775685532617,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-0006",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-BAK-0006",
+    "rok_budowy": 1962,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 84,
+    "zatrudnienie_aktualne": 84,
+    "rezerwa_zakladowa": 139690.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "industrial_machinery": 3.0,
+        "steel": 12.0
+      },
+      "outputs": {
+        "mechanical_components": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 12,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-BAK-0006"
+    },
+    "ostatnia_produkcja": {
+      "mechanical_components": 1.502159873856106
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.888918243744508,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 6.539017667491066,
+      "energy": 15.367048522241372,
+      "food": 0.52
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-BAK-1148",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-BAK-1148",
+    "rok_budowy": 1968,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1617742.6489345764,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "clay": 20.0
+      },
+      "outputs": {
+        "bricks": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 81,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 81,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-BAK-1148"
+    },
+    "ostatnia_produkcja": {
+      "bricks": 3.2321797607066504e-6
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7263478690485642,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "bricks": 3.2321797607066504e-6,
+      "energy": 4.345000524520868,
+      "clay": 2.09808349609375e-6,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-BAK-1148_Heavy_Industry_Plant_0",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Baktria-Region7",
+      "typ_budynku_docelowy": "Heavy Industry Plant",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {
+        "bricks": 13.241589829412566
+      },
+      "zwiększenie_pojemności": 1621,
+      "zwiększenie_kapitału": 7286827.670397929,
+      "nowy_budynek": false,
+      "koszt_całkowity": 7470512.9287033435,
+      "koszt_wydany": 1494102.5857406687,
+      "czas_trwania": 0,
+      "turny_minione": 23,
+      "postęp": 0.0,
+      "wstrzymany": false,
+      "consecutive_hold_turns": 0,
+      "investor_id": "KRS-BAK-1148",
+      "main_contractor_id": "KRS-BAK-0353",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 1494102.5857406687,
+          "released": true,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 2241153.878611003,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 2241153.878611003,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 1494102.5857406687,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 1,
+      "contract_price": 7470512.9287033435,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.04203776811403209,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-BAK-1149",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-BAK-1149",
+    "rok_budowy": 1960,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1355174.7836866248,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 12.0,
+        "sand": 20.0,
+        "soda_ash": 5.0
+      },
+      "outputs": {
+        "glass": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 67,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 67,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-BAK-1149"
+    },
+    "ostatnia_produkcja": {
+      "glass": 0.6460760586856155
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7679625131695358,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 11.289749999999996,
+      "sand": 0.5762499999999995,
+      "food": 0.5,
+      "glass": 0.6460760586856155,
+      "soda_ash": 0.5140625000000002
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-BAK-1149_Heavy_Industry_Plant_14",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Baktria-Region7",
+      "typ_budynku_docelowy": "Heavy Industry Plant",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {
+        "glass": 4.331244893592899
+      },
+      "zwiększenie_pojemności": 1086,
+      "zwiększenie_kapitału": 4418114.303295292,
+      "nowy_budynek": false,
+      "koszt_całkowity": 4528807.82034309,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 9,
+      "postęp": 0.0,
+      "wstrzymany": false,
+      "consecutive_hold_turns": 0,
+      "investor_id": "KRS-BAK-1149",
+      "main_contractor_id": "KRS-BAK-0281",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 905761.5640686181,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 1358642.346102927,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 1358642.346102927,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 905761.5640686181,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 4528807.82034309,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0815927937471804,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-BAK-1150",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-BAK-1150",
+    "rok_budowy": 1965,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1329905.7395377152,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 10.0,
+        "clay": 8.0,
+        "limestone": 25.0
+      },
+      "outputs": {
+        "cement": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 65,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 65,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-BAK-1150"
+    },
+    "ostatnia_produkcja": {
+      "cement": 3.830840895711522e-6
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6109819782939039,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 0.2055439158472834,
+      "energy": 9.210001068115236,
+      "clay": 8.544921875e-7,
+      "food": 0.505,
+      "limestone": 0.22500267028808627
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-BAK-1151",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-BAK-1151",
+    "rok_budowy": 1960,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1159424.1756017238,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "sulfur": 8.0,
+        "salt": 5.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "chemicals": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 56,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 56,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-BAK-1151"
+    },
+    "ostatnia_produkcja": {
+      "chemicals": 1.8687000394990735e-6
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7080868791427617,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 7.936000812530517,
+      "food": 0.505,
+      "sulfur": 8.125305175781252e-7,
+      "salt": 0.3550005078315733,
+      "chemicals": 0.5557985647795288,
+      "water": 4.650001015663147
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-BAK-1152",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-BAK-1152",
+    "rok_budowy": 1972,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1159424.1756017238,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 5.0,
+        "steel": 10.0,
+        "iron": 5.0
+      },
+      "outputs": {
+        "construction_machinery": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 56,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 56,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-BAK-1152"
+    },
+    "ostatnia_produkcja": {
+      "construction_machinery": 36.288
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.670580046580332,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.505,
+      "food": 0.505,
+      "iron": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-BAK-1153",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-BAK-1153",
+    "rok_budowy": 1953,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1036342.3758855409,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "catalysts": 1.0,
+        "oil": 25.0
+      },
+      "outputs": {
+        "bitumen": 3.0,
+        "fuels": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 50,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 50,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-BAK-1153"
+    },
+    "ostatnia_produkcja": {
+      "bitumen": 12.149999999999999,
+      "fuels": 72.89999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8018139666140695,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "bitumen": 0.12403222079495056,
+      "energy": 5.810000000000001,
+      "fuels": 0.0004112336202889325,
+      "food": 0.5,
+      "oil": 4.275
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-1154",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-BAK-1154",
+    "rok_budowy": 1952,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 826787.8897864713,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "coke": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 38,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 38,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-BAK-1154"
+    },
+    "ostatnia_produkcja": {
+      "coke": 4.040528037408744e-7
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7548541459284905,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 5.430000108480455,
+      "coke": 0.09296147760493377,
+      "food": 0.51,
+      "hard_coal": 4.339218139648437e-7
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-BAK-1155",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-BAK-1155",
+    "rok_budowy": 1972,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 818461.0477297412,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "energy": 8.0,
+        "steel": 12.0
+      },
+      "outputs": {
+        "industrial_machinery": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 38,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 38,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-BAK-1155"
+    },
+    "ostatnia_produkcja": {
+      "industrial_machinery": 0.3292383424848743
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8696307919687031,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.128781591321756,
+      "energy": 9.510050546114808,
+      "industrial_machinery": 0.9634319823353537,
+      "food": 0.505,
+      "steel": 0.3365025643591496
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-BAK-1156",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-BAK-1156",
+    "rok_budowy": 1956,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 780576.2557439654,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "chemicals": 5.0,
+        "ammonia": 8.0
+      },
+      "outputs": {
+        "fertilizers": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 36,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 36,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-BAK-1156"
+    },
+    "ostatnia_produkcja": {
+      "fertilizers": 52.488
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8822351392212289,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 5.815000000000002,
+      "fertilizers": 0.43812665059334344,
+      "food": 0.505,
+      "chemicals": 0.405
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-BAK-1157",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-BAK-1157",
+    "rok_budowy": 1958,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 83,
+    "zatrudnienie_aktualne": 83,
+    "rezerwa_zakladowa": 526034.8447513271,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "coke": 8.0,
+        "fuels": 10.0,
+        "iron": 20.0
+      },
+      "outputs": {
+        "steel": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 22,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 22,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-BAK-1157"
+    },
+    "ostatnia_produkcja": {
+      "steel": 27.39
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8560271569422678,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "coke": 3.984000000000001,
+      "fuels": 0.0,
+      "food": 0.515,
+      "steel": 1.0342499095917529e-16,
+      "iron": 3.469446951953614e-18
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-BAK-1158",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-BAK-1158",
+    "rok_budowy": 1973,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 367669.2225529105,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "salt": 10.0,
+        "limestone": 8.0,
+        "ammonia": 3.0
+      },
+      "outputs": {
+        "soda_ash": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 14,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 14,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-BAK-1158"
+    },
+    "ostatnia_produkcja": {
+      "soda_ash": 13.776
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6504248806381647,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 9.966000000000008,
+      "food": 0.51,
+      "salt": 2.45,
+      "limestone": 2.0319999999999996,
+      "soda_ash": 0.002712177248355929
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-BAK-1159",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-BAK-1159",
+    "rok_budowy": 1960,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 87,
+    "zatrudnienie_aktualne": 87,
+    "rezerwa_zakladowa": 308502.35319127684,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "industrial_machinery": 2.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "mechanical_components": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 108,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 10,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-BAK-1159"
+    },
+    "ostatnia_produkcja": {
+      "mechanical_components": 0.588886388849486
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6368361462185308,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 3.970077278889285,
+      "energy": 6.57112240926969,
+      "food": 0.54,
+      "steel": 0.32612973977340254
+    },
+    "pojemność_magazynu": 1080.0
+  },
+  {
+    "id": "B-BAK-1160",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-BAK-1160",
+    "rok_budowy": 1947,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 288073.9599288793,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "steel": 10.0,
+        "iron": 5.0
+      },
+      "outputs": {
+        "agricultural_machinery": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 10,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-BAK-1160"
+    },
+    "ostatnia_produkcja": {
+      "agricultural_machinery": 6.48
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7987466674813319,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.30300000000000005,
+      "food": 0.505,
+      "iron": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-BAK-1161",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-BAK-1161",
+    "rok_budowy": 1974,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 232396.77195021548,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 3.0,
+        "timber": 5.0,
+        "fuels": 2.0,
+        "steel": 8.0
+      },
+      "outputs": {
+        "trucks": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 7,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-BAK-1161"
+    },
+    "ostatnia_produkcja": {
+      "trucks": 2.8699999999999997
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6996591884588598,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.30300000000000005,
+      "timber": 1.8950000000000002,
+      "fuels": 0.202,
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-BAK-1162",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-BAK-1162",
+    "rok_budowy": 1948,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 185321.71687934446,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "coke": 10.0,
+        "fuels": 12.0,
+        "iron": 25.0
+      },
+      "outputs": {
+        "steel": 22.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 112,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 4,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-BAK-1162"
+    },
+    "ostatnia_produkcja": {
+      "steel": 7.216
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6043638610314338,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "coke": 4.651000000000001,
+      "fuels": 0.0,
+      "food": 0.56
+    },
+    "pojemność_magazynu": 1120.0
+  },
+  {
+    "id": "B-BAK-1163",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-BAK-1163",
+    "rok_budowy": 1968,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 95,
+    "zatrudnienie_aktualne": 95,
+    "rezerwa_zakladowa": 166112.60354604814,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "energy": 3.0,
+        "steel": 8.0
+      },
+      "outputs": {
+        "office_machinery": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 130,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 2,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-BAK-1163"
+    },
+    "ostatnia_produkcja": {
+      "office_machinery": 0.19972412371229686
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.87514214842436,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.239409920781538,
+      "energy": 4.619645952468924,
+      "office_machinery": 1.0546725813455633,
+      "food": 0.65,
+      "steel": 0.12482314146696474
+    },
+    "pojemność_magazynu": 1300.0
+  },
+  {
+    "id": "B-BAK-1164",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-BAK-1164",
+    "rok_budowy": 1950,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 144,
+    "zatrudnienie_aktualne": 108,
+    "rezerwa_zakladowa": 214609.5011347132,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 10.0,
+        "energy": 5.0,
+        "steel": 25.0
+      },
+      "outputs": {
+        "trains": 3.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 196,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-BAK-1164"
+    },
+    "ostatnia_produkcja": {
+      "trains": 0.013372521295569482
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6086623048342952,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 1.7924116897691493,
+      "energy": 11.496205844884573,
+      "trains": 0.060262491210744694,
+      "food": 0.98,
+      "steel": 0.09327108710962476
+    },
+    "pojemność_magazynu": 1960.0
+  },
+  {
+    "id": "B-BAK-1165",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-BAK-1165",
+    "rok_budowy": 1950,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 36,
+    "zatrudnienie_aktualne": 25,
+    "rezerwa_zakladowa": 53402.326808501195,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "chemicals": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "pharmaceuticals": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 48,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-BAK-1165"
+    },
+    "ostatnia_produkcja": {
+      "pharmaceuticals": 0.050172400282382845
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8952243816011889,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 1.9362500000000002,
+      "food": 0.24,
+      "chemicals": 0.0325,
+      "water": 1.06625,
+      "pharmaceuticals": 1.6861303199934112
+    },
+    "pojemność_magazynu": 480.0
+  },
+  {
+    "id": "B-BAK-1166",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-BAK-1166",
+    "rok_budowy": 1952,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 31,
+    "zatrudnienie_aktualne": 21,
+    "rezerwa_zakladowa": 45839.48748226144,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "rare_earth_elements": 1.0,
+        "chemicals": 8.0
+      },
+      "outputs": {
+        "catalysts": 6.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 41,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-BAK-1166"
+    },
+    "ostatnia_produkcja": {
+      "catalysts": 0.132
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6567676959243348,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 1.79,
+      "catalysts": 0.5511315850231637,
+      "food": 0.205,
+      "chemicals": 0.184
+    },
+    "pojemność_magazynu": 410.0
+  },
+  {
+    "id": "B-BAK-1167",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-BAK-1167",
+    "rok_budowy": 1973,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 9,
+    "zatrudnienie_aktualne": 6,
+    "rezerwa_zakladowa": 14663.227127656623,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "bitumen": 8.0,
+        "energy": 3.0,
+        "sand": 10.0,
+        "gravel": 8.0
+      },
+      "outputs": {
+        "asphalt": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 15,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-BAK-1167"
+    },
+    "ostatnia_produkcja": {
+      "asphalt": 0.07198704360935267
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6243251879871177,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "asphalt": 1.2893136090270403,
+      "bitumen": 0.066,
+      "energy": 0.25874999999999987,
+      "sand": 0.10249999999999998,
+      "food": 0.075,
+      "gravel": 0.07400000000000023
+    },
+    "pojemność_magazynu": 150.0
+  }
+]

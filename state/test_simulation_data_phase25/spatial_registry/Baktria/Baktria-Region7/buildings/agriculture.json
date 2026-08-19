@@ -1,0 +1,1636 @@
+[
+  {
+    "id": "B-BAK-0005",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-BAK-0005",
+    "rok_budowy": 1973,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 143600.0,
+    "aktywna_metoda": {
+      "rok": 1960,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fertilizers": 10.0,
+        "seeds": 12.0
+      },
+      "outputs": {
+        "cereal": 70.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 15,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 15,
+      "sector": "agriculture",
+      "owner_id": "KRS-BAK-0005"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 85.05000000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.8176728727646211,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fertilizers": 1.9880000000000013,
+      "food": 0.5,
+      "cereal": 0.06483902187047252
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-1448",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-BAK-1448",
+    "rok_budowy": 1967,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 84,
+    "zatrudnienie_aktualne": 84,
+    "rezerwa_zakladowa": 355785.8717513373,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 6.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "protein": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 13,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 13,
+      "sector": "agriculture",
+      "owner_id": "KRS-BAK-1448"
+    },
+    "ostatnia_produkcja": {
+      "protein": 6.322154988125467e-17
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.6944909697400751,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.168,
+      "protein": 2.692891946047123,
+      "seeds": 2.7755575615628914e-17,
+      "water": 6.253999999999994
+    },
+    "pojemność_magazynu": 1040.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-BAK-1448_Farm_18",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Baktria-Region7",
+      "typ_budynku_docelowy": "Farm",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 220,
+      "zwiększenie_kapitału": 1751683.8545803002,
+      "nowy_budynek": false,
+      "koszt_całkowity": 1797009.680418582,
+      "koszt_wydany": 359401.9360837164,
+      "czas_trwania": 0,
+      "turny_minione": 5,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 5,
+      "investor_id": "KRS-BAK-1448",
+      "main_contractor_id": "KRS-BAK-0355",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 359401.9360837164,
+          "released": true,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 539102.9041255745,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 539102.9041255745,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 359401.9360837164,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 1,
+      "contract_price": 1797009.680418582,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.07531134902451224,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-BAK-1449",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-BAK-1449",
+    "rok_budowy": 1954,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 85,
+    "zatrudnienie_aktualne": 85,
+    "rezerwa_zakladowa": 300352.8589784794,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "cereal": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "seeds": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 10,
+      "sector": "agriculture",
+      "owner_id": "KRS-BAK-1449"
+    },
+    "ostatnia_produkcja": {
+      "seeds": 0.5812452948505925
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.6984832828489466,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.085,
+      "cereal": 8.054999999999998,
+      "seeds": 3.3010405421285274,
+      "water": 3.1225
+    },
+    "pojemność_magazynu": 1050.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-BAK-1449_Farm_18",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Baktria-Region7",
+      "typ_budynku_docelowy": "Farm",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 171,
+      "zwiększenie_kapitału": 1565013.741102114,
+      "nowy_budynek": false,
+      "koszt_całkowity": 1604223.0166064175,
+      "koszt_wydany": 320844.60332128353,
+      "czas_trwania": 0,
+      "turny_minione": 5,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 5,
+      "investor_id": "KRS-BAK-1449",
+      "main_contractor_id": "KRS-BAK-0536",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 320844.60332128353,
+          "released": true,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 481266.9049819252,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 481266.9049819252,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 320844.60332128353,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 1,
+      "contract_price": 1604223.0166064175,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.12788884968785602,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-BAK-1450",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-BAK-1450",
+    "rok_budowy": 1954,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 248621.22588836527,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 2.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "timber": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 8,
+      "sector": "agriculture",
+      "owner_id": "KRS-BAK-1450"
+    },
+    "ostatnia_produkcja": {
+      "timber": 6.48
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.8880866465515046,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 0.041488329310301386,
+      "food": 0.5,
+      "water": 3.1799999999999997
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-1451",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-BAK-1451",
+    "rok_budowy": 1967,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 248621.22588836527,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "vegetable": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 8,
+      "sector": "agriculture",
+      "owner_id": "KRS-BAK-1451"
+    },
+    "ostatnia_produkcja": {
+      "vegetable": 11.664
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.7826453175848959,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.18482777629986516,
+      "vegetable": 3.915720114330563,
+      "water": 5.087999999999999
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-1452",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-BAK-1452",
+    "rok_budowy": 1974,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 91,
+    "zatrudnienie_aktualne": 91,
+    "rezerwa_zakladowa": 237942.98894038956,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "seeds": 5.0,
+        "draft_animals": 3.0
+      },
+      "outputs": {
+        "cereal": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 6,
+    "pojemnosc_budowlana": 113,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 6,
+      "sector": "agriculture",
+      "owner_id": "KRS-BAK-1452"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 8.190000000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.7826522363415388,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.3017312036082136,
+      "cereal": 3.6872954331197825
+    },
+    "pojemność_magazynu": 1130.0
+  },
+  {
+    "id": "B-BAK-1453",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-BAK-1453",
+    "rok_budowy": 1949,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 96,
+    "zatrudnienie_aktualne": 96,
+    "rezerwa_zakladowa": 228478.2867544717,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fodder": 15.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "meat": 10.0,
+        "livestock": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 119,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 5,
+      "sector": "agriculture",
+      "owner_id": "KRS-BAK-1453"
+    },
+    "ostatnia_produkcja": {
+      "meat": 0.34996586543604974,
+      "livestock": 0.17498293271802487
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.6268021135071418,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "meat": 3.1010367991192247,
+      "food": 0.09329434153974152,
+      "fodder": 2.3131731113479796,
+      "water": 5.132115407565327,
+      "livestock": 1.5505183995596123
+    },
+    "pojemność_magazynu": 1190.0
+  },
+  {
+    "id": "B-BAK-1454",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-BAK-1454",
+    "rok_budowy": 1973,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 92,
+    "zatrudnienie_aktualne": 92,
+    "rezerwa_zakladowa": 218890.12344546028,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "industrial_fiber": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 114,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 5,
+      "sector": "agriculture",
+      "owner_id": "KRS-BAK-1454"
+    },
+    "ostatnia_produkcja": {
+      "industrial_fiber": 5.5200000000000005
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.7033162438724576,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5700000000000001,
+      "industrial_fiber": 0.0022388443235046712,
+      "water": 5.775999999999999
+    },
+    "pojemność_magazynu": 1140.0
+  },
+  {
+    "id": "B-BAK-1455",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-BAK-1455",
+    "rok_budowy": 1947,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 76,
+    "zatrudnienie_aktualne": 76,
+    "rezerwa_zakladowa": 192451.4294892397,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cereal": 8.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "fodder": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 5,
+      "sector": "agriculture",
+      "owner_id": "KRS-BAK-1455"
+    },
+    "ostatnia_produkcja": {
+      "fodder": 0.12088862756560938
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.7709168980405436,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.525,
+      "cereal": 2.1838610839843744,
+      "fodder": 3.742597877391789,
+      "water": 0.03491317749023438
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-BAK-1456",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-BAK-1456",
+    "rok_budowy": 1969,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 86,
+    "zatrudnienie_aktualne": 86,
+    "rezerwa_zakladowa": 194762.5232741355,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 4.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "luxury": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 118,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 4,
+      "sector": "agriculture",
+      "owner_id": "KRS-BAK-1456"
+    },
+    "ostatnia_produkcja": {
+      "luxury": 2.752
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.8097598609028382,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.16764354700506684,
+      "luxury": 2.058691541738456,
+      "water": 5.199999999999999
+    },
+    "pojemność_magazynu": 1180.0
+  },
+  {
+    "id": "B-BAK-1457",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-BAK-1457",
+    "rok_budowy": 1971,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 83,
+    "zatrudnienie_aktualne": 83,
+    "rezerwa_zakladowa": 188062.0987563682,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 4.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "fruit": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 114,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 4,
+      "sector": "agriculture",
+      "owner_id": "KRS-BAK-1457"
+    },
+    "ostatnia_produkcja": {
+      "fruit": 4.98
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.6780195314550418,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fruit": 3.6841470797576243,
+      "food": 0.17446173240855514,
+      "water": 4.016
+    },
+    "pojemność_magazynu": 1140.0
+  },
+  {
+    "id": "B-BAK-1458",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-BAK-1458",
+    "rok_budowy": 1961,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 79,
+    "zatrudnienie_aktualne": 79,
+    "rezerwa_zakladowa": 178561.46197971725,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 5.0,
+        "seeds": 5.0,
+        "draft_animals": 5.0
+      },
+      "outputs": {
+        "cereal": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 108,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 4,
+      "sector": "agriculture",
+      "owner_id": "KRS-BAK-1458"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 7.9
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.6184418339461181,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.13709625878354137,
+      "cereal": 5.7848935903309044
+    },
+    "pojemność_magazynu": 1080.0
+  },
+  {
+    "id": "B-BAK-1459",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-BAK-1459",
+    "rok_budowy": 1956,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 93,
+    "zatrudnienie_aktualne": 93,
+    "rezerwa_zakladowa": 186297.60882933397,
+    "aktywna_metoda": {
+      "rok": 1895,
+      "eksperci": 0.08,
+      "sredni": 0.2,
+      "szeregowi": 0.72,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "seeds": 8.0
+      },
+      "outputs": {
+        "cereal": 40.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 127,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 3,
+      "sector": "agriculture",
+      "owner_id": "KRS-BAK-1459"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 11.16
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.6601235099791161,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.00552880896828363,
+      "food": 0.635,
+      "cereal": 10.926543486138785
+    },
+    "pojemność_magazynu": 1270.0
+  },
+  {
+    "id": "B-BAK-1460",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-BAK-1460",
+    "rok_budowy": 1951,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 76,
+    "zatrudnienie_aktualne": 76,
+    "rezerwa_zakladowa": 152358.27809646245,
+    "aktywna_metoda": {
+      "rok": 1950,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "agricultural_machinery": 3.0,
+        "fertilizers": 8.0,
+        "fuels": 15.0
+      },
+      "outputs": {
+        "cereal": 90.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 3,
+      "sector": "agriculture",
+      "owner_id": "KRS-BAK-1460"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 20.52
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.8583573728487847,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fertilizers": 2.432,
+      "fuels": 0.0,
+      "food": 0.52,
+      "cereal": 0.14344750197292844
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-BAK-1461",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-BAK-1461",
+    "rok_budowy": 1950,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 126,
+    "zatrudnienie_aktualne": 88,
+    "rezerwa_zakladowa": 187567.03703363807,
+    "aktywna_metoda": {
+      "rok": 1960,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fertilizers": 10.0,
+        "seeds": 12.0
+      },
+      "outputs": {
+        "cereal": 70.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 171,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-BAK-1461"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 6.3
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.8824930725113814,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fertilizers": 3.8200000000000003,
+      "food": 0.8550000000000001,
+      "cereal": 0.08859766559208385
+    },
+    "pojemność_magazynu": 1710.0
+  },
+  {
+    "id": "B-BAK-1462",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-BAK-1462",
+    "rok_budowy": 1947,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 86,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 127853.07775381298,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 6.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "protein": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 116,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-BAK-1462"
+    },
+    "ostatnia_produkcja": {
+      "protein": 0.996
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.788878854464621,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.038790232536033094,
+      "protein": 3.0298963130829506,
+      "water": 3.8200000000000003
+    },
+    "pojemność_magazynu": 1160.0
+  },
+  {
+    "id": "B-BAK-1463",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-BAK-1463",
+    "rok_budowy": 1956,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 66,
+    "rezerwa_zakladowa": 108952.65323604566,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "cereal": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "seeds": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-BAK-1463"
+    },
+    "ostatnia_produkcja": {
+      "seeds": 0.09537554803905854
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.6109366209215996,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.014165125848958092,
+      "cereal": 3.676537211552793,
+      "seeds": 2.7248636634923025,
+      "water": 1.597268605776378
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-1464",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-BAK-1464",
+    "rok_budowy": 1948,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 20,
+    "zatrudnienie_aktualne": 14,
+    "rezerwa_zakladowa": 29475.68984137187,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 2.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "timber": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 26,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-BAK-1464"
+    },
+    "ostatnia_produkcja": {
+      "timber": 0.14
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.603015847505846,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 0.03626662407030423,
+      "food": 0.13,
+      "water": 0.6549999999999999
+    },
+    "pojemność_magazynu": 260.0
+  },
+  {
+    "id": "B-BAK-1465",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-BAK-1465",
+    "rok_budowy": 1949,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 9,
+    "zatrudnienie_aktualne": 9,
+    "rezerwa_zakladowa": 16937.951050127762,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "vegetable": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 17,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-BAK-1465"
+    },
+    "ostatnia_produkcja": {
+      "vegetable": 0.16199999999999998
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.6735329618036435,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.005048903071795445,
+      "vegetable": 0.658991737262383,
+      "water": 0.42400000000000004
+    },
+    "pojemność_magazynu": 170.0
+  },
+  {
+    "id": "B-BAK-1466",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-BAK-1466",
+    "rok_budowy": 1972,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 7,
+    "zatrudnienie_aktualne": 5,
+    "rezerwa_zakladowa": 9712.685726523196,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "seeds": 5.0,
+        "draft_animals": 3.0
+      },
+      "outputs": {
+        "cereal": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 7,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-BAK-1466"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 0.09
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.998,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.7805337178726428,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.0030608659112733856,
+      "cereal": 0.2283701580753255
+    },
+    "pojemność_magazynu": 100.0
+  },
+  {
+    "id": "B-BAK-1467",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-BAK-1467",
+    "rok_budowy": 1952,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 1387.5265323604567,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fodder": 15.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "meat": 10.0,
+        "livestock": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 1,
+    "region_id": "Baktria-Region7",
+    "cluster_info": {
+      "region_id": "Baktria-Region7",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-BAK-1467"
+    },
+    "ostatnia_produkcja": {
+      "meat": 0.0,
+      "livestock": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.8770520988495261,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "meat": 0.021946154197699054,
+      "water": 0.01,
+      "livestock": 0.010973077098849527
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

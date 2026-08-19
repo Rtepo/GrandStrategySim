@@ -1,0 +1,1455 @@
+[
+  {
+    "id": "B-HEL-0020",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-HEL-0020",
+    "rok_budowy": 1873,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 4,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 54340.0,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "coke": 10.0,
+        "fuels": 12.0,
+        "iron": 25.0
+      },
+      "outputs": {
+        "steel": 22.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Helwecja-Region12",
+    "cluster_info": {
+      "region_id": "Helwecja-Region12",
+      "scale_factor": 12,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-HEL-0020"
+    },
+    "ostatnia_produkcja": {
+      "steel": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6786216404971471,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.625
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-HEL-0573",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-HEL-0573",
+    "rok_budowy": 1881,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 347873.6748004924,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "steel": 10.0,
+        "iron": 5.0
+      },
+      "outputs": {
+        "agricultural_machinery": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 154,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region12",
+    "cluster_info": {
+      "region_id": "Helwecja-Region12",
+      "scale_factor": 154,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-HEL-0573"
+    },
+    "ostatnia_produkcja": {
+      "agricultural_machinery": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8516610970304109,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.075
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-0574",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-HEL-0574",
+    "rok_budowy": 1899,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 336885.5684758011,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 12.0,
+        "sand": 20.0,
+        "soda_ash": 5.0
+      },
+      "outputs": {
+        "glass": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 149,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region12",
+    "cluster_info": {
+      "region_id": "Helwecja-Region12",
+      "scale_factor": 149,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-HEL-0574"
+    },
+    "ostatnia_produkcja": {
+      "glass": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6717623563839746,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-0575",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-HEL-0575",
+    "rok_budowy": 1872,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 330412.70468098635,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "industrial_machinery": 2.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "mechanical_components": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 146,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region12",
+    "cluster_info": {
+      "region_id": "Helwecja-Region12",
+      "scale_factor": 146,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-HEL-0575"
+    },
+    "ostatnia_produkcja": {
+      "mechanical_components": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6707584155119368,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-0576",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-HEL-0576",
+    "rok_budowy": 1875,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 304521.2495017272,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 3.0,
+        "timber": 5.0,
+        "fuels": 2.0,
+        "steel": 8.0
+      },
+      "outputs": {
+        "trucks": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 134,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region12",
+    "cluster_info": {
+      "region_id": "Helwecja-Region12",
+      "scale_factor": 134,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-HEL-0576"
+    },
+    "ostatnia_produkcja": {
+      "trucks": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7302383791623771,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-0577",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-HEL-0577",
+    "rok_budowy": 1884,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 196640.1862548141,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "energy": 8.0,
+        "steel": 12.0
+      },
+      "outputs": {
+        "industrial_machinery": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 84,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region12",
+    "cluster_info": {
+      "region_id": "Helwecja-Region12",
+      "scale_factor": 84,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-HEL-0577"
+    },
+    "ostatnia_produkcja": {
+      "industrial_machinery": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8085451506995883,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-0578",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-HEL-0578",
+    "rok_budowy": 1881,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 172906.35234049318,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 10.0,
+        "clay": 8.0,
+        "limestone": 25.0
+      },
+      "outputs": {
+        "cement": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 73,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region12",
+    "cluster_info": {
+      "region_id": "Helwecja-Region12",
+      "scale_factor": 73,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-HEL-0578"
+    },
+    "ostatnia_produkcja": {
+      "cement": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7168977476190779,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-0579",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-HEL-0579",
+    "rok_budowy": 1877,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 137,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 196343.45370008345,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "coke": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 58,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Helwecja-Region12",
+    "cluster_info": {
+      "region_id": "Helwecja-Region12",
+      "scale_factor": 58,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-HEL-0579"
+    },
+    "ostatnia_produkcja": {
+      "coke": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7619631781812118,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-HEL-0580",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-HEL-0580",
+    "rok_budowy": 1896,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 150784.412101481,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "sulfur": 8.0,
+        "salt": 5.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "chemicals": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 57,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region12",
+    "cluster_info": {
+      "region_id": "Helwecja-Region12",
+      "scale_factor": 57,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-HEL-0580"
+    },
+    "ostatnia_produkcja": {
+      "chemicals": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7459067279885937,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-0581",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-HEL-0581",
+    "rok_budowy": 1891,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 130593.08396903168,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "salt": 10.0,
+        "limestone": 8.0,
+        "ammonia": 3.0
+      },
+      "outputs": {
+        "soda_ash": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 46,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Helwecja-Region12",
+    "cluster_info": {
+      "region_id": "Helwecja-Region12",
+      "scale_factor": 46,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-HEL-0581"
+    },
+    "ostatnia_produkcja": {
+      "soda_ash": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9336525080553418,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-HEL-0582",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-HEL-0582",
+    "rok_budowy": 1896,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 115959.50414833052,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "coke": 8.0,
+        "fuels": 10.0,
+        "iron": 20.0
+      },
+      "outputs": {
+        "steel": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 38,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Helwecja-Region12",
+    "cluster_info": {
+      "region_id": "Helwecja-Region12",
+      "scale_factor": 38,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-HEL-0582"
+    },
+    "ostatnia_produkcja": {
+      "steel": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7390705028926698,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-HEL-0583",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-HEL-0583",
+    "rok_budowy": 1883,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 109316.7442728392,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 5.0,
+        "steel": 10.0,
+        "iron": 5.0
+      },
+      "outputs": {
+        "construction_machinery": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 35,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region12",
+    "cluster_info": {
+      "region_id": "Helwecja-Region12",
+      "scale_factor": 35,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-HEL-0583"
+    },
+    "ostatnia_produkcja": {
+      "construction_machinery": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8071121521026574,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.52
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-0584",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-HEL-0584",
+    "rok_budowy": 1898,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 97767.52937245408,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "clay": 20.0
+      },
+      "outputs": {
+        "bricks": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 28,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Helwecja-Region12",
+    "cluster_info": {
+      "region_id": "Helwecja-Region12",
+      "scale_factor": 28,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-HEL-0584"
+    },
+    "ostatnia_produkcja": {
+      "bricks": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7357051483415424,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.515
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-HEL-0585",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-HEL-0585",
+    "rok_budowy": 1894,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 84719.34796061463,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "catalysts": 1.0,
+        "oil": 25.0
+      },
+      "outputs": {
+        "bitumen": 3.0,
+        "fuels": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 21,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Helwecja-Region12",
+    "cluster_info": {
+      "region_id": "Helwecja-Region12",
+      "scale_factor": 21,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-HEL-0585"
+    },
+    "ostatnia_produkcja": {
+      "bitumen": 0.0,
+      "fuels": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7613855765871671,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.53
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-HEL-0586",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-HEL-0586",
+    "rok_budowy": 1872,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 77713.14702934056,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "coke": 10.0,
+        "fuels": 12.0,
+        "iron": 25.0
+      },
+      "outputs": {
+        "steel": 22.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 21,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Helwecja-Region12",
+    "cluster_info": {
+      "region_id": "Helwecja-Region12",
+      "scale_factor": 21,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-HEL-0586"
+    },
+    "ostatnia_produkcja": {
+      "steel": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7749189613187313,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.54
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-HEL-0587",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-HEL-0587",
+    "rok_budowy": 1894,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 66298.0372509628,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 10.0,
+        "energy": 5.0,
+        "steel": 25.0
+      },
+      "outputs": {
+        "trains": 3.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 16,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Helwecja-Region12",
+    "cluster_info": {
+      "region_id": "Helwecja-Region12",
+      "scale_factor": 16,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-HEL-0587"
+    },
+    "ostatnia_produkcja": {
+      "trains": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7948050722027968,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.66
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-HEL-0588",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-HEL-0588",
+    "rok_budowy": 1877,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 63311.60535355542,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "chemicals": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "pharmaceuticals": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 15,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Helwecja-Region12",
+    "cluster_info": {
+      "region_id": "Helwecja-Region12",
+      "scale_factor": 15,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-HEL-0588"
+    },
+    "ostatnia_produkcja": {
+      "pharmaceuticals": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6491062251619011,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.61
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-HEL-0589",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-HEL-0589",
+    "rok_budowy": 1880,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 51541.97477587645,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 10.0,
+        "energy": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "prefabricates": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Helwecja-Region12",
+    "cluster_info": {
+      "region_id": "Helwecja-Region12",
+      "scale_factor": 10,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-HEL-0589"
+    },
+    "ostatnia_produkcja": {
+      "prefabricates": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.976,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8064690151262053,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.605
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-HEL-0590",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-HEL-0590",
+    "rok_budowy": 1895,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 1010,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 125180.61781125184,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "rare_earth_elements": 1.0,
+        "chemicals": 8.0
+      },
+      "outputs": {
+        "catalysts": 6.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 159,
+    "region_id": "Helwecja-Region12",
+    "cluster_info": {
+      "region_id": "Helwecja-Region12",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-HEL-0590"
+    },
+    "ostatnia_produkcja": {
+      "catalysts": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.976,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7023749216997585,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.32
+    },
+    "pojemność_magazynu": 1590.0
+  },
+  {
+    "id": "B-HEL-0591",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-HEL-0591",
+    "rok_budowy": 1893,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 898,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 104805.5542878469,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "bitumen": 8.0,
+        "energy": 3.0,
+        "sand": 10.0,
+        "gravel": 8.0
+      },
+      "outputs": {
+        "asphalt": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 86,
+    "region_id": "Helwecja-Region12",
+    "cluster_info": {
+      "region_id": "Helwecja-Region12",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-HEL-0591"
+    },
+    "ostatnia_produkcja": {
+      "asphalt": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.976,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6565980021762063,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.04
+    },
+    "pojemność_magazynu": 860.0
+  },
+  {
+    "id": "B-HEL-0592",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-HEL-0592",
+    "rok_budowy": 1880,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 872,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 92564.72863794814,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "bauxite": 20.0,
+        "energy": 30.0,
+        "catalysts": 2.0
+      },
+      "outputs": {
+        "aluminum": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 3,
+    "region_id": "Helwecja-Region12",
+    "cluster_info": {
+      "region_id": "Helwecja-Region12",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-HEL-0592"
+    },
+    "ostatnia_produkcja": {
+      "aluminum": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7896088882655595,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.005
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

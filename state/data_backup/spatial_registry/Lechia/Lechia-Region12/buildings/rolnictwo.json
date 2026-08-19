@@ -1,0 +1,1556 @@
+[
+    {
+        "id": "[ID-9XX-1908]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[KRS-2AG-5604]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 12000,
+        "zatrudnienie_aktualne": 9600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 2,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-5604]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6027]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[ID-9AG-3401]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-3401]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8640]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[REG-4AG-3762]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-3762]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8514]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[KRS-2AG-6625]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 8000,
+        "zatrudnienie_aktualne": 6400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 2,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-6625]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4982]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[ID-9AG-9320]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-9320]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4479]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[REG-4AG-3757]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-3757]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9818]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[KRS-2AG-7229]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 10000,
+        "zatrudnienie_aktualne": 8000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 2,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-7229]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1397]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[ID-9AG-4089]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-4089]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5131]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[REG-4AG-2561]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-2561]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4586]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[KRS-2AG-7212]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 12000,
+        "zatrudnienie_aktualne": 9600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 2,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-7212]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3415]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[ID-9AG-2321]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-2321]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6132]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[REG-4AG-7694]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-7694]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9988]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[KRS-2AG-9077]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 8000,
+        "zatrudnienie_aktualne": 6400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 2,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-9077]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6911]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[ID-9AG-8866]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-8866]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7494]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[REG-4AG-6337]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-6337]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4751]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[KRS-2AG-9982]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 2,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-9982]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3171]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[ID-9AG-2731]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-2731]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4521]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[REG-4AG-7238]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-7238]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8073]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[KRS-2AG-8182]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 8000,
+        "zatrudnienie_aktualne": 6400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 2,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-8182]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1879]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[ID-9AG-9427]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-9427]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2534]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[REG-4AG-8639]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-8639]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4806]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[KRS-2AG-7875]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 8000,
+        "zatrudnienie_aktualne": 6400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 2,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-7875]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3041]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[ID-9AG-7465]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-7465]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1138]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[REG-4AG-9739]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-9739]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7476]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[KRS-2AG-4962]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 10000,
+        "zatrudnienie_aktualne": 8000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 2,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-4962]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6468]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[ID-9AG-9979]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-9979]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2033]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[REG-4AG-4100]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-4100]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6379]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[KRS-2AG-1100]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 2,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-1100]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8949]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[ID-9AG-8467]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-8467]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8823]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[REG-4AG-3647]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-3647]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7488]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[KRS-2AG-9695]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 8000,
+        "zatrudnienie_aktualne": 6400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 2,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-9695]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9415]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[ID-9AG-9063]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-9063]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9490]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[REG-4AG-2242]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-2242]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4171]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[KRS-2AG-9343]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 8000,
+        "zatrudnienie_aktualne": 6400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 2,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-9343]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1565]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[ID-9AG-1102]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-1102]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6035]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[REG-4AG-8991]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-8991]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7685]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[KRS-2AG-1421]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 2,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-1421]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5531]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[ID-9AG-7792]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-7792]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6746]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[REG-4AG-3427]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-3427]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6969]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[KRS-2AG-2480]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 2,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-2480]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9327]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[ID-9AG-5048]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-5048]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1028]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[REG-4AG-1075]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-1075]"
+        }
+    }
+]

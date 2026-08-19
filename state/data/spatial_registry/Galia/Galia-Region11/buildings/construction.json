@@ -1,0 +1,1537 @@
+[
+  {
+    "id": "B-GAL-0184",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-GAL-0184",
+    "rok_budowy": 1888,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 27200.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 5,
+      "sector": "construction",
+      "owner_id": "KRS-GAL-0184"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.0,
+      "renovation_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9413793190528283,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.5,
+      "food": 0.5,
+      "construction_services": 3.0,
+      "renovation_services": 1.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-GAL-1344",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-GAL-1344",
+    "rok_budowy": 1892,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 421198.5390972517,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 54,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 54,
+      "sector": "construction",
+      "owner_id": "KRS-GAL-1344"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 48.6,
+      "renovation_services": 24.3
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.797448719553114,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.157439938775662,
+      "renovation_services": 1.078719969387831
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-GAL-1345",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-GAL-1345",
+    "rok_budowy": 1898,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 398548.62025851547,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 51,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 51,
+      "sector": "construction",
+      "owner_id": "KRS-GAL-1345"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 91.8,
+      "renovation_services": 36.72
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9590166023544927,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.0,
+      "food": 0.5,
+      "construction_services": 2.0,
+      "renovation_services": 0.8
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-GAL-1346",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-GAL-1346",
+    "rok_budowy": 1886,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 371897.2157582693,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 47,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 47,
+      "sector": "construction",
+      "owner_id": "KRS-GAL-1346"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 126.9,
+      "renovation_services": 42.300000000000004
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8866266104220825,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.515,
+      "food": 0.505,
+      "construction_services": 3.03,
+      "renovation_services": 1.01
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-GAL-1347",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-GAL-1347",
+    "rok_budowy": 1880,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 345698.8096347977,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 44,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 44,
+      "sector": "construction",
+      "owner_id": "KRS-GAL-1347"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 39.6,
+      "renovation_services": 19.8
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8754909296423176,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.17271978201418,
+      "renovation_services": 1.08635989100709
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-GAL-1348",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-GAL-1348",
+    "rok_budowy": 1897,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 330598.8637423069,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 42,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 42,
+      "sector": "construction",
+      "owner_id": "KRS-GAL-1348"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 75.6,
+      "renovation_services": 30.24
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8361275076172998,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.0,
+      "food": 0.5,
+      "construction_services": 2.0,
+      "renovation_services": 0.8
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-GAL-1349",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-GAL-1349",
+    "rok_budowy": 1882,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 310893.43435260636,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 39,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 39,
+      "sector": "construction",
+      "owner_id": "KRS-GAL-1349"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 105.3,
+      "renovation_services": 35.099999999999994
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.895426812276848,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.515,
+      "food": 0.505,
+      "construction_services": 3.03,
+      "renovation_services": 1.01
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-GAL-1350",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-GAL-1350",
+    "rok_budowy": 1888,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 292848.9990110799,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 37,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 37,
+      "sector": "construction",
+      "owner_id": "KRS-GAL-1350"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 33.3,
+      "renovation_services": 16.65
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7553734214536637,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.1492020383056647,
+      "renovation_services": 1.0746010191528323
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-GAL-1351",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-GAL-1351",
+    "rok_budowy": 1898,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 84,
+    "zatrudnienie_aktualne": 84,
+    "rezerwa_zakladowa": 185793.3810100948,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 22,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 22,
+      "sector": "construction",
+      "owner_id": "KRS-GAL-1351"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 36.96,
+      "renovation_services": 14.784
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8732424596085028,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.04,
+      "food": 0.52,
+      "construction_services": 2.08,
+      "renovation_services": 0.832
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-GAL-1352",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-GAL-1352",
+    "rok_budowy": 1883,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 83,
+    "zatrudnienie_aktualne": 83,
+    "rezerwa_zakladowa": 168429.44269265528,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 20,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 20,
+      "sector": "construction",
+      "owner_id": "KRS-GAL-1352"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 49.8,
+      "renovation_services": 16.599999999999998
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7678651629020588,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.545,
+      "food": 0.515,
+      "construction_services": 3.09,
+      "renovation_services": 1.03
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-GAL-1353",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-GAL-1353",
+    "rok_budowy": 1883,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 84,
+    "zatrudnienie_aktualne": 84,
+    "rezerwa_zakladowa": 154385.49355371395,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 18,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 18,
+      "sector": "construction",
+      "owner_id": "KRS-GAL-1353"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 15.120000000000001,
+      "renovation_services": 7.5600000000000005
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8004600131339258,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.244347429411186,
+      "renovation_services": 1.122173714705593
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-GAL-1354",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-GAL-1354",
+    "rok_budowy": 1872,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 105817.66561559316,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 12,
+      "sector": "construction",
+      "owner_id": "KRS-GAL-1354"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 19.92,
+      "renovation_services": 7.968
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9476711831144203,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.03,
+      "food": 0.515,
+      "construction_services": 2.06,
+      "renovation_services": 0.824
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-GAL-1355",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-GAL-1355",
+    "rok_budowy": 1892,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 98971.6905050474,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 11,
+      "sector": "construction",
+      "owner_id": "KRS-GAL-1355"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 27.720000000000002,
+      "renovation_services": 9.24
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.82402098035355,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.5599999999999998,
+      "food": 0.52,
+      "construction_services": 3.1199999999999997,
+      "renovation_services": 1.04
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-GAL-1356",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-GAL-1356",
+    "rok_budowy": 1891,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 74,
+    "zatrudnienie_aktualne": 74,
+    "rezerwa_zakladowa": 89359.7240517031,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 10,
+      "sector": "construction",
+      "owner_id": "KRS-GAL-1356"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 8.2,
+      "renovation_services": 4.1
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7925961166597046,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.1996180123712414,
+      "renovation_services": 1.0998090061856207
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-GAL-1357",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-GAL-1357",
+    "rok_budowy": 1896,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 73420.28600480114,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 113,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 7,
+      "sector": "construction",
+      "owner_id": "KRS-GAL-1357"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 12.74,
+      "renovation_services": 5.096
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8408105273726463,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.13,
+      "food": 0.5650000000000001,
+      "construction_services": 2.26,
+      "renovation_services": 0.904
+    },
+    "pojemność_magazynu": 1130.0
+  },
+  {
+    "id": "B-GAL-1358",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-GAL-1358",
+    "rok_budowy": 1873,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 80,
+    "zatrudnienie_aktualne": 80,
+    "rezerwa_zakladowa": 71534.7916860896,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 110,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 7,
+      "sector": "construction",
+      "owner_id": "KRS-GAL-1358"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 18.69,
+      "renovation_services": 6.23
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.6914449061683684,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.65,
+      "food": 0.55,
+      "construction_services": 3.3,
+      "renovation_services": 1.1
+    },
+    "pojemność_magazynu": 1100.0
+  },
+  {
+    "id": "B-GAL-1359",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-GAL-1359",
+    "rok_budowy": 1897,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 83,
+    "zatrudnienie_aktualne": 83,
+    "rezerwa_zakladowa": 65491.81495231856,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 6,
+    "pojemnosc_budowlana": 114,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 6,
+      "sector": "construction",
+      "owner_id": "KRS-GAL-1359"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 5.5200000000000005,
+      "renovation_services": 2.7600000000000002
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7515582588242911,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 1.1102230246251563e-16,
+      "construction_services": 2.449235509685371,
+      "renovation_services": 1.2246177548426855
+    },
+    "pojemność_magazynu": 1140.0
+  },
+  {
+    "id": "B-GAL-1360",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-GAL-1360",
+    "rok_budowy": 1892,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 77,
+    "zatrudnienie_aktualne": 77,
+    "rezerwa_zakladowa": 52914.85661510063,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 106,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 5,
+      "sector": "construction",
+      "owner_id": "KRS-GAL-1360"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 8.6,
+      "renovation_services": 3.44
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.833069023573653,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.06,
+      "food": 0.53,
+      "construction_services": 2.12,
+      "renovation_services": 0.848
+    },
+    "pojemność_magazynu": 1060.0
+  },
+  {
+    "id": "B-GAL-1361",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-GAL-1361",
+    "rok_budowy": 1884,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 85,
+    "zatrudnienie_aktualne": 85,
+    "rezerwa_zakladowa": 40750.40504132136,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 117,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 3,
+      "sector": "construction",
+      "owner_id": "KRS-GAL-1361"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 8.549999999999999,
+      "renovation_services": 2.8499999999999996
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.726422092540288,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.755,
+      "food": 0.5850000000000001,
+      "construction_services": 3.51,
+      "renovation_services": 1.1700000000000002
+    },
+    "pojemność_magazynu": 1170.0
+  },
+  {
+    "id": "B-GAL-1362",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-GAL-1362",
+    "rok_budowy": 1882,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 103,
+    "zatrudnienie_aktualne": 103,
+    "rezerwa_zakladowa": 27719.962124743564,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 140,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-GAL-1362"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 1.1400000000000001,
+      "renovation_services": 0.5700000000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8739814761675205,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 1.1102230246251563e-16,
+      "construction_services": 3.0413939456779184,
+      "renovation_services": 1.5206969728389592
+    },
+    "pojemność_magazynu": 1400.0
+  },
+  {
+    "id": "B-GAL-1363",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-GAL-1363",
+    "rok_budowy": 1875,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 63,
+    "zatrudnienie_aktualne": 63,
+    "rezerwa_zakladowa": 16741.977274846136,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 84,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-GAL-1363"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 1.3800000000000001,
+      "renovation_services": 0.552
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8780739142806054,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.8400000000000001,
+      "food": 0.42,
+      "construction_services": 1.6800000000000002,
+      "renovation_services": 0.672
+    },
+    "pojemność_magazynu": 840.0
+  }
+]

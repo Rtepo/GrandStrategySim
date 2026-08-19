@@ -1,0 +1,1536 @@
+[
+  {
+    "id": "B-ELD-0111",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ELD-0111",
+    "rok_budowy": 1875,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 28550.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region12",
+    "cluster_info": {
+      "region_id": "Eldoria-Region12",
+      "scale_factor": 5,
+      "sector": "construction",
+      "owner_id": "KRS-ELD-0111"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.0,
+      "renovation_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7657954812395114,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.5,
+      "food": 0.5,
+      "construction_services": 3.0,
+      "renovation_services": 1.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-2428",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ELD-2428",
+    "rok_budowy": 1893,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 1050422.1369109075,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 100,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region12",
+    "cluster_info": {
+      "region_id": "Eldoria-Region12",
+      "scale_factor": 100,
+      "sector": "construction",
+      "owner_id": "KRS-ELD-2428"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 100.0,
+      "renovation_services": 50.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7696834757812688,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.152003796310859,
+      "renovation_services": 1.0760018981554296
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-2429",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ELD-2429",
+    "rok_budowy": 1888,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 1040067.9155417983,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 99,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region12",
+    "cluster_info": {
+      "region_id": "Eldoria-Region12",
+      "scale_factor": 99,
+      "sector": "construction",
+      "owner_id": "KRS-ELD-2429"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 198.0,
+      "renovation_services": 79.2
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7414624759676467,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.0,
+      "food": 0.5,
+      "construction_services": 2.0,
+      "renovation_services": 0.8
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-2430",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ELD-2430",
+    "rok_budowy": 1875,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 946879.9232198166,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 90,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region12",
+    "cluster_info": {
+      "region_id": "Eldoria-Region12",
+      "scale_factor": 90,
+      "sector": "construction",
+      "owner_id": "KRS-ELD-2430"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 270.0,
+      "renovation_services": 90.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7229561871423866,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.5,
+      "food": 0.5,
+      "construction_services": 3.0,
+      "renovation_services": 1.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-2431",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ELD-2431",
+    "rok_budowy": 1872,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 936525.7018507076,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 89,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region12",
+    "cluster_info": {
+      "region_id": "Eldoria-Region12",
+      "scale_factor": 89,
+      "sector": "construction",
+      "owner_id": "KRS-ELD-2431"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 89.0,
+      "renovation_services": 44.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7049302880372426,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.139325803763081,
+      "renovation_services": 1.069662901881541
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-2432",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ELD-2432",
+    "rok_budowy": 1888,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 853691.9308978351,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 81,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region12",
+    "cluster_info": {
+      "region_id": "Eldoria-Region12",
+      "scale_factor": 81,
+      "sector": "construction",
+      "owner_id": "KRS-ELD-2432"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 162.0,
+      "renovation_services": 64.8
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9180875064828392,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.0,
+      "food": 0.5,
+      "construction_services": 2.0,
+      "renovation_services": 0.8
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-2433",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ELD-2433",
+    "rok_budowy": 1899,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 822629.2667905078,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 78,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region12",
+    "cluster_info": {
+      "region_id": "Eldoria-Region12",
+      "scale_factor": 78,
+      "sector": "construction",
+      "owner_id": "KRS-ELD-2433"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 234.0,
+      "renovation_services": 78.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.816270780367299,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.5,
+      "food": 0.5,
+      "construction_services": 3.0,
+      "renovation_services": 1.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-2434",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ELD-2434",
+    "rok_budowy": 1892,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 101,
+    "zatrudnienie_aktualne": 101,
+    "rezerwa_zakladowa": 705362.3964648108,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 66,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Eldoria-Region12",
+    "cluster_info": {
+      "region_id": "Eldoria-Region12",
+      "scale_factor": 66,
+      "sector": "construction",
+      "owner_id": "KRS-ELD-2434"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 66.66,
+      "renovation_services": 33.33
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8128105768671449,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.1820472004950124,
+      "renovation_services": 1.0910236002475062
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ELD-2435",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ELD-2435",
+    "rok_budowy": 1871,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 410995.01614640624,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 38,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Eldoria-Region12",
+    "cluster_info": {
+      "region_id": "Eldoria-Region12",
+      "scale_factor": 38,
+      "sector": "construction",
+      "owner_id": "KRS-ELD-2435"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 68.4,
+      "renovation_services": 27.36
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8541489577777662,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.01,
+      "food": 0.505,
+      "construction_services": 2.02,
+      "renovation_services": 0.808
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ELD-2436",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ELD-2436",
+    "rok_budowy": 1891,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 379621.72539800574,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 35,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Eldoria-Region12",
+    "cluster_info": {
+      "region_id": "Eldoria-Region12",
+      "scale_factor": 35,
+      "sector": "construction",
+      "owner_id": "KRS-ELD-2436"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 94.5,
+      "renovation_services": 31.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7833389324667182,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.515,
+      "food": 0.505,
+      "construction_services": 3.03,
+      "renovation_services": 1.01
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ELD-2437",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ELD-2437",
+    "rok_budowy": 1883,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 341150.4796912289,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 31,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Eldoria-Region12",
+    "cluster_info": {
+      "region_id": "Eldoria-Region12",
+      "scale_factor": 31,
+      "sector": "construction",
+      "owner_id": "KRS-ELD-2437"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 28.21,
+      "renovation_services": 14.105
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8176214103431219,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.2046156952318916,
+      "renovation_services": 1.1023078476159458
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ELD-2438",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ELD-2438",
+    "rok_budowy": 1891,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 84,
+    "zatrudnienie_aktualne": 84,
+    "rezerwa_zakladowa": 175575.85335810157,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 15,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Eldoria-Region12",
+    "cluster_info": {
+      "region_id": "Eldoria-Region12",
+      "scale_factor": 15,
+      "sector": "construction",
+      "owner_id": "KRS-ELD-2438"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 27.9,
+      "renovation_services": 11.16
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.701934636958915,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.04,
+      "food": 0.52,
+      "construction_services": 2.08,
+      "renovation_services": 0.832
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-ELD-2439",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ELD-2439",
+    "rok_budowy": 1893,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 85,
+    "zatrudnienie_aktualne": 85,
+    "rezerwa_zakladowa": 135030.2211638118,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 106,
+    "region_id": "Eldoria-Region12",
+    "cluster_info": {
+      "region_id": "Eldoria-Region12",
+      "scale_factor": 11,
+      "sector": "construction",
+      "owner_id": "KRS-ELD-2439"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 31.349999999999998,
+      "renovation_services": 10.45
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8216130984564971,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.59,
+      "food": 0.53,
+      "construction_services": 3.1799999999999997,
+      "renovation_services": 1.06
+    },
+    "pojemność_magazynu": 1060.0
+  },
+  {
+    "id": "B-ELD-2440",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ELD-2440",
+    "rok_budowy": 1886,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 118177.63582800166,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Eldoria-Region12",
+    "cluster_info": {
+      "region_id": "Eldoria-Region12",
+      "scale_factor": 10,
+      "sector": "construction",
+      "owner_id": "KRS-ELD-2440"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 9.0,
+      "renovation_services": 4.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.869012596022503,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.193161001882934,
+      "renovation_services": 1.096580500941467
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ELD-2441",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ELD-2441",
+    "rok_budowy": 1876,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 106737.99232198168,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region12",
+    "cluster_info": {
+      "region_id": "Eldoria-Region12",
+      "scale_factor": 9,
+      "sector": "construction",
+      "owner_id": "KRS-ELD-2441"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 16.200000000000003,
+      "renovation_services": 6.48
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7140624487401642,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.0,
+      "food": 0.5,
+      "construction_services": 2.0,
+      "renovation_services": 0.8
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-2442",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ELD-2442",
+    "rok_budowy": 1892,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 93,
+    "zatrudnienie_aktualne": 93,
+    "rezerwa_zakladowa": 39364.709148950875,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 115,
+    "region_id": "Eldoria-Region12",
+    "cluster_info": {
+      "region_id": "Eldoria-Region12",
+      "scale_factor": 2,
+      "sector": "construction",
+      "owner_id": "KRS-ELD-2442"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 6.18,
+      "renovation_services": 2.06
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7975701099831611,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.725,
+      "food": 0.5750000000000001,
+      "construction_services": 3.45,
+      "renovation_services": 1.15
+    },
+    "pojemność_magazynu": 1150.0
+  },
+  {
+    "id": "B-ELD-2443",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ELD-2443",
+    "rok_budowy": 1886,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 154,
+    "zatrudnienie_aktualne": 154,
+    "rezerwa_zakladowa": 45269.47838761615,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 189,
+    "region_id": "Eldoria-Region12",
+    "cluster_info": {
+      "region_id": "Eldoria-Region12",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-ELD-2443"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 1.7100000000000002,
+      "renovation_services": 0.8550000000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9826353389110491,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 4.146085061095569,
+      "renovation_services": 2.0730425305477844
+    },
+    "pojemność_magazynu": 1890.0
+  },
+  {
+    "id": "B-ELD-2444",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ELD-2444",
+    "rok_budowy": 1887,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 91,
+    "zatrudnienie_aktualne": 91,
+    "rezerwa_zakladowa": 26796.72793340217,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 112,
+    "region_id": "Eldoria-Region12",
+    "cluster_info": {
+      "region_id": "Eldoria-Region12",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-ELD-2444"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 2.02,
+      "renovation_services": 0.808
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7115809857848628,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.12,
+      "food": 0.56,
+      "construction_services": 2.24,
+      "renovation_services": 0.896
+    },
+    "pojemność_magazynu": 1120.0
+  },
+  {
+    "id": "B-ELD-2445",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ELD-2445",
+    "rok_budowy": 1875,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 71,
+    "zatrudnienie_aktualne": 71,
+    "rezerwa_zakladowa": 20654.630377433805,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 86,
+    "region_id": "Eldoria-Region12",
+    "cluster_info": {
+      "region_id": "Eldoria-Region12",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-ELD-2445"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 2.34,
+      "renovation_services": 0.78
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7736403920116723,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.2899999999999998,
+      "food": 0.42999999999999994,
+      "construction_services": 2.5799999999999996,
+      "renovation_services": 0.8599999999999999
+    },
+    "pojemność_magazynu": 860.0
+  },
+  {
+    "id": "B-ELD-2446",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ELD-2446",
+    "rok_budowy": 1897,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 24,
+    "zatrudnienie_aktualne": 24,
+    "rezerwa_zakladowa": 6799.1819833505415,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 28,
+    "region_id": "Eldoria-Region12",
+    "cluster_info": {
+      "region_id": "Eldoria-Region12",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-ELD-2446"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.26,
+      "renovation_services": 0.13
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9777354701827707,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 6.938893903907228e-18,
+      "construction_services": 0.6139683271443356,
+      "renovation_services": 0.30698416357216773
+    },
+    "pojemność_magazynu": 280.0
+  },
+  {
+    "id": "B-ELD-2447",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ELD-2447",
+    "rok_budowy": 1889,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 2,
+    "zatrudnienie_aktualne": 2,
+    "rezerwa_zakladowa": 507.0844273821815,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 2,
+    "region_id": "Eldoria-Region12",
+    "cluster_info": {
+      "region_id": "Eldoria-Region12",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-ELD-2447"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.04,
+      "renovation_services": 0.016
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7237455403460528,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.02,
+      "food": 0.01,
+      "construction_services": 0.04,
+      "renovation_services": 0.016
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

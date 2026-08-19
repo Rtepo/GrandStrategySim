@@ -1,0 +1,1504 @@
+[
+  {
+    "id": "B-HEL-0007",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-HEL-0007",
+    "rok_budowy": 1891,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 58050.0,
+    "aktywna_metoda": {
+      "rok": 1895,
+      "eksperci": 0.08,
+      "sredni": 0.2,
+      "szeregowi": 0.72,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "seeds": 8.0
+      },
+      "outputs": {
+        "cereal": 40.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 15,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 15,
+      "sector": "agriculture",
+      "owner_id": "KRS-HEL-0007"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9181022564099144,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.4,
+      "food": 0.5,
+      "cereal": 6.835335039222511,
+      "seeds": 0.32000000000000006,
+      "water": 0.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-0173",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-HEL-0173",
+    "rok_budowy": 1896,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 4095174.274077572,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "seeds": 5.0,
+        "draft_animals": 3.0
+      },
+      "outputs": {
+        "cereal": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 634,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 634,
+      "sector": "agriculture",
+      "owner_id": "KRS-HEL-0173"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 951.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9722330998111648,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 1.3877787807814457e-17,
+      "cereal": 3.287491320891911,
+      "water": 0.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-0174",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-HEL-0174",
+    "rok_budowy": 1891,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 3805571.9991036127,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 6.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "protein": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 589,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 589,
+      "sector": "agriculture",
+      "owner_id": "KRS-HEL-0174"
+    },
+    "ostatnia_produkcja": {
+      "protein": 706.8
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9627996103932596,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "protein": 2.627776683199764,
+      "seeds": 5.551115123125783e-17,
+      "water": 0.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-0175",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-HEL-0175",
+    "rok_budowy": 1884,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 3657553.058561366,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cereal": 8.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "fodder": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 566,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 566,
+      "sector": "agriculture",
+      "owner_id": "KRS-HEL-0175"
+    },
+    "ostatnia_produkcja": {
+      "fodder": 849.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7624745990468724,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "fodder": 3.225888561193766,
+      "water": 0.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-0176",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-HEL-0176",
+    "rok_budowy": 1886,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 3219931.8430451592,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 2.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "timber": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 498,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 498,
+      "sector": "agriculture",
+      "owner_id": "KRS-HEL-0176"
+    },
+    "ostatnia_produkcja": {
+      "timber": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7952243688555019,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 1.0943988416466044,
+      "food": 0.5,
+      "seeds": 0.08000000000000002,
+      "water": 0.20000000000000018
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-0177",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-HEL-0177",
+    "rok_budowy": 1884,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 1886261.3781649424,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "cereal": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "seeds": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 291,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 291,
+      "sector": "agriculture",
+      "owner_id": "KRS-HEL-0177"
+    },
+    "ostatnia_produkcja": {
+      "seeds": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8240846016695592,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.08000000000000002,
+      "cereal": 0.4,
+      "seeds": 2.037346991426934,
+      "water": 0.20000000000000018
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-0178",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-HEL-0178",
+    "rok_budowy": 1873,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 1854083.34761228,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "industrial_fiber": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 286,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 286,
+      "sector": "agriculture",
+      "owner_id": "KRS-HEL-0178"
+    },
+    "ostatnia_produkcja": {
+      "industrial_fiber": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8260886208150655,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "industrial_fiber": 2.0376294948416356,
+      "seeds": 0.2,
+      "water": 0.3200000000000003
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-0179",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-HEL-0179",
+    "rok_budowy": 1872,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 1551609.8604172552,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "vegetable": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 239,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 239,
+      "sector": "agriculture",
+      "owner_id": "KRS-HEL-0179"
+    },
+    "ostatnia_produkcja": {
+      "vegetable": 387.18
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.950635707626594,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "vegetable": 3.93737820938251,
+      "water": 0.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-0180",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-HEL-0180",
+    "rok_budowy": 1886,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 1371412.8893223468,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fodder": 15.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "meat": 10.0,
+        "livestock": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 211,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 211,
+      "sector": "agriculture",
+      "owner_id": "KRS-HEL-0180"
+    },
+    "ostatnia_produkcja": {
+      "meat": 0.0,
+      "livestock": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9476922216709511,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "meat": 1.7123098020405032,
+      "food": 0.12000000000000004,
+      "fodder": 0.6000000000000001,
+      "water": 0.3999999999999999,
+      "livestock": 0.8561549010202516
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-0181",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-HEL-0181",
+    "rok_budowy": 1890,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 1159037.8876747757,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 4.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "fruit": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 178,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 178,
+      "sector": "agriculture",
+      "owner_id": "KRS-HEL-0181"
+    },
+    "ostatnia_produkcja": {
+      "fruit": 240.29999999999998
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8714741207805449,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fruit": 3.2578999996818654,
+      "water": 0.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-0182",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-HEL-0182",
+    "rok_budowy": 1878,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 953098.4921377376,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 4.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "luxury": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 146,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 146,
+      "sector": "agriculture",
+      "owner_id": "KRS-HEL-0182"
+    },
+    "ostatnia_produkcja": {
+      "luxury": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8424600233285384,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.08000000000000002,
+      "seeds": 0.16000000000000003,
+      "luxury": 1.359958230402918,
+      "water": 0.3999999999999999
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-0183",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-HEL-0183",
+    "rok_budowy": 1871,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 91,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 282787.047542467,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 5.0,
+        "seeds": 5.0,
+        "draft_animals": 5.0
+      },
+      "outputs": {
+        "cereal": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 41,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 41,
+      "sector": "agriculture",
+      "owner_id": "KRS-HEL-0183"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7928901597676263,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.205,
+      "cereal": 4.314233443492723,
+      "seeds": 0.205,
+      "water": 0.0
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-HEL-0184",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-HEL-0184",
+    "rok_budowy": 1878,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 270924.2444212979,
+    "aktywna_metoda": {
+      "rok": 1895,
+      "eksperci": 0.08,
+      "sredni": 0.2,
+      "szeregowi": 0.72,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "seeds": 8.0
+      },
+      "outputs": {
+        "cereal": 40.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 40,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 40,
+      "sector": "agriculture",
+      "owner_id": "KRS-HEL-0184"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9050703880851604,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.4,
+      "food": 0.5,
+      "cereal": 6.82921143288549,
+      "seeds": 0.32000000000000006,
+      "water": 0.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-0185",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-HEL-0185",
+    "rok_budowy": 1894,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 91,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 210579.5469822929,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "seeds": 5.0,
+        "draft_animals": 3.0
+      },
+      "outputs": {
+        "cereal": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 30,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 30,
+      "sector": "agriculture",
+      "owner_id": "KRS-HEL-0185"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.729096284966288,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.123,
+      "cereal": 2.577111561303592,
+      "seeds": 0.205,
+      "water": 0.0
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-HEL-0186",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-HEL-0186",
+    "rok_budowy": 1897,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 72,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 76506.06110532448,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 6.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "protein": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 10,
+      "sector": "agriculture",
+      "owner_id": "KRS-HEL-0186"
+    },
+    "ostatnia_produkcja": {
+      "protein": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7587446542258115,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.08000000000000002,
+      "protein": 2.028136122204127,
+      "seeds": 0.2400000000000001,
+      "water": 0.3999999999999999
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-0187",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-HEL-0187",
+    "rok_budowy": 1880,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 57799.73520146441,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cereal": 8.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "fodder": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 7,
+      "sector": "agriculture",
+      "owner_id": "KRS-HEL-0187"
+    },
+    "ostatnia_produkcja": {
+      "fodder": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9056815187912132,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505,
+      "cereal": 0.32800000000000007,
+      "fodder": 2.5760619749954197,
+      "water": 0.20500000000000007
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-HEL-0188",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-HEL-0188",
+    "rok_budowy": 1883,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 46970.606308240946,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 2.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "timber": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 124,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 4,
+      "sector": "agriculture",
+      "owner_id": "KRS-HEL-0188"
+    },
+    "ostatnia_produkcja": {
+      "timber": 4.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7023934579897879,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 0.7571448380534455,
+      "food": 0.62,
+      "seeds": 1.3877787807814457e-17,
+      "water": 0.0
+    },
+    "pojemność_magazynu": 1240.0
+  },
+  {
+    "id": "B-HEL-0189",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-HEL-0189",
+    "rok_budowy": 1892,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 94,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 40655.79564776058,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "cereal": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "seeds": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 129,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 3,
+      "sector": "agriculture",
+      "owner_id": "KRS-HEL-0189"
+    },
+    "ostatnia_produkcja": {
+      "seeds": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9522490944551307,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.104,
+      "cereal": 0.52,
+      "seeds": 2.6457814765994065,
+      "water": 0.2599999999999998
+    },
+    "pojemność_magazynu": 1290.0
+  },
+  {
+    "id": "B-HEL-0190",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-HEL-0190",
+    "rok_budowy": 1883,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 99,
+    "zatrudnienie_aktualne": 99,
+    "rezerwa_zakladowa": 34054.84862064826,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "industrial_fiber": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 136,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 2,
+      "sector": "agriculture",
+      "owner_id": "KRS-HEL-0190"
+    },
+    "ostatnia_produkcja": {
+      "industrial_fiber": 2.64
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9135748617631624,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.68,
+      "industrial_fiber": 3.5580416975136124,
+      "water": 0.0
+    },
+    "pojemność_magazynu": 1360.0
+  },
+  {
+    "id": "B-HEL-0191",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-HEL-0191",
+    "rok_budowy": 1891,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 89,
+    "zatrudnienie_aktualne": 89,
+    "rezerwa_zakladowa": 30374.166787488524,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "vegetable": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 121,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 2,
+      "sector": "agriculture",
+      "owner_id": "KRS-HEL-0191"
+    },
+    "ostatnia_produkcja": {
+      "vegetable": 3.528
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9042217022822655,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 1.3877787807814457e-17,
+      "vegetable": 4.744426505334909,
+      "water": 0.0
+    },
+    "pojemność_magazynu": 1210.0
+  },
+  {
+    "id": "B-HEL-0192",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-HEL-0192",
+    "rok_budowy": 1875,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 30,
+    "zatrudnienie_aktualne": 30,
+    "rezerwa_zakladowa": 7524.2424442129795,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fodder": 15.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "meat": 10.0,
+        "livestock": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 40,
+    "region_id": "Helwecja-Region2",
+    "cluster_info": {
+      "region_id": "Helwecja-Region2",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-HEL-0192"
+    },
+    "ostatnia_produkcja": {
+      "meat": 0.33,
+      "livestock": 0.165
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7118800008642427,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "meat": 0.8562745937518945,
+      "fodder": 5.551115123125783e-17,
+      "water": 0.0,
+      "livestock": 0.42813729687594726
+    },
+    "pojemność_magazynu": 400.0
+  }
+]

@@ -1,0 +1,1316 @@
+[
+  {
+    "id": "B-PER-0126",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-PER-0126",
+    "rok_budowy": 1880,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 101,
+    "zatrudnienie_aktualne": 101,
+    "rezerwa_zakladowa": 28150.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 125,
+    "region_id": "Persja-Region11",
+    "cluster_info": {
+      "region_id": "Persja-Region11",
+      "scale_factor": 3,
+      "sector": "construction",
+      "owner_id": "KRS-PER-0126"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 10.08,
+      "renovation_services": 3.3600000000000003
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7417148674659888,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.875,
+      "food": 0.625,
+      "construction_services": 3.75,
+      "renovation_services": 1.25
+    },
+    "pojemność_magazynu": 1250.0
+  },
+  {
+    "id": "B-PER-0722",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-PER-0722",
+    "rok_budowy": 1873,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 131856.63817999576,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 44,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Persja-Region11",
+    "cluster_info": {
+      "region_id": "Persja-Region11",
+      "scale_factor": 44,
+      "sector": "construction",
+      "owner_id": "KRS-PER-0722"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 44.0,
+      "renovation_services": 22.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8059491930538818,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.159104242008444,
+      "renovation_services": 1.079552121004222
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-PER-0723",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-PER-0723",
+    "rok_budowy": 1882,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 101,
+    "zatrudnienie_aktualne": 101,
+    "rezerwa_zakladowa": 119763.24949795532,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 39,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Persja-Region11",
+    "cluster_info": {
+      "region_id": "Persja-Region11",
+      "scale_factor": 39,
+      "sector": "construction",
+      "owner_id": "KRS-PER-0723"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 78.78,
+      "renovation_services": 31.512
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.785160270871606,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.01,
+      "food": 0.505,
+      "construction_services": 2.02,
+      "renovation_services": 0.808
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-PER-0724",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-PER-0724",
+    "rok_budowy": 1889,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 102,
+    "zatrudnienie_aktualne": 102,
+    "rezerwa_zakladowa": 104695.32820769676,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 33,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Persja-Region11",
+    "cluster_info": {
+      "region_id": "Persja-Region11",
+      "scale_factor": 33,
+      "sector": "construction",
+      "owner_id": "KRS-PER-0724"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 100.98,
+      "renovation_services": 33.660000000000004
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.781620690125747,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.5299999999999998,
+      "food": 0.51,
+      "construction_services": 3.0599999999999996,
+      "renovation_services": 1.02
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-PER-0725",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-PER-0725",
+    "rok_budowy": 1889,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 102,
+    "zatrudnienie_aktualne": 102,
+    "rezerwa_zakladowa": 85732.68283030656,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 26,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Persja-Region11",
+    "cluster_info": {
+      "region_id": "Persja-Region11",
+      "scale_factor": 26,
+      "sector": "construction",
+      "owner_id": "KRS-PER-0725"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 26.520000000000003,
+      "renovation_services": 13.260000000000002
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7998663308741385,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.201069912414149,
+      "renovation_services": 1.1005349562070743
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-PER-0726",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-PER-0726",
+    "rok_budowy": 1888,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 84051.64983363387,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 26,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Persja-Region11",
+    "cluster_info": {
+      "region_id": "Persja-Region11",
+      "scale_factor": 26,
+      "sector": "construction",
+      "owner_id": "KRS-PER-0726"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 52.0,
+      "renovation_services": 20.8
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8033580544595528,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.0,
+      "food": 0.5,
+      "construction_services": 2.0,
+      "renovation_services": 0.8
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-PER-0727",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-PER-0727",
+    "rok_budowy": 1872,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 52181.65760272593,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 14,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Persja-Region11",
+    "cluster_info": {
+      "region_id": "Persja-Region11",
+      "scale_factor": 14,
+      "sector": "construction",
+      "owner_id": "KRS-PER-0727"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 42.0,
+      "renovation_services": 14.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7073879588214493,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.5,
+      "food": 0.5,
+      "construction_services": 3.0,
+      "renovation_services": 1.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-PER-0728",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-PER-0728",
+    "rok_budowy": 1871,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 84,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 40232.7259267989,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Persja-Region11",
+    "cluster_info": {
+      "region_id": "Persja-Region11",
+      "scale_factor": 11,
+      "sector": "construction",
+      "owner_id": "KRS-PER-0728"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 10.229999999999999,
+      "renovation_services": 5.114999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.998,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7280636936530898,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.229606014631846,
+      "renovation_services": 1.114803007315923
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-PER-0729",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-PER-0729",
+    "rok_budowy": 1898,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 83,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 39840.58433134892,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Persja-Region11",
+    "cluster_info": {
+      "region_id": "Persja-Region11",
+      "scale_factor": 11,
+      "sector": "construction",
+      "owner_id": "KRS-PER-0729"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 20.240000000000002,
+      "renovation_services": 8.096
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.998,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8271750256255298,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.03,
+      "food": 0.515,
+      "construction_services": 2.06,
+      "renovation_services": 0.824
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-PER-0730",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-PER-0730",
+    "rok_budowy": 1878,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 85,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 35047.618881840004,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Persja-Region11",
+    "cluster_info": {
+      "region_id": "Persja-Region11",
+      "scale_factor": 9,
+      "sector": "construction",
+      "owner_id": "KRS-PER-0730"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 25.38,
+      "renovation_services": 8.459999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.998,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.833853901458111,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.575,
+      "food": 0.525,
+      "construction_services": 3.15,
+      "renovation_services": 1.05
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-PER-0731",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-PER-0731",
+    "rok_budowy": 1880,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 88,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 33508.86102112644,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 109,
+    "region_id": "Persja-Region11",
+    "cluster_info": {
+      "region_id": "Persja-Region11",
+      "scale_factor": 8,
+      "sector": "construction",
+      "owner_id": "KRS-PER-0731"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 7.84,
+      "renovation_services": 3.92
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.998,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.847735717527301,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.362338038285774,
+      "renovation_services": 1.181169019142887
+    },
+    "pojemność_magazynu": 1090.0
+  },
+  {
+    "id": "B-PER-0732",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-PER-0732",
+    "rok_budowy": 1894,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 92,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 28965.89557161753,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 6,
+    "pojemnosc_budowlana": 114,
+    "region_id": "Persja-Region11",
+    "cluster_info": {
+      "region_id": "Persja-Region11",
+      "scale_factor": 6,
+      "sector": "construction",
+      "owner_id": "KRS-PER-0732"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 12.24,
+      "renovation_services": 4.896
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.998,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8416894342071721,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.14,
+      "food": 0.5700000000000001,
+      "construction_services": 2.28,
+      "renovation_services": 0.912
+    },
+    "pojemność_magazynu": 1140.0
+  },
+  {
+    "id": "B-PER-0733",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-PER-0733",
+    "rok_budowy": 1890,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 28447.195649308447,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 6,
+    "pojemnosc_budowlana": 112,
+    "region_id": "Persja-Region11",
+    "cluster_info": {
+      "region_id": "Persja-Region11",
+      "scale_factor": 6,
+      "sector": "construction",
+      "owner_id": "KRS-PER-0733"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 18.0,
+      "renovation_services": 6.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.998,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9484534334411916,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.68,
+      "food": 0.56,
+      "construction_services": 3.36,
+      "renovation_services": 1.12
+    },
+    "pojemność_magazynu": 1120.0
+  },
+  {
+    "id": "B-PER-0734",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-PER-0734",
+    "rok_budowy": 1882,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 95,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 26636.621212567625,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 117,
+    "region_id": "Persja-Region11",
+    "cluster_info": {
+      "region_id": "Persja-Region11",
+      "scale_factor": 5,
+      "sector": "construction",
+      "owner_id": "KRS-PER-0734"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 5.25,
+      "renovation_services": 2.625
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.998,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7889765900735338,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 2.522262351612424,
+      "renovation_services": 1.261131175806212
+    },
+    "pojemność_magazynu": 1170.0
+  },
+  {
+    "id": "B-PER-0735",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-PER-0735",
+    "rok_budowy": 1896,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 104,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 15472.907511104424,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 127,
+    "region_id": "Persja-Region11",
+    "cluster_info": {
+      "region_id": "Persja-Region11",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-PER-0735"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 1.6800000000000002,
+      "renovation_services": 0.672
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.998,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.883429634704322,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.27,
+      "food": 0.635,
+      "construction_services": 2.54,
+      "renovation_services": 1.016
+    },
+    "pojemność_magazynu": 1270.0
+  },
+  {
+    "id": "B-PER-0736",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-PER-0736",
+    "rok_budowy": 1890,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 67,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 9977.782802445376,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 82,
+    "region_id": "Persja-Region11",
+    "cluster_info": {
+      "region_id": "Persja-Region11",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-PER-0736"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 1.6199999999999999,
+      "renovation_services": 0.54
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.998,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8604816588285109,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.23,
+      "food": 0.41,
+      "construction_services": 2.46,
+      "renovation_services": 0.8200000000000001
+    },
+    "pojemność_magazynu": 820.0
+  },
+  {
+    "id": "B-PER-0737",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-PER-0737",
+    "rok_budowy": 1889,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 41,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 6001.358016095407,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 49,
+    "region_id": "Persja-Region11",
+    "cluster_info": {
+      "region_id": "Persja-Region11",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-PER-0737"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.33,
+      "renovation_services": 0.165
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.998,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9029167670688464,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "construction_services": 1.0672605717375312,
+      "renovation_services": 0.5336302858687656
+    },
+    "pojemność_magazynu": 490.0
+  },
+  {
+    "id": "B-PER-0738",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-PER-0738",
+    "rok_budowy": 1885,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 17,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 2354.608210322709,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 19,
+    "region_id": "Persja-Region11",
+    "cluster_info": {
+      "region_id": "Persja-Region11",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-PER-0738"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.24,
+      "renovation_services": 0.096
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.998,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9593527024485432,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.19,
+      "food": 0.095,
+      "construction_services": 0.38,
+      "renovation_services": 0.152
+    },
+    "pojemność_magazynu": 190.0
+  }
+]

@@ -1,0 +1,1801 @@
+[
+    {
+        "id": "[ID-9XX-2884]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[KRS-2XX-3347]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 1200,
+        "zatrudnienie_aktualne": 960,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 2,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-3347]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2560]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[ID-9XX-5664]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-5664]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9498]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[REG-4XX-9937]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-9937]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1799]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[KRS-2XX-7577]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 1000,
+        "zatrudnienie_aktualne": 800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 2,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-7577]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6118]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[ID-9XX-4601]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-4601]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6595]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[REG-4XX-4322]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-4322]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3856]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[KRS-2XX-6787]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 1000,
+        "zatrudnienie_aktualne": 800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 2,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-6787]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7252]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[ID-9XX-8728]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-8728]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4273]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[REG-4XX-7976]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-7976]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8251]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[KRS-2XX-4668]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 1200,
+        "zatrudnienie_aktualne": 960,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 2,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-4668]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6127]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[ID-9XX-9056]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-9056]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8972]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[REG-4XX-5982]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-5982]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4567]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[KRS-2XX-6667]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 1200,
+        "zatrudnienie_aktualne": 960,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 2,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-6667]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6412]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[ID-9XX-5162]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-5162]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2288]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[REG-4XX-9990]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-9990]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1740]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[KRS-2XX-3425]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 1000,
+        "zatrudnienie_aktualne": 800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 2,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-3425]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3043]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[ID-9XX-9773]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-9773]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4195]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[REG-4XX-3618]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-3618]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8657]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[KRS-2XX-5178]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 1200,
+        "zatrudnienie_aktualne": 960,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 2,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-5178]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9909]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[ID-9XX-3955]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-3955]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6872]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[REG-4XX-9758]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-9758]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8486]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[KRS-2XX-9553]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 1000,
+        "zatrudnienie_aktualne": 800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 2,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-9553]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9275]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[ID-9XX-6360]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-6360]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8857]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[REG-4XX-9602]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-9602]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9915]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[KRS-2XX-8359]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 1200,
+        "zatrudnienie_aktualne": 960,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 2,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-8359]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1926]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[ID-9XX-1212]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-1212]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3983]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[REG-4XX-4969]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-4969]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6079]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[KRS-2XX-5924]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 1000,
+        "zatrudnienie_aktualne": 800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 2,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-5924]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3353]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[ID-9XX-6908]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-6908]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5167]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[REG-4XX-9134]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-9134]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1187]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[KRS-2XX-4429]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 1000,
+        "zatrudnienie_aktualne": 800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 2,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-4429]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6699]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[ID-9XX-6233]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-6233]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6179]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[REG-4XX-3974]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-3974]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3559]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[KRS-2XX-4781]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 1200,
+        "zatrudnienie_aktualne": 960,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 2,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-4781]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9775]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[ID-9XX-1572]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-1572]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3686]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[REG-4XX-2092]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-2092]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8461]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[KRS-2XX-6967]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 1200,
+        "zatrudnienie_aktualne": 960,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 2,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-6967]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3838]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[ID-9XX-4518]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-4518]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1590]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[REG-4XX-6773]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-6773]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2794]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[KRS-2XX-9152]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 1200,
+        "zatrudnienie_aktualne": 960,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 2,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-9152]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3135]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[ID-9XX-2078]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-2078]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2563]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[REG-4XX-9686]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-9686]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5362]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[KRS-2XX-5329]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 1000,
+        "zatrudnienie_aktualne": 800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 2,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-5329]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4146]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[ID-9XX-3090]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-3090]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9770]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[REG-4XX-8636]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region8",
+        "cluster_info": {
+            "region_id": "Oksytania-Region8",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-8636]"
+        }
+    }
+]

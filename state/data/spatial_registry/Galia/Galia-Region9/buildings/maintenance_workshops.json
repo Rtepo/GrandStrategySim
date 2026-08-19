@@ -1,0 +1,74 @@
+[
+  {
+    "id": "B-GAL-0130",
+    "name": "Maintenance Workshop",
+    "wlasciciel_id": "KRS-GAL-0130",
+    "rok_budowy": 1872,
+    "sektor_pkb": "maintenance_workshops",
+    "pojemnosc_pracownikow": 139,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 28900.0,
+    "aktywna_metoda": {
+      "rok": 1850,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 2.0,
+        "fuels": 1.0,
+        "steel": 3.0
+      },
+      "outputs": {
+        "maintenance_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 190,
+    "region_id": "Galia-Region9",
+    "cluster_info": {
+      "region_id": "Galia-Region9",
+      "scale_factor": 1,
+      "sector": "maintenance_workshops",
+      "owner_id": "KRS-GAL-0130"
+    },
+    "ostatnia_produkcja": {
+      "maintenance_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 3.0,
+        "condition": 0.7841398208606951,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.38,
+      "fuels": 0.19,
+      "food": 0.95,
+      "maintenance_services": 1.9
+    },
+    "pojemność_magazynu": 1900.0
+  }
+]

@@ -1,0 +1,122 @@
+[
+  {
+    "id_budynku": "B-ANG-2383",
+    "typ_budynku": "supermarket",
+    "mikroregion_id": "Anglia-Region1",
+    "właściciel": "KRS-ANG-2318",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 226192.3,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 2261923.0,
+    "aktualny_inwentarz": {
+      "clothing": [
+        {
+          "ilość": 226.19,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-2318",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-2383",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 452.38,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-2318",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-2383",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 180.952,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-2318",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-2383",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 113.095,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-2318",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-2383",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 226.19,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-2318",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-2383",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "butcher",
+        "bakery",
+        "household"
+      ],
+      "atrakcyjność_podstawowa": 1.15,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 1.15,
+      "marża": 1.25,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "furniture": 33815.40500000014,
+        "meat": 70571.2800000003,
+        "fruit": 56457.02399999975,
+        "clothing": 67630.81000000027,
+        "cereal": 69725.92564096666,
+        "vegetable": 12461.123766000012,
+        "protein": 28727.87260858733
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "furniture": 3142.3292000000006,
+        "meat": 26024.74,
+        "fruit": 8372.498000000001,
+        "clothing": 2575.5325,
+        "cereal": 178376.69860844914,
+        "vegetable": 119138.68061799995,
+        "protein": 84583.95835136969
+      },
+      "udział_rynku_ostatni_turn": {
+        "furniture": 195.35749155088325,
+        "meat": 203.8512955313565,
+        "fruit": 203.8512955313547,
+        "clothing": 195.35749155088325,
+        "cereal": 167.99347517049225,
+        "vegetable": 40.092495554075676,
+        "protein": 142.7956913772469
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  }
+]

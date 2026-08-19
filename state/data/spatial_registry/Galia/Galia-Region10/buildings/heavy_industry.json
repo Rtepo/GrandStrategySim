@@ -1,0 +1,1526 @@
+[
+  {
+    "id": "B-GAL-0039",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-GAL-0039",
+    "rok_budowy": 1874,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 79,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 39410.0,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "coke": 10.0,
+        "fuels": 12.0,
+        "iron": 25.0
+      },
+      "outputs": {
+        "steel": 22.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 109,
+    "region_id": "Galia-Region10",
+    "cluster_info": {
+      "region_id": "Galia-Region10",
+      "scale_factor": 8,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-GAL-0039"
+    },
+    "ostatnia_produkcja": {
+      "steel": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.823918723191793,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "coke": 0.44000000000000006,
+      "fuels": 0.528,
+      "food": 0.545,
+      "iron": 1.1
+    },
+    "pojemność_magazynu": 1090.0
+  },
+  {
+    "id": "B-GAL-1859",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-GAL-1859",
+    "rok_budowy": 1880,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 325890.14688349376,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 5.0,
+        "steel": 10.0,
+        "iron": 5.0
+      },
+      "outputs": {
+        "construction_machinery": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 41,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Galia-Region10",
+    "cluster_info": {
+      "region_id": "Galia-Region10",
+      "scale_factor": 41,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-GAL-1859"
+    },
+    "ostatnia_produkcja": {
+      "construction_machinery": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8809349948476124,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.505,
+      "food": 0.505,
+      "iron": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-GAL-1860",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-GAL-1860",
+    "rok_budowy": 1894,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 257316.70000662925,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "clay": 20.0
+      },
+      "outputs": {
+        "bricks": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 32,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Galia-Region10",
+    "cluster_info": {
+      "region_id": "Galia-Region10",
+      "scale_factor": 32,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-GAL-1860"
+    },
+    "ostatnia_produkcja": {
+      "bricks": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9318055694604808,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "bricks": 4.466774153902273,
+      "energy": 0.2049999999999999,
+      "clay": 0.8200000000000001,
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-GAL-1861",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-GAL-1861",
+    "rok_budowy": 1872,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 249697.4281314221,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "coke": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 31,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Galia-Region10",
+    "cluster_info": {
+      "region_id": "Galia-Region10",
+      "scale_factor": 31,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-GAL-1861"
+    },
+    "ostatnia_produkcja": {
+      "coke": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8818411595425235,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.2049999999999999,
+      "coke": 2.665977684391441,
+      "food": 0.505,
+      "hard_coal": 0.8200000000000001
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-GAL-1862",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-GAL-1862",
+    "rok_budowy": 1899,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 209639.6720350359,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 12.0,
+        "sand": 20.0,
+        "soda_ash": 5.0
+      },
+      "outputs": {
+        "glass": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 26,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Galia-Region10",
+    "cluster_info": {
+      "region_id": "Galia-Region10",
+      "scale_factor": 26,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-GAL-1862"
+    },
+    "ostatnia_produkcja": {
+      "glass": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9089459434060524,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.4800000000000002,
+      "sand": 0.8,
+      "food": 0.5,
+      "glass": 3.190343425871845,
+      "soda_ash": 0.2
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-GAL-1863",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-GAL-1863",
+    "rok_budowy": 1899,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 92,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 208053.71365008364,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "coke": 8.0,
+        "fuels": 10.0,
+        "iron": 20.0
+      },
+      "outputs": {
+        "steel": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 25,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Galia-Region10",
+    "cluster_info": {
+      "region_id": "Galia-Region10",
+      "scale_factor": 25,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-GAL-1863"
+    },
+    "ostatnia_produkcja": {
+      "steel": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9379011838240844,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "coke": 0.33599999999999997,
+      "fuels": 0.42,
+      "food": 0.515,
+      "iron": 0.8400000000000001
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-GAL-1864",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-GAL-1864",
+    "rok_budowy": 1888,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 84,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 162116.15074662727,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "industrial_machinery": 2.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "mechanical_components": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 19,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Galia-Region10",
+    "cluster_info": {
+      "region_id": "Galia-Region10",
+      "scale_factor": 19,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-GAL-1864"
+    },
+    "ostatnia_produkcja": {
+      "mechanical_components": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9613298960872659,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 1.5599999999999998,
+      "energy": 0.52,
+      "food": 0.52
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-GAL-1865",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-GAL-1865",
+    "rok_budowy": 1882,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 85,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 155778.45390239148,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 3.0,
+        "timber": 5.0,
+        "fuels": 2.0,
+        "steel": 8.0
+      },
+      "outputs": {
+        "trucks": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 18,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Galia-Region10",
+    "cluster_info": {
+      "region_id": "Galia-Region10",
+      "scale_factor": 18,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-GAL-1865"
+    },
+    "ostatnia_produkcja": {
+      "trucks": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8253424102302315,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.315,
+      "timber": 0.525,
+      "fuels": 0.21,
+      "food": 0.525
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-GAL-1866",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-GAL-1866",
+    "rok_budowy": 1896,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 148389.0037165633,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "energy": 8.0,
+        "steel": 12.0
+      },
+      "outputs": {
+        "industrial_machinery": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 18,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Galia-Region10",
+    "cluster_info": {
+      "region_id": "Galia-Region10",
+      "scale_factor": 18,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-GAL-1866"
+    },
+    "ostatnia_produkcja": {
+      "industrial_machinery": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7488719784312659,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.5,
+      "energy": 0.8,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-GAL-1867",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-GAL-1867",
+    "rok_budowy": 1879,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 128170.65315907882,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "sulfur": 8.0,
+        "salt": 5.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "chemicals": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 15,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Galia-Region10",
+    "cluster_info": {
+      "region_id": "Galia-Region10",
+      "scale_factor": 15,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-GAL-1867"
+    },
+    "ostatnia_produkcja": {
+      "chemicals": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8280126534304015,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.32799999999999985,
+      "food": 0.51,
+      "sulfur": 0.32799999999999996,
+      "salt": 0.205,
+      "chemicals": 2.6847314694523283,
+      "water": 0.41
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-GAL-1868",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-GAL-1868",
+    "rok_budowy": 1887,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 89697.10210605255,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 10.0,
+        "clay": 8.0,
+        "limestone": 25.0
+      },
+      "outputs": {
+        "cement": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Galia-Region10",
+    "cluster_info": {
+      "region_id": "Galia-Region10",
+      "scale_factor": 10,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-GAL-1868"
+    },
+    "ostatnia_produkcja": {
+      "cement": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8708039574735962,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 5.393993977338716,
+      "energy": 0.41,
+      "clay": 0.32799999999999996,
+      "food": 0.51,
+      "limestone": 1.025
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-GAL-1869",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-GAL-1869",
+    "rok_budowy": 1882,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 78,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 85647.11698836139,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "catalysts": 1.0,
+        "oil": 25.0
+      },
+      "outputs": {
+        "bitumen": 3.0,
+        "fuels": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Galia-Region10",
+    "cluster_info": {
+      "region_id": "Galia-Region10",
+      "scale_factor": 9,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-GAL-1869"
+    },
+    "ostatnia_produkcja": {
+      "bitumen": 0.0,
+      "fuels": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8882170534502517,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "bitumen": 0.5669253938742154,
+      "energy": 0.2149999999999999,
+      "catalysts": 0.043,
+      "fuels": 3.401552363245292,
+      "food": 0.535,
+      "oil": 1.0749999999999995
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-GAL-1870",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-GAL-1870",
+    "rok_budowy": 1899,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 77,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 76871.70841758094,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "steel": 10.0,
+        "iron": 5.0
+      },
+      "outputs": {
+        "agricultural_machinery": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 106,
+    "region_id": "Galia-Region10",
+    "cluster_info": {
+      "region_id": "Galia-Region10",
+      "scale_factor": 8,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-GAL-1870"
+    },
+    "ostatnia_produkcja": {
+      "agricultural_machinery": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7132329942588479,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.318,
+      "food": 0.53,
+      "iron": 0.53
+    },
+    "pojemność_magazynu": 1060.0
+  },
+  {
+    "id": "B-GAL-1871",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-GAL-1871",
+    "rok_budowy": 1894,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 72550.66831847258,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "salt": 10.0,
+        "limestone": 8.0,
+        "ammonia": 3.0
+      },
+      "outputs": {
+        "soda_ash": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Galia-Region10",
+    "cluster_info": {
+      "region_id": "Galia-Region10",
+      "scale_factor": 8,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-GAL-1871"
+    },
+    "ostatnia_produkcja": {
+      "soda_ash": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9170799722520968,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.32000000000000006,
+      "food": 0.5,
+      "salt": 0.4,
+      "limestone": 0.32000000000000006,
+      "soda_ash": 2.128730243173054,
+      "ammonia": 0.12000000000000004
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-GAL-1872",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-GAL-1872",
+    "rok_budowy": 1873,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 72693.65495210313,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "coke": 10.0,
+        "fuels": 12.0,
+        "iron": 25.0
+      },
+      "outputs": {
+        "steel": 22.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 112,
+    "region_id": "Galia-Region10",
+    "cluster_info": {
+      "region_id": "Galia-Region10",
+      "scale_factor": 7,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-GAL-1872"
+    },
+    "ostatnia_produkcja": {
+      "steel": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.891310677069255,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "coke": 0.45000000000000007,
+      "fuels": 0.54,
+      "food": 0.56,
+      "iron": 1.1250000000000002
+    },
+    "pojemność_magazynu": 1120.0
+  },
+  {
+    "id": "B-GAL-1873",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-GAL-1873",
+    "rok_budowy": 1891,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 76,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 59723.521288408614,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "chemicals": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "pharmaceuticals": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 6,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Galia-Region10",
+    "cluster_info": {
+      "region_id": "Galia-Region10",
+      "scale_factor": 6,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-GAL-1873"
+    },
+    "ostatnia_produkcja": {
+      "pharmaceuticals": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8049026498121603,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.21,
+      "food": 0.52,
+      "chemicals": 0.42,
+      "water": 0.21,
+      "pharmaceuticals": 2.1815429973753364
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-GAL-1874",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-GAL-1874",
+    "rok_budowy": 1872,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 58015.63125124298,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 10.0,
+        "energy": 5.0,
+        "steel": 25.0
+      },
+      "outputs": {
+        "trains": 3.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 6,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Galia-Region10",
+    "cluster_info": {
+      "region_id": "Galia-Region10",
+      "scale_factor": 6,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-GAL-1874"
+    },
+    "ostatnia_produkcja": {
+      "trains": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7043857736415053,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 1.01,
+      "energy": 0.5049999999999999,
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-GAL-1875",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-GAL-1875",
+    "rok_budowy": 1882,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 79,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 54363.89279195946,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "bitumen": 8.0,
+        "energy": 3.0,
+        "sand": 10.0,
+        "gravel": 8.0
+      },
+      "outputs": {
+        "asphalt": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 109,
+    "region_id": "Galia-Region10",
+    "cluster_info": {
+      "region_id": "Galia-Region10",
+      "scale_factor": 5,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-GAL-1875"
+    },
+    "ostatnia_produkcja": {
+      "asphalt": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9765320056236716,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "asphalt": 3.881085421405986,
+      "bitumen": 0.352,
+      "energy": 0.132,
+      "sand": 0.4400000000000003,
+      "food": 0.545,
+      "gravel": 0.352
+    },
+    "pojemność_magazynu": 1090.0
+  },
+  {
+    "id": "B-GAL-1876",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-GAL-1876",
+    "rok_budowy": 1876,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 20194.710210605255,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "rare_earth_elements": 1.0,
+        "chemicals": 8.0
+      },
+      "outputs": {
+        "catalysts": 6.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Galia-Region10",
+    "cluster_info": {
+      "region_id": "Galia-Region10",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-GAL-1876"
+    },
+    "ostatnia_produkcja": {
+      "catalysts": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9501227936664536,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.205,
+      "catalysts": 1.0878930423606523,
+      "food": 0.51,
+      "rare_earth_elements": 0.040999999999999995,
+      "chemicals": 0.32799999999999996
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-GAL-1877",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-GAL-1877",
+    "rok_budowy": 1894,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 62,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 16511.381838041532,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "bauxite": 20.0,
+        "energy": 30.0,
+        "catalysts": 2.0
+      },
+      "outputs": {
+        "aluminum": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 83,
+    "region_id": "Galia-Region10",
+    "cluster_info": {
+      "region_id": "Galia-Region10",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-GAL-1877"
+    },
+    "ostatnia_produkcja": {
+      "aluminum": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7583465946901771,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "aluminum": 1.7401066778398715,
+      "bauxite": 0.6599999999999999,
+      "energy": 0.9900000000000002,
+      "catalysts": 0.066,
+      "food": 0.415
+    },
+    "pojemność_magazynu": 830.0
+  },
+  {
+    "id": "B-GAL-1878",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-GAL-1878",
+    "rok_budowy": 1893,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 9,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 2104.3833539809075,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 10.0,
+        "energy": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "prefabricates": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 10,
+    "region_id": "Galia-Region10",
+    "cluster_info": {
+      "region_id": "Galia-Region10",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-GAL-1878"
+    },
+    "ostatnia_produkcja": {
+      "prefabricates": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9838352069838507,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 0.1,
+      "energy": 0.05,
+      "prefabricates": 0.2,
+      "food": 0.05
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

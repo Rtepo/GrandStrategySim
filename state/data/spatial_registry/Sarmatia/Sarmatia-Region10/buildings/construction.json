@@ -1,0 +1,1415 @@
+[
+  {
+    "id": "B-SAR-0150",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-SAR-0150",
+    "rok_budowy": 1877,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 12,
+    "zatrudnienie_aktualne": 3,
+    "rezerwa_zakladowa": 38950.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Sarmatia-Region10",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region10",
+      "scale_factor": 5,
+      "sector": "construction",
+      "owner_id": "KRS-SAR-0150"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 1.9500000000000002,
+      "renovation_services": 0.65
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9593521171864455,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "oil": 10.38898918530257
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-SAR-0988",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-SAR-0988",
+    "rok_budowy": 1891,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 16,
+    "zatrudnienie_aktualne": 16,
+    "rezerwa_zakladowa": 486834.0636783452,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 52,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Sarmatia-Region10",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region10",
+      "scale_factor": 52,
+      "sector": "construction",
+      "owner_id": "KRS-SAR-0988"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 9.360000000000001,
+      "renovation_services": 4.680000000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7948058673531552,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-SAR-0989",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-SAR-0989",
+    "rok_budowy": 1872,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 5,
+    "zatrudnienie_aktualne": 5,
+    "rezerwa_zakladowa": 359553.73884186754,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 38,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Sarmatia-Region10",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region10",
+      "scale_factor": 38,
+      "sector": "construction",
+      "owner_id": "KRS-SAR-0989"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 4.5600000000000005,
+      "renovation_services": 1.824
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.6751389223621916,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.55
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-SAR-0990",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-SAR-0990",
+    "rok_budowy": 1877,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 2,
+    "zatrudnienie_aktualne": 2,
+    "rezerwa_zakladowa": 351969.4299249764,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 37,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Sarmatia-Region10",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region10",
+      "scale_factor": 37,
+      "sector": "construction",
+      "owner_id": "KRS-SAR-0990"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 2.2199999999999998,
+      "renovation_services": 0.74
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7117790813757774,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.56
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-SAR-0991",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-SAR-0991",
+    "rok_budowy": 1891,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 260482.79279434777,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 26,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Sarmatia-Region10",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region10",
+      "scale_factor": 26,
+      "sector": "construction",
+      "owner_id": "KRS-SAR-0991"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.26,
+      "renovation_services": 0.13
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7623505456789319,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.42
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-SAR-0992",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-SAR-0992",
+    "rok_budowy": 1878,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 255288.95215756432,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 26,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Sarmatia-Region10",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region10",
+      "scale_factor": 26,
+      "sector": "construction",
+      "owner_id": "KRS-SAR-0992"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.52,
+      "renovation_services": 0.208
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8137602162825757,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.045
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-SAR-0993",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-SAR-0993",
+    "rok_budowy": 1877,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 402,
+    "zatrudnienie_aktualne": 402,
+    "rezerwa_zakladowa": 302434.11642555177,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 24,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Sarmatia-Region10",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region10",
+      "scale_factor": 24,
+      "sector": "construction",
+      "owner_id": "KRS-SAR-0993"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 289.44,
+      "renovation_services": 96.47999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7335509191403955,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-SAR-0994",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-SAR-0994",
+    "rok_budowy": 1879,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 307,
+    "zatrudnienie_aktualne": 307,
+    "rezerwa_zakladowa": 254520.4872547163,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 21,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Sarmatia-Region10",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region10",
+      "scale_factor": 21,
+      "sector": "construction",
+      "owner_id": "KRS-SAR-0994"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 64.47,
+      "renovation_services": 32.235
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9436648929560069,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-SAR-0995",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-SAR-0995",
+    "rok_budowy": 1897,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 242,
+    "zatrudnienie_aktualne": 242,
+    "rezerwa_zakladowa": 243903.62547133805,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 20,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Sarmatia-Region10",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region10",
+      "scale_factor": 20,
+      "sector": "construction",
+      "owner_id": "KRS-SAR-0995"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 96.8,
+      "renovation_services": 38.72
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7253886395761249,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-SAR-0996",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-SAR-0996",
+    "rok_budowy": 1892,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 325,
+    "zatrudnienie_aktualne": 325,
+    "rezerwa_zakladowa": 204251.1443266662,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 14,
+    "pojemnosc_budowlana": 106,
+    "region_id": "Sarmatia-Region10",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region10",
+      "scale_factor": 14,
+      "sector": "construction",
+      "owner_id": "KRS-SAR-0996"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 136.5,
+      "renovation_services": 45.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.6901583018493941,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1060.0
+  },
+  {
+    "id": "B-SAR-0997",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-SAR-0997",
+    "rok_budowy": 1873,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 415,
+    "zatrudnienie_aktualne": 415,
+    "rezerwa_zakladowa": 174759.9509522908,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Sarmatia-Region10",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region10",
+      "scale_factor": 10,
+      "sector": "construction",
+      "owner_id": "KRS-SAR-0997"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 41.5,
+      "renovation_services": 20.75
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.6981656941861063,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-SAR-0998",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-SAR-0998",
+    "rok_budowy": 1896,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 820,
+    "zatrudnienie_aktualne": 820,
+    "rezerwa_zakladowa": 191788.40636783454,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Sarmatia-Region10",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region10",
+      "scale_factor": 5,
+      "sector": "construction",
+      "owner_id": "KRS-SAR-0998"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 82.0,
+      "renovation_services": 32.8
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.6641156671983526,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-SAR-0999",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-SAR-0999",
+    "rok_budowy": 1876,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 1250,
+    "zatrudnienie_aktualne": 1250,
+    "rezerwa_zakladowa": 240718.24869324785,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 111,
+    "region_id": "Sarmatia-Region10",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region10",
+      "scale_factor": 3,
+      "sector": "construction",
+      "owner_id": "KRS-SAR-0999"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 112.5,
+      "renovation_services": 37.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9416448869141649,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1110.0
+  },
+  {
+    "id": "B-SAR-1000",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-SAR-1000",
+    "rok_budowy": 1893,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 1147,
+    "zatrudnienie_aktualne": 1147,
+    "rezerwa_zakladowa": 236349.5543939981,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 148,
+    "region_id": "Sarmatia-Region10",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region10",
+      "scale_factor": 2,
+      "sector": "construction",
+      "owner_id": "KRS-SAR-1000"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 22.94,
+      "renovation_services": 11.47
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.73873437211008,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1480.0
+  },
+  {
+    "id": "B-SAR-1001",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-SAR-1001",
+    "rok_budowy": 1886,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 2205,
+    "zatrudnienie_aktualne": 1962,
+    "rezerwa_zakladowa": 394745.011337053,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 172,
+    "region_id": "Sarmatia-Region10",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region10",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-SAR-1001"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 44.1,
+      "renovation_services": 17.64
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9442817937781683,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1720.0
+  },
+  {
+    "id": "B-SAR-1002",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-SAR-1002",
+    "rok_budowy": 1887,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 1660,
+    "zatrudnienie_aktualne": 1595,
+    "rezerwa_zakladowa": 283690.1756050404,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 18,
+    "region_id": "Sarmatia-Region10",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region10",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-SAR-1002"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 55.35,
+      "renovation_services": 18.45
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.9275494212449253,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 180.0
+  },
+  {
+    "id": "B-SAR-1003",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-SAR-1003",
+    "rok_budowy": 1898,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 1363,
+    "zatrudnienie_aktualne": 1301,
+    "rezerwa_zakladowa": 231771.77398085804,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 11,
+    "region_id": "Sarmatia-Region10",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region10",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-SAR-1003"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 15.149999999999999,
+      "renovation_services": 7.574999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7507878144890022,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51
+    },
+    "pojemność_magazynu": 110.0
+  },
+  {
+    "id": "B-SAR-1004",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-SAR-1004",
+    "rok_budowy": 1879,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 723,
+    "zatrudnienie_aktualne": 689,
+    "rezerwa_zakladowa": 122841.71544584457,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 5,
+    "region_id": "Sarmatia-Region10",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region10",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-SAR-1004"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 16.060000000000002,
+      "renovation_services": 6.424
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8273485863368722,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.525
+    },
+    "pojemność_magazynu": 100.0
+  },
+  {
+    "id": "B-SAR-1005",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-SAR-1005",
+    "rok_budowy": 1876,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 573,
+    "zatrudnienie_aktualne": 526,
+    "rezerwa_zakladowa": 96576.68617833783,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 2,
+    "region_id": "Sarmatia-Region10",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region10",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-SAR-1005"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 19.080000000000002,
+      "renovation_services": 6.36
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.741516255333212,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 100.0
+  },
+  {
+    "id": "B-SAR-1006",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-SAR-1006",
+    "rok_budowy": 1877,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 124,
+    "zatrudnienie_aktualne": 91,
+    "rezerwa_zakladowa": 21138.343089168913,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 1,
+    "region_id": "Sarmatia-Region10",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region10",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-SAR-1006"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 1.3800000000000001,
+      "renovation_services": 0.6900000000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7253164246144534,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

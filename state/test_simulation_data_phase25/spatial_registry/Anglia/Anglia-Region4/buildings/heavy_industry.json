@@ -1,0 +1,1830 @@
+[
+  {
+    "id": "B-ANG-0040",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANG-0040",
+    "rok_budowy": 1962,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 44,
+    "zatrudnienie_aktualne": 44,
+    "rezerwa_zakladowa": 53400.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "coke": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region4",
+    "cluster_info": {
+      "region_id": "Anglia-Region4",
+      "scale_factor": 2,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANG-0040"
+    },
+    "ostatnia_produkcja": {
+      "coke": 1.3199999999999998
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9038499999999993,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 3.8199999999999976,
+      "coke": 0.15949233198111168,
+      "food": 0.5,
+      "maintenance_services": 0.5251241116357699
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-0041",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANG-0041",
+    "rok_budowy": 1966,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 44,
+    "zatrudnienie_aktualne": 44,
+    "rezerwa_zakladowa": 53400.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "catalysts": 1.0,
+        "oil": 25.0
+      },
+      "outputs": {
+        "bitumen": 3.0,
+        "fuels": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region4",
+    "cluster_info": {
+      "region_id": "Anglia-Region4",
+      "scale_factor": 2,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANG-0041"
+    },
+    "ostatnia_produkcja": {
+      "bitumen": 0.264,
+      "fuels": 1.5839999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9038499999999993,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "bitumen": 0.6892305144817621,
+      "energy": 3.8199999999999976,
+      "catalysts": 6.938893903907228e-18,
+      "fuels": 0.0017795826978757897,
+      "food": 0.5,
+      "maintenance_services": 0.8956729886441641
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-0044",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANG-0044",
+    "rok_budowy": 1970,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 61,
+    "zatrudnienie_aktualne": 61,
+    "rezerwa_zakladowa": 114440.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "industrial_machinery": 3.0,
+        "steel": 12.0
+      },
+      "outputs": {
+        "mechanical_components": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Anglia-Region4",
+    "cluster_info": {
+      "region_id": "Anglia-Region4",
+      "scale_factor": 12,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANG-0044"
+    },
+    "ostatnia_produkcja": {
+      "mechanical_components": 18.3
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9123249999999992,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 2.6,
+      "energy": 11.255999999999993,
+      "food": 0.52,
+      "steel": 0.0,
+      "maintenance_services": 0.4311218194509605
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-ANG-0790",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANG-0790",
+    "rok_budowy": 1968,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 65,
+    "zatrudnienie_aktualne": 65,
+    "rezerwa_zakladowa": 29784266.38734963,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "clay": 20.0
+      },
+      "outputs": {
+        "bricks": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 241,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region4",
+    "cluster_info": {
+      "region_id": "Anglia-Region4",
+      "scale_factor": 241,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANG-0790"
+    },
+    "ostatnia_produkcja": {
+      "bricks": 3.91189785003662e-6
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9123249999999992,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "bricks": 3.91189785003662e-6,
+      "energy": 4.630000605583192,
+      "clay": 2.422332763671875e-6,
+      "food": 0.5,
+      "maintenance_services": 2.023412037197528
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ANG-0790_Heavy_Industry_Plant_0",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Anglia-Region4",
+      "typ_budynku_docelowy": "Heavy Industry Plant",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {
+        "bricks": 12.810120937041374
+      },
+      "zwiększenie_pojemności": 4339,
+      "zwiększenie_kapitału": 142494173.49926057,
+      "nowy_budynek": false,
+      "koszt_całkowity": 146028438.92362288,
+      "koszt_wydany": 29205687.78472458,
+      "czas_trwania": 0,
+      "turny_minione": 23,
+      "postęp": 0.0,
+      "wstrzymany": false,
+      "consecutive_hold_turns": 0,
+      "investor_id": "KRS-ANG-0790",
+      "main_contractor_id": "KRS-ANG-0508",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 29205687.78472458,
+          "released": true,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 43808531.67708686,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 43808531.67708686,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 29205687.78472458,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 1,
+      "contract_price": 146028438.92362288,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.08405684996114116,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ANG-0791",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANG-0791",
+    "rok_budowy": 1974,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 65,
+    "zatrudnienie_aktualne": 65,
+    "rezerwa_zakladowa": 26452537.372999255,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 12.0,
+        "sand": 20.0,
+        "soda_ash": 5.0
+      },
+      "outputs": {
+        "glass": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 214,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region4",
+    "cluster_info": {
+      "region_id": "Anglia-Region4",
+      "scale_factor": 214,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANG-0791"
+    },
+    "ostatnia_produkcja": {
+      "glass": 0.4770897104999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9123166666666659,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 11.802187499999997,
+      "sand": 3.2503124999999997,
+      "food": 0.5,
+      "glass": 0.4770897104999999,
+      "maintenance_services": 0.0,
+      "soda_ash": 0.102578125
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ANG-0791_Heavy_Industry_Plant_14",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Anglia-Region4",
+      "typ_budynku_docelowy": "Heavy Industry Plant",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {
+        "glass": 1.4706360824999996
+      },
+      "zwiększenie_pojemności": 2809,
+      "zwiększenie_kapitału": 84109248.06996426,
+      "nowy_budynek": false,
+      "koszt_całkowity": 86187122.15676399,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 9,
+      "postęp": 0.0,
+      "wstrzymany": false,
+      "consecutive_hold_turns": 0,
+      "investor_id": "KRS-ANG-0791",
+      "main_contractor_id": "KRS-ANG-0548",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 17237424.431352798,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 25856136.647029195,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 25856136.647029195,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 17237424.431352798,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 86187122.15676399,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.036029734363268576,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ANG-0792",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANG-0792",
+    "rok_budowy": 1965,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 65,
+    "zatrudnienie_aktualne": 65,
+    "rezerwa_zakladowa": 22755116.24594329,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 10.0,
+        "clay": 8.0,
+        "limestone": 25.0
+      },
+      "outputs": {
+        "cement": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 184,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region4",
+    "cluster_info": {
+      "region_id": "Anglia-Region4",
+      "scale_factor": 184,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANG-0792"
+    },
+    "ostatnia_produkcja": {
+      "cement": 4.676333935863134e-6
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8968926616893217,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 0.8447550091888103,
+      "energy": 8.450001211166384,
+      "clay": 9.6893310546875e-7,
+      "food": 0.5,
+      "maintenance_services": 0.0,
+      "limestone": 0.2250030279159547
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-0793",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANG-0793",
+    "rok_budowy": 1951,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 72,
+    "zatrudnienie_aktualne": 72,
+    "rezerwa_zakladowa": 19065595.118887316,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "sulfur": 8.0,
+        "salt": 5.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "chemicals": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 154,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region4",
+    "cluster_info": {
+      "region_id": "Anglia-Region4",
+      "scale_factor": 154,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANG-0793"
+    },
+    "ostatnia_produkcja": {
+      "chemicals": 0.000021453143081665053
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9081416666666658,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 7.488008865356441,
+      "food": 0.5,
+      "sulfur": 0.04800886535644538,
+      "salt": 5.540847778320317e-6,
+      "maintenance_services": 2.3328999802030737,
+      "chemicals": 0.8176720669850434,
+      "water": 4.230011081695555
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-0794",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANG-0794",
+    "rok_budowy": 1960,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 65,
+    "zatrudnienie_aktualne": 65,
+    "rezerwa_zakladowa": 11416358.122971645,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 5.0,
+        "steel": 10.0,
+        "iron": 5.0
+      },
+      "outputs": {
+        "construction_machinery": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 92,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region4",
+    "cluster_info": {
+      "region_id": "Anglia-Region4",
+      "scale_factor": 92,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANG-0794"
+    },
+    "ostatnia_produkcja": {
+      "construction_machinery": 47.84
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9123166666666659,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.570312847484076,
+      "food": 0.5,
+      "maintenance_services": 0.0,
+      "iron": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-0795",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANG-0795",
+    "rok_budowy": 1947,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 65,
+    "zatrudnienie_aktualne": 65,
+    "rezerwa_zakladowa": 11046616.010266043,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "catalysts": 1.0,
+        "oil": 25.0
+      },
+      "outputs": {
+        "bitumen": 3.0,
+        "fuels": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 89,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region4",
+    "cluster_info": {
+      "region_id": "Anglia-Region4",
+      "scale_factor": 89,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANG-0795"
+    },
+    "ostatnia_produkcja": {
+      "bitumen": 2.5648051763741806e-23,
+      "fuels": 1.5388831058245079e-22
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9123166666666659,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "bitumen": 0.09786569372514019,
+      "energy": 5.740000000000002,
+      "catalysts": 6.617444900424222e-24,
+      "fuels": 0.00044615100383358004,
+      "food": 0.5,
+      "oil": 2.3850000000000002,
+      "maintenance_services": 0.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-0796",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANG-0796",
+    "rok_budowy": 1959,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 65,
+    "zatrudnienie_aktualne": 65,
+    "rezerwa_zakladowa": 10430379.15575672,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "coke": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 84,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region4",
+    "cluster_info": {
+      "region_id": "Anglia-Region4",
+      "scale_factor": 84,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANG-0796"
+    },
+    "ostatnia_produkcja": {
+      "coke": 81.9
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9123166666666659,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 5.740000000000002,
+      "coke": 0.06607251395604219,
+      "food": 0.5,
+      "maintenance_services": 0.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-0797",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANG-0797",
+    "rok_budowy": 1973,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 65,
+    "zatrudnienie_aktualne": 65,
+    "rezerwa_zakladowa": 10307131.784854852,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "energy": 8.0,
+        "steel": 12.0
+      },
+      "outputs": {
+        "industrial_machinery": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 83,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region4",
+    "cluster_info": {
+      "region_id": "Anglia-Region4",
+      "scale_factor": 83,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANG-0797"
+    },
+    "ostatnia_produkcja": {
+      "industrial_machinery": 53.949999999999996
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9123166666666659,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.5,
+      "energy": 9.983999999999996,
+      "food": 0.5,
+      "maintenance_services": 0.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-0798",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANG-0798",
+    "rok_budowy": 1958,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 65,
+    "zatrudnienie_aktualne": 65,
+    "rezerwa_zakladowa": 6486463.286897016,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "chemicals": 5.0,
+        "ammonia": 8.0
+      },
+      "outputs": {
+        "fertilizers": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 52,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region4",
+    "cluster_info": {
+      "region_id": "Anglia-Region4",
+      "scale_factor": 52,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANG-0798"
+    },
+    "ostatnia_produkcja": {
+      "fertilizers": 60.839999999999996
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9123166666666659,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 5.740000000000002,
+      "fertilizers": 0.17143919434040666,
+      "food": 0.5,
+      "maintenance_services": 0.0,
+      "chemicals": 0.3729999999999779
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-0799",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANG-0799",
+    "rok_budowy": 1970,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 66,
+    "zatrudnienie_aktualne": 66,
+    "rezerwa_zakladowa": 6302642.230544217,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "coke": 8.0,
+        "fuels": 10.0,
+        "iron": 20.0
+      },
+      "outputs": {
+        "steel": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 50,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Anglia-Region4",
+    "cluster_info": {
+      "region_id": "Anglia-Region4",
+      "scale_factor": 50,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANG-0799"
+    },
+    "ostatnia_produkcja": {
+      "steel": 49.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9123249999999992,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "coke": 3.168,
+      "fuels": 0.0702546844192059,
+      "food": 0.505,
+      "maintenance_services": 0.0
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ANG-0800",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANG-0800",
+    "rok_budowy": 1955,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 65,
+    "zatrudnienie_aktualne": 65,
+    "rezerwa_zakladowa": 5130742.206976493,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "salt": 10.0,
+        "limestone": 8.0,
+        "ammonia": 3.0
+      },
+      "outputs": {
+        "soda_ash": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 41,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region4",
+    "cluster_info": {
+      "region_id": "Anglia-Region4",
+      "scale_factor": 41,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANG-0800"
+    },
+    "ostatnia_produkcja": {
+      "soda_ash": 31.98
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9123166666666659,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 9.183999999999996,
+      "food": 0.5,
+      "salt": 3.0299999999999994,
+      "maintenance_services": 0.0,
+      "limestone": 1.8479999999999999,
+      "soda_ash": 0.12247076147613023
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-0801",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANG-0801",
+    "rok_budowy": 1971,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 66,
+    "zatrudnienie_aktualne": 66,
+    "rezerwa_zakladowa": 4684404.250602721,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "industrial_machinery": 2.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "mechanical_components": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 37,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Anglia-Region4",
+    "cluster_info": {
+      "region_id": "Anglia-Region4",
+      "scale_factor": 37,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANG-0801"
+    },
+    "ostatnia_produkcja": {
+      "mechanical_components": 36.63
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9123166666666659,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 1.515,
+      "energy": 6.315,
+      "food": 0.505,
+      "maintenance_services": 0.0
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ANG-0802",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANG-0802",
+    "rok_budowy": 1951,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 59,
+    "zatrudnienie_aktualne": 59,
+    "rezerwa_zakladowa": 3680765.4937156457,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "steel": 10.0,
+        "iron": 5.0
+      },
+      "outputs": {
+        "agricultural_machinery": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 29,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Anglia-Region4",
+    "cluster_info": {
+      "region_id": "Anglia-Region4",
+      "scale_factor": 29,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANG-0802"
+    },
+    "ostatnia_produkcja": {
+      "agricultural_machinery": 13.688
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9123166666666659,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.373312847484076,
+      "food": 0.505,
+      "maintenance_services": 0.0,
+      "iron": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ANG-0803",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANG-0803",
+    "rok_budowy": 1960,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 3135475.00869412,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 3.0,
+        "timber": 5.0,
+        "fuels": 2.0,
+        "steel": 8.0
+      },
+      "outputs": {
+        "trucks": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 24,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Anglia-Region4",
+    "cluster_info": {
+      "region_id": "Anglia-Region4",
+      "scale_factor": 24,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANG-0803"
+    },
+    "ostatnia_produkcja": {
+      "trucks": 9.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9081416666666658,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.309,
+      "timber": 2.015,
+      "fuels": 0.2762320449689286,
+      "food": 0.515,
+      "maintenance_services": 1.6364602783810351
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-ANG-0804",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANG-0804",
+    "rok_budowy": 1946,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 2754640.632607355,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "coke": 10.0,
+        "fuels": 12.0,
+        "iron": 25.0
+      },
+      "outputs": {
+        "steel": 22.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 21,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Anglia-Region4",
+    "cluster_info": {
+      "region_id": "Anglia-Region4",
+      "scale_factor": 21,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANG-0804"
+    },
+    "ostatnia_produkcja": {
+      "steel": 34.65
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9081499999999991,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "coke": 3.827000000000001,
+      "fuels": 0.07023022949420372,
+      "food": 0.515,
+      "maintenance_services": 0.0
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-ANG-0805",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANG-0805",
+    "rok_budowy": 1972,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 62,
+    "zatrudnienie_aktualne": 62,
+    "rezerwa_zakladowa": 1886086.352257426,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "energy": 3.0,
+        "steel": 8.0
+      },
+      "outputs": {
+        "office_machinery": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 14,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Anglia-Region4",
+    "cluster_info": {
+      "region_id": "Anglia-Region4",
+      "scale_factor": 14,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANG-0805"
+    },
+    "ostatnia_produkcja": {
+      "office_machinery": 8.68
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9123166666666659,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.525,
+      "energy": 3.6359999999999992,
+      "food": 0.525,
+      "maintenance_services": 0.0
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-ANG-0806",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANG-0806",
+    "rok_budowy": 1961,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 56,
+    "zatrudnienie_aktualne": 56,
+    "rezerwa_zakladowa": 1103977.915575672,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 10.0,
+        "energy": 5.0,
+        "steel": 25.0
+      },
+      "outputs": {
+        "trains": 3.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Anglia-Region4",
+    "cluster_info": {
+      "region_id": "Anglia-Region4",
+      "scale_factor": 8,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANG-0806"
+    },
+    "ostatnia_produkcja": {
+      "trains": 1.344
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9123166666666659,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 1.05,
+      "energy": 5.705000000000003,
+      "food": 0.525,
+      "maintenance_services": 0.0
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-ANG-0807",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANG-0807",
+    "rok_budowy": 1957,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 35,
+    "zatrudnienie_aktualne": 7,
+    "rezerwa_zakladowa": 149095.31784854853,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "chemicals": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "pharmaceuticals": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 83,
+    "region_id": "Anglia-Region4",
+    "cluster_info": {
+      "region_id": "Anglia-Region4",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANG-0807"
+    },
+    "ostatnia_produkcja": {
+      "pharmaceuticals": 0.06201318399999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9123166666666659,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 2.3,
+      "food": 0.415,
+      "maintenance_services": 0.0,
+      "chemicals": 0.04,
+      "water": 1.3350000000000002,
+      "pharmaceuticals": 2.3269464091080403
+    },
+    "pojemność_magazynu": 830.0
+  },
+  {
+    "id": "B-ANG-0808",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANG-0808",
+    "rok_budowy": 1950,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 9,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 21442.26338116791,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "rare_earth_elements": 1.0,
+        "chemicals": 8.0
+      },
+      "outputs": {
+        "catalysts": 6.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 9,
+    "region_id": "Anglia-Region4",
+    "cluster_info": {
+      "region_id": "Anglia-Region4",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANG-0808"
+    },
+    "ostatnia_produkcja": {
+      "catalysts": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9081416666666658,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.2850000000000001,
+      "catalysts": 0.12389487969471427,
+      "food": 0.045,
+      "maintenance_services": 0.21630213325221614,
+      "chemicals": 0.016
+    },
+    "pojemność_magazynu": 100.0
+  },
+  {
+    "id": "B-ANG-0809",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANG-0809",
+    "rok_budowy": 1957,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 6,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 14294.84225411194,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "bitumen": 8.0,
+        "energy": 3.0,
+        "sand": 10.0,
+        "gravel": 8.0
+      },
+      "outputs": {
+        "asphalt": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 6,
+    "region_id": "Anglia-Region4",
+    "cluster_info": {
+      "region_id": "Anglia-Region4",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANG-0809"
+    },
+    "ostatnia_produkcja": {
+      "asphalt": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9081416666666658,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "asphalt": 0.2744841669976137,
+      "energy": 0.08700000000000002,
+      "sand": 0.14,
+      "food": 0.03,
+      "maintenance_services": 1.2403978132457132,
+      "gravel": 0.032
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

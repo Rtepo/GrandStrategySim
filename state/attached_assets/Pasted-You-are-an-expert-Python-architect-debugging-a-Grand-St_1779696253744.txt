@@ -1,0 +1,34 @@
+You are an expert Python architect debugging a Grand Strategy economic simulation game. We recently underwent a massive refactoring (moving from abstract macroeconomic sectors to a highly detailed physical buildings micro-economy based on a Victoria 3 model). 
+
+However, the game state is currently broken, as evidenced by the latest game reports. I need you to audit the codebase, find the root causes, and provide the exact code fixes.
+
+### SYMPTOMS OBSERVED IN THE REPORTS:
+1. **Zero Employment & Wages:** In the "STRUKTURA GOSPODARKI" (Economy Structure) report, almost all sectors show `0` for Employment (`Zatrudnienie`) and `0 / 0` for Wages (`Min. Oferta / Śr. Płaca`). Only the Transport sector has employees.
+2. **Missing Physical Assets for Corporations:** The "FIZYCZNE AKTYWA KORPORACJI I ŁAŃCUCHY DOSTAW" (Physical Assets & Supply Chains) table is completely empty. Companies exist, but they have `0` buildings/facilities attached to them.
+3. **Zero Resource Extraction:** The "RAPORT SUROWCOWY" (Resource Report) shows `0` annual extraction (`Wydobycie Roczne`) for all mines (Oil, Coal, Iron, Gas, Uranium).
+4. **No Construction Bureaus:** "FIZYCZNY SEKTOR BUDOWLANY" shows 0 active construction bureaus and 0 capacity.
+5. **Severe Recession:** Sector PMIs are mostly between 10.0 and 40.0, indicating a complete halt in production and economic collapse.
+
+### THE ARCHITECTURE & AREAS TO AUDIT:
+Based on the symptoms, the connection between the newly implemented physical buildings, the corporations, and the labor market is broken. Please audit the following specific areas and files:
+
+**1. Building Initialization & Assignment (`engine/infrastructure_init.py` & `corporate/market_generator.py`)**
+* Check if physical generic buildings (factories, mines, farms) are actually being created at the start of the game using `create_generic_building` from `economy/production/buildings/registry.py`.
+* Check if the generated buildings are being appended to the global `data['budynki']` list.
+* Check if the IDs of these buildings are being correctly appended to the `budynki` list inside the respective corporation dictionaries (`ctx.companies[country_name]`). The empty corporate assets table suggests this link is missing or broken.
+
+**2. Labor Market Allocation (`economy/labor/unemployment.py` & `economy/labor/core.py`)**
+* Audit `manage_hiring_and_firing(buildings, sila_robocza_dostepna)`. Why is it failing to allocate workers to buildings? Are the buildings missing from the `buildings` argument, or are their `pojemnosc_pracownikow` / `rezerwa_zakladowa` values improperly initialized?
+* Check `update_labor_market` in `core.py`. Ensure the conversion from building-level employment back to macro-sector employment (`sektory_oferty_map`) is working correctly.
+
+**3. Building Logic & Production (`economy/production/buildings/logic.py`)**
+* Check if `process_building_cycle()` is actually being called during the turn loop. If it's not being called, buildings won't produce resources, won't pay wages, and won't generate profits, which explains the `0` extraction and empty reserves.
+* Where in the main game loop (`engine/turn_engine.py` or similar) is the building logic triggered?
+
+**4. Reporting UI (`ui/reports/corporate_reports.py`)**
+* Look at how `CorporateReport.generate()` filters buildings: `owned_b = [b for b in wszystkie_budynki if isinstance(b, dict) and (b.get('id') in b_ids or b.get('wlasciciel_id') == f.get('id'))]`. Are `b_ids` (from `f.get('budynki')`) empty?
+
+### YOUR TASK:
+1. Trace the lifecycle of a physical building: from its creation (Init) -> assignment to a company -> processing its production turn -> hiring workers.
+2. Identify where the chain breaks (e.g., "Buildings are never initialized for the starting sectors", or "The production loop is never called").
+3. Provide the specific Python code blocks to fix these broken links. Make sure your fixes align with the new physical building architecture (using `get_building_pm`, `reserves.py`, etc.).

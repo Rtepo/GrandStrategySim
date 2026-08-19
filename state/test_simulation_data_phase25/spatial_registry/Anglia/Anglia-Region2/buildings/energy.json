@@ -1,0 +1,1641 @@
+[
+  {
+    "id": "B-ANG-0149",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ANG-0149",
+    "rok_budowy": 1967,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 46,
+    "zatrudnienie_aktualne": 46,
+    "rezerwa_zakladowa": 83420.0,
+    "aktywna_metoda": {
+      "rok": 1975,
+      "eksperci": 0.3,
+      "sredni": 0.45,
+      "szeregowi": 0.25,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "electronic_components": 5.0,
+        "natural_gas": 15.0
+      },
+      "outputs": {
+        "energy": 250.0,
+        "heat": 40.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Anglia-Region2",
+    "cluster_info": {
+      "region_id": "Anglia-Region2",
+      "scale_factor": 7,
+      "sector": "energy",
+      "owner_id": "KRS-ANG-0149"
+    },
+    "ostatnia_produkcja": {
+      "energy": 80.5,
+      "heat": 12.88
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9122999999999992,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "natural_gas": 1.2899999999999998,
+      "food": 0.535,
+      "maintenance_services": 0.588957425992036
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-ANG-2206",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ANG-2206",
+    "rok_budowy": 1959,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 65,
+    "zatrudnienie_aktualne": 65,
+    "rezerwa_zakladowa": 8345158.930647089,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 67,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region2",
+    "cluster_info": {
+      "region_id": "Anglia-Region2",
+      "scale_factor": 67,
+      "sector": "energy",
+      "owner_id": "KRS-ANG-2206"
+    },
+    "ostatnia_produkcja": {
+      "water": 217.75000000000003
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8395566373481472,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "chemicals": 0.13,
+      "water": 0.13157912259909793
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ANG-2206_Power_Plant_18",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Anglia-Region2",
+      "typ_budynku_docelowy": "Power Plant",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 880,
+      "zwiększenie_kapitału": 29103204.568641108,
+      "nowy_budynek": false,
+      "koszt_całkowity": 29848814.14950073,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 5,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 5,
+      "investor_id": "KRS-ANG-2206",
+      "main_contractor_id": "NEW_Anglia_0_0",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 5969762.829900146,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 8954644.244850218,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 8954644.244850218,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 5969762.829900146,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 29848814.14950073,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.04384450920724671,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ANG-2207",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ANG-2207",
+    "rok_budowy": 1946,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 66,
+    "zatrudnienie_aktualne": 66,
+    "rezerwa_zakladowa": 6062027.059071207,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 48,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Anglia-Region2",
+    "cluster_info": {
+      "region_id": "Anglia-Region2",
+      "scale_factor": 48,
+      "sector": "energy",
+      "owner_id": "KRS-ANG-2207"
+    },
+    "ostatnia_produkcja": {
+      "energy": 95.04,
+      "heat": 31.68
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8445188400499114,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505,
+      "peat": 1.5109999999999995,
+      "water": 4.121999999999999,
+      "brown_coal": 0.8819999999999995
+    },
+    "pojemność_magazynu": 1010.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ANG-2207_Power_Plant_18",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Anglia-Region2",
+      "typ_budynku_docelowy": "Power Plant",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 637,
+      "zwiększenie_kapitału": 21316836.21242679,
+      "nowy_budynek": false,
+      "koszt_całkowity": 21853686.72021139,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 5,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 5,
+      "investor_id": "KRS-ANG-2207",
+      "main_contractor_id": "KRS-ANG-0502",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 4370737.344042278,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 6556106.016063417,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 6556106.016063417,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 4370737.344042278,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 21853686.72021139,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.05655226659100053,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ANG-2208",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ANG-2208",
+    "rok_budowy": 1960,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 65,
+    "zatrudnienie_aktualne": 65,
+    "rezerwa_zakladowa": 5997725.801060601,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 48,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region2",
+    "cluster_info": {
+      "region_id": "Anglia-Region2",
+      "scale_factor": 48,
+      "sector": "energy",
+      "owner_id": "KRS-ANG-2208"
+    },
+    "ostatnia_produkcja": {
+      "energy": 156.0,
+      "heat": 46.800000000000004
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8577162791351618,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 3.0599999999999996,
+      "brown_coal": 0.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-2209",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ANG-2209",
+    "rok_budowy": 1958,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 66,
+    "zatrudnienie_aktualne": 66,
+    "rezerwa_zakladowa": 4064868.0393808046,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "water": 15.0
+      },
+      "outputs": {
+        "energy": 60.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 32,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Anglia-Region2",
+    "cluster_info": {
+      "region_id": "Anglia-Region2",
+      "scale_factor": 32,
+      "sector": "energy",
+      "owner_id": "KRS-ANG-2209"
+    },
+    "ostatnia_produkcja": {
+      "energy": 126.72
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8016322670512511,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505,
+      "water": 5.8500000000000005
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ANG-2210",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ANG-2210",
+    "rok_budowy": 1972,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 65,
+    "zatrudnienie_aktualne": 65,
+    "rezerwa_zakladowa": 3901014.579851638,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 31,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region2",
+    "cluster_info": {
+      "region_id": "Anglia-Region2",
+      "scale_factor": 31,
+      "sector": "energy",
+      "owner_id": "KRS-ANG-2210"
+    },
+    "ostatnia_produkcja": {
+      "energy": 161.20000000000002,
+      "heat": 50.375
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6257083850638419,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 3.8499999999999996
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-2211",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ANG-2211",
+    "rok_budowy": 1954,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 60,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 3217016.8318134444,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "fuels": 15.0
+      },
+      "outputs": {
+        "energy": 90.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 25,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Anglia-Region2",
+    "cluster_info": {
+      "region_id": "Anglia-Region2",
+      "scale_factor": 25,
+      "sector": "energy",
+      "owner_id": "KRS-ANG-2211"
+    },
+    "ostatnia_produkcja": {
+      "energy": 135.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7348300934449475,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.1612356282107088,
+      "food": 0.51
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ANG-2212",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ANG-2212",
+    "rok_budowy": 1950,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 59,
+    "zatrudnienie_aktualne": 59,
+    "rezerwa_zakladowa": 3185082.8432662543,
+    "aktywna_metoda": {
+      "rok": 1955,
+      "eksperci": 0.3,
+      "sredni": 0.45,
+      "szeregowi": 0.25,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "electronic_components": 10.0,
+        "water": 20.0,
+        "uranium": 5.0
+      },
+      "outputs": {
+        "energy": 200.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 25,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Anglia-Region2",
+    "cluster_info": {
+      "region_id": "Anglia-Region2",
+      "scale_factor": 25,
+      "sector": "energy",
+      "owner_id": "KRS-ANG-2212"
+    },
+    "ostatnia_produkcja": {
+      "energy": 295.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7395378948807969,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505,
+      "water": 7.099999999999999
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ANG-2213",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ANG-2213",
+    "rok_budowy": 1958,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 61,
+    "zatrudnienie_aktualne": 61,
+    "rezerwa_zakladowa": 2510368.4547699476,
+    "aktywna_metoda": {
+      "rok": 1975,
+      "eksperci": 0.3,
+      "sredni": 0.45,
+      "szeregowi": 0.25,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "electronic_components": 5.0,
+        "natural_gas": 15.0
+      },
+      "outputs": {
+        "energy": 250.0,
+        "heat": 40.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 19,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Anglia-Region2",
+    "cluster_info": {
+      "region_id": "Anglia-Region2",
+      "scale_factor": 19,
+      "sector": "energy",
+      "owner_id": "KRS-ANG-2213"
+    },
+    "ostatnia_produkcja": {
+      "energy": 289.75,
+      "heat": 46.36
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8012550914973822,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "electronic_components": 2.7755575615628914e-17,
+      "food": 0.52
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-ANG-2214",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ANG-2214",
+    "rok_budowy": 1964,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 59,
+    "zatrudnienie_aktualne": 59,
+    "rezerwa_zakladowa": 2313097.6471517025,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 18,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Anglia-Region2",
+    "cluster_info": {
+      "region_id": "Anglia-Region2",
+      "scale_factor": 18,
+      "sector": "energy",
+      "owner_id": "KRS-ANG-2214"
+    },
+    "ostatnia_produkcja": {
+      "water": 53.1
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6734888387424659,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505,
+      "chemicals": 0.118,
+      "water": 0.050216227180714945
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ANG-2215",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ANG-2215",
+    "rok_budowy": 1968,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 61,
+    "zatrudnienie_aktualne": 61,
+    "rezerwa_zakladowa": 1724568.4265875304,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 13,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Anglia-Region2",
+    "cluster_info": {
+      "region_id": "Anglia-Region2",
+      "scale_factor": 13,
+      "sector": "energy",
+      "owner_id": "KRS-ANG-2215"
+    },
+    "ostatnia_produkcja": {
+      "energy": 23.790000000000003,
+      "heat": 7.930000000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.838972368174467,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.515,
+      "peat": 1.475,
+      "water": 3.66,
+      "brown_coal": 0.0
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-ANG-2216",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ANG-2216",
+    "rok_budowy": 1954,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 63,
+    "zatrudnienie_aktualne": 63,
+    "rezerwa_zakladowa": 1540981.1357624987,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 108,
+    "region_id": "Anglia-Region2",
+    "cluster_info": {
+      "region_id": "Anglia-Region2",
+      "scale_factor": 11,
+      "sector": "energy",
+      "owner_id": "KRS-ANG-2216"
+    },
+    "ostatnia_produkcja": {
+      "energy": 34.65,
+      "heat": 10.395
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7193715585801393,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.54,
+      "water": 3.032,
+      "brown_coal": 0.0,
+      "hard_coal": 2.220446049250313e-16
+    },
+    "pojemność_magazynu": 1080.0
+  },
+  {
+    "id": "B-ANG-2217",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ANG-2217",
+    "rok_budowy": 1959,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 57,
+    "zatrudnienie_aktualne": 57,
+    "rezerwa_zakladowa": 1135722.6441909082,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "water": 15.0
+      },
+      "outputs": {
+        "energy": 60.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 108,
+    "region_id": "Anglia-Region2",
+    "cluster_info": {
+      "region_id": "Anglia-Region2",
+      "scale_factor": 8,
+      "sector": "energy",
+      "owner_id": "KRS-ANG-2217"
+    },
+    "ostatnia_produkcja": {
+      "energy": 27.36
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.767779922468563,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.54,
+      "water": 5.234999999999999
+    },
+    "pojemność_magazynu": 1080.0
+  },
+  {
+    "id": "B-ANG-2218",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ANG-2218",
+    "rok_budowy": 1959,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 54,
+    "zatrudnienie_aktualne": 54,
+    "rezerwa_zakladowa": 1034953.8808398984,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 80.0,
+        "heat": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 112,
+    "region_id": "Anglia-Region2",
+    "cluster_info": {
+      "region_id": "Anglia-Region2",
+      "scale_factor": 7,
+      "sector": "energy",
+      "owner_id": "KRS-ANG-2218"
+    },
+    "ostatnia_produkcja": {
+      "energy": 30.240000000000002,
+      "heat": 9.45
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6217463312348562,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.56,
+      "water": 3.37
+    },
+    "pojemność_magazynu": 1120.0
+  },
+  {
+    "id": "B-ANG-2219",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ANG-2219",
+    "rok_budowy": 1967,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 52,
+    "zatrudnienie_aktualne": 52,
+    "rezerwa_zakladowa": 998019.8136670447,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "fuels": 15.0
+      },
+      "outputs": {
+        "energy": 90.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 108,
+    "region_id": "Anglia-Region2",
+    "cluster_info": {
+      "region_id": "Anglia-Region2",
+      "scale_factor": 7,
+      "sector": "energy",
+      "owner_id": "KRS-ANG-2219"
+    },
+    "ostatnia_produkcja": {
+      "energy": 32.76
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6764002845284397,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.09737024762694466,
+      "food": 0.54
+    },
+    "pojemność_magazynu": 1080.0
+  },
+  {
+    "id": "B-ANG-2220",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ANG-2220",
+    "rok_budowy": 1946,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 49,
+    "zatrudnienie_aktualne": 49,
+    "rezerwa_zakladowa": 816616.0396352266,
+    "aktywna_metoda": {
+      "rok": 1955,
+      "eksperci": 0.3,
+      "sredni": 0.45,
+      "szeregowi": 0.25,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "electronic_components": 10.0,
+        "water": 20.0,
+        "uranium": 5.0
+      },
+      "outputs": {
+        "energy": 200.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 6,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Anglia-Region2",
+    "cluster_info": {
+      "region_id": "Anglia-Region2",
+      "scale_factor": 6,
+      "sector": "energy",
+      "owner_id": "KRS-ANG-2220"
+    },
+    "ostatnia_produkcja": {
+      "energy": 58.8
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6119590732285582,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51,
+      "water": 6.120000000000001
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ANG-2221",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ANG-2221",
+    "rok_budowy": 1970,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 48,
+    "zatrudnienie_aktualne": 48,
+    "rezerwa_zakladowa": 808265.8823839009,
+    "aktywna_metoda": {
+      "rok": 1975,
+      "eksperci": 0.3,
+      "sredni": 0.45,
+      "szeregowi": 0.25,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "electronic_components": 5.0,
+        "natural_gas": 15.0
+      },
+      "outputs": {
+        "energy": 250.0,
+        "heat": 40.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 6,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Anglia-Region2",
+    "cluster_info": {
+      "region_id": "Anglia-Region2",
+      "scale_factor": 6,
+      "sector": "energy",
+      "owner_id": "KRS-ANG-2221"
+    },
+    "ostatnia_produkcja": {
+      "energy": 72.0,
+      "heat": 11.52
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7929156748778678,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "electronic_components": 2.7755575615628914e-17,
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ANG-2222",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ANG-2222",
+    "rok_budowy": 1967,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 49,
+    "zatrudnienie_aktualne": 18,
+    "rezerwa_zakladowa": 313605.34654507553,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "chemicals": 1.0
+      },
+      "outputs": {
+        "water": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Anglia-Region2",
+    "cluster_info": {
+      "region_id": "Anglia-Region2",
+      "scale_factor": 2,
+      "sector": "energy",
+      "owner_id": "KRS-ANG-2222"
+    },
+    "ostatnia_produkcja": {
+      "water": 2.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8898784094726873,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51,
+      "chemicals": 0.047,
+      "water": 0.12389318266725569
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ANG-2223",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ANG-2223",
+    "rok_budowy": 1962,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 54,
+    "zatrudnienie_aktualne": 11,
+    "rezerwa_zakladowa": 231553.38090350365,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "peat": 5.0,
+        "water": 10.0,
+        "brown_coal": 10.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "energy": 30.0,
+        "heat": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 129,
+    "region_id": "Anglia-Region2",
+    "cluster_info": {
+      "region_id": "Anglia-Region2",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-ANG-2223"
+    },
+    "ostatnia_produkcja": {
+      "energy": 0.36,
+      "heat": 0.12
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6933181357833922,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.645,
+      "peat": 1.45,
+      "water": 2.51,
+      "brown_coal": 0.0
+    },
+    "pojemność_magazynu": 1290.0
+  },
+  {
+    "id": "B-ANG-2224",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ANG-2224",
+    "rok_budowy": 1965,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 33,
+    "zatrudnienie_aktualne": 6,
+    "rezerwa_zakladowa": 140402.04426723474,
+    "aktywna_metoda": {
+      "rok": 1888,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "water": 8.0,
+        "brown_coal": 8.0,
+        "hard_coal": 15.0
+      },
+      "outputs": {
+        "energy": 50.0,
+        "heat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 78,
+    "region_id": "Anglia-Region2",
+    "cluster_info": {
+      "region_id": "Anglia-Region2",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-ANG-2224"
+    },
+    "ostatnia_produkcja": {
+      "energy": 0.35000000000000003,
+      "heat": 0.105
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7639961415489033,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.39,
+      "water": 1.2240000000000002,
+      "brown_coal": 0.0,
+      "hard_coal": 3.469446951953614e-18
+    },
+    "pojemność_magazynu": 780.0
+  },
+  {
+    "id": "B-ANG-2225",
+    "name": "Power Plant",
+    "wlasciciel_id": "KRS-ANG-2225",
+    "rok_budowy": 1955,
+    "sektor_pkb": "energy",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 2383.3595418876253,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "water": 15.0
+      },
+      "outputs": {
+        "energy": 60.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 1,
+    "region_id": "Anglia-Region2",
+    "cluster_info": {
+      "region_id": "Anglia-Region2",
+      "scale_factor": 1,
+      "sector": "energy",
+      "owner_id": "KRS-ANG-2225"
+    },
+    "ostatnia_produkcja": {
+      "energy": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6673860227438471,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.005,
+      "water": 0.015
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

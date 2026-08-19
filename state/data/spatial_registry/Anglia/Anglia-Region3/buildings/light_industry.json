@@ -1,0 +1,1483 @@
+[
+  {
+    "id": "B-ANG-0026",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ANG-0026",
+    "rok_budowy": 1873,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 27,
+    "zatrudnienie_aktualne": 25,
+    "rezerwa_zakladowa": 34500.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 3.0,
+        "energy": 5.0,
+        "steel": 8.0,
+        "glass": 5.0
+      },
+      "outputs": {
+        "medical_equipment": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region3",
+    "cluster_info": {
+      "region_id": "Anglia-Region3",
+      "scale_factor": 10,
+      "sector": "light_industry",
+      "owner_id": "KRS-ANG-0026"
+    },
+    "ostatnia_produkcja": {
+      "medical_equipment": 2.4
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.9084479445106972,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.30000000000000004,
+      "energy": 0.615,
+      "food": 0.5,
+      "glass": 0.5,
+      "medical_equipment": 0.8
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-0590",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ANG-0590",
+    "rok_budowy": 1893,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 33,
+    "zatrudnienie_aktualne": 33,
+    "rezerwa_zakladowa": 1851079.8059786472,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "silver": 1.0,
+        "luxury": 5.0,
+        "fibers": 8.0,
+        "gold": 1.0
+      },
+      "outputs": {
+        "luxury_clothing": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 117,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region3",
+    "cluster_info": {
+      "region_id": "Anglia-Region3",
+      "scale_factor": 117,
+      "sector": "light_industry",
+      "owner_id": "KRS-ANG-0590"
+    },
+    "ostatnia_produkcja": {
+      "luxury_clothing": 19.305
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.9562503602734388,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.515
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-0591",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ANG-0591",
+    "rok_budowy": 1889,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 33,
+    "zatrudnienie_aktualne": 33,
+    "rezerwa_zakladowa": 1724848.7081339536,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 12.0,
+        "energy": 3.0,
+        "steel": 3.0
+      },
+      "outputs": {
+        "furniture": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 109,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region3",
+    "cluster_info": {
+      "region_id": "Anglia-Region3",
+      "scale_factor": 109,
+      "sector": "light_industry",
+      "owner_id": "KRS-ANG-0591"
+    },
+    "ostatnia_produkcja": {
+      "furniture": 35.97
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.9543893688679007,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-0592",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ANG-0592",
+    "rok_budowy": 1878,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 33,
+    "zatrudnienie_aktualne": 33,
+    "rezerwa_zakladowa": 1519723.1741363262,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 15.0,
+        "energy": 3.0
+      },
+      "outputs": {
+        "planks": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 96,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region3",
+    "cluster_info": {
+      "region_id": "Anglia-Region3",
+      "scale_factor": 96,
+      "sector": "light_industry",
+      "owner_id": "KRS-ANG-0592"
+    },
+    "ostatnia_produkcja": {
+      "planks": 38.016000000000005
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8544435055142319,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.545
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-0593",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ANG-0593",
+    "rok_budowy": 1877,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 33,
+    "zatrudnienie_aktualne": 33,
+    "rezerwa_zakladowa": 1298818.752908112,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "industrial_fiber": 12.0
+      },
+      "outputs": {
+        "fibers": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 82,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region3",
+    "cluster_info": {
+      "region_id": "Anglia-Region3",
+      "scale_factor": 82,
+      "sector": "light_industry",
+      "owner_id": "KRS-ANG-0593"
+    },
+    "ostatnia_produkcja": {
+      "fibers": 40.589999999999996
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7669774805399994,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.515
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-0594",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ANG-0594",
+    "rok_budowy": 1888,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 33,
+    "zatrudnienie_aktualne": 33,
+    "rezerwa_zakladowa": 1216137.3838198374,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 10.0,
+        "energy": 5.0,
+        "silver": 1.0,
+        "luxury": 3.0,
+        "gold": 1.0
+      },
+      "outputs": {
+        "luxury_furniture": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 76,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Anglia-Region3",
+    "cluster_info": {
+      "region_id": "Anglia-Region3",
+      "scale_factor": 76,
+      "sector": "light_industry",
+      "owner_id": "KRS-ANG-0594"
+    },
+    "ostatnia_produkcja": {
+      "luxury_furniture": 12.54
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7091417207357769,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.56
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ANG-0595",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ANG-0595",
+    "rok_budowy": 1874,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 33,
+    "zatrudnienie_aktualne": 33,
+    "rezerwa_zakladowa": 1204145.4295245914,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fibers": 10.0
+      },
+      "outputs": {
+        "clothing": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 76,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region3",
+    "cluster_info": {
+      "region_id": "Anglia-Region3",
+      "scale_factor": 76,
+      "sector": "light_industry",
+      "owner_id": "KRS-ANG-0595"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 20.064
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.9027192061811595,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.515
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-0596",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ANG-0596",
+    "rok_budowy": 1899,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 33,
+    "zatrudnienie_aktualne": 33,
+    "rezerwa_zakladowa": 935904.346604617,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "cereal": 10.0,
+        "vegetable": 5.0,
+        "protein": 3.0,
+        "livestock": 3.0
+      },
+      "outputs": {
+        "food": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 59,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region3",
+    "cluster_info": {
+      "region_id": "Anglia-Region3",
+      "scale_factor": 59,
+      "sector": "light_industry",
+      "owner_id": "KRS-ANG-0596"
+    },
+    "ostatnia_produkcja": {
+      "food": 35.046
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7913229872653489,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-0597",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ANG-0597",
+    "rok_budowy": 1889,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 33,
+    "zatrudnienie_aktualne": 33,
+    "rezerwa_zakladowa": 849593.8334533077,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 15.0,
+        "energy": 8.0,
+        "chemicals": 3.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "paper": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 53,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Anglia-Region3",
+    "cluster_info": {
+      "region_id": "Anglia-Region3",
+      "scale_factor": 53,
+      "sector": "light_industry",
+      "owner_id": "KRS-ANG-0597"
+    },
+    "ostatnia_produkcja": {
+      "paper": 31.482000000000003
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7633594347716428,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.555
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ANG-0598",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ANG-0598",
+    "rok_budowy": 1896,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 33,
+    "zatrudnienie_aktualne": 33,
+    "rezerwa_zakladowa": 753973.7768359521,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "fibers": 15.0
+      },
+      "outputs": {
+        "clothing": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 47,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Anglia-Region3",
+    "cluster_info": {
+      "region_id": "Anglia-Region3",
+      "scale_factor": 47,
+      "sector": "light_industry",
+      "owner_id": "KRS-ANG-0598"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 31.02
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8402945922493235,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.525
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ANG-0599",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ANG-0599",
+    "rok_budowy": 1882,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 33,
+    "zatrudnienie_aktualne": 21,
+    "rezerwa_zakladowa": 746557.6998375762,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 3.0,
+        "energy": 5.0,
+        "steel": 8.0,
+        "glass": 5.0
+      },
+      "outputs": {
+        "medical_equipment": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 47,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region3",
+    "cluster_info": {
+      "region_id": "Anglia-Region3",
+      "scale_factor": 47,
+      "sector": "light_industry",
+      "owner_id": "KRS-ANG-0599"
+    },
+    "ostatnia_produkcja": {
+      "medical_equipment": 12.408
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.76979302216351,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.43499999999999994
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-0600",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ANG-0600",
+    "rok_budowy": 1880,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 34,
+    "zatrudnienie_aktualne": 21,
+    "rezerwa_zakladowa": 745445.3888591294,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "silver": 1.0,
+        "luxury": 5.0,
+        "fibers": 8.0,
+        "gold": 1.0
+      },
+      "outputs": {
+        "luxury_clothing": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 46,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Anglia-Region3",
+    "cluster_info": {
+      "region_id": "Anglia-Region3",
+      "scale_factor": 46,
+      "sector": "light_industry",
+      "owner_id": "KRS-ANG-0600"
+    },
+    "ostatnia_produkcja": {
+      "luxury_clothing": 7.359999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8283342223087966,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.365
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ANG-0601",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ANG-0601",
+    "rok_budowy": 1873,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 50,
+    "zatrudnienie_aktualne": 50,
+    "rezerwa_zakladowa": 528203.2786093621,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 12.0,
+        "energy": 3.0,
+        "steel": 3.0
+      },
+      "outputs": {
+        "furniture": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 33,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region3",
+    "cluster_info": {
+      "region_id": "Anglia-Region3",
+      "scale_factor": 33,
+      "sector": "light_industry",
+      "owner_id": "KRS-ANG-0601"
+    },
+    "ostatnia_produkcja": {
+      "furniture": 16.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7398347529385229,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.015
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-0602",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ANG-0602",
+    "rok_budowy": 1884,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 51,
+    "zatrudnienie_aktualne": 51,
+    "rezerwa_zakladowa": 490483.9492559539,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 15.0,
+        "energy": 3.0
+      },
+      "outputs": {
+        "planks": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 30,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Anglia-Region3",
+    "cluster_info": {
+      "region_id": "Anglia-Region3",
+      "scale_factor": 30,
+      "sector": "light_industry",
+      "owner_id": "KRS-ANG-0602"
+    },
+    "ostatnia_produkcja": {
+      "planks": 18.36
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8173314706527723,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.005
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ANG-0603",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ANG-0603",
+    "rok_budowy": 1873,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 103,
+    "zatrudnienie_aktualne": 103,
+    "rezerwa_zakladowa": 372999.5846450953,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "industrial_fiber": 12.0
+      },
+      "outputs": {
+        "fibers": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 22,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Anglia-Region3",
+    "cluster_info": {
+      "region_id": "Anglia-Region3",
+      "scale_factor": 22,
+      "sector": "light_industry",
+      "owner_id": "KRS-ANG-0603"
+    },
+    "ostatnia_produkcja": {
+      "fibers": 33.99
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.9721232156628752,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.49199999999999994,
+      "food": 0.515,
+      "fibers": 3.386073012089516
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-ANG-0604",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ANG-0604",
+    "rok_budowy": 1873,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 85,
+    "zatrudnienie_aktualne": 85,
+    "rezerwa_zakladowa": 262717.47388174094,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 10.0,
+        "energy": 5.0,
+        "silver": 1.0,
+        "luxury": 3.0,
+        "gold": 1.0
+      },
+      "outputs": {
+        "luxury_furniture": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 15,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Anglia-Region3",
+    "cluster_info": {
+      "region_id": "Anglia-Region3",
+      "scale_factor": 15,
+      "sector": "light_industry",
+      "owner_id": "KRS-ANG-0604"
+    },
+    "ostatnia_produkcja": {
+      "luxury_furniture": 7.05
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.9725286106490884,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.8400000000000003,
+      "luxury_furniture": 1.1506523377156668,
+      "food": 0.525,
+      "silver": 6.938893903907228e-18,
+      "gold": 6.938893903907228e-18
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-ANG-0605",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ANG-0605",
+    "rok_budowy": 1898,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 84,
+    "zatrudnienie_aktualne": 84,
+    "rezerwa_zakladowa": 243790.5980773428,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fibers": 10.0
+      },
+      "outputs": {
+        "clothing": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 14,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Anglia-Region3",
+    "cluster_info": {
+      "region_id": "Anglia-Region3",
+      "scale_factor": 14,
+      "sector": "light_industry",
+      "owner_id": "KRS-ANG-0605"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 10.416
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7287281361449734,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 2.7755575615628914e-17
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-ANG-0606",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ANG-0606",
+    "rok_budowy": 1876,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 157130.08492603336,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "cereal": 10.0,
+        "vegetable": 5.0,
+        "protein": 3.0,
+        "livestock": 3.0
+      },
+      "outputs": {
+        "food": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Anglia-Region3",
+    "cluster_info": {
+      "region_id": "Anglia-Region3",
+      "scale_factor": 9,
+      "sector": "light_industry",
+      "owner_id": "KRS-ANG-0606"
+    },
+    "ostatnia_produkcja": {
+      "food": 14.741999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.714324316589335,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.4830000000000001,
+      "food": 3.892629243059,
+      "protein": 2.7755575615628914e-17,
+      "livestock": 2.7755575615628914e-17
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ANG-0607",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ANG-0607",
+    "rok_budowy": 1887,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 153,
+    "zatrudnienie_aktualne": 121,
+    "rezerwa_zakladowa": 55214.307993503055,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 15.0,
+        "energy": 8.0,
+        "chemicals": 3.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "paper": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 188,
+    "region_id": "Anglia-Region3",
+    "cluster_info": {
+      "region_id": "Anglia-Region3",
+      "scale_factor": 1,
+      "sector": "light_industry",
+      "owner_id": "KRS-ANG-0607"
+    },
+    "ostatnia_produkcja": {
+      "paper": 2.214
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8540305031432223,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 1.5543122344752194e-15,
+      "energy": 2.4080000000000004,
+      "paper": 7.338268045589915,
+      "food": 0.94,
+      "chemicals": 1.3877787807814454e-16,
+      "water": 0.0
+    },
+    "pojemność_magazynu": 1880.0
+  },
+  {
+    "id": "B-ANG-0608",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ANG-0608",
+    "rok_budowy": 1890,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 112,
+    "zatrudnienie_aktualne": 87,
+    "rezerwa_zakladowa": 40267.07550590382,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "fibers": 15.0
+      },
+      "outputs": {
+        "clothing": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 137,
+    "region_id": "Anglia-Region3",
+    "cluster_info": {
+      "region_id": "Anglia-Region3",
+      "scale_factor": 1,
+      "sector": "light_industry",
+      "owner_id": "KRS-ANG-0608"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 1.8599999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8496007690880809,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 1.0950000000000002,
+      "food": 0.685
+    },
+    "pojemność_magazynu": 1370.0
+  },
+  {
+    "id": "B-ANG-0609",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-ANG-0609",
+    "rok_budowy": 1892,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 63,
+    "rezerwa_zakladowa": 28863.309485975,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 3.0,
+        "energy": 5.0,
+        "steel": 8.0,
+        "glass": 5.0
+      },
+      "outputs": {
+        "medical_equipment": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 98,
+    "region_id": "Anglia-Region3",
+    "cluster_info": {
+      "region_id": "Anglia-Region3",
+      "scale_factor": 1,
+      "sector": "light_industry",
+      "owner_id": "KRS-ANG-0609"
+    },
+    "ostatnia_produkcja": {
+      "medical_equipment": 0.512
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7834263991438609,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.29400000000000004,
+      "energy": 1.27,
+      "food": 0.49,
+      "glass": 0.49,
+      "medical_equipment": 0.784
+    },
+    "pojemność_magazynu": 980.0
+  }
+]

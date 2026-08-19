@@ -1,0 +1,1472 @@
+[
+  {
+    "id": "B-ILI-0162",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ILI-0162",
+    "rok_budowy": 1877,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 326,
+    "zatrudnienie_aktualne": 326,
+    "rezerwa_zakladowa": 121900.0,
+    "aktywna_metoda": {
+      "rok": 1895,
+      "eksperci": 0.08,
+      "sredni": 0.2,
+      "szeregowi": 0.72,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "seeds": 8.0
+      },
+      "outputs": {
+        "cereal": 40.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 15,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region10",
+    "cluster_info": {
+      "region_id": "Iliria-Region10",
+      "scale_factor": 15,
+      "sector": "agriculture",
+      "owner_id": "KRS-ILI-0162"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 195.6
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8923756815896832,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.48000000000000004,
+      "food": 0.5,
+      "fibers": 3.257178074202155
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1502",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ILI-1502",
+    "rok_budowy": 1878,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 1458354.072424535,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "seeds": 5.0,
+        "draft_animals": 3.0
+      },
+      "outputs": {
+        "cereal": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 307,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region10",
+    "cluster_info": {
+      "region_id": "Iliria-Region10",
+      "scale_factor": 307,
+      "sector": "agriculture",
+      "owner_id": "KRS-ILI-1502"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7043737149876925,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 1.3877787807814457e-17,
+      "cereal": 3.216189380506912
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1503",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ILI-1503",
+    "rok_budowy": 1892,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 1402522.642883511,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 6.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "protein": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 295,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region10",
+    "cluster_info": {
+      "region_id": "Iliria-Region10",
+      "scale_factor": 295,
+      "sector": "agriculture",
+      "owner_id": "KRS-ILI-1503"
+    },
+    "ostatnia_produkcja": {
+      "protein": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.6690336930796975,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "protein": 2.5646484592583043,
+      "seeds": 5.551115123125783e-17
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1504",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ILI-1504",
+    "rok_budowy": 1886,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 1342038.5942140678,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cereal": 8.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "fodder": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 282,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region10",
+    "cluster_info": {
+      "region_id": "Iliria-Region10",
+      "scale_factor": 282,
+      "sector": "agriculture",
+      "owner_id": "KRS-ILI-1504"
+    },
+    "ostatnia_produkcja": {
+      "fodder": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.6749138695420076,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "fodder": 3.207537489054969
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1505",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ILI-1505",
+    "rok_budowy": 1899,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 1342038.5942140678,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 2.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "timber": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 282,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region10",
+    "cluster_info": {
+      "region_id": "Iliria-Region10",
+      "scale_factor": 282,
+      "sector": "agriculture",
+      "owner_id": "KRS-ILI-1505"
+    },
+    "ostatnia_produkcja": {
+      "timber": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9174018006552165,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 0.5858349104440741,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1506",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ILI-1506",
+    "rok_budowy": 1887,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 1332733.3559572306,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "cereal": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "seeds": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 280,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region10",
+    "cluster_info": {
+      "region_id": "Iliria-Region10",
+      "scale_factor": 280,
+      "sector": "agriculture",
+      "owner_id": "KRS-ILI-1506"
+    },
+    "ostatnia_produkcja": {
+      "seeds": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.6898642132192279,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "seeds": 2.5695425351479284
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1507",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ILI-1507",
+    "rok_budowy": 1887,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 1267596.688159369,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "industrial_fiber": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 266,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region10",
+    "cluster_info": {
+      "region_id": "Iliria-Region10",
+      "scale_factor": 266,
+      "sector": "agriculture",
+      "owner_id": "KRS-ILI-1507"
+    },
+    "ostatnia_produkcja": {
+      "industrial_fiber": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8095460324824333,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "industrial_fiber": 2.5976614636316624
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1508",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ILI-1508",
+    "rok_budowy": 1897,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 1248986.2116456942,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "vegetable": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 262,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region10",
+    "cluster_info": {
+      "region_id": "Iliria-Region10",
+      "scale_factor": 262,
+      "sector": "agriculture",
+      "owner_id": "KRS-ILI-1508"
+    },
+    "ostatnia_produkcja": {
+      "vegetable": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7773549941432449,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "vegetable": 3.8851473958306935
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1509",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ILI-1509",
+    "rok_budowy": 1872,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 1137323.3525636462,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fodder": 15.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "meat": 10.0,
+        "livestock": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 238,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region10",
+    "cluster_info": {
+      "region_id": "Iliria-Region10",
+      "scale_factor": 238,
+      "sector": "agriculture",
+      "owner_id": "KRS-ILI-1509"
+    },
+    "ostatnia_produkcja": {
+      "meat": 0.0,
+      "livestock": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.719257639386347,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "meat": 2.1470403693956426,
+      "food": 1.3877787807814457e-17,
+      "livestock": 1.0735201846978213
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1510",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ILI-1510",
+    "rok_budowy": 1886,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 1132670.7334352273,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 4.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "fruit": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 237,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region10",
+    "cluster_info": {
+      "region_id": "Iliria-Region10",
+      "scale_factor": 237,
+      "sector": "agriculture",
+      "owner_id": "KRS-ILI-1510"
+    },
+    "ostatnia_produkcja": {
+      "fruit": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8500455195611428,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fruit": 3.2579899841658517
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1511",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ILI-1511",
+    "rok_budowy": 1876,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 904692.396142712,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 4.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "luxury": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 188,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region10",
+    "cluster_info": {
+      "region_id": "Iliria-Region10",
+      "scale_factor": 188,
+      "sector": "agriculture",
+      "owner_id": "KRS-ILI-1511"
+    },
+    "ostatnia_produkcja": {
+      "luxury": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8558096223274393,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "luxury": 1.7384974987392874
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1512",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ILI-1512",
+    "rok_budowy": 1871,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 718587.6310059647,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 5.0,
+        "seeds": 5.0,
+        "draft_animals": 5.0
+      },
+      "outputs": {
+        "cereal": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 148,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region10",
+    "cluster_info": {
+      "region_id": "Iliria-Region10",
+      "scale_factor": 148,
+      "sector": "agriculture",
+      "owner_id": "KRS-ILI-1512"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7320916017441155,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cereal": 5.3714305471694885
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1513",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ILI-1513",
+    "rok_budowy": 1882,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 699977.15449229,
+    "aktywna_metoda": {
+      "rok": 1895,
+      "eksperci": 0.08,
+      "sredni": 0.2,
+      "szeregowi": 0.72,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "seeds": 8.0
+      },
+      "outputs": {
+        "cereal": 40.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 144,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region10",
+    "cluster_info": {
+      "region_id": "Iliria-Region10",
+      "scale_factor": 144,
+      "sector": "agriculture",
+      "owner_id": "KRS-ILI-1513"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8938880894134624,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "cereal": 8.721001072130122
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1514",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ILI-1514",
+    "rok_budowy": 1891,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 676714.0588501967,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "seeds": 5.0,
+        "draft_animals": 3.0
+      },
+      "outputs": {
+        "cereal": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 139,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region10",
+    "cluster_info": {
+      "region_id": "Iliria-Region10",
+      "scale_factor": 139,
+      "sector": "agriculture",
+      "owner_id": "KRS-ILI-1514"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7429051861275366,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 1.3877787807814457e-17,
+      "cereal": 3.2260341072942977
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1515",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ILI-1515",
+    "rok_budowy": 1886,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 555745.9615113109,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 6.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "protein": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 113,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region10",
+    "cluster_info": {
+      "region_id": "Iliria-Region10",
+      "scale_factor": 113,
+      "sector": "agriculture",
+      "owner_id": "KRS-ILI-1515"
+    },
+    "ostatnia_produkcja": {
+      "protein": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8136754076670504,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "protein": 2.5974545631487223,
+      "seeds": 5.551115123125783e-17
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1516",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ILI-1516",
+    "rok_budowy": 1896,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 341725.4816040516,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cereal": 8.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "fodder": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 67,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region10",
+    "cluster_info": {
+      "region_id": "Iliria-Region10",
+      "scale_factor": 67,
+      "sector": "agriculture",
+      "owner_id": "KRS-ILI-1516"
+    },
+    "ostatnia_produkcja": {
+      "fodder": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.7416260772732698,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "fodder": 3.2256584532202552
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1517",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ILI-1517",
+    "rok_budowy": 1895,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 101,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 293452.1379033606,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 2.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "timber": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 56,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Iliria-Region10",
+    "cluster_info": {
+      "region_id": "Iliria-Region10",
+      "scale_factor": 56,
+      "sector": "agriculture",
+      "owner_id": "KRS-ILI-1517"
+    },
+    "ostatnia_produkcja": {
+      "timber": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8472118603826981,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 1.592132765885783,
+      "food": 0.505,
+      "seeds": 1.3877787807814457e-17
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ILI-1518",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ILI-1518",
+    "rok_budowy": 1887,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 220757.3842651659,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "cereal": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "seeds": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 41,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region10",
+    "cluster_info": {
+      "region_id": "Iliria-Region10",
+      "scale_factor": 41,
+      "sector": "agriculture",
+      "owner_id": "KRS-ILI-1518"
+    },
+    "ostatnia_produkcja": {
+      "seeds": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.9483285252402817,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "seeds": 2.628306234561717
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1519",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ILI-1519",
+    "rok_budowy": 1897,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 88,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 43164.06454992909,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "industrial_fiber": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 109,
+    "region_id": "Iliria-Region10",
+    "cluster_info": {
+      "region_id": "Iliria-Region10",
+      "scale_factor": 3,
+      "sector": "agriculture",
+      "owner_id": "KRS-ILI-1519"
+    },
+    "ostatnia_produkcja": {
+      "industrial_fiber": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8278502457293023,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.545,
+      "industrial_fiber": 2.219530329105692,
+      "seeds": 0.22000000000000003,
+      "water": 0.352
+    },
+    "pojemność_magazynu": 1090.0
+  },
+  {
+    "id": "B-ILI-1520",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ILI-1520",
+    "rok_budowy": 1874,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 115,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 49399.031092164325,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "vegetable": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 173,
+    "region_id": "Iliria-Region10",
+    "cluster_info": {
+      "region_id": "Iliria-Region10",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-ILI-1520"
+    },
+    "ostatnia_produkcja": {
+      "vegetable": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.8414848288405224,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.13799999999999998,
+      "vegetable": 5.306670108551199,
+      "seeds": 0.345,
+      "water": 0.5519999999999999
+    },
+    "pojemność_magazynu": 1730.0
+  },
+  {
+    "id": "B-ILI-1521",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ILI-1521",
+    "rok_budowy": 1892,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 31,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 14226.30956420934,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fodder": 15.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "meat": 10.0,
+        "livestock": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 50,
+    "region_id": "Iliria-Region10",
+    "cluster_info": {
+      "region_id": "Iliria-Region10",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-ILI-1521"
+    },
+    "ostatnia_produkcja": {
+      "meat": 0.0,
+      "livestock": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "draft_animals",
+        "count": 5.0,
+        "condition": 0.665906851740578,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "meat": 0.8410765445548676,
+      "food": 0.060000000000000026,
+      "fodder": 0.30000000000000004,
+      "water": 0.2,
+      "livestock": 0.4205382722774338
+    },
+    "pojemność_magazynu": 500.0
+  }
+]

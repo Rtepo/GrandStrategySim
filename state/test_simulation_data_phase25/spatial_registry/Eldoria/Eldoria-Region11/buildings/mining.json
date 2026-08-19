@@ -1,0 +1,1903 @@
+[
+  {
+    "id": "B-ELD-0098",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ELD-0098",
+    "rok_budowy": 1959,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 54,
+    "zatrudnienie_aktualne": 54,
+    "rezerwa_zakladowa": 63850.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "lead": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 150,
+    "region_id": "Eldoria-Region11",
+    "cluster_info": {
+      "region_id": "Eldoria-Region11",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-ELD-0098"
+    },
+    "ostatnia_produkcja": {
+      "lead": 6.682853282243142e-18
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6371119439602391,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "lead": 2.680950506480732,
+      "fuels": 0.008149205844068079,
+      "food": 3.469446951953614e-18
+    },
+    "pojemność_magazynu": 1500.0,
+    "deposit_id": "Formation-1/lead"
+  },
+  {
+    "id": "B-ELD-0099",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ELD-0099",
+    "rok_budowy": 1953,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 60,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 68050.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 2.0,
+        "fuels": 3.0
+      },
+      "outputs": {
+        "sulfur": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 150,
+    "region_id": "Eldoria-Region11",
+    "cluster_info": {
+      "region_id": "Eldoria-Region11",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-ELD-0099"
+    },
+    "ostatnia_produkcja": {
+      "sulfur": 0.005750614990315878
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6715164510421917,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.26166578968829357,
+      "fuels": 0.0014200390339257408,
+      "food": 0.75,
+      "sulfur": 1.098385297583832
+    },
+    "pojemność_magazynu": 1500.0,
+    "deposit_id": "Formation-1/sulfur"
+  },
+  {
+    "id": "B-ELD-0977",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ELD-0977",
+    "rok_budowy": 1964,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 7007107.604754806,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "brown_coal": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 231,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region11",
+    "cluster_info": {
+      "region_id": "Eldoria-Region11",
+      "scale_factor": 231,
+      "sector": "mining",
+      "owner_id": "KRS-ELD-0977"
+    },
+    "ostatnia_produkcja": {
+      "brown_coal": 336.798
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.814603799835044,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.0,
+      "brown_coal": 0.27756026870498307
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ELD-0977_Mine_18",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Eldoria-Region11",
+      "typ_budynku_docelowy": "Mine",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 3743,
+      "zwiększenie_kapitału": 13919471.736634446,
+      "nowy_budynek": false,
+      "koszt_całkowity": 14264658.317820506,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 5,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 5,
+      "investor_id": "KRS-ELD-0977",
+      "main_contractor_id": "KRS-ELD-2460",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 2852931.6635641013,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 4279397.495346151,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 4279397.495346151,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 2852931.6635641013,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 14264658.317820506,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ELD-0978",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ELD-0978",
+    "rok_budowy": 1959,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 5750924.403890297,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "stone": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 189,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region11",
+    "cluster_info": {
+      "region_id": "Eldoria-Region11",
+      "scale_factor": 189,
+      "sector": "mining",
+      "owner_id": "KRS-ELD-0978"
+    },
+    "ostatnia_produkcja": {
+      "stone": 382.72499999999997
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8904487100054295,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "stone": 5.787842968004345,
+      "fuels": 0.0,
+      "food": 1.3877787807814457e-17
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ELD-0978_Mine_18",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Eldoria-Region11",
+      "typ_budynku_docelowy": "Mine",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 3062,
+      "zwiększenie_kapitału": 11480901.87131185,
+      "nowy_budynek": false,
+      "koszt_całkowity": 11775447.469198467,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 5,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 5,
+      "investor_id": "KRS-ELD-0978",
+      "main_contractor_id": "KRS-ELD-2483",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 2355089.4938396937,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 3532634.24075954,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 3532634.24075954,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 2355089.4938396937,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 11775447.469198467,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ELD-0979",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ELD-0979",
+    "rok_budowy": 1968,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 3896558.726423638,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "limestone": 22.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 127,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region11",
+    "cluster_info": {
+      "region_id": "Eldoria-Region11",
+      "scale_factor": 127,
+      "sector": "mining",
+      "owner_id": "KRS-ELD-0979"
+    },
+    "ostatnia_produkcja": {
+      "limestone": 226.31400000000002
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6033535438209346,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.0,
+      "food": 1.3877787807814457e-17,
+      "limestone": 1.4581868148499395
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ELD-0979_Mine_21",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Eldoria-Region11",
+      "typ_budynku_docelowy": "Mine",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 2058,
+      "zwiększenie_kapitału": 7526239.035236286,
+      "nowy_budynek": false,
+      "koszt_całkowity": 7716839.964671021,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 2,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 2,
+      "investor_id": "KRS-ELD-0979",
+      "main_contractor_id": "KRS-ELD-2311",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 1543367.9929342044,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 2315051.9894013065,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 2315051.9894013065,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 1543367.9929342044,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 7716839.964671021,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ELD-0980",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ELD-0980",
+    "rok_budowy": 1966,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 3627376.611952672,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "salt": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 118,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region11",
+    "cluster_info": {
+      "region_id": "Eldoria-Region11",
+      "scale_factor": 118,
+      "sector": "mining",
+      "owner_id": "KRS-ELD-0980"
+    },
+    "ostatnia_produkcja": {
+      "salt": 172.04399999999998
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6845285924120761,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.0,
+      "food": 1.3877787807814457e-17,
+      "salt": 0.1636369492293528
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ELD-0980_Mine_21",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Eldoria-Region11",
+      "typ_budynku_docelowy": "Mine",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 1912,
+      "zwiększenie_kapitału": 7035172.942257345,
+      "nowy_budynek": false,
+      "koszt_całkowity": 7214506.007680332,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 2,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 2,
+      "investor_id": "KRS-ELD-0980",
+      "main_contractor_id": "KRS-ELD-2308",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 1442901.2015360666,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 2164351.8023041,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 2164351.8023041,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 1442901.2015360666,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 7214506.007680332,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ELD-0981",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ELD-0981",
+    "rok_budowy": 1973,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 3477830.9928021342,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "iron": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 113,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region11",
+    "cluster_info": {
+      "region_id": "Eldoria-Region11",
+      "scale_factor": 113,
+      "sector": "mining",
+      "owner_id": "KRS-ELD-0981"
+    },
+    "ostatnia_produkcja": {
+      "iron": 109.83600000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.764049573779032,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.3877787807814457e-17,
+      "iron": 2.729627356331149
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ELD-0981_Mine_21",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Eldoria-Region11",
+      "typ_budynku_docelowy": "Mine",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 1831,
+      "zwiększenie_kapitału": 6763017.678562865,
+      "nowy_budynek": false,
+      "koszt_całkowity": 6938166.375921831,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 2,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 2,
+      "investor_id": "KRS-ELD-0981",
+      "main_contractor_id": "KRS-ELD-2396",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 1387633.2751843662,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 2081449.912776549,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 2081449.912776549,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 1387633.2751843662,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 6938166.375921831,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.01057035569849321,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ELD-0982",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ELD-0982",
+    "rok_budowy": 1953,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 3268467.125991382,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 2.0,
+        "fuels": 5.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "oil": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 106,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region11",
+    "cluster_info": {
+      "region_id": "Eldoria-Region11",
+      "scale_factor": 106,
+      "sector": "mining",
+      "owner_id": "KRS-ELD-0982"
+    },
+    "ostatnia_produkcja": {
+      "oil": 257.58
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6959998564948147,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.0,
+      "oil": 6.758740662235023
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-0983",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ELD-0983",
+    "rok_budowy": 1973,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 2341284.287258054,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "clay": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 75,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region11",
+    "cluster_info": {
+      "region_id": "Eldoria-Region11",
+      "scale_factor": 75,
+      "sector": "mining",
+      "owner_id": "KRS-ELD-0983"
+    },
+    "ostatnia_produkcja": {
+      "clay": 121.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7372293347605902,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "clay": 0.12421397424677982,
+      "fuels": 0.0,
+      "food": 1.3877787807814457e-17
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-0984",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ELD-0984",
+    "rok_budowy": 1953,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 2161829.5442774096,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "hard_coal": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 69,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region11",
+    "cluster_info": {
+      "region_id": "Eldoria-Region11",
+      "scale_factor": 69,
+      "sector": "mining",
+      "owner_id": "KRS-ELD-0984"
+    },
+    "ostatnia_produkcja": {
+      "hard_coal": 55.89
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7258154607962131,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.0,
+      "hard_coal": 2.2624545474547886
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-0985",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ELD-0985",
+    "rok_budowy": 1950,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 2042193.04895698,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0
+      },
+      "outputs": {
+        "peat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 65,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region11",
+    "cluster_info": {
+      "region_id": "Eldoria-Region11",
+      "scale_factor": 65,
+      "sector": "mining",
+      "owner_id": "KRS-ELD-0985"
+    },
+    "ostatnia_produkcja": {
+      "peat": 0.6737079784650294
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7173631763986411,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.10958555118553373,
+      "peat": 4.011564488598028
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-0986",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ELD-0986",
+    "rok_budowy": 1958,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1952465.677466658,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "sand": 20.0,
+        "gravel": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 62,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region11",
+    "cluster_info": {
+      "region_id": "Eldoria-Region11",
+      "scale_factor": 62,
+      "sector": "mining",
+      "owner_id": "KRS-ELD-0986"
+    },
+    "ostatnia_produkcja": {
+      "sand": 100.44,
+      "gravel": 75.33
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7254297381342631,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.0,
+      "sand": 1.2346622324059282,
+      "food": 1.3877787807814457e-17,
+      "gravel": 3.393496674304447
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-0987",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ELD-0987",
+    "rok_budowy": 1963,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1713192.6868257988,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "copper": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 54,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region11",
+    "cluster_info": {
+      "region_id": "Eldoria-Region11",
+      "scale_factor": 54,
+      "sector": "mining",
+      "owner_id": "KRS-ELD-0987"
+    },
+    "ostatnia_produkcja": {
+      "copper": 34.992
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6414378172695361,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "copper": 1.7883629612210015,
+      "fuels": 1.3877787807814457e-17
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-0988",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ELD-0988",
+    "rok_budowy": 1972,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1414101.4485247247,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 2.0,
+        "fuels": 5.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "hard_coal": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 44,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region11",
+    "cluster_info": {
+      "region_id": "Eldoria-Region11",
+      "scale_factor": 44,
+      "sector": "mining",
+      "owner_id": "KRS-ELD-0988"
+    },
+    "ostatnia_produkcja": {
+      "hard_coal": 53.46
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7113876769305032,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.0,
+      "hard_coal": 3.3867564849266425
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-0989",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ELD-0989",
+    "rok_budowy": 1965,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1384192.3246946177,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "bauxite": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 43,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region11",
+    "cluster_info": {
+      "region_id": "Eldoria-Region11",
+      "scale_factor": 43,
+      "sector": "mining",
+      "owner_id": "KRS-ELD-0989"
+    },
+    "ostatnia_produkcja": {
+      "bauxite": 52.245000000000005
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8836799513689618,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "bauxite": 3.4694567766571023,
+      "fuels": 1.3877787807814457e-17
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-0990",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ELD-0990",
+    "rok_budowy": 1970,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 1106041.1081214147,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "zinc": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 33,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Eldoria-Region11",
+    "cluster_info": {
+      "region_id": "Eldoria-Region11",
+      "scale_factor": 33,
+      "sector": "mining",
+      "owner_id": "KRS-ELD-0990"
+    },
+    "ostatnia_produkcja": {
+      "zinc": 21.648
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7358372266388196,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "zinc": 1.8487776566199288,
+      "fuels": 0.0,
+      "food": 5.551115123125783e-17
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ELD-0991",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ELD-0991",
+    "rok_budowy": 1968,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 995373.7149032215,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 2.0,
+        "fuels": 3.0
+      },
+      "outputs": {
+        "sulfur": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 30,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Eldoria-Region11",
+    "cluster_info": {
+      "region_id": "Eldoria-Region11",
+      "scale_factor": 30,
+      "sector": "mining",
+      "owner_id": "KRS-ELD-0991"
+    },
+    "ostatnia_produkcja": {
+      "sulfur": 24.3
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.687439345372547,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 2.6279999999999992,
+      "fuels": 0.0,
+      "food": 0.5,
+      "sulfur": 1.4401741905192154
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ELD-0992",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ELD-0992",
+    "rok_budowy": 1951,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 83,
+    "zatrudnienie_aktualne": 83,
+    "rezerwa_zakladowa": 901466.3361702758,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "lead": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 26,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Eldoria-Region11",
+    "cluster_info": {
+      "region_id": "Eldoria-Region11",
+      "scale_factor": 26,
+      "sector": "mining",
+      "owner_id": "KRS-ELD-0992"
+    },
+    "ostatnia_produkcja": {
+      "lead": 17.264
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6730298280414985,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "lead": 1.8503354810579826,
+      "fuels": 0.0,
+      "food": 5.551115123125783e-17
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-ELD-0993",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ELD-0993",
+    "rok_budowy": 1969,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 71,
+    "zatrudnienie_aktualne": 71,
+    "rezerwa_zakladowa": 185005.56120954792,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "fuels": 5.0,
+        "chemicals": 3.0
+      },
+      "outputs": {
+        "gold": 2.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 108,
+    "region_id": "Eldoria-Region11",
+    "cluster_info": {
+      "region_id": "Eldoria-Region11",
+      "scale_factor": 3,
+      "sector": "mining",
+      "owner_id": "KRS-ELD-0993"
+    },
+    "ostatnia_produkcja": {
+      "gold": 0.426
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7682585830134807,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 3.5340000000000007,
+      "fuels": 5.551115123125783e-17,
+      "food": 0.54,
+      "gold": 0.49162171325789183
+    },
+    "pojemność_magazynu": 1080.0
+  },
+  {
+    "id": "B-ELD-0994",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ELD-0994",
+    "rok_budowy": 1958,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 69,
+    "zatrudnienie_aktualne": 41,
+    "rezerwa_zakladowa": 116256.39754501061,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "tin": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Eldoria-Region11",
+    "cluster_info": {
+      "region_id": "Eldoria-Region11",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-ELD-0994"
+    },
+    "ostatnia_produkcja": {
+      "tin": 0.288
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8434693125950576,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "tin": 1.8952876523450648,
+      "fuels": 0.0,
+      "food": 5.551115123125783e-17
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-ELD-0995",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ELD-0995",
+    "rok_budowy": 1957,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 15,
+    "zatrudnienie_aktualne": 11,
+    "rezerwa_zakladowa": 26378.18971922577,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "fuels": 5.0,
+        "chemicals": 2.0
+      },
+      "outputs": {
+        "silver": 3.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 24,
+    "region_id": "Eldoria-Region11",
+    "cluster_info": {
+      "region_id": "Eldoria-Region11",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-ELD-0995"
+    },
+    "ostatnia_produkcja": {
+      "silver": 0.024
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8302709277309532,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.5160000000000002,
+      "fuels": 0.0,
+      "food": 0.12,
+      "silver": 0.1653017781749212,
+      "chemicals": 3.469446951953614e-18
+    },
+    "pojemność_magazynu": 240.0
+  },
+  {
+    "id": "B-ELD-0996",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ELD-0996",
+    "rok_budowy": 1949,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 9,
+    "zatrudnienie_aktualne": 6,
+    "rezerwa_zakladowa": 14539.094859612886,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "fuels": 3.0
+      },
+      "outputs": {
+        "hard_coal": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 12,
+    "region_id": "Eldoria-Region11",
+    "cluster_info": {
+      "region_id": "Eldoria-Region11",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-ELD-0996"
+    },
+    "ostatnia_produkcja": {
+      "hard_coal": 0.07200000000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6044237004390406,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.4850000000000001,
+      "fuels": 0.0,
+      "food": 0.06,
+      "hard_coal": 0.10229477417434658
+    },
+    "pojemność_magazynu": 120.0
+  }
+]

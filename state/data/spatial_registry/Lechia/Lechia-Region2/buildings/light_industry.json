@@ -1,0 +1,1514 @@
+[
+  {
+    "id": "B-LEC-0025",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-LEC-0025",
+    "rok_budowy": 1895,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 72,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 42150.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 3.0,
+        "energy": 5.0,
+        "steel": 8.0,
+        "glass": 5.0
+      },
+      "outputs": {
+        "medical_equipment": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Lechia-Region2",
+    "cluster_info": {
+      "region_id": "Lechia-Region2",
+      "scale_factor": 10,
+      "sector": "light_industry",
+      "owner_id": "KRS-LEC-0025"
+    },
+    "ostatnia_produkcja": {
+      "medical_equipment": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8780327883058199,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.30000000000000004,
+      "energy": 0.5,
+      "food": 0.5,
+      "glass": 0.5,
+      "medical_equipment": 0.8
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-LEC-1427",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-LEC-1427",
+    "rok_budowy": 1880,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 1579614.3316099837,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "silver": 1.0,
+        "luxury": 5.0,
+        "fibers": 8.0,
+        "gold": 1.0
+      },
+      "outputs": {
+        "luxury_clothing": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 204,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Lechia-Region2",
+    "cluster_info": {
+      "region_id": "Lechia-Region2",
+      "scale_factor": 204,
+      "sector": "light_industry",
+      "owner_id": "KRS-LEC-1427"
+    },
+    "ostatnia_produkcja": {
+      "luxury_clothing": 91.8
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8497119714385574,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.5,
+      "luxury_clothing": 1.0838362666776693
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-LEC-1428",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-LEC-1428",
+    "rok_budowy": 1873,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 1249501.9970059183,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 12.0,
+        "energy": 3.0,
+        "steel": 3.0
+      },
+      "outputs": {
+        "furniture": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 161,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Lechia-Region2",
+    "cluster_info": {
+      "region_id": "Lechia-Region2",
+      "scale_factor": 161,
+      "sector": "light_industry",
+      "owner_id": "KRS-LEC-1428"
+    },
+    "ostatnia_produkcja": {
+      "furniture": 144.9
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8117719667767058,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "planks": 1.2000000000000002,
+      "energy": 0.30000000000000004,
+      "furniture": 1.0,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-LEC-1429",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-LEC-1429",
+    "rok_budowy": 1874,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 1249501.9970059183,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 15.0,
+        "energy": 3.0
+      },
+      "outputs": {
+        "planks": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 161,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Lechia-Region2",
+    "cluster_info": {
+      "region_id": "Lechia-Region2",
+      "scale_factor": 161,
+      "sector": "light_industry",
+      "owner_id": "KRS-LEC-1429"
+    },
+    "ostatnia_produkcja": {
+      "planks": 173.88
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7038241456995431,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "planks": 2.5669310792843563,
+      "energy": 0.0,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-LEC-1430",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-LEC-1430",
+    "rok_budowy": 1885,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 1241824.9659686144,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "industrial_fiber": 12.0
+      },
+      "outputs": {
+        "fibers": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 160,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Lechia-Region2",
+    "cluster_info": {
+      "region_id": "Lechia-Region2",
+      "scale_factor": 160,
+      "sector": "light_industry",
+      "owner_id": "KRS-LEC-1430"
+    },
+    "ostatnia_produkcja": {
+      "fibers": 216.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.9685079535778763,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.5,
+      "fibers": 3.2863973042612917
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-LEC-1431",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-LEC-1431",
+    "rok_budowy": 1879,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 957774.8175883724,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 10.0,
+        "energy": 5.0,
+        "silver": 1.0,
+        "luxury": 3.0,
+        "gold": 1.0
+      },
+      "outputs": {
+        "luxury_furniture": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 123,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Lechia-Region2",
+    "cluster_info": {
+      "region_id": "Lechia-Region2",
+      "scale_factor": 123,
+      "sector": "light_industry",
+      "owner_id": "KRS-LEC-1431"
+    },
+    "ostatnia_produkcja": {
+      "luxury_furniture": 55.35
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.759312433297771,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "planks": 1.1102230246251563e-16,
+      "energy": 0.0,
+      "luxury_furniture": 1.0749866276807292,
+      "food": 0.5,
+      "silver": 1.3877787807814457e-17,
+      "luxury": 5.551115123125783e-17,
+      "gold": 1.3877787807814457e-17
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-LEC-1432",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-LEC-1432",
+    "rok_budowy": 1884,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 873327.4761780301,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fibers": 10.0
+      },
+      "outputs": {
+        "clothing": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 112,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Lechia-Region2",
+    "cluster_info": {
+      "region_id": "Lechia-Region2",
+      "scale_factor": 112,
+      "sector": "light_industry",
+      "owner_id": "KRS-LEC-1432"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 80.64
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7841265503621199,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {},
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-LEC-1433",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-LEC-1433",
+    "rok_budowy": 1885,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 742817.9485438648,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "cereal": 10.0,
+        "vegetable": 5.0,
+        "protein": 3.0,
+        "livestock": 3.0
+      },
+      "outputs": {
+        "food": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 95,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Lechia-Region2",
+    "cluster_info": {
+      "region_id": "Lechia-Region2",
+      "scale_factor": 95,
+      "sector": "light_industry",
+      "owner_id": "KRS-LEC-1433"
+    },
+    "ostatnia_produkcja": {
+      "food": 153.9
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.9541441122993976,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 3.938614645050357
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-LEC-1434",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-LEC-1434",
+    "rok_budowy": 1893,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 719786.8554319532,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 15.0,
+        "energy": 8.0,
+        "chemicals": 3.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "paper": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 92,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Lechia-Region2",
+    "cluster_info": {
+      "region_id": "Lechia-Region2",
+      "scale_factor": 92,
+      "sector": "light_industry",
+      "owner_id": "KRS-LEC-1434"
+    },
+    "ostatnia_produkcja": {
+      "paper": 149.04
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.946956976136776,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "paper": 3.936081746958519,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-LEC-1435",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-LEC-1435",
+    "rok_budowy": 1895,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 393436.26603616704,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "fibers": 15.0
+      },
+      "outputs": {
+        "clothing": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 49,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Lechia-Region2",
+    "cluster_info": {
+      "region_id": "Lechia-Region2",
+      "scale_factor": 49,
+      "sector": "light_industry",
+      "owner_id": "KRS-LEC-1435"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 88.2
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6961124959702465,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.505,
+      "fibers": 4.440892098500626e-16
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-LEC-1436",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-LEC-1436",
+    "rok_budowy": 1896,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 393436.26603616704,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 3.0,
+        "energy": 5.0,
+        "steel": 8.0,
+        "glass": 5.0
+      },
+      "outputs": {
+        "medical_equipment": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 49,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Lechia-Region2",
+    "cluster_info": {
+      "region_id": "Lechia-Region2",
+      "scale_factor": 49,
+      "sector": "light_industry",
+      "owner_id": "KRS-LEC-1436"
+    },
+    "ostatnia_produkcja": {
+      "medical_equipment": 35.28
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7999561885001716,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.30300000000000005,
+      "energy": 0.5049999999999999,
+      "food": 0.505,
+      "glass": 0.505,
+      "medical_equipment": 0.808
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-LEC-1437",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-LEC-1437",
+    "rok_budowy": 1875,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 346913.4579501058,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "silver": 1.0,
+        "luxury": 5.0,
+        "fibers": 8.0,
+        "gold": 1.0
+      },
+      "outputs": {
+        "luxury_clothing": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 43,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Lechia-Region2",
+    "cluster_info": {
+      "region_id": "Lechia-Region2",
+      "scale_factor": 43,
+      "sector": "light_industry",
+      "owner_id": "KRS-LEC-1437"
+    },
+    "ostatnia_produkcja": {
+      "luxury_clothing": 19.35
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7603888904226876,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 5.551115123125783e-17,
+      "food": 0.505,
+      "silver": 1.3877787807814457e-17,
+      "luxury_clothing": 1.0858404749762136,
+      "fibers": 1.1102230246251563e-16,
+      "gold": 1.3877787807814457e-17
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-LEC-1438",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-LEC-1438",
+    "rok_budowy": 1884,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 287270.0080317471,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 12.0,
+        "energy": 3.0,
+        "steel": 3.0
+      },
+      "outputs": {
+        "furniture": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 35,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Lechia-Region2",
+    "cluster_info": {
+      "region_id": "Lechia-Region2",
+      "scale_factor": 35,
+      "sector": "light_industry",
+      "owner_id": "KRS-LEC-1438"
+    },
+    "ostatnia_produkcja": {
+      "furniture": 31.85
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6978294083272274,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "planks": 1.224,
+      "energy": 0.30599999999999994,
+      "furniture": 1.02,
+      "food": 0.51
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-LEC-1439",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-LEC-1439",
+    "rok_budowy": 1878,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 72,
+    "zatrudnienie_aktualne": 72,
+    "rezerwa_zakladowa": 280846.08630563435,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 15.0,
+        "energy": 3.0
+      },
+      "outputs": {
+        "planks": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 35,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Lechia-Region2",
+    "cluster_info": {
+      "region_id": "Lechia-Region2",
+      "scale_factor": 35,
+      "sector": "light_industry",
+      "owner_id": "KRS-LEC-1439"
+    },
+    "ostatnia_produkcja": {
+      "planks": 34.019999999999996
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8363465945037775,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "planks": 2.5980668798876243,
+      "energy": 0.0,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-LEC-1440",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-LEC-1440",
+    "rok_budowy": 1884,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 74,
+    "zatrudnienie_aktualne": 74,
+    "rezerwa_zakladowa": 247267.1497414975,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "industrial_fiber": 12.0
+      },
+      "outputs": {
+        "fibers": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 30,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Lechia-Region2",
+    "cluster_info": {
+      "region_id": "Lechia-Region2",
+      "scale_factor": 30,
+      "sector": "light_industry",
+      "owner_id": "KRS-LEC-1440"
+    },
+    "ostatnia_produkcja": {
+      "fibers": 36.9
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.725385711860208,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.51,
+      "fibers": 3.279293611190713
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-LEC-1441",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-LEC-1441",
+    "rok_budowy": 1883,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 172282.24557591986,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 10.0,
+        "energy": 5.0,
+        "silver": 1.0,
+        "luxury": 3.0,
+        "gold": 1.0
+      },
+      "outputs": {
+        "luxury_furniture": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 20,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Lechia-Region2",
+    "cluster_info": {
+      "region_id": "Lechia-Region2",
+      "scale_factor": 20,
+      "sector": "light_industry",
+      "owner_id": "KRS-LEC-1441"
+    },
+    "ostatnia_produkcja": {
+      "luxury_furniture": 8.4
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8387497953720803,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "planks": 5.551115123125783e-17,
+      "energy": 0.0,
+      "luxury_furniture": 1.1260720175877763,
+      "food": 0.52,
+      "silver": 6.938893903907228e-18,
+      "gold": 6.938893903907228e-18
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-LEC-1442",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-LEC-1442",
+    "rok_budowy": 1899,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 74,
+    "zatrudnienie_aktualne": 74,
+    "rezerwa_zakladowa": 168961.4331609983,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fibers": 10.0
+      },
+      "outputs": {
+        "clothing": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 20,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Lechia-Region2",
+    "cluster_info": {
+      "region_id": "Lechia-Region2",
+      "scale_factor": 20,
+      "sector": "light_industry",
+      "owner_id": "KRS-LEC-1442"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 13.12
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.9196259117963551,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fibers": 5.551115123125783e-17
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-LEC-1443",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-LEC-1443",
+    "rok_budowy": 1886,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 72,
+    "zatrudnienie_aktualne": 72,
+    "rezerwa_zakladowa": 104274.37244764608,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "cereal": 10.0,
+        "vegetable": 5.0,
+        "protein": 3.0,
+        "livestock": 3.0
+      },
+      "outputs": {
+        "food": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Lechia-Region2",
+    "cluster_info": {
+      "region_id": "Lechia-Region2",
+      "scale_factor": 12,
+      "sector": "light_industry",
+      "owner_id": "KRS-LEC-1443"
+    },
+    "ostatnia_produkcja": {
+      "food": 17.496
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.9261994359906823,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 3.9287663528101904
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-LEC-1444",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-LEC-1444",
+    "rok_budowy": 1881,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 80,
+    "zatrudnienie_aktualne": 80,
+    "rezerwa_zakladowa": 89402.607269308,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 15.0,
+        "energy": 8.0,
+        "chemicals": 3.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "paper": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 110,
+    "region_id": "Lechia-Region2",
+    "cluster_info": {
+      "region_id": "Lechia-Region2",
+      "scale_factor": 9,
+      "sector": "light_industry",
+      "owner_id": "KRS-LEC-1444"
+    },
+    "ostatnia_produkcja": {
+      "paper": 14.418000000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.828665416383833,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 1.1102230246251563e-16,
+      "energy": 0.0,
+      "paper": 4.2838326420482495,
+      "food": 0.55,
+      "chemicals": 5.551115123125783e-17,
+      "water": 2.775557561562891e-16
+    },
+    "pojemność_magazynu": 1100.0
+  },
+  {
+    "id": "B-LEC-1445",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-LEC-1445",
+    "rok_budowy": 1873,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 76,
+    "zatrudnienie_aktualne": 76,
+    "rezerwa_zakladowa": 36602.33683638797,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "fibers": 15.0
+      },
+      "outputs": {
+        "clothing": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Lechia-Region2",
+    "cluster_info": {
+      "region_id": "Lechia-Region2",
+      "scale_factor": 3,
+      "sector": "light_industry",
+      "owner_id": "KRS-LEC-1445"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 5.04
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.9341518402095655,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.52
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-LEC-1446",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-LEC-1446",
+    "rok_budowy": 1893,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 48,
+    "zatrudnienie_aktualne": 48,
+    "rezerwa_zakladowa": 12863.299863874458,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 3.0,
+        "energy": 5.0,
+        "steel": 8.0,
+        "glass": 5.0
+      },
+      "outputs": {
+        "medical_equipment": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 64,
+    "region_id": "Lechia-Region2",
+    "cluster_info": {
+      "region_id": "Lechia-Region2",
+      "scale_factor": 1,
+      "sector": "light_industry",
+      "owner_id": "KRS-LEC-1446"
+    },
+    "ostatnia_produkcja": {
+      "medical_equipment": 0.424
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7669493821036282,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.192,
+      "energy": 0.32000000000000006,
+      "food": 0.32,
+      "glass": 0.32,
+      "medical_equipment": 0.512
+    },
+    "pojemność_magazynu": 640.0
+  }
+]

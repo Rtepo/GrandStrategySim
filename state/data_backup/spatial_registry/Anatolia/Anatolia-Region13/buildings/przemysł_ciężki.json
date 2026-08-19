@@ -1,0 +1,2060 @@
+[
+  {
+    "id": "[ID-9XX-5482]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2HV-4587]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0515,
+      "sredni": 0.2784,
+      "szeregowi": 0.6701,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Wapień": 10.0,
+        "Węgiel Kamienny": 5.0
+      },
+      "outputs": {
+        "Cement": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Piece Rotacyjne Ręczne",
+        "produkcja": "Tradycyjna Cementownia",
+        "organizacja": "Lokalne Cementownie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 3,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[KRS-2HV-4587]"
+    },
+    "ostatnia_produkcja": {
+      "Cement": 14400.0
+    },
+    "rentownosc_ost_rok": -1698284.353533024,
+    "nazwa": "Cementownia"
+  },
+  {
+    "id": "[ID-9XX-6861]",
+    "name": "",
+    "wlasciciel_id": "[ID-9HV-3313]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1529,
+      "sredni": 0.4706,
+      "szeregowi": 0.3765,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Boksyt": 15.0,
+        "Paliwa": 10.0
+      },
+      "outputs": {
+        "Aluminium": 1200.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Piece Elektryczne Proste",
+        "produkcja": "Proces Halla-Héroulta",
+        "organizacja": "Laboratoria Badawcze"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[ID-9HV-3313]"
+    },
+    "ostatnia_produkcja": {
+      "Aluminium": 3360.0
+    },
+    "rentownosc_ost_rok": -1646325.6440693764,
+    "nazwa": "Huta Aluminium"
+  },
+  {
+    "id": "[ID-9XX-7772]",
+    "name": "",
+    "wlasciciel_id": "[REG-4HV-7530]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2295,
+      "sredni": 0.7541,
+      "szeregowi": 0.0164,
+      "wydajnosc": 2.73,
+      "inputs": {
+        "Węgiel Kamienny": 10.0,
+        "Żelazo": 20.0
+      },
+      "outputs": {
+        "Stal": 3500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Suwnice Elektryczne i Walcarki",
+        "produkcja": "Piec Martenowski",
+        "organizacja": "Naukowe Zarządzanie (Taylorizm)"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[REG-4HV-7530]"
+    },
+    "ostatnia_produkcja": {
+      "Stal": 11200.0
+    },
+    "rentownosc_ost_rok": -2023189.248313248,
+    "nazwa": "Huta Stali"
+  },
+  {
+    "id": "[ID-9XX-7484]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2HV-2720]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Drewno": 8.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Deski": 10000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Piły Tarczowe i Traki",
+        "produkcja": "Mechaniczne Przeróbka",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 3,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[KRS-2HV-2720]"
+    },
+    "ostatnia_produkcja": {
+      "Deski": 72000.0
+    },
+    "rentownosc_ost_rok": -2087644.181267328,
+    "nazwa": "Tartak"
+  },
+  {
+    "id": "[ID-9XX-1980]",
+    "name": "",
+    "wlasciciel_id": "[ID-9HV-8867]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1616,
+      "sredni": 0.5556,
+      "szeregowi": 0.2828,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Stal": 10.0,
+        "Żelazo": 5.0
+      },
+      "outputs": {
+        "Części Mechaniczne": 800.0,
+        "Maszyny Przemysłowe": 300.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Dźwigi Parowe",
+        "produkcja": "Warsztaty Odlewnicze",
+        "organizacja": "Zakłady Państwowe"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[ID-9HV-8867]"
+    },
+    "ostatnia_produkcja": {
+      "Części Mechaniczne": 1920.0,
+      "Maszyny Przemysłowe": 720.0
+    },
+    "rentownosc_ost_rok": -1512281.140499582,
+    "nazwa": "Fabryka Maszyn Ciężkich"
+  },
+  {
+    "id": "[ID-9XX-3598]",
+    "name": "",
+    "wlasciciel_id": "[REG-4HV-6450]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Glina": 6.0,
+        "Maszyny Przemysłowe": 1.0,
+        "Węgiel Kamienny": 2.0
+      },
+      "outputs": {
+        "Cegły": 12000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Automatyzacja Formowania",
+        "produkcja": "Mechaniczne Formowanie",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[REG-4HV-6450]"
+    },
+    "ostatnia_produkcja": {
+      "Cegły": 24000.0
+    },
+    "rentownosc_ost_rok": -379901.16146314703,
+    "nazwa": "Cegielnia (Przemysłowa)"
+  },
+  {
+    "id": "[ID-9XX-3630]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2HV-4167]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2295,
+      "sredni": 0.7541,
+      "szeregowi": 0.0164,
+      "wydajnosc": 2.73,
+      "inputs": {
+        "Węgiel Kamienny": 10.0,
+        "Żelazo": 20.0
+      },
+      "outputs": {
+        "Stal": 3500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Suwnice Elektryczne i Walcarki",
+        "produkcja": "Piec Martenowski",
+        "organizacja": "Naukowe Zarządzanie (Taylorizm)"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 3,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[KRS-2HV-4167]"
+    },
+    "ostatnia_produkcja": {
+      "Stal": 33600.0
+    },
+    "rentownosc_ost_rok": -6069567.744939744,
+    "nazwa": "Huta Stali"
+  },
+  {
+    "id": "[ID-9XX-4924]",
+    "name": "",
+    "wlasciciel_id": "[ID-9HV-8096]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1529,
+      "sredni": 0.4706,
+      "szeregowi": 0.3765,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Boksyt": 15.0,
+        "Paliwa": 10.0
+      },
+      "outputs": {
+        "Aluminium": 1200.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Piece Elektryczne Proste",
+        "produkcja": "Proces Halla-Héroulta",
+        "organizacja": "Laboratoria Badawcze"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[ID-9HV-8096]"
+    },
+    "ostatnia_produkcja": {
+      "Aluminium": 3360.0
+    },
+    "rentownosc_ost_rok": -1646325.6440693764,
+    "nazwa": "Huta Aluminium"
+  },
+  {
+    "id": "[ID-9XX-9147]",
+    "name": "",
+    "wlasciciel_id": "[REG-4HV-9868]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.2222,
+      "sredni": 0.7619,
+      "szeregowi": 0.0159,
+      "wydajnosc": 2.52,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Węgiel Kamienny": 12.0
+      },
+      "outputs": {
+        "Koks": 8000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Automatyzacja Pieców",
+        "produkcja": "Wysokosprawne Piece",
+        "organizacja": "Kartele Koksownicze"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[REG-4HV-9868]"
+    },
+    "ostatnia_produkcja": {
+      "Koks": 11520.0
+    },
+    "rentownosc_ost_rok": -582419.7056823877,
+    "nazwa": "Koksownia"
+  },
+  {
+    "id": "[ID-9XX-7771]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2HV-7504]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1915,
+      "eksperci": 0.1839,
+      "sredni": 0.8046,
+      "szeregowi": 0.0115,
+      "wydajnosc": 4.536,
+      "inputs": {
+        "Części Mechaniczne": 5.0,
+        "Paliwa": 2.0,
+        "Stal": 15.0
+      },
+      "outputs": {
+        "Ciężarówki": 50.0,
+        "Samochody": 100.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Linia Montażowa Fordowska",
+        "produkcja": "Linia Montażowa",
+        "organizacja": "Masowa Produkcja (Fordyzm)"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 3,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[KRS-2HV-7504]"
+    },
+    "ostatnia_produkcja": {
+      "Ciężarówki": 600.0,
+      "Samochody": 1200.0
+    },
+    "rentownosc_ost_rok": -9417182.726918254,
+    "nazwa": "Fabryka Pojazdów"
+  },
+  {
+    "id": "[ID-9XX-2151]",
+    "name": "",
+    "wlasciciel_id": "[ID-9HV-2696]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1772,
+      "sredni": 0.5949,
+      "szeregowi": 0.2278,
+      "wydajnosc": 1.6,
+      "inputs": {
+        "Ropa Naftowa": 20.0
+      },
+      "outputs": {
+        "Bitumin": 500.0,
+        "Paliwa": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Destylacja Frakcyjna",
+        "produkcja": "Prosta Destylacja",
+        "organizacja": "Małe Rafinerie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[ID-9HV-2696]"
+    },
+    "ostatnia_produkcja": {
+      "Bitumin": 600.0,
+      "Paliwa": 1800.0
+    },
+    "rentownosc_ost_rok": -733043.835014308,
+    "nazwa": "Rafineria"
+  },
+  {
+    "id": "[ID-9XX-4916]",
+    "name": "",
+    "wlasciciel_id": "[REG-4HV-4058]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.2222,
+      "sredni": 0.7619,
+      "szeregowi": 0.0159,
+      "wydajnosc": 2.52,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Węgiel Kamienny": 12.0
+      },
+      "outputs": {
+        "Koks": 8000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Automatyzacja Pieców",
+        "produkcja": "Wysokosprawne Piece",
+        "organizacja": "Kartele Koksownicze"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[REG-4HV-4058]"
+    },
+    "ostatnia_produkcja": {
+      "Koks": 11520.0
+    },
+    "rentownosc_ost_rok": -582419.7056823877,
+    "nazwa": "Koksownia"
+  },
+  {
+    "id": "[ID-9XX-4307]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2HV-4231]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1616,
+      "sredni": 0.5556,
+      "szeregowi": 0.2828,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Stal": 10.0,
+        "Żelazo": 5.0
+      },
+      "outputs": {
+        "Części Mechaniczne": 800.0,
+        "Maszyny Przemysłowe": 300.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Dźwigi Parowe",
+        "produkcja": "Warsztaty Odlewnicze",
+        "organizacja": "Zakłady Państwowe"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 3,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[KRS-2HV-4231]"
+    },
+    "ostatnia_produkcja": {
+      "Części Mechaniczne": 5760.0,
+      "Maszyny Przemysłowe": 2160.0
+    },
+    "rentownosc_ost_rok": -4536843.421498746,
+    "nazwa": "Fabryka Maszyn Ciężkich"
+  },
+  {
+    "id": "[ID-9XX-4364]",
+    "name": "",
+    "wlasciciel_id": "[ID-9HV-8838]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1930,
+      "eksperci": 0.2778,
+      "sredni": 0.6444,
+      "szeregowi": 0.0778,
+      "wydajnosc": 1.3,
+      "inputs": {
+        "Gaz Ziemny": 5.0,
+        "Siarka": 5.0
+      },
+      "outputs": {
+        "Nawozy": 2000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Piece i Zbiorniki Ręczne",
+        "produkcja": "Proces Habera-Boscha",
+        "organizacja": "Koncern Chemiczny (IG Farben)"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[ID-9HV-8838]"
+    },
+    "ostatnia_produkcja": {
+      "Nawozy": 3200.0
+    },
+    "rentownosc_ost_rok": -1123371.250093313,
+    "nazwa": "Zakłady Chemiczne"
+  },
+  {
+    "id": "[ID-9XX-6301]",
+    "name": "",
+    "wlasciciel_id": "[REG-4HV-3910]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0515,
+      "sredni": 0.2784,
+      "szeregowi": 0.6701,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Wapień": 10.0,
+        "Węgiel Kamienny": 5.0
+      },
+      "outputs": {
+        "Cement": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Piece Rotacyjne Ręczne",
+        "produkcja": "Tradycyjna Cementownia",
+        "organizacja": "Lokalne Cementownie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[REG-4HV-3910]"
+    },
+    "ostatnia_produkcja": {
+      "Cement": 4800.0
+    },
+    "rentownosc_ost_rok": -566094.7845110078,
+    "nazwa": "Cementownia"
+  },
+  {
+    "id": "[ID-9XX-3285]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2HV-2796]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.2222,
+      "sredni": 0.7619,
+      "szeregowi": 0.0159,
+      "wydajnosc": 2.52,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Węgiel Kamienny": 12.0
+      },
+      "outputs": {
+        "Koks": 8000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Automatyzacja Pieców",
+        "produkcja": "Wysokosprawne Piece",
+        "organizacja": "Kartele Koksownicze"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 3,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[KRS-2HV-2796]"
+    },
+    "ostatnia_produkcja": {
+      "Koks": 34560.0
+    },
+    "rentownosc_ost_rok": -1747259.1170471627,
+    "nazwa": "Koksownia"
+  },
+  {
+    "id": "[ID-9XX-1464]",
+    "name": "",
+    "wlasciciel_id": "[ID-9HV-3637]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2295,
+      "sredni": 0.7541,
+      "szeregowi": 0.0164,
+      "wydajnosc": 2.73,
+      "inputs": {
+        "Węgiel Kamienny": 10.0,
+        "Żelazo": 20.0
+      },
+      "outputs": {
+        "Stal": 3500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Suwnice Elektryczne i Walcarki",
+        "produkcja": "Piec Martenowski",
+        "organizacja": "Naukowe Zarządzanie (Taylorizm)"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[ID-9HV-3637]"
+    },
+    "ostatnia_produkcja": {
+      "Stal": 11200.0
+    },
+    "rentownosc_ost_rok": -2023189.248313248,
+    "nazwa": "Huta Stali"
+  },
+  {
+    "id": "[ID-9XX-4662]",
+    "name": "",
+    "wlasciciel_id": "[REG-4HV-4438]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.2841,
+      "sredni": 0.7045,
+      "szeregowi": 0.0114,
+      "wydajnosc": 3.12,
+      "inputs": {
+        "Części Mechaniczne": 3.0,
+        "Stal": 8.0
+      },
+      "outputs": {
+        "Części Mechaniczne": 1200.0,
+        "Maszyny Przemysłowe": 500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Obrabiarki Sterowane Elektrycznie",
+        "produkcja": "Linie Montażowe Elektryczne",
+        "organizacja": "Standaryzacja i Części Wymienne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[REG-4HV-4438]"
+    },
+    "ostatnia_produkcja": {
+      "Części Mechaniczne": 2880.0,
+      "Maszyny Przemysłowe": 1200.0
+    },
+    "rentownosc_ost_rok": -1784700.5414278288,
+    "nazwa": "Fabryka Maszyn"
+  },
+  {
+    "id": "[ID-9XX-5429]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2HV-8038]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.2195,
+      "sredni": 0.6951,
+      "szeregowi": 0.0854,
+      "wydajnosc": 2.08,
+      "inputs": {
+        "Drewno": 15.0,
+        "Stal": 20.0,
+        "Żelazo": 10.0
+      },
+      "outputs": {
+        "Pociągi": 5.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Linie Montażowe Parowe",
+        "produkcja": "Pociągi Parowe",
+        "organizacja": "Państwowe Monopole Kolejowe"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 3,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[KRS-2HV-8038]"
+    },
+    "ostatnia_produkcja": {
+      "Pociągi": 54.0
+    },
+    "rentownosc_ost_rok": -8407515.24581856,
+    "nazwa": "Fabryka Pociągów"
+  },
+  {
+    "id": "[ID-9XX-4335]",
+    "name": "",
+    "wlasciciel_id": "[ID-9HV-2836]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1529,
+      "sredni": 0.4706,
+      "szeregowi": 0.3765,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Boksyt": 15.0,
+        "Paliwa": 10.0
+      },
+      "outputs": {
+        "Aluminium": 1200.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Piece Elektryczne Proste",
+        "produkcja": "Proces Halla-Héroulta",
+        "organizacja": "Laboratoria Badawcze"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[ID-9HV-2836]"
+    },
+    "ostatnia_produkcja": {
+      "Aluminium": 3360.0
+    },
+    "rentownosc_ost_rok": -1646325.6440693764,
+    "nazwa": "Huta Aluminium"
+  },
+  {
+    "id": "[ID-9XX-5015]",
+    "name": "",
+    "wlasciciel_id": "[REG-4HV-4927]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.2841,
+      "sredni": 0.7045,
+      "szeregowi": 0.0114,
+      "wydajnosc": 3.12,
+      "inputs": {
+        "Części Mechaniczne": 3.0,
+        "Stal": 8.0
+      },
+      "outputs": {
+        "Części Mechaniczne": 1200.0,
+        "Maszyny Przemysłowe": 500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Obrabiarki Sterowane Elektrycznie",
+        "produkcja": "Linie Montażowe Elektryczne",
+        "organizacja": "Standaryzacja i Części Wymienne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[REG-4HV-4927]"
+    },
+    "ostatnia_produkcja": {
+      "Części Mechaniczne": 2880.0,
+      "Maszyny Przemysłowe": 1200.0
+    },
+    "rentownosc_ost_rok": -1784700.5414278288,
+    "nazwa": "Fabryka Maszyn"
+  },
+  {
+    "id": "[ID-9XX-4019]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2HV-4034]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Drewno": 8.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Deski": 10000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Piły Tarczowe i Traki",
+        "produkcja": "Mechaniczne Przeróbka",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 3,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[KRS-2HV-4034]"
+    },
+    "ostatnia_produkcja": {
+      "Deski": 72000.0
+    },
+    "rentownosc_ost_rok": -2087644.181267328,
+    "nazwa": "Tartak"
+  },
+  {
+    "id": "[ID-9XX-4180]",
+    "name": "",
+    "wlasciciel_id": "[ID-9HV-4249]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1616,
+      "sredni": 0.5556,
+      "szeregowi": 0.2828,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Stal": 10.0,
+        "Żelazo": 5.0
+      },
+      "outputs": {
+        "Części Mechaniczne": 800.0,
+        "Maszyny Przemysłowe": 300.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Dźwigi Parowe",
+        "produkcja": "Warsztaty Odlewnicze",
+        "organizacja": "Zakłady Państwowe"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[ID-9HV-4249]"
+    },
+    "ostatnia_produkcja": {
+      "Części Mechaniczne": 1920.0,
+      "Maszyny Przemysłowe": 720.0
+    },
+    "rentownosc_ost_rok": -1512281.140499582,
+    "nazwa": "Fabryka Maszyn Ciężkich"
+  },
+  {
+    "id": "[ID-9XX-2099]",
+    "name": "",
+    "wlasciciel_id": "[REG-4HV-9895]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.0816,
+      "sredni": 0.3571,
+      "szeregowi": 0.5612,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Piasek": 15.0,
+        "Wapień": 5.0,
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Szkło": 2000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Piece Szkliste Ręczne",
+        "produkcja": "Tradycyjna Huta Szkła",
+        "organizacja": "Lokalne Huty Szkła"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[REG-4HV-9895]"
+    },
+    "ostatnia_produkcja": {
+      "Szkło": 2880.0
+    },
+    "rentownosc_ost_rok": -654682.0834936546,
+    "nazwa": "Huta Szkła"
+  },
+  {
+    "id": "[ID-9XX-8162]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2HV-1862]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Glina": 6.0,
+        "Maszyny Przemysłowe": 1.0,
+        "Węgiel Kamienny": 2.0
+      },
+      "outputs": {
+        "Cegły": 12000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Automatyzacja Formowania",
+        "produkcja": "Mechaniczne Formowanie",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 3,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[KRS-2HV-1862]"
+    },
+    "ostatnia_produkcja": {
+      "Cegły": 72000.0
+    },
+    "rentownosc_ost_rok": -1139703.4843894406,
+    "nazwa": "Cegielnia (Przemysłowa)"
+  },
+  {
+    "id": "[ID-9XX-7942]",
+    "name": "",
+    "wlasciciel_id": "[ID-9HV-2399]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.2195,
+      "sredni": 0.6951,
+      "szeregowi": 0.0854,
+      "wydajnosc": 2.08,
+      "inputs": {
+        "Drewno": 15.0,
+        "Stal": 20.0,
+        "Żelazo": 10.0
+      },
+      "outputs": {
+        "Pociągi": 5.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Linie Montażowe Parowe",
+        "produkcja": "Pociągi Parowe",
+        "organizacja": "Państwowe Monopole Kolejowe"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[ID-9HV-2399]"
+    },
+    "ostatnia_produkcja": {
+      "Pociągi": 18.0
+    },
+    "rentownosc_ost_rok": -2802505.0819395194,
+    "nazwa": "Fabryka Pociągów"
+  },
+  {
+    "id": "[ID-9XX-6413]",
+    "name": "",
+    "wlasciciel_id": "[REG-4HV-2778]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1930,
+      "eksperci": 0.2778,
+      "sredni": 0.6444,
+      "szeregowi": 0.0778,
+      "wydajnosc": 1.3,
+      "inputs": {
+        "Gaz Ziemny": 5.0,
+        "Siarka": 5.0
+      },
+      "outputs": {
+        "Nawozy": 2000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Piece i Zbiorniki Ręczne",
+        "produkcja": "Proces Habera-Boscha",
+        "organizacja": "Koncern Chemiczny (IG Farben)"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[REG-4HV-2778]"
+    },
+    "ostatnia_produkcja": {
+      "Nawozy": 3200.0
+    },
+    "rentownosc_ost_rok": -1123371.250093313,
+    "nazwa": "Zakłady Chemiczne"
+  },
+  {
+    "id": "[ID-9XX-1093]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2HV-6068]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Drewno": 8.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Deski": 10000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Piły Tarczowe i Traki",
+        "produkcja": "Mechaniczne Przeróbka",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 3,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[KRS-2HV-6068]"
+    },
+    "ostatnia_produkcja": {
+      "Deski": 72000.0
+    },
+    "rentownosc_ost_rok": -2087644.181267328,
+    "nazwa": "Tartak"
+  },
+  {
+    "id": "[ID-9XX-6455]",
+    "name": "",
+    "wlasciciel_id": "[ID-9HV-8037]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1772,
+      "sredni": 0.6329,
+      "szeregowi": 0.1899,
+      "wydajnosc": 1.8,
+      "inputs": {
+        "Drewno": 10.0,
+        "Stal": 8.0,
+        "Żelazo": 5.0
+      },
+      "outputs": {
+        "Maszyny Rolne": 50.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Linie Montażowe Maszynowe",
+        "produkcja": "Proste Narzędzia Rolne",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[ID-9HV-8037]"
+    },
+    "ostatnia_produkcja": {
+      "Maszyny Rolne": 120.0
+    },
+    "rentownosc_ost_rok": -1733549.8038500675,
+    "nazwa": "Fabryka Maszyn Rolnych"
+  },
+  {
+    "id": "[ID-9XX-9584]",
+    "name": "",
+    "wlasciciel_id": "[REG-4HV-5856]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2295,
+      "sredni": 0.7541,
+      "szeregowi": 0.0164,
+      "wydajnosc": 2.73,
+      "inputs": {
+        "Węgiel Kamienny": 10.0,
+        "Żelazo": 20.0
+      },
+      "outputs": {
+        "Stal": 3500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Suwnice Elektryczne i Walcarki",
+        "produkcja": "Piec Martenowski",
+        "organizacja": "Naukowe Zarządzanie (Taylorizm)"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[REG-4HV-5856]"
+    },
+    "ostatnia_produkcja": {
+      "Stal": 11200.0
+    },
+    "rentownosc_ost_rok": -2023189.248313248,
+    "nazwa": "Huta Stali"
+  },
+  {
+    "id": "[ID-9XX-9169]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2HV-1794]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1915,
+      "eksperci": 0.1839,
+      "sredni": 0.8046,
+      "szeregowi": 0.0115,
+      "wydajnosc": 4.536,
+      "inputs": {
+        "Części Mechaniczne": 5.0,
+        "Paliwa": 2.0,
+        "Stal": 15.0
+      },
+      "outputs": {
+        "Ciężarówki": 50.0,
+        "Samochody": 100.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Linia Montażowa Fordowska",
+        "produkcja": "Linia Montażowa",
+        "organizacja": "Masowa Produkcja (Fordyzm)"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 3,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[KRS-2HV-1794]"
+    },
+    "ostatnia_produkcja": {
+      "Ciężarówki": 600.0,
+      "Samochody": 1200.0
+    },
+    "rentownosc_ost_rok": -9417182.726918254,
+    "nazwa": "Fabryka Pojazdów"
+  },
+  {
+    "id": "[ID-9XX-2472]",
+    "name": "",
+    "wlasciciel_id": "[ID-9HV-4265]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1772,
+      "sredni": 0.6329,
+      "szeregowi": 0.1899,
+      "wydajnosc": 1.8,
+      "inputs": {
+        "Drewno": 10.0,
+        "Stal": 8.0,
+        "Żelazo": 5.0
+      },
+      "outputs": {
+        "Maszyny Rolne": 50.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Linie Montażowe Maszynowe",
+        "produkcja": "Proste Narzędzia Rolne",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[ID-9HV-4265]"
+    },
+    "ostatnia_produkcja": {
+      "Maszyny Rolne": 120.0
+    },
+    "rentownosc_ost_rok": -1733549.8038500675,
+    "nazwa": "Fabryka Maszyn Rolnych"
+  },
+  {
+    "id": "[ID-9XX-8104]",
+    "name": "",
+    "wlasciciel_id": "[REG-4HV-7019]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.2195,
+      "sredni": 0.6951,
+      "szeregowi": 0.0854,
+      "wydajnosc": 2.08,
+      "inputs": {
+        "Drewno": 15.0,
+        "Stal": 20.0,
+        "Żelazo": 10.0
+      },
+      "outputs": {
+        "Pociągi": 5.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Linie Montażowe Parowe",
+        "produkcja": "Pociągi Parowe",
+        "organizacja": "Państwowe Monopole Kolejowe"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[REG-4HV-7019]"
+    },
+    "ostatnia_produkcja": {
+      "Pociągi": 18.0
+    },
+    "rentownosc_ost_rok": -2802505.0819395194,
+    "nazwa": "Fabryka Pociągów"
+  },
+  {
+    "id": "[ID-9XX-9606]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2HV-1293]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Drewno": 8.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Deski": 10000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Piły Tarczowe i Traki",
+        "produkcja": "Mechaniczne Przeróbka",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 3,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[KRS-2HV-1293]"
+    },
+    "ostatnia_produkcja": {
+      "Deski": 72000.0
+    },
+    "rentownosc_ost_rok": -2087644.181267328,
+    "nazwa": "Tartak"
+  },
+  {
+    "id": "[ID-9XX-7803]",
+    "name": "",
+    "wlasciciel_id": "[ID-9HV-1271]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1915,
+      "eksperci": 0.1839,
+      "sredni": 0.8046,
+      "szeregowi": 0.0115,
+      "wydajnosc": 4.536,
+      "inputs": {
+        "Części Mechaniczne": 5.0,
+        "Paliwa": 2.0,
+        "Stal": 15.0
+      },
+      "outputs": {
+        "Ciężarówki": 50.0,
+        "Samochody": 100.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Linia Montażowa Fordowska",
+        "produkcja": "Linia Montażowa",
+        "organizacja": "Masowa Produkcja (Fordyzm)"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[ID-9HV-1271]"
+    },
+    "ostatnia_produkcja": {
+      "Ciężarówki": 200.0,
+      "Samochody": 400.0
+    },
+    "rentownosc_ost_rok": -3139060.9089727513,
+    "nazwa": "Fabryka Pojazdów"
+  },
+  {
+    "id": "[ID-9XX-7522]",
+    "name": "",
+    "wlasciciel_id": "[REG-4HV-2396]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1915,
+      "eksperci": 0.1839,
+      "sredni": 0.8046,
+      "szeregowi": 0.0115,
+      "wydajnosc": 4.536,
+      "inputs": {
+        "Części Mechaniczne": 5.0,
+        "Paliwa": 2.0,
+        "Stal": 15.0
+      },
+      "outputs": {
+        "Ciężarówki": 50.0,
+        "Samochody": 100.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Linia Montażowa Fordowska",
+        "produkcja": "Linia Montażowa",
+        "organizacja": "Masowa Produkcja (Fordyzm)"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[REG-4HV-2396]"
+    },
+    "ostatnia_produkcja": {
+      "Ciężarówki": 200.0,
+      "Samochody": 400.0
+    },
+    "rentownosc_ost_rok": -3139060.9089727513,
+    "nazwa": "Fabryka Pojazdów"
+  },
+  {
+    "id": "[ID-9XX-4501]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2HV-2739]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0515,
+      "sredni": 0.2784,
+      "szeregowi": 0.6701,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Wapień": 10.0,
+        "Węgiel Kamienny": 5.0
+      },
+      "outputs": {
+        "Cement": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Piece Rotacyjne Ręczne",
+        "produkcja": "Tradycyjna Cementownia",
+        "organizacja": "Lokalne Cementownie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 3,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[KRS-2HV-2739]"
+    },
+    "ostatnia_produkcja": {
+      "Cement": 14400.0
+    },
+    "rentownosc_ost_rok": -1698284.353533024,
+    "nazwa": "Cementownia"
+  },
+  {
+    "id": "[ID-9XX-9825]",
+    "name": "",
+    "wlasciciel_id": "[ID-9HV-7674]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.2295,
+      "sredni": 0.7541,
+      "szeregowi": 0.0164,
+      "wydajnosc": 2.73,
+      "inputs": {
+        "Węgiel Kamienny": 10.0,
+        "Żelazo": 20.0
+      },
+      "outputs": {
+        "Stal": 3500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Suwnice Elektryczne i Walcarki",
+        "produkcja": "Piec Martenowski",
+        "organizacja": "Naukowe Zarządzanie (Taylorizm)"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[ID-9HV-7674]"
+    },
+    "ostatnia_produkcja": {
+      "Stal": 11200.0
+    },
+    "rentownosc_ost_rok": -2023189.248313248,
+    "nazwa": "Huta Stali"
+  },
+  {
+    "id": "[ID-9XX-1896]",
+    "name": "",
+    "wlasciciel_id": "[REG-4HV-9603]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1772,
+      "sredni": 0.6329,
+      "szeregowi": 0.1899,
+      "wydajnosc": 1.8,
+      "inputs": {
+        "Drewno": 10.0,
+        "Stal": 8.0,
+        "Żelazo": 5.0
+      },
+      "outputs": {
+        "Maszyny Rolne": 50.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Linie Montażowe Maszynowe",
+        "produkcja": "Proste Narzędzia Rolne",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[REG-4HV-9603]"
+    },
+    "ostatnia_produkcja": {
+      "Maszyny Rolne": 120.0
+    },
+    "rentownosc_ost_rok": -1733549.8038500675,
+    "nazwa": "Fabryka Maszyn Rolnych"
+  },
+  {
+    "id": "[ID-9XX-5221]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2HV-7192]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1930,
+      "eksperci": 0.2778,
+      "sredni": 0.6444,
+      "szeregowi": 0.0778,
+      "wydajnosc": 1.3,
+      "inputs": {
+        "Gaz Ziemny": 5.0,
+        "Siarka": 5.0
+      },
+      "outputs": {
+        "Nawozy": 2000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Piece i Zbiorniki Ręczne",
+        "produkcja": "Proces Habera-Boscha",
+        "organizacja": "Koncern Chemiczny (IG Farben)"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 3,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[KRS-2HV-7192]"
+    },
+    "ostatnia_produkcja": {
+      "Nawozy": 9600.0
+    },
+    "rentownosc_ost_rok": -3370113.750279939,
+    "nazwa": "Zakłady Chemiczne"
+  },
+  {
+    "id": "[ID-9XX-1627]",
+    "name": "",
+    "wlasciciel_id": "[ID-9HV-1923]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0515,
+      "sredni": 0.2784,
+      "szeregowi": 0.6701,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Wapień": 10.0,
+        "Węgiel Kamienny": 5.0
+      },
+      "outputs": {
+        "Cement": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Piece Rotacyjne Ręczne",
+        "produkcja": "Tradycyjna Cementownia",
+        "organizacja": "Lokalne Cementownie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[ID-9HV-1923]"
+    },
+    "ostatnia_produkcja": {
+      "Cement": 4800.0
+    },
+    "rentownosc_ost_rok": -566094.7845110078,
+    "nazwa": "Cementownia"
+  },
+  {
+    "id": "[ID-9XX-1005]",
+    "name": "",
+    "wlasciciel_id": "[REG-4HV-9818]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1930,
+      "eksperci": 0.2778,
+      "sredni": 0.6444,
+      "szeregowi": 0.0778,
+      "wydajnosc": 1.3,
+      "inputs": {
+        "Gaz Ziemny": 5.0,
+        "Siarka": 5.0
+      },
+      "outputs": {
+        "Nawozy": 2000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Piece i Zbiorniki Ręczne",
+        "produkcja": "Proces Habera-Boscha",
+        "organizacja": "Koncern Chemiczny (IG Farben)"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[REG-4HV-9818]"
+    },
+    "ostatnia_produkcja": {
+      "Nawozy": 3200.0
+    },
+    "rentownosc_ost_rok": -1123371.250093313,
+    "nazwa": "Zakłady Chemiczne"
+  },
+  {
+    "id": "[ID-9XX-8316]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2HV-8625]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0515,
+      "sredni": 0.2784,
+      "szeregowi": 0.6701,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Wapień": 10.0,
+        "Węgiel Kamienny": 5.0
+      },
+      "outputs": {
+        "Cement": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Piece Rotacyjne Ręczne",
+        "produkcja": "Tradycyjna Cementownia",
+        "organizacja": "Lokalne Cementownie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 3,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[KRS-2HV-8625]"
+    },
+    "ostatnia_produkcja": {
+      "Cement": 14400.0
+    },
+    "rentownosc_ost_rok": -1698284.353533024,
+    "nazwa": "Cementownia"
+  },
+  {
+    "id": "[ID-9XX-9571]",
+    "name": "",
+    "wlasciciel_id": "[ID-9HV-4595]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1930,
+      "eksperci": 0.2778,
+      "sredni": 0.6444,
+      "szeregowi": 0.0778,
+      "wydajnosc": 1.3,
+      "inputs": {
+        "Gaz Ziemny": 5.0,
+        "Siarka": 5.0
+      },
+      "outputs": {
+        "Nawozy": 2000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Piece i Zbiorniki Ręczne",
+        "produkcja": "Proces Habera-Boscha",
+        "organizacja": "Koncern Chemiczny (IG Farben)"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[ID-9HV-4595]"
+    },
+    "ostatnia_produkcja": {
+      "Nawozy": 3200.0
+    },
+    "rentownosc_ost_rok": -1123371.250093313,
+    "nazwa": "Zakłady Chemiczne"
+  },
+  {
+    "id": "[ID-9XX-6142]",
+    "name": "",
+    "wlasciciel_id": "[REG-4HV-9663]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "przemysł_ciężki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1772,
+      "sredni": 0.5949,
+      "szeregowi": 0.2278,
+      "wydajnosc": 1.6,
+      "inputs": {
+        "Ropa Naftowa": 20.0
+      },
+      "outputs": {
+        "Bitumin": 500.0,
+        "Paliwa": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Destylacja Frakcyjna",
+        "produkcja": "Prosta Destylacja",
+        "organizacja": "Małe Rafinerie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region13",
+    "cluster_info": {
+      "region_id": "Anatolia-Region13",
+      "scale_factor": 1,
+      "sector": "przemysł_ciężki",
+      "owner_id": "[REG-4HV-9663]"
+    },
+    "ostatnia_produkcja": {
+      "Bitumin": 600.0,
+      "Paliwa": 1800.0
+    },
+    "rentownosc_ost_rok": -733043.835014308,
+    "nazwa": "Rafineria"
+  }
+]

@@ -1,0 +1,77 @@
+[
+  {
+    "id": "B-ELD-0125",
+    "name": "School",
+    "wlasciciel_id": "KRS-ELD-0125",
+    "rok_budowy": 1966,
+    "sektor_pkb": "educational_services",
+    "pojemnosc_pracownikow": 55,
+    "zatrudnienie_aktualne": 55,
+    "rezerwa_zakladowa": 117193.63418042526,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.45,
+      "sredni": 0.4,
+      "szeregowi": 0.15,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "paper": 10.0,
+        "chemicals": 8.0
+      },
+      "outputs": {
+        "innovation_points": 15.0,
+        "education_slots": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 125,
+    "region_id": "Eldoria-Region9",
+    "cluster_info": {
+      "region_id": "Eldoria-Region9",
+      "scale_factor": 2,
+      "sector": "educational_services",
+      "owner_id": "KRS-ELD-0125"
+    },
+    "ostatnia_produkcja": {
+      "innovation_points": 1.65,
+      "education_slots": 3.3
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 3.0,
+        "condition": 0.7337057966779013,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 1.11,
+      "food": 0.625,
+      "chemicals": 0.44000000000000006,
+      "innovation_points": 0.0,
+      "education_slots": 0.0
+    },
+    "pojemność_magazynu": 1250.0
+  }
+]

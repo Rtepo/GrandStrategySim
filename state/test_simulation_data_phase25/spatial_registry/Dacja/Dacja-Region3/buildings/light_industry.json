@@ -1,0 +1,1879 @@
+[
+  {
+    "id": "B-DAC-0026",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-DAC-0026",
+    "rok_budowy": 1955,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 48,
+    "zatrudnienie_aktualne": 48,
+    "rezerwa_zakladowa": 81950.0,
+    "aktywna_metoda": {
+      "rok": 1965,
+      "eksperci": 0.25,
+      "sredni": 0.4,
+      "szeregowi": 0.35,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "electronic_components": 3.0,
+        "energy": 15.0,
+        "fibers": 25.0
+      },
+      "outputs": {
+        "clothing": 60.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region3",
+    "cluster_info": {
+      "region_id": "Dacja-Region3",
+      "scale_factor": 10,
+      "sector": "light_industry",
+      "owner_id": "KRS-DAC-0026"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 3.187414513869718e-19
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8797419794182049,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "electronic_components": 1.3552527156068805e-20,
+      "energy": 12.330000000000002,
+      "food": 0.5,
+      "clothing": 3.187414513869718e-19,
+      "fibers": 3.5999999999999996
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-DAC-0469",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-DAC-0469",
+    "rok_budowy": 1948,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 1532130.906274268,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 15.0,
+        "energy": 8.0,
+        "chemicals": 3.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "paper": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 83,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region3",
+    "cluster_info": {
+      "region_id": "Dacja-Region3",
+      "scale_factor": 83,
+      "sector": "light_industry",
+      "owner_id": "KRS-DAC-0469"
+    },
+    "ostatnia_produkcja": {
+      "paper": 149.4
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8396862853711102,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 16.800000000000004,
+      "paper": 3.08211363764016,
+      "food": 0.5,
+      "chemicals": 0.4200000000000001,
+      "water": 10.0
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-DAC-0469_Factory_20",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Dacja-Region3",
+      "typ_budynku_docelowy": "Factory",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 1661,
+      "zwiększenie_kapitału": 6114965.172763969,
+      "nowy_budynek": false,
+      "koszt_całkowity": 6292863.25092778,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 3,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 3,
+      "investor_id": "KRS-DAC-0469",
+      "main_contractor_id": "KRS-DAC-0374",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 1258572.6501855562,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 1887858.9752783338,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 1887858.9752783338,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 1258572.6501855562,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 6292863.25092778,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.055184499604638476,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-DAC-0470",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-DAC-0470",
+    "rok_budowy": 1970,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 1276926.5256222915,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 12.0,
+        "energy": 3.0,
+        "steel": 3.0
+      },
+      "outputs": {
+        "furniture": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 68,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region3",
+    "cluster_info": {
+      "region_id": "Dacja-Region3",
+      "scale_factor": 68,
+      "sector": "light_industry",
+      "owner_id": "KRS-DAC-0470"
+    },
+    "ostatnia_produkcja": {
+      "furniture": 68.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7340576844939282,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 6.479999999999998,
+      "furniture": 1.0,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-DAC-0470_Factory_19",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Dacja-Region3",
+      "typ_budynku_docelowy": "Factory",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 1361,
+      "zwiększenie_kapitału": 4939707.246355618,
+      "nowy_budynek": false,
+      "koszt_całkowity": 5074832.567548835,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 4,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 4,
+      "investor_id": "KRS-DAC-0470",
+      "main_contractor_id": "KRS-DAC-0363",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 1014966.513509767,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 1522449.7702646505,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 1522449.7702646505,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 1014966.513509767,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 5074832.567548835,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-DAC-0471",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-DAC-0471",
+    "rok_budowy": 1952,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 101,
+    "zatrudnienie_aktualne": 101,
+    "rezerwa_zakladowa": 1169409.45946455,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "cereal": 10.0,
+        "vegetable": 5.0,
+        "protein": 3.0,
+        "livestock": 3.0
+      },
+      "outputs": {
+        "food": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 61,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Dacja-Region3",
+    "cluster_info": {
+      "region_id": "Dacja-Region3",
+      "scale_factor": 61,
+      "sector": "light_industry",
+      "owner_id": "KRS-DAC-0471"
+    },
+    "ostatnia_produkcja": {
+      "food": 110.898
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6207829641112164,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 6.239999999999999,
+      "food": 0.0021775871653037125,
+      "cereal": 15.149999999999997,
+      "protein": 2.7755575615628914e-17,
+      "livestock": 2.7755575615628914e-17
+    },
+    "pojemność_magazynu": 1010.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-DAC-0471_Factory_21",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Dacja-Region3",
+      "typ_budynku_docelowy": "Factory",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 1233,
+      "zwiększenie_kapitału": 4459877.34200525,
+      "nowy_budynek": false,
+      "koszt_całkowity": 4580554.400223233,
+      "koszt_wydany": 916110.8800446466,
+      "czas_trwania": 0,
+      "turny_minione": 2,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 2,
+      "investor_id": "KRS-DAC-0471",
+      "main_contractor_id": "NEW_Dacja_0_2",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 916110.8800446466,
+          "released": true,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 1374166.3200669698,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 1374166.3200669698,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 916110.8800446466,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 1,
+      "contract_price": 4580554.400223233,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.061447556375976285,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-DAC-0472",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-DAC-0472",
+    "rok_budowy": 1965,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 1140817.5226079044,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 10.0,
+        "energy": 5.0,
+        "silver": 1.0,
+        "luxury": 3.0,
+        "gold": 1.0
+      },
+      "outputs": {
+        "luxury_furniture": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 60,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region3",
+    "cluster_info": {
+      "region_id": "Dacja-Region3",
+      "scale_factor": 60,
+      "sector": "light_industry",
+      "owner_id": "KRS-DAC-0472"
+    },
+    "ostatnia_produkcja": {
+      "luxury_furniture": 30.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8032062231942231,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 9.8,
+      "luxury_furniture": 1.0897561223194223,
+      "food": 0.5,
+      "luxury": 2.7755575615628914e-17
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-DAC-0472_Factory_21",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Dacja-Region3",
+      "typ_budynku_docelowy": "Factory",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 1201,
+      "zwiększenie_kapitału": 4828917.855388139,
+      "nowy_budynek": false,
+      "koszt_całkowity": 4952249.922150157,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 2,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 2,
+      "investor_id": "KRS-DAC-0472",
+      "main_contractor_id": "NEW_Dacja_0_2",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 990449.9844300315,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 1485674.976645047,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 1485674.976645047,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 990449.9844300315,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 4952249.922150157,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-DAC-0473",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-DAC-0473",
+    "rok_budowy": 1974,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 1038735.770347114,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "industrial_fiber": 12.0
+      },
+      "outputs": {
+        "fibers": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 54,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region3",
+    "cluster_info": {
+      "region_id": "Dacja-Region3",
+      "scale_factor": 54,
+      "sector": "light_industry",
+      "owner_id": "KRS-DAC-0473"
+    },
+    "ostatnia_produkcja": {
+      "fibers": 0.8826171310256155
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8841142068374362,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 3.780000000000005,
+      "food": 0.5,
+      "industrial_fiber": 2.4000000000000004,
+      "fibers": 15.707169346409849
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-DAC-0473_Factory_21",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Dacja-Region3",
+      "typ_budynku_docelowy": "Factory",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 1081,
+      "zwiększenie_kapitału": 4459473.46372219,
+      "nowy_budynek": false,
+      "koszt_całkowity": 4579610.858158874,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 2,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 2,
+      "investor_id": "KRS-DAC-0473",
+      "main_contractor_id": "KRS-DAC-0349",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 915922.1716317749,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 1373883.2574476623,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 1373883.2574476623,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 915922.1716317749,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 4579610.858158874,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.04911937907152029,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-DAC-0474",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-DAC-0474",
+    "rok_budowy": 1960,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 101,
+    "zatrudnienie_aktualne": 101,
+    "rezerwa_zakladowa": 963204.3198977532,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "silver": 1.0,
+        "luxury": 5.0,
+        "fibers": 8.0,
+        "gold": 1.0
+      },
+      "outputs": {
+        "luxury_clothing": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 49,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Dacja-Region3",
+    "cluster_info": {
+      "region_id": "Dacja-Region3",
+      "scale_factor": 49,
+      "sector": "light_industry",
+      "owner_id": "KRS-DAC-0474"
+    },
+    "ostatnia_produkcja": {
+      "luxury_clothing": 24.744999999999997
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7073027532060431,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 5.936999999999999,
+      "food": 0.505,
+      "luxury_clothing": 1.0909649280738105,
+      "fibers": 2.6819999999999995
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-DAC-0475",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-DAC-0475",
+    "rok_budowy": 1974,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 936654.0180863236,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 15.0,
+        "energy": 3.0
+      },
+      "outputs": {
+        "planks": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 48,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region3",
+    "cluster_info": {
+      "region_id": "Dacja-Region3",
+      "scale_factor": 48,
+      "sector": "light_industry",
+      "owner_id": "KRS-DAC-0475"
+    },
+    "ostatnia_produkcja": {
+      "planks": 0.0011479204086433928
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6830627833484457,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "planks": 6.47744776143295,
+      "timber": 0.0012624359130859375,
+      "energy": 5.0322524871826175,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-DAC-0476",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-DAC-0476",
+    "rok_budowy": 1973,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 885613.1419559284,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fibers": 10.0
+      },
+      "outputs": {
+        "clothing": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 45,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region3",
+    "cluster_info": {
+      "region_id": "Dacja-Region3",
+      "scale_factor": 45,
+      "sector": "light_industry",
+      "owner_id": "KRS-DAC-0476"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 0.41834019279125434
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6438628915503097,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.13898067273355377,
+      "clothing": 0.41834019279125434,
+      "fibers": 1.227885151480257
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-DAC-0477",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-DAC-0477",
+    "rok_budowy": 1960,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 101,
+    "zatrudnienie_aktualne": 101,
+    "rezerwa_zakladowa": 877285.5117449213,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "fibers": 15.0
+      },
+      "outputs": {
+        "clothing": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 44,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Dacja-Region3",
+    "cluster_info": {
+      "region_id": "Dacja-Region3",
+      "scale_factor": 44,
+      "sector": "light_industry",
+      "owner_id": "KRS-DAC-0477"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 1.1785761136105324
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8345352158937248,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 8.621116333007812,
+      "food": 0.505,
+      "clothing": 1.1785761136105324,
+      "fibers": 0.8053489990234375
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-DAC-0478",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-DAC-0478",
+    "rok_budowy": 1954,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 103,
+    "zatrudnienie_aktualne": 103,
+    "rezerwa_zakladowa": 579224.8875906614,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 3.0,
+        "energy": 5.0,
+        "steel": 8.0,
+        "glass": 5.0
+      },
+      "outputs": {
+        "medical_equipment": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 26,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Dacja-Region3",
+    "cluster_info": {
+      "region_id": "Dacja-Region3",
+      "scale_factor": 26,
+      "sector": "light_industry",
+      "owner_id": "KRS-DAC-0478"
+    },
+    "ostatnia_produkcja": {
+      "medical_equipment": 21.424
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7701553952472878,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.309,
+      "energy": 10.605,
+      "food": 0.515,
+      "glass": 3.0900000000000003,
+      "medical_equipment": 0.824
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-DAC-0479",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-DAC-0479",
+    "rok_budowy": 1957,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 341177.1298983793,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 10.0,
+        "fibers": 20.0
+      },
+      "outputs": {
+        "clothing": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 13,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region3",
+    "cluster_info": {
+      "region_id": "Dacja-Region3",
+      "scale_factor": 13,
+      "sector": "light_industry",
+      "owner_id": "KRS-DAC-0479"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 1.6962386624349435
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.654128874783145,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 16.4575146484375,
+      "food": 0.5,
+      "clothing": 1.6962386624349435,
+      "fibers": 1.0680292968749998
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-DAC-0480",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-DAC-0480",
+    "rok_budowy": 1961,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 101,
+    "zatrudnienie_aktualne": 101,
+    "rezerwa_zakladowa": 310221.37793623033,
+    "aktywna_metoda": {
+      "rok": 1935,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "electronic_components": 5.0,
+        "energy": 5.0,
+        "plastics": 3.0,
+        "steel": 8.0
+      },
+      "outputs": {
+        "agd": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Dacja-Region3",
+    "cluster_info": {
+      "region_id": "Dacja-Region3",
+      "scale_factor": 11,
+      "sector": "light_industry",
+      "owner_id": "KRS-DAC-0480"
+    },
+    "ostatnia_produkcja": {
+      "agd": 13.332
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8247745110812407,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "agd": 1.2120000000000002,
+      "electronic_components": 0.505,
+      "energy": 10.400000000000002,
+      "plastics": 0.30300000000000005,
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-DAC-0481",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-DAC-0481",
+    "rok_budowy": 1973,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 221327.28519034066,
+    "aktywna_metoda": {
+      "rok": 1935,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "chemicals": 10.0
+      },
+      "outputs": {
+        "clothing": 40.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Dacja-Region3",
+    "cluster_info": {
+      "region_id": "Dacja-Region3",
+      "scale_factor": 7,
+      "sector": "light_industry",
+      "owner_id": "KRS-DAC-0481"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 0.4823896952302621
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6353936358675477,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 11.336800000000002,
+      "food": 0.51,
+      "clothing": 0.4823896952302621,
+      "chemicals": 0.10700000000000001
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-DAC-0482",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-DAC-0482",
+    "rok_budowy": 1960,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 89,
+    "zatrudnienie_aktualne": 89,
+    "rezerwa_zakladowa": 201924.93957239127,
+    "aktywna_metoda": {
+      "rok": 1935,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "plastics": 10.0,
+        "chemicals": 3.0
+      },
+      "outputs": {
+        "fibers": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 110,
+    "region_id": "Dacja-Region3",
+    "cluster_info": {
+      "region_id": "Dacja-Region3",
+      "scale_factor": 5,
+      "sector": "light_industry",
+      "owner_id": "KRS-DAC-0482"
+    },
+    "ostatnia_produkcja": {
+      "fibers": 8.9
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6107079646442063,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 8.39,
+      "food": 0.55,
+      "chemicals": 0.534,
+      "fibers": 0.01322770444345267
+    },
+    "pojemność_magazynu": 1100.0
+  },
+  {
+    "id": "B-DAC-0483",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-DAC-0483",
+    "rok_budowy": 1948,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 118,
+    "zatrudnienie_aktualne": 118,
+    "rezerwa_zakladowa": 193329.78610025137,
+    "aktywna_metoda": {
+      "rok": 1965,
+      "eksperci": 0.25,
+      "sredni": 0.4,
+      "szeregowi": 0.35,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "electronic_components": 3.0,
+        "energy": 15.0,
+        "fibers": 25.0
+      },
+      "outputs": {
+        "clothing": 60.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 146,
+    "region_id": "Dacja-Region3",
+    "cluster_info": {
+      "region_id": "Dacja-Region3",
+      "scale_factor": 2,
+      "sector": "light_industry",
+      "owner_id": "KRS-DAC-0483"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 14.16
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6727264253565645,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 33.36,
+      "food": 0.73,
+      "fibers": 10.742000000000003
+    },
+    "pojemność_magazynu": 1460.0
+  },
+  {
+    "id": "B-DAC-0484",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-DAC-0484",
+    "rok_budowy": 1972,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 104,
+    "zatrudnienie_aktualne": 104,
+    "rezerwa_zakladowa": 170104.88096460392,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 15.0,
+        "energy": 8.0,
+        "chemicals": 3.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "paper": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 128,
+    "region_id": "Dacja-Region3",
+    "cluster_info": {
+      "region_id": "Dacja-Region3",
+      "scale_factor": 2,
+      "sector": "light_industry",
+      "owner_id": "KRS-DAC-0484"
+    },
+    "ostatnia_produkcja": {
+      "paper": 0.2999167621651199
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7414072680568561,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 3.007656250000002,
+      "energy": 13.953416666666673,
+      "paper": 9.466610300503223,
+      "food": 0.64,
+      "chemicals": 0.04353124999999999,
+      "water": 7.971770833333335
+    },
+    "pojemność_magazynu": 1280.0
+  },
+  {
+    "id": "B-DAC-0485",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-DAC-0485",
+    "rok_budowy": 1955,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 92,
+    "zatrudnienie_aktualne": 92,
+    "rezerwa_zakladowa": 139378.8030199818,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 12.0,
+        "energy": 3.0,
+        "steel": 3.0
+      },
+      "outputs": {
+        "furniture": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 138,
+    "region_id": "Dacja-Region3",
+    "cluster_info": {
+      "region_id": "Dacja-Region3",
+      "scale_factor": 1,
+      "sector": "light_industry",
+      "owner_id": "KRS-DAC-0485"
+    },
+    "ostatnia_produkcja": {
+      "furniture": 0.9199999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.616164319909386,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "planks": 1.656,
+      "energy": 5.762999999999998,
+      "furniture": 1.38,
+      "food": 0.6900000000000001
+    },
+    "pojemność_magazynu": 1380.0
+  },
+  {
+    "id": "B-DAC-0486",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-DAC-0486",
+    "rok_budowy": 1969,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 79,
+    "zatrudnienie_aktualne": 79,
+    "rezerwa_zakladowa": 119205.94169085415,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "cereal": 10.0,
+        "vegetable": 5.0,
+        "protein": 3.0,
+        "livestock": 3.0
+      },
+      "outputs": {
+        "food": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 117,
+    "region_id": "Dacja-Region3",
+    "cluster_info": {
+      "region_id": "Dacja-Region3",
+      "scale_factor": 1,
+      "sector": "light_industry",
+      "owner_id": "KRS-DAC-0486"
+    },
+    "ostatnia_produkcja": {
+      "food": 1.422
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6807273979277522,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 4.4910000000000005,
+      "food": 0.003189659835944452,
+      "cereal": 11.379999999999999,
+      "vegetable": 9.251858538542966e-18
+    },
+    "pojemność_magazynu": 1170.0
+  },
+  {
+    "id": "B-DAC-0487",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-DAC-0487",
+    "rok_budowy": 1959,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 37,
+    "zatrudnienie_aktualne": 28,
+    "rezerwa_zakladowa": 55637.35770347114,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 10.0,
+        "energy": 5.0,
+        "silver": 1.0,
+        "luxury": 3.0,
+        "gold": 1.0
+      },
+      "outputs": {
+        "luxury_furniture": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 54,
+    "region_id": "Dacja-Region3",
+    "cluster_info": {
+      "region_id": "Dacja-Region3",
+      "scale_factor": 1,
+      "sector": "light_industry",
+      "owner_id": "KRS-DAC-0487"
+    },
+    "ostatnia_produkcja": {
+      "luxury_furniture": 0.14500000000000002
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6906477278996924,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "planks": 2.7755575615628914e-17,
+      "energy": 3.084999999999999,
+      "luxury_furniture": 0.5823884773065835,
+      "food": 0.27
+    },
+    "pojemność_magazynu": 540.0
+  },
+  {
+    "id": "B-DAC-0488",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-DAC-0488",
+    "rok_budowy": 1950,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 1370.136253767984,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "industrial_fiber": 12.0
+      },
+      "outputs": {
+        "fibers": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 1,
+    "region_id": "Dacja-Region3",
+    "cluster_info": {
+      "region_id": "Dacja-Region3",
+      "scale_factor": 1,
+      "sector": "light_industry",
+      "owner_id": "KRS-DAC-0488"
+    },
+    "ostatnia_produkcja": {
+      "fibers": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.852530201379897,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.006,
+      "food": 0.005,
+      "fibers": 0.03284566560413969
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

@@ -44,6 +44,7 @@ fn main() {
             commands::bank_queries::get_banking_aggregates,
             commands::region_queries::get_regions,
             commands::region_queries::get_region_detail,
+            commands::region_queries::get_megaregion_detail,
             commands::parliament_queries::get_parliament,
             commands::parliament_queries::get_government,
         ])

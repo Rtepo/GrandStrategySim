@@ -1,0 +1,73 @@
+[
+  {
+    "id": "B-PER-0011",
+    "name": "Public Office",
+    "wlasciciel_id": "KRS-PER-0011",
+    "rok_budowy": 1894,
+    "sektor_pkb": "public_services",
+    "pojemnosc_pracownikow": 112,
+    "zatrudnienie_aktualne": 41,
+    "rezerwa_zakladowa": 33950.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 5.0,
+        "food": 4.0,
+        "clothing": 2.0
+      },
+      "outputs": {
+        "local_services": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 137,
+    "region_id": "Persja-Region13",
+    "cluster_info": {
+      "region_id": "Persja-Region13",
+      "scale_factor": 1,
+      "sector": "public_services",
+      "owner_id": "KRS-PER-0011"
+    },
+    "ostatnia_produkcja": {
+      "local_services": 2.48
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "office_machinery",
+        "count": 3.0,
+        "condition": 0.8993378286953335,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.685,
+      "food": 0.548,
+      "local_services": 2.74
+    },
+    "pojemność_magazynu": 1370.0
+  }
+]

@@ -1,0 +1,1085 @@
+[
+  {
+    "id": "B-HEL-0062",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-HEL-0062",
+    "rok_budowy": 1968,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 93,
+    "zatrudnienie_aktualne": 93,
+    "rezerwa_zakladowa": 125900.0,
+    "aktywna_metoda": {
+      "rok": 1950,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 10.0,
+        "construction_machinery": 5.0,
+        "steel": 15.0
+      },
+      "outputs": {
+        "construction_services": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 115,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 4,
+      "sector": "construction",
+      "owner_id": "KRS-HEL-0062"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 18.6
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8094308336365754,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 2.08,
+      "food": 0.5750000000000001,
+      "construction_services": 5.75
+    },
+    "pojemność_magazynu": 1150.0
+  },
+  {
+    "id": "B-HEL-1940",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-HEL-1940",
+    "rok_budowy": 1962,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 73,
+    "rezerwa_zakladowa": 3753413.399446518,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 30,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 30,
+      "sector": "construction",
+      "owner_id": "KRS-HEL-1940"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 21.9,
+      "renovation_services": 10.95
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.749767225587502,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 1.0915498231727052,
+      "construction_services": 1.7114950670705005,
+      "renovation_services": 0.8557475335352502
+    },
+    "pojemność_magazynu": 1010.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-HEL-1940_Construction_Company_19",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Helwecja-Region15",
+      "typ_budynku_docelowy": "Construction Company",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 443,
+      "zwiększenie_kapitału": 13625989.759957332,
+      "nowy_budynek": false,
+      "koszt_całkowity": 13967082.075096369,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 4,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 4,
+      "investor_id": "KRS-HEL-1940",
+      "main_contractor_id": "KRS-HEL-2028",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 2793416.4150192738,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 4190124.6225289106,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 4190124.6225289106,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 2793416.4150192738,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 13967082.075096369,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-HEL-1941",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-HEL-1941",
+    "rok_budowy": 1954,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 73,
+    "rezerwa_zakladowa": 3631261.286131634,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 29,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 29,
+      "sector": "construction",
+      "owner_id": "KRS-HEL-1941"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 42.34,
+      "renovation_services": 16.936
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8805207349224459,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.1574094965083148,
+      "food": 0.505,
+      "construction_services": 2.02,
+      "renovation_services": 0.808
+    },
+    "pojemność_magazynu": 1010.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-HEL-1941_Construction_Company_18",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Helwecja-Region15",
+      "typ_budynku_docelowy": "Construction Company",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 428,
+      "zwiększenie_kapitału": 13135608.63749517,
+      "nowy_budynek": false,
+      "koszt_całkowity": 13514950.58975987,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 5,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 5,
+      "investor_id": "KRS-HEL-1941",
+      "main_contractor_id": "KRS-HEL-0113",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 2702990.1179519743,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 4054485.1769279605,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 4054485.1769279605,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 2702990.1179519743,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 13514950.58975987,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.048898900890928534,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-HEL-1942",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-HEL-1942",
+    "rok_budowy": 1959,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 2855668.6659846976,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 22,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 22,
+      "sector": "construction",
+      "owner_id": "KRS-HEL-1942"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 49.5,
+      "renovation_services": 16.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.6300191729863448,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 1.4058921026782365,
+      "construction_services": 3.1199999999999997,
+      "renovation_services": 1.04
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-HEL-1943",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-HEL-1943",
+    "rok_budowy": 1955,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 2352547.090351116,
+    "aktywna_metoda": {
+      "rok": 1950,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 10.0,
+        "construction_machinery": 5.0,
+        "steel": 15.0
+      },
+      "outputs": {
+        "construction_services": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 18,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 18,
+      "sector": "construction",
+      "owner_id": "KRS-HEL-1943"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 67.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.6768747667659968,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.52,
+      "construction_services": 5.2
+    },
+    "pojemność_magazynu": 1040.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-HEL-1943_Construction_Company_16",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Helwecja-Region15",
+      "typ_budynku_docelowy": "Construction Company",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {
+        "cement": 0.75
+      },
+      "zwiększenie_pojemności": 274,
+      "zwiększenie_kapitału": 8528366.04782794,
+      "nowy_budynek": false,
+      "koszt_całkowity": 8746232.473034285,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 7,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 1,
+      "investor_id": "KRS-HEL-1943",
+      "main_contractor_id": "KRS-HEL-1934",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 1749246.4946068572,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 2623869.7419102853,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 2623869.7419102853,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 1749246.4946068572,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 8746232.473034285,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.04230903107911607,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-HEL-1944",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-HEL-1944",
+    "rok_budowy": 1963,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 2100086.3025343255,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 16,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 16,
+      "sector": "construction",
+      "owner_id": "KRS-HEL-1944"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 12.0,
+      "renovation_services": 6.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.6747497224750804,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.8865046928857958,
+      "construction_services": 2.23997217560815,
+      "renovation_services": 1.119986087804075
+    },
+    "pojemność_magazynu": 1040.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-HEL-1944_Construction_Company_21",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Helwecja-Region15",
+      "typ_budynku_docelowy": "Construction Company",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 244,
+      "zwiększenie_kapitału": 4144707.3045825884,
+      "nowy_budynek": false,
+      "koszt_całkowity": 4254699.286883899,
+      "koszt_wydany": 850939.8573767799,
+      "czas_trwania": 0,
+      "turny_minione": 2,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 2,
+      "investor_id": "KRS-HEL-1944",
+      "main_contractor_id": "KRS-HEL-1952",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 850939.8573767799,
+          "released": true,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 1276409.7860651696,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 1276409.7860651696,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 850939.8573767799,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 1,
+      "contract_price": 4254699.286883899,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-HEL-1945",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-HEL-1945",
+    "rok_budowy": 1973,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 76,
+    "zatrudnienie_aktualne": 76,
+    "rezerwa_zakladowa": 1613077.8492747897,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 12,
+      "sector": "construction",
+      "owner_id": "KRS-HEL-1945"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 18.240000000000002,
+      "renovation_services": 7.296
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.6497168822854535,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.197409496508315,
+      "food": 0.525,
+      "construction_services": 2.1,
+      "renovation_services": 0.84
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-HEL-1946",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-HEL-1946",
+    "rok_budowy": 1964,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 54,
+    "zatrudnienie_aktualne": 54,
+    "rezerwa_zakladowa": 1181653.8616144897,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 9,
+      "sector": "construction",
+      "owner_id": "KRS-HEL-1946"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 14.58,
+      "renovation_services": 4.859999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8031496401463696,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.5299999999999998,
+      "food": 0.902579822357902,
+      "construction_services": 3.0599999999999996,
+      "renovation_services": 1.02
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-HEL-1947",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-HEL-1947",
+    "rok_budowy": 1973,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 33,
+    "zatrudnienie_aktualne": 33,
+    "rezerwa_zakladowa": 743720.4470896858,
+    "aktywna_metoda": {
+      "rok": 1950,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 10.0,
+        "construction_machinery": 5.0,
+        "steel": 15.0
+      },
+      "outputs": {
+        "construction_services": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 115,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 5,
+      "sector": "construction",
+      "owner_id": "KRS-HEL-1947"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 8.25
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7080373630876418,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.15,
+      "food": 0.5750000000000001,
+      "construction_services": 5.75
+    },
+    "pojemność_magazynu": 1150.0
+  },
+  {
+    "id": "B-HEL-1948",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-HEL-1948",
+    "rok_budowy": 1974,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 68,
+    "zatrudnienie_aktualne": 68,
+    "rezerwa_zakladowa": 589171.5756335814,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 4,
+      "sector": "construction",
+      "owner_id": "KRS-HEL-1948"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 2.72,
+      "renovation_services": 1.36
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.6723529789136419,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.3152256580301667,
+      "construction_services": 2.2394753862807044,
+      "renovation_services": 1.1197376931403522
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-HEL-1949",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-HEL-1949",
+    "rok_budowy": 1956,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 63,
+    "zatrudnienie_aktualne": 63,
+    "rezerwa_zakladowa": 559704.7577499939,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 131,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 3,
+      "sector": "construction",
+      "owner_id": "KRS-HEL-1949"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 3.7800000000000002,
+      "renovation_services": 1.512
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.6393351492424239,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.3518318412219108,
+      "food": 0.655,
+      "construction_services": 2.62,
+      "renovation_services": 1.048
+    },
+    "pojemność_magazynu": 1310.0
+  }
+]

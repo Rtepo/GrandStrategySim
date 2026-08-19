@@ -1,0 +1,1817 @@
+[
+    {
+        "id": "[ID-9XX-5245]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[KRS-2XX-9054]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-9054]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7344]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[ID-9XX-3673]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-3673]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4845]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[REG-4XX-5735]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-5735]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4810]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[KRS-2XX-9390]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-9390]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8780]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[ID-9XX-9556]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-9556]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8166]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[REG-4XX-4776]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-4776]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1252]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[KRS-2XX-9078]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-9078]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5872]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[ID-9XX-2235]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-2235]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1515]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[REG-4XX-2705]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-2705]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8900]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[KRS-2XX-5173]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-5173]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6012]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[ID-9XX-8922]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-8922]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1569]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[REG-4XX-8596]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-8596]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3109]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[KRS-2XX-6518]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-6518]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8734]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[ID-9XX-2082]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-2082]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2091]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[REG-4XX-9780]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-9780]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7960]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[KRS-2XX-3384]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-3384]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4564]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[ID-9XX-1359]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-1359]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4217]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[REG-4XX-5019]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-5019]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1534]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[KRS-2XX-1390]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-1390]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3779]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[ID-9XX-1673]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-1673]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2914]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[REG-4XX-6455]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-6455]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6109]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[KRS-2XX-6213]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-6213]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4857]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[ID-9XX-2887]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-2887]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8147]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[REG-4XX-1166]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-1166]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6747]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[KRS-2XX-8704]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-8704]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3869]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[ID-9XX-4362]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-4362]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5565]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[REG-4XX-5238]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-5238]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6800]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[KRS-2XX-6554]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-6554]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8083]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[ID-9XX-3682]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-3682]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5405]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[REG-4XX-7026]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-7026]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7495]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[KRS-2XX-8539]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-8539]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6270]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[ID-9XX-9108]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-9108]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5426]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[REG-4XX-7734]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-7734]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3204]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[KRS-2XX-1598]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-1598]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7000]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[ID-9XX-2613]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-2613]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4079]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[REG-4XX-4339]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-4339]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5697]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[KRS-2XX-4412]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-4412]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2032]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[ID-9XX-2194]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-2194]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7623]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[REG-4XX-3877]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-3877]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2224]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[KRS-2XX-2839]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-2839]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9180]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[ID-9XX-1191]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-1191]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6446]",
+        "nazwa": "Elektrownia Wodna",
+        "wlasciciel_id": "[REG-4XX-6561]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 600,
+        "zatrudnienie_aktualne": 480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Energia": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Zapory i Turbiny",
+                "produkcja": "Mała Elektrownia Wodna",
+                "organizacja": "Lokalne Elektrownie Wodne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "brak",
+        "moc_zainstalowana_mw": 300,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-6561]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4274]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[KRS-2XX-8571]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[KRS-2XX-8571]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2603]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[ID-9XX-3093]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[ID-9XX-3093]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1018]",
+        "nazwa": "Elektrownia Węglowa",
+        "wlasciciel_id": "[REG-4XX-3509]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "pojemnosc_pracownikow": 500,
+        "zatrudnienie_aktualne": 400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0667,
+            "sredni": 0.5,
+            "szeregowi": 0.4333,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Energia": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczne Obsługi Kotłów",
+                "produkcja": "Generacja Węgla Brunatnego",
+                "organizacja": "Lokalne Elektrownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "paliwo": "węgiel",
+        "moc_zainstalowana_mw": 500,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region10",
+        "cluster_info": {
+            "region_id": "Iberia-Region10",
+            "scale_factor": 1,
+            "sector": "energetyka",
+            "owner_id": "[REG-4XX-3509]"
+        }
+    }
+]

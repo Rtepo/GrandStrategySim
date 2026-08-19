@@ -1,0 +1,834 @@
+[
+  {
+    "id": "B-LEC-0230",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-LEC-0230",
+    "rok_budowy": 1883,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 110,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 22850.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 2.0,
+        "fuels": 5.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "oil": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 150,
+    "region_id": "Lechia-Region13",
+    "cluster_info": {
+      "region_id": "Lechia-Region13",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-LEC-0230"
+    },
+    "ostatnia_produkcja": {
+      "oil": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7378033417026987,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.12,
+      "fuels": 0.30000000000000004,
+      "food": 0.30000000000000004,
+      "oil": 7.831104350657844
+    },
+    "pojemność_magazynu": 1500.0,
+    "deposit_id": "Formation-3/oil"
+  },
+  {
+    "id": "B-LEC-0231",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-LEC-0231",
+    "rok_budowy": 1873,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 110,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 22850.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "hard_coal": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 150,
+    "region_id": "Lechia-Region13",
+    "cluster_info": {
+      "region_id": "Lechia-Region13",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-LEC-0231"
+    },
+    "ostatnia_produkcja": {
+      "hard_coal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8163240938798816,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.12,
+      "food": 0.30000000000000004,
+      "hard_coal": 2.632506009794513
+    },
+    "pojemność_magazynu": 1500.0,
+    "deposit_id": "Formation-3/uranium"
+  },
+  {
+    "id": "B-LEC-0781",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-LEC-0781",
+    "rok_budowy": 1893,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 72,
+    "zatrudnienie_aktualne": 72,
+    "rezerwa_zakladowa": 265929.81041956134,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 2.0,
+        "fuels": 5.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "oil": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 33,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Lechia-Region13",
+    "cluster_info": {
+      "region_id": "Lechia-Region13",
+      "scale_factor": 33,
+      "sector": "mining",
+      "owner_id": "KRS-LEC-0781"
+    },
+    "ostatnia_produkcja": {
+      "oil": 80.19
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9359554542294659,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "oil": 6.885878877406387
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-LEC-0782",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-LEC-0782",
+    "rok_budowy": 1877,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 74,
+    "zatrudnienie_aktualne": 74,
+    "rezerwa_zakladowa": 255517.20016565244,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "copper": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 31,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Lechia-Region13",
+    "cluster_info": {
+      "region_id": "Lechia-Region13",
+      "scale_factor": 31,
+      "sector": "mining",
+      "owner_id": "KRS-LEC-0782"
+    },
+    "ostatnia_produkcja": {
+      "copper": 20.336
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8894972332446077,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "copper": 1.8610811844596775,
+      "food": 2.7755575615628914e-17
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-LEC-0783",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-LEC-0783",
+    "rok_budowy": 1881,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 72,
+    "zatrudnienie_aktualne": 72,
+    "rezerwa_zakladowa": 181336.5402797076,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "stone": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 22,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Lechia-Region13",
+    "cluster_info": {
+      "region_id": "Lechia-Region13",
+      "scale_factor": 22,
+      "sector": "mining",
+      "owner_id": "KRS-LEC-0783"
+    },
+    "ostatnia_produkcja": {
+      "stone": 44.55
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7021935734864287,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "stone": 5.555159935446214
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-LEC-0784",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-LEC-0784",
+    "rok_budowy": 1899,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 72,
+    "zatrudnienie_aktualne": 72,
+    "rezerwa_zakladowa": 165955.9457088251,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "iron": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 20,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Lechia-Region13",
+    "cluster_info": {
+      "region_id": "Lechia-Region13",
+      "scale_factor": 20,
+      "sector": "mining",
+      "owner_id": "KRS-LEC-0784"
+    },
+    "ostatnia_produkcja": {
+      "iron": 19.44
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7071997767761159,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "iron": 2.668358679876091
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-LEC-0785",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-LEC-0785",
+    "rok_budowy": 1890,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 74,
+    "zatrudnienie_aktualne": 74,
+    "rezerwa_zakladowa": 153543.8581607014,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "brown_coal": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 18,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Lechia-Region13",
+    "cluster_info": {
+      "region_id": "Lechia-Region13",
+      "scale_factor": 18,
+      "sector": "mining",
+      "owner_id": "KRS-LEC-0785"
+    },
+    "ostatnia_produkcja": {
+      "brown_coal": 26.567999999999998
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8380910510320523,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 2.7755575615628914e-17,
+      "brown_coal": 4.1578663398117754
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-LEC-0786",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-LEC-0786",
+    "rok_budowy": 1876,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 83789.05583604041,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "limestone": 22.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Lechia-Region13",
+    "cluster_info": {
+      "region_id": "Lechia-Region13",
+      "scale_factor": 9,
+      "sector": "mining",
+      "owner_id": "KRS-LEC-0786"
+    },
+    "ostatnia_produkcja": {
+      "limestone": 16.434
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.754372893205655,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "limestone": 5.072213662209258
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-LEC-0787",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-LEC-0787",
+    "rok_budowy": 1898,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 96,
+    "zatrudnienie_aktualne": 96,
+    "rezerwa_zakladowa": 46222.86833178413,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "sand": 20.0,
+        "gravel": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 131,
+    "region_id": "Lechia-Region13",
+    "cluster_info": {
+      "region_id": "Lechia-Region13",
+      "scale_factor": 3,
+      "sector": "mining",
+      "owner_id": "KRS-LEC-0787"
+    },
+    "ostatnia_produkcja": {
+      "sand": 6.36,
+      "gravel": 4.7700000000000005
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6884373522549384,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "sand": 1.8905015065277924,
+      "food": 2.7755575615628914e-17,
+      "gravel": 1.417876129895844
+    },
+    "pojemność_magazynu": 1310.0
+  },
+  {
+    "id": "B-LEC-0788",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-LEC-0788",
+    "rok_budowy": 1877,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 83,
+    "zatrudnienie_aktualne": 83,
+    "rezerwa_zakladowa": 39920.10779764585,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "clay": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 113,
+    "region_id": "Lechia-Region13",
+    "cluster_info": {
+      "region_id": "Lechia-Region13",
+      "scale_factor": 3,
+      "sector": "mining",
+      "owner_id": "KRS-LEC-0788"
+    },
+    "ostatnia_produkcja": {
+      "clay": 5.5200000000000005
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8620502793494498,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "clay": 5.135018164930248
+    },
+    "pojemność_magazynu": 1130.0
+  },
+  {
+    "id": "B-LEC-0789",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-LEC-0789",
+    "rok_budowy": 1894,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 45,
+    "zatrudnienie_aktualne": 45,
+    "rezerwa_zakladowa": 12014.178371264752,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "salt": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 60,
+    "region_id": "Lechia-Region13",
+    "cluster_info": {
+      "region_id": "Lechia-Region13",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-LEC-0789"
+    },
+    "ostatnia_produkcja": {
+      "salt": 0.882
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8511907653935677,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "salt": 2.450238449435385
+    },
+    "pojemność_magazynu": 600.0
+  },
+  {
+    "id": "B-LEC-0790",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-LEC-0790",
+    "rok_budowy": 1896,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 18,
+    "zatrudnienie_aktualne": 18,
+    "rezerwa_zakladowa": 4845.671348505901,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "hard_coal": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 24,
+    "region_id": "Lechia-Region13",
+    "cluster_info": {
+      "region_id": "Lechia-Region13",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-LEC-0790"
+    },
+    "ostatnia_produkcja": {
+      "hard_coal": 0.2
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9726609939183971,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 3.469446951953614e-18,
+      "hard_coal": 0.5536247170838186
+    },
+    "pojemność_magazynu": 240.0
+  }
+]

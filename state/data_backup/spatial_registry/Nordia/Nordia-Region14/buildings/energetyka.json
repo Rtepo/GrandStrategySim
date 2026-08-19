@@ -1,0 +1,77 @@
+[
+    {
+        "id": "[ID-9XX-4390]",
+        "nazwa": "Elektrownia Węglowa",
+        "rodzaj": "Węglowa",
+        "typ_energii": "Nieodnawialne",
+        "wlasciciel_id": "Państwo",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "moc_zainstalowana_mw": 500,
+        "wymagana_ziemia_ha": 50,
+        "zuzycie_paliwa": "węgiel",
+        "stan_techniczny": 100.0,
+        "rentownosc_ost_rok": 0.0,
+        "pojemnosc_pracownikow": 250,
+        "zatrudnienie_aktualne": 200,
+        "aktywna_metoda": {
+            "automatyzacja": "Przekaźniki Elektromechaniczne",
+            "produkcja": "Węgiel Kamienny",
+            "organizacja": "Narodowa Sieć Przesyłowa"
+        },
+        "status": "Aktywna",
+        "scale_factor": 1,
+        "powierzchnia_ha": 50,
+        "region_id": "Nordia-Region14"
+    },
+    {
+        "id": "[ID-9XX-6522]",
+        "nazwa": "Elektrownia Wodna",
+        "rodzaj": "Wodna",
+        "typ_energii": "OZE",
+        "wlasciciel_id": "Państwo",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "moc_zainstalowana_mw": 3000,
+        "wymagana_ziemia_ha": 200,
+        "zuzycie_paliwa": "brak",
+        "stan_techniczny": 100.0,
+        "rentownosc_ost_rok": 0.0,
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "aktywna_metoda": {
+            "automatyzacja": "Przekaźniki Elektromechaniczne",
+            "produkcja": "Węgiel Kamienny",
+            "organizacja": "Narodowa Sieć Przesyłowa"
+        },
+        "status": "Aktywna",
+        "scale_factor": 10,
+        "powierzchnia_ha": 2000,
+        "region_id": "Nordia-Region14"
+    },
+    {
+        "id": "[ID-9XX-8960]",
+        "nazwa": "Elektrownia Wodna",
+        "rodzaj": "Wodna",
+        "typ_energii": "OZE",
+        "wlasciciel_id": "Państwo",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "moc_zainstalowana_mw": 600,
+        "wymagana_ziemia_ha": 200,
+        "zuzycie_paliwa": "brak",
+        "stan_techniczny": 100.0,
+        "rentownosc_ost_rok": 0.0,
+        "pojemnosc_pracownikow": 300,
+        "zatrudnienie_aktualne": 240,
+        "aktywna_metoda": {
+            "automatyzacja": "Przekaźniki Elektromechaniczne",
+            "produkcja": "Węgiel Kamienny",
+            "organizacja": "Narodowa Sieć Przesyłowa"
+        },
+        "status": "Aktywna",
+        "scale_factor": 2,
+        "powierzchnia_ha": 400,
+        "region_id": "Nordia-Region14"
+    }
+]

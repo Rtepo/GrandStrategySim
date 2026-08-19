@@ -1,0 +1,1101 @@
+[
+  {
+    "id": "B-ANG-0018",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ANG-0018",
+    "rok_budowy": 1878,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 67,
+    "zatrudnienie_aktualne": 30,
+    "rezerwa_zakladowa": 80750.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "lead": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 150,
+    "region_id": "Anglia-Region9",
+    "cluster_info": {
+      "region_id": "Anglia-Region9",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-ANG-0018"
+    },
+    "ostatnia_produkcja": {
+      "lead": 0.03
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.982,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9421120980951951,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "lead": 2.7693342927071116
+    },
+    "pojemność_magazynu": 1500.0,
+    "deposit_id": "Formation-0/lead"
+  },
+  {
+    "id": "B-ANG-0019",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ANG-0019",
+    "rok_budowy": 1885,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 750,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 243750.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "hard_coal": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 150,
+    "region_id": "Anglia-Region9",
+    "cluster_info": {
+      "region_id": "Anglia-Region9",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-ANG-0019"
+    },
+    "ostatnia_produkcja": {
+      "hard_coal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.982,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8747400083880551,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "hard_coal": 3.4300100755204506
+    },
+    "pojemność_magazynu": 1500.0,
+    "deposit_id": "Formation-2/brown_coal"
+  },
+  {
+    "id": "B-ANG-0020",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ANG-0020",
+    "rok_budowy": 1879,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 40,
+    "zatrudnienie_aktualne": 21,
+    "rezerwa_zakladowa": 200300.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "hard_coal": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 150,
+    "region_id": "Anglia-Region9",
+    "cluster_info": {
+      "region_id": "Anglia-Region9",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-ANG-0020"
+    },
+    "ostatnia_produkcja": {
+      "hard_coal": 0.0225
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.982,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9100513135598297,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "hard_coal": 3.4466026719716925
+    },
+    "pojemność_magazynu": 1500.0,
+    "deposit_id": "Formation-2/hard_coal"
+  },
+  {
+    "id": "B-ANG-0021",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ANG-0021",
+    "rok_budowy": 1882,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 40,
+    "zatrudnienie_aktualne": 16,
+    "rezerwa_zakladowa": 93250.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "hard_coal": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 150,
+    "region_id": "Anglia-Region9",
+    "cluster_info": {
+      "region_id": "Anglia-Region9",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-ANG-0021"
+    },
+    "ostatnia_produkcja": {
+      "hard_coal": 0.0225
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.982,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8229665847845273,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "hard_coal": 3.405682016260856
+    },
+    "pojemność_magazynu": 1500.0,
+    "deposit_id": "Formation-2/peat"
+  },
+  {
+    "id": "B-ANG-0897",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ANG-0897",
+    "rok_budowy": 1886,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 301,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 470589.84820194985,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 2.0,
+        "fuels": 5.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "oil": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 32,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Anglia-Region9",
+    "cluster_info": {
+      "region_id": "Anglia-Region9",
+      "scale_factor": 32,
+      "sector": "mining",
+      "owner_id": "KRS-ANG-0897"
+    },
+    "ostatnia_produkcja": {
+      "oil": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.982,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8579635490150183,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 1.3877787807814457e-17,
+      "oil": 6.912672807501279
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ANG-0898",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ANG-0898",
+    "rok_budowy": 1893,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 224,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 443058.2720633744,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "copper": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 31,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Anglia-Region9",
+    "cluster_info": {
+      "region_id": "Anglia-Region9",
+      "scale_factor": 31,
+      "sector": "mining",
+      "owner_id": "KRS-ANG-0898"
+    },
+    "ostatnia_produkcja": {
+      "copper": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.982,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8759323410380931,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "copper": 1.8845182732073469
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-ANG-0899",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ANG-0899",
+    "rok_budowy": 1874,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 178,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 406732.7798904238,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "stone": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 30,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region9",
+    "cluster_info": {
+      "region_id": "Anglia-Region9",
+      "scale_factor": 30,
+      "sector": "mining",
+      "owner_id": "KRS-ANG-0899"
+    },
+    "ostatnia_produkcja": {
+      "stone": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.982,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.670027001695712,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "stone": 5.5557069150122205,
+      "food": 6.938893903907228e-18
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-0900",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ANG-0900",
+    "rok_budowy": 1873,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 206,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 365850.2194059471,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "iron": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 25,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Anglia-Region9",
+    "cluster_info": {
+      "region_id": "Anglia-Region9",
+      "scale_factor": 25,
+      "sector": "mining",
+      "owner_id": "KRS-ANG-0900"
+    },
+    "ostatnia_produkcja": {
+      "iron": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.982,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8654598741253795,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "iron": 2.8224714294264053
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-ANG-0901",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ANG-0901",
+    "rok_budowy": 1890,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 387,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 367634.0607240271,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "brown_coal": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 20,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Anglia-Region9",
+    "cluster_info": {
+      "region_id": "Anglia-Region9",
+      "scale_factor": 20,
+      "sector": "mining",
+      "owner_id": "KRS-ANG-0901"
+    },
+    "ostatnia_produkcja": {
+      "brown_coal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.982,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8086942576189022,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "brown_coal": 4.241912038313838
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-ANG-0902",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ANG-0902",
+    "rok_budowy": 1878,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 397,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 346465.65465162444,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "limestone": 22.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 18,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Anglia-Region9",
+    "cluster_info": {
+      "region_id": "Anglia-Region9",
+      "scale_factor": 18,
+      "sector": "mining",
+      "owner_id": "KRS-ANG-0902"
+    },
+    "ostatnia_produkcja": {
+      "limestone": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.982,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6996392770900063,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 2.7755575615628914e-17,
+      "limestone": 5.106394425385498
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-ANG-0903",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ANG-0903",
+    "rok_budowy": 1889,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 978,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 386926.0614336651,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "sand": 20.0,
+        "gravel": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Anglia-Region9",
+    "cluster_info": {
+      "region_id": "Anglia-Region9",
+      "scale_factor": 7,
+      "sector": "mining",
+      "owner_id": "KRS-ANG-0903"
+    },
+    "ostatnia_produkcja": {
+      "sand": 0.0,
+      "gravel": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.982,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6648201657465985,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "sand": 0.035060329612574846,
+      "gravel": 0.2842952472094491
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-ANG-0904",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ANG-0904",
+    "rok_budowy": 1878,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 1100,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 417138.2115758932,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "clay": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 6,
+    "pojemnosc_budowlana": 110,
+    "region_id": "Anglia-Region9",
+    "cluster_info": {
+      "region_id": "Anglia-Region9",
+      "scale_factor": 6,
+      "sector": "mining",
+      "owner_id": "KRS-ANG-0904"
+    },
+    "ostatnia_produkcja": {
+      "clay": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.982,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8440830621901699,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "clay": 5.0095533221864725
+    },
+    "pojemność_magazynu": 1100.0
+  },
+  {
+    "id": "B-ANG-0905",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ANG-0905",
+    "rok_budowy": 1889,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 6200,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 1881551.8145162745,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "salt": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Anglia-Region9",
+    "cluster_info": {
+      "region_id": "Anglia-Region9",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-ANG-0905"
+    },
+    "ostatnia_produkcja": {
+      "salt": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.982,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9084752367588641,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "salt": 4.217730479751082
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ANG-0906",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ANG-0906",
+    "rok_budowy": 1886,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 5300,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 1601640.684297991,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "hard_coal": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 55,
+    "region_id": "Anglia-Region9",
+    "cluster_info": {
+      "region_id": "Anglia-Region9",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-ANG-0906"
+    },
+    "ostatnia_produkcja": {
+      "hard_coal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.982,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6546157589590941,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "hard_coal": 1.2197441113962364
+    },
+    "pojemność_magazynu": 550.0
+  },
+  {
+    "id": "B-ANG-0907",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ANG-0907",
+    "rok_budowy": 1888,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 4550,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 1367544.3311195616,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0
+      },
+      "outputs": {
+        "peat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 12,
+    "region_id": "Anglia-Region9",
+    "cluster_info": {
+      "region_id": "Anglia-Region9",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-ANG-0907"
+    },
+    "ostatnia_produkcja": {
+      "peat": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.982,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6608221949551969,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "peat": 0.39953502288353687
+    },
+    "pojemność_magazynu": 120.0
+  },
+  {
+    "id": "B-ANG-0908",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-ANG-0908",
+    "rok_budowy": 1883,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 2474,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 742416.1942599635,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 2.0,
+        "fuels": 5.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "hard_coal": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 1,
+    "region_id": "Anglia-Region9",
+    "cluster_info": {
+      "region_id": "Anglia-Region9",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-ANG-0908"
+    },
+    "ostatnia_produkcja": {
+      "hard_coal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.982,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7072478428117901,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "hard_coal": 0.03352091112664403
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

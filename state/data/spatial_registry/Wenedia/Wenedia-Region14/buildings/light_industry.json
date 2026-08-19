@@ -1,0 +1,1507 @@
+[
+  {
+    "id": "B-WEN-0023",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-WEN-0023",
+    "rok_budowy": 1886,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 30000.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 3.0,
+        "energy": 5.0,
+        "steel": 8.0,
+        "glass": 5.0
+      },
+      "outputs": {
+        "medical_equipment": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region14",
+    "cluster_info": {
+      "region_id": "Wenedia-Region14",
+      "scale_factor": 10,
+      "sector": "light_industry",
+      "owner_id": "KRS-WEN-0023"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.9642943082380506,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.30000000000000004,
+      "energy": 0.5,
+      "food": 0.5,
+      "steel": 0.8,
+      "glass": 0.5,
+      "medical_equipment": 0.8
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-WEN-1921",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-WEN-1921",
+    "rok_budowy": 1874,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 733937.5724484578,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 15.0,
+        "energy": 8.0,
+        "chemicals": 3.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "paper": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 92,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region14",
+    "cluster_info": {
+      "region_id": "Wenedia-Region14",
+      "scale_factor": 92,
+      "sector": "light_industry",
+      "owner_id": "KRS-WEN-1921"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.9297610614699778,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 1.5,
+      "energy": 0.8,
+      "paper": 1.8,
+      "food": 0.5,
+      "chemicals": 0.30000000000000004,
+      "water": 1.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-WEN-1922",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-WEN-1922",
+    "rok_budowy": 1885,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 717982.4078300132,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "silver": 1.0,
+        "luxury": 5.0,
+        "fibers": 8.0,
+        "gold": 1.0
+      },
+      "outputs": {
+        "luxury_clothing": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 90,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region14",
+    "cluster_info": {
+      "region_id": "Wenedia-Region14",
+      "scale_factor": 90,
+      "sector": "light_industry",
+      "owner_id": "KRS-WEN-1922"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.9788690765358236,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.30000000000000004,
+      "food": 0.5,
+      "silver": 0.1,
+      "luxury_clothing": 0.5,
+      "luxury": 0.5,
+      "fibers": 0.8,
+      "gold": 0.1
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-WEN-1923",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-WEN-1923",
+    "rok_budowy": 1896,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 686072.0785931237,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fibers": 10.0
+      },
+      "outputs": {
+        "clothing": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 86,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region14",
+    "cluster_info": {
+      "region_id": "Wenedia-Region14",
+      "scale_factor": 86,
+      "sector": "light_industry",
+      "owner_id": "KRS-WEN-1923"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.9901641803878007,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.30000000000000004,
+      "clothing": 0.8,
+      "fibers": 1.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-WEN-1924",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-WEN-1924",
+    "rok_budowy": 1884,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 101,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 418982.6228803587,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "industrial_fiber": 12.0
+      },
+      "outputs": {
+        "fibers": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 52,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Wenedia-Region14",
+    "cluster_info": {
+      "region_id": "Wenedia-Region14",
+      "scale_factor": 52,
+      "sector": "light_industry",
+      "owner_id": "KRS-WEN-1924"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8772482651020097,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.30300000000000005,
+      "food": 0.505,
+      "industrial_fiber": 1.2120000000000002,
+      "fibers": 1.5150000000000001
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-WEN-1925",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-WEN-1925",
+    "rok_budowy": 1886,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 101,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 338409.0415572129,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "cereal": 10.0,
+        "vegetable": 5.0,
+        "protein": 3.0,
+        "livestock": 3.0
+      },
+      "outputs": {
+        "food": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 42,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Wenedia-Region14",
+    "cluster_info": {
+      "region_id": "Wenedia-Region14",
+      "scale_factor": 42,
+      "sector": "light_industry",
+      "owner_id": "KRS-WEN-1925"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.9888388670535377,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.30300000000000005,
+      "food": 1.818,
+      "cereal": 1.01,
+      "vegetable": 0.505,
+      "protein": 0.30300000000000005,
+      "livestock": 0.30300000000000005
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-WEN-1926",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-WEN-1926",
+    "rok_budowy": 1894,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 102,
+    "zatrudnienie_aktualne": 61,
+    "rezerwa_zakladowa": 276662.5544838317,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 10.0,
+        "energy": 5.0,
+        "silver": 1.0,
+        "luxury": 3.0,
+        "gold": 1.0
+      },
+      "outputs": {
+        "luxury_furniture": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 34,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Wenedia-Region14",
+    "cluster_info": {
+      "region_id": "Wenedia-Region14",
+      "scale_factor": 34,
+      "sector": "light_industry",
+      "owner_id": "KRS-WEN-1926"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.9018420984232716,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "planks": 1.02,
+      "energy": 0.51,
+      "luxury_furniture": 0.51,
+      "food": 0.51,
+      "silver": 0.102,
+      "luxury": 0.306,
+      "gold": 0.102
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-WEN-1927",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-WEN-1927",
+    "rok_budowy": 1882,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 271237.7985135605,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 12.0,
+        "energy": 3.0,
+        "steel": 3.0
+      },
+      "outputs": {
+        "furniture": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 34,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region14",
+    "cluster_info": {
+      "region_id": "Wenedia-Region14",
+      "scale_factor": 34,
+      "sector": "light_industry",
+      "owner_id": "KRS-WEN-1927"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7788367457775284,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "planks": 1.2000000000000002,
+      "energy": 0.30000000000000004,
+      "furniture": 1.0,
+      "food": 0.5,
+      "steel": 0.30000000000000004
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-WEN-1928",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-WEN-1928",
+    "rok_budowy": 1894,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 101,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 257835.4602340669,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 15.0,
+        "energy": 3.0
+      },
+      "outputs": {
+        "planks": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 32,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Wenedia-Region14",
+    "cluster_info": {
+      "region_id": "Wenedia-Region14",
+      "scale_factor": 32,
+      "sector": "light_industry",
+      "owner_id": "KRS-WEN-1928"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7213282042327597,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "planks": 1.2120000000000002,
+      "timber": 1.5150000000000001,
+      "energy": 0.30300000000000005,
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-WEN-1929",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-WEN-1929",
+    "rok_budowy": 1872,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 103,
+    "zatrudnienie_aktualne": 61,
+    "rezerwa_zakladowa": 230073.47379797307,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "fibers": 15.0
+      },
+      "outputs": {
+        "clothing": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 28,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Wenedia-Region14",
+    "cluster_info": {
+      "region_id": "Wenedia-Region14",
+      "scale_factor": 28,
+      "sector": "light_industry",
+      "owner_id": "KRS-WEN-1929"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7474705720681256,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.515,
+      "food": 0.515,
+      "clothing": 2.06,
+      "fibers": 1.545
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-WEN-1930",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-WEN-1930",
+    "rok_budowy": 1896,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 103,
+    "zatrudnienie_aktualne": 61,
+    "rezerwa_zakladowa": 221856.56401947408,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 3.0,
+        "energy": 5.0,
+        "steel": 8.0,
+        "glass": 5.0
+      },
+      "outputs": {
+        "medical_equipment": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 27,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Wenedia-Region14",
+    "cluster_info": {
+      "region_id": "Wenedia-Region14",
+      "scale_factor": 27,
+      "sector": "light_industry",
+      "owner_id": "KRS-WEN-1930"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.9313460748386065,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.309,
+      "energy": 0.515,
+      "food": 0.515,
+      "steel": 0.824,
+      "glass": 0.515,
+      "medical_equipment": 0.824
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-WEN-1931",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-WEN-1931",
+    "rok_budowy": 1897,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 105,
+    "zatrudnienie_aktualne": 63,
+    "rezerwa_zakladowa": 134023.38279493578,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 15.0,
+        "energy": 8.0,
+        "chemicals": 3.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "paper": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 16,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Wenedia-Region14",
+    "cluster_info": {
+      "region_id": "Wenedia-Region14",
+      "scale_factor": 16,
+      "sector": "light_industry",
+      "owner_id": "KRS-WEN-1931"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.9506516734181685,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 1.575,
+      "energy": 0.84,
+      "paper": 1.89,
+      "food": 0.525,
+      "chemicals": 0.315,
+      "water": 1.05
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-WEN-1932",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-WEN-1932",
+    "rok_budowy": 1872,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 102,
+    "zatrudnienie_aktualne": 61,
+    "rezerwa_zakladowa": 130194.14328650905,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "silver": 1.0,
+        "luxury": 5.0,
+        "fibers": 8.0,
+        "gold": 1.0
+      },
+      "outputs": {
+        "luxury_clothing": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 16,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Wenedia-Region14",
+    "cluster_info": {
+      "region_id": "Wenedia-Region14",
+      "scale_factor": 16,
+      "sector": "light_industry",
+      "owner_id": "KRS-WEN-1932"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.9329031689023803,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.306,
+      "food": 0.51,
+      "silver": 0.102,
+      "luxury_clothing": 0.51,
+      "luxury": 0.51,
+      "fibers": 0.816,
+      "gold": 0.102
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-WEN-1933",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-WEN-1933",
+    "rok_budowy": 1896,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 105,
+    "zatrudnienie_aktualne": 63,
+    "rezerwa_zakladowa": 50258.76854810092,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fibers": 10.0
+      },
+      "outputs": {
+        "clothing": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 6,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Wenedia-Region14",
+    "cluster_info": {
+      "region_id": "Wenedia-Region14",
+      "scale_factor": 6,
+      "sector": "light_industry",
+      "owner_id": "KRS-WEN-1933"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.955175873524704,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.315,
+      "clothing": 0.84,
+      "fibers": 1.05
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-WEN-1934",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-WEN-1934",
+    "rok_budowy": 1874,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 121,
+    "zatrudnienie_aktualne": 72,
+    "rezerwa_zakladowa": 38611.49837663626,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "industrial_fiber": 12.0
+      },
+      "outputs": {
+        "fibers": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 121,
+    "region_id": "Wenedia-Region14",
+    "cluster_info": {
+      "region_id": "Wenedia-Region14",
+      "scale_factor": 4,
+      "sector": "light_industry",
+      "owner_id": "KRS-WEN-1934"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7931112411452452,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.363,
+      "food": 0.605,
+      "industrial_fiber": 1.452,
+      "fibers": 1.815
+    },
+    "pojemność_magazynu": 1210.0
+  },
+  {
+    "id": "B-WEN-1935",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-WEN-1935",
+    "rok_budowy": 1875,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 115,
+    "zatrudnienie_aktualne": 69,
+    "rezerwa_zakladowa": 36696.87862242289,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "cereal": 10.0,
+        "vegetable": 5.0,
+        "protein": 3.0,
+        "livestock": 3.0
+      },
+      "outputs": {
+        "food": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 115,
+    "region_id": "Wenedia-Region14",
+    "cluster_info": {
+      "region_id": "Wenedia-Region14",
+      "scale_factor": 4,
+      "sector": "light_industry",
+      "owner_id": "KRS-WEN-1935"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7060048938467086,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.34500000000000003,
+      "food": 2.0700000000000003,
+      "cereal": 1.1500000000000001,
+      "vegetable": 0.5750000000000001,
+      "protein": 0.34500000000000003,
+      "livestock": 0.34500000000000003
+    },
+    "pojemność_magazynu": 1150.0
+  },
+  {
+    "id": "B-WEN-1936",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-WEN-1936",
+    "rok_budowy": 1897,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 102,
+    "zatrudnienie_aktualne": 61,
+    "rezerwa_zakladowa": 24411.401866220447,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 10.0,
+        "energy": 5.0,
+        "silver": 1.0,
+        "luxury": 3.0,
+        "gold": 1.0
+      },
+      "outputs": {
+        "luxury_furniture": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Wenedia-Region14",
+    "cluster_info": {
+      "region_id": "Wenedia-Region14",
+      "scale_factor": 3,
+      "sector": "light_industry",
+      "owner_id": "KRS-WEN-1936"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.9614182833308119,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "planks": 1.02,
+      "energy": 0.51,
+      "luxury_furniture": 0.51,
+      "food": 0.51,
+      "silver": 0.102,
+      "luxury": 0.306,
+      "gold": 0.102
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-WEN-1937",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-WEN-1937",
+    "rok_budowy": 1875,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 147,
+    "zatrudnienie_aktualne": 88,
+    "rezerwa_zakladowa": 23454.09198911376,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 12.0,
+        "energy": 3.0,
+        "steel": 3.0
+      },
+      "outputs": {
+        "furniture": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 147,
+    "region_id": "Wenedia-Region14",
+    "cluster_info": {
+      "region_id": "Wenedia-Region14",
+      "scale_factor": 2,
+      "sector": "light_industry",
+      "owner_id": "KRS-WEN-1937"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.764855367913722,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "planks": 1.7639999999999998,
+      "energy": 0.44099999999999995,
+      "furniture": 1.47,
+      "food": 0.735,
+      "steel": 0.44099999999999995
+    },
+    "pojemność_magazynu": 1470.0
+  },
+  {
+    "id": "B-WEN-1938",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-WEN-1938",
+    "rok_budowy": 1885,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 83,
+    "zatrudnienie_aktualne": 50,
+    "rezerwa_zakladowa": 6621.393316654566,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 15.0,
+        "energy": 3.0
+      },
+      "outputs": {
+        "planks": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 83,
+    "region_id": "Wenedia-Region14",
+    "cluster_info": {
+      "region_id": "Wenedia-Region14",
+      "scale_factor": 1,
+      "sector": "light_industry",
+      "owner_id": "KRS-WEN-1938"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7429579946802756,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "planks": 0.996,
+      "timber": 1.245,
+      "energy": 0.249,
+      "food": 0.41500000000000004
+    },
+    "pojemność_magazynu": 830.0
+  },
+  {
+    "id": "B-WEN-1939",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-WEN-1939",
+    "rok_budowy": 1886,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 65,
+    "zatrudnienie_aktualne": 39,
+    "rezerwa_zakladowa": 5185.42850099454,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "fibers": 15.0
+      },
+      "outputs": {
+        "clothing": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 65,
+    "region_id": "Wenedia-Region14",
+    "cluster_info": {
+      "region_id": "Wenedia-Region14",
+      "scale_factor": 1,
+      "sector": "light_industry",
+      "owner_id": "KRS-WEN-1939"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7549207184327247,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.325,
+      "food": 0.325,
+      "clothing": 1.3,
+      "fibers": 0.9750000000000001
+    },
+    "pojemność_magazynu": 650.0
+  },
+  {
+    "id": "B-WEN-1940",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-WEN-1940",
+    "rok_budowy": 1895,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 23,
+    "zatrudnienie_aktualne": 14,
+    "rezerwa_zakladowa": 1834.8439311211446,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 3.0,
+        "energy": 5.0,
+        "steel": 8.0,
+        "glass": 5.0
+      },
+      "outputs": {
+        "medical_equipment": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 23,
+    "region_id": "Wenedia-Region14",
+    "cluster_info": {
+      "region_id": "Wenedia-Region14",
+      "scale_factor": 1,
+      "sector": "light_industry",
+      "owner_id": "KRS-WEN-1940"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7962929104016128,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.069,
+      "energy": 0.11499999999999999,
+      "food": 0.11499999999999999,
+      "steel": 0.184,
+      "glass": 0.11499999999999999,
+      "medical_equipment": 0.184
+    },
+    "pojemność_magazynu": 230.0
+  }
+]

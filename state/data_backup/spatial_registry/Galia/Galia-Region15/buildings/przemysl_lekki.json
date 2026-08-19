@@ -1,0 +1,2424 @@
+[
+    {
+        "id": "[ID-9XX-8185]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-1LT-3471]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-1LT-3471]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1815]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-3307]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-3307]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2466]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-4455]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-4455]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3627]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-1648]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-1648]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3579]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-1LT-5929]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-1LT-5929]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7588]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-5168]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-5168]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2337]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-9840]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-9840]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2208]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-5042]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-5042]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9017]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-1LT-3385]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-1LT-3385]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9114]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-1759]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-1759]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2427]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-8763]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-8763]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6282]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-7993]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-7993]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4654]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-1LT-7953]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-1LT-7953]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1835]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-6069]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-6069]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7822]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-6770]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-6770]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4760]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-8318]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-8318]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1024]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-1LT-6508]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-1LT-6508]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7975]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-7132]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-7132]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3752]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-2969]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-2969]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7884]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-7773]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-7773]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7077]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-1LT-4151]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-1LT-4151]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5147]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-6778]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-6778]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5859]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-9850]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-9850]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6714]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[REG-4LT-8477]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-8477]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8777]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-1LT-8180]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-1LT-8180]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3384]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-5952]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-5952]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7512]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-5277]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-5277]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5813]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-5198]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-5198]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4044]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-1LT-1268]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-1LT-1268]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1757]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-2096]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-2096]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6825]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-2950]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-2950]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1580]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-9590]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-9590]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7233]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-1LT-7341]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-1LT-7341]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6225]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-4236]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-4236]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3993]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-9910]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-9910]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1070]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[REG-4LT-9065]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-9065]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4379]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-1LT-8715]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-1LT-8715]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2746]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-4661]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-4661]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6802]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-2103]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-2103]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5403]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[REG-4LT-5449]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-5449]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5723]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-1LT-6979]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-1LT-6979]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9420]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-2146]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-2146]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4620]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-6351]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-6351]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4583]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-1137]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-1137]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8559]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-1LT-4988]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-1LT-4988]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5237]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-9296]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-9296]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9609]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-5764]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-5764]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3493]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-5965]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-5965]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3457]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-1LT-7070]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-1LT-7070]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7243]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-4463]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-4463]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4014]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-2648]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-2648]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2409]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-7636]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-7636]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3471]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-1LT-6373]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-1LT-6373]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5105]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-9017]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-9017]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7536]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-9163]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-9163]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6272]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-4285]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-4285]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8874]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-1LT-8901]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-1LT-8901]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9487]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-3348]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-3348]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2742]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-2795]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-2795]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5247]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-6940]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-6940]"
+        }
+    }
+]

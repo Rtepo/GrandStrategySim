@@ -1,0 +1,52 @@
+[
+    {
+        "id": "[ID-9XX-6534]",
+        "nazwa": "Elektrownia Węglowa",
+        "rodzaj": "Węglowa",
+        "typ_energii": "Nieodnawialne",
+        "wlasciciel_id": "Państwo",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "moc_zainstalowana_mw": 5000,
+        "wymagana_ziemia_ha": 50,
+        "zuzycie_paliwa": "węgiel",
+        "stan_techniczny": 100.0,
+        "rentownosc_ost_rok": 0.0,
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "aktywna_metoda": {
+            "automatyzacja": "Przekaźniki Elektromechaniczne",
+            "produkcja": "Węgiel Kamienny",
+            "organizacja": "Narodowa Sieć Przesyłowa"
+        },
+        "status": "Aktywna",
+        "scale_factor": 10,
+        "powierzchnia_ha": 500,
+        "region_id": "Oksytania-Region5"
+    },
+    {
+        "id": "[ID-9XX-8037]",
+        "nazwa": "Elektrownia Wodna",
+        "rodzaj": "Wodna",
+        "typ_energii": "OZE",
+        "wlasciciel_id": "Państwo",
+        "rok_budowy": 1900,
+        "sektor_pkb": "energetyka",
+        "moc_zainstalowana_mw": 3000,
+        "wymagana_ziemia_ha": 200,
+        "zuzycie_paliwa": "brak",
+        "stan_techniczny": 100.0,
+        "rentownosc_ost_rok": 0.0,
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "aktywna_metoda": {
+            "automatyzacja": "Przekaźniki Elektromechaniczne",
+            "produkcja": "Węgiel Kamienny",
+            "organizacja": "Narodowa Sieć Przesyłowa"
+        },
+        "status": "Aktywna",
+        "scale_factor": 10,
+        "powierzchnia_ha": 2000,
+        "region_id": "Oksytania-Region5"
+    }
+]

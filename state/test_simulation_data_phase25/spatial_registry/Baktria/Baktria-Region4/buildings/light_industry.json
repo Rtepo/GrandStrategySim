@@ -1,0 +1,1680 @@
+[
+  {
+    "id": "B-BAK-0155",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-BAK-0155",
+    "rok_budowy": 1961,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 48,
+    "zatrudnienie_aktualne": 48,
+    "rezerwa_zakladowa": 77900.0,
+    "aktywna_metoda": {
+      "rok": 1965,
+      "eksperci": 0.25,
+      "sredni": 0.4,
+      "szeregowi": 0.35,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "electronic_components": 3.0,
+        "energy": 15.0,
+        "fibers": 25.0
+      },
+      "outputs": {
+        "clothing": 60.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region4",
+    "cluster_info": {
+      "region_id": "Baktria-Region4",
+      "scale_factor": 10,
+      "sector": "light_industry",
+      "owner_id": "KRS-BAK-0155"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 7.694438225472583e-20
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.677493309450426,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "electronic_components": 3.3881317890172014e-21,
+      "energy": 6.719999999999999,
+      "food": 0.5,
+      "clothing": 6.353502474526523e-16,
+      "fibers": 2.3999999999999995
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-1008",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-BAK-1008",
+    "rok_budowy": 1954,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1580759.0091806697,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 15.0,
+        "energy": 8.0,
+        "chemicals": 3.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "paper": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 79,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region4",
+    "cluster_info": {
+      "region_id": "Baktria-Region4",
+      "scale_factor": 79,
+      "sector": "light_industry",
+      "owner_id": "KRS-BAK-1008"
+    },
+    "ostatnia_produkcja": {
+      "paper": 115.182
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6607259596281293,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 2.4160000000000004,
+      "paper": 3.0434582072796763,
+      "food": 0.5,
+      "chemicals": 0.3630000000000001,
+      "water": 4.33
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-BAK-1008_Factory_18",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Baktria-Region4",
+      "typ_budynku_docelowy": "Factory",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {
+        "timber": 0.030000000000000138
+      },
+      "zwiększenie_pojemności": 1280,
+      "zwiększenie_kapitału": 6247474.362648435,
+      "nowy_budynek": false,
+      "koszt_całkowity": 6404850.853004027,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 5,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 3,
+      "investor_id": "KRS-BAK-1008",
+      "main_contractor_id": "NEW_Baktria_0_0",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 1280970.1706008054,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 1921455.2559012081,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 1921455.2559012081,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 1280970.1706008054,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 6404850.853004027,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.031487516015008495,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-BAK-1009",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-BAK-1009",
+    "rok_budowy": 1953,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1349292.01964536,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 12.0,
+        "energy": 3.0,
+        "steel": 3.0
+      },
+      "outputs": {
+        "furniture": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 66,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Baktria-Region4",
+    "cluster_info": {
+      "region_id": "Baktria-Region4",
+      "scale_factor": 66,
+      "sector": "light_industry",
+      "owner_id": "KRS-BAK-1009"
+    },
+    "ostatnia_produkcja": {
+      "furniture": 53.46
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8694436797531546,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 1.092,
+      "furniture": 1.01,
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-BAK-1009_Factory_19",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Baktria-Region4",
+      "typ_budynku_docelowy": "Factory",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {
+        "steel": 0.243
+      },
+      "zwiększenie_pojemności": 1081,
+      "zwiększenie_kapitału": 5202293.079184737,
+      "nowy_budynek": false,
+      "koszt_całkowity": 5334371.436619732,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 4,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 3,
+      "investor_id": "KRS-BAK-1009",
+      "main_contractor_id": "KRS-BAK-0541",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 1066874.2873239464,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 1600311.4309859194,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 1600311.4309859194,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 1066874.2873239464,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 5334371.436619732,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-BAK-1010",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-BAK-1010",
+    "rok_budowy": 1969,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1224290.3867194958,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "cereal": 10.0,
+        "vegetable": 5.0,
+        "protein": 3.0,
+        "livestock": 3.0
+      },
+      "outputs": {
+        "food": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 60,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region4",
+    "cluster_info": {
+      "region_id": "Baktria-Region4",
+      "scale_factor": 60,
+      "sector": "light_industry",
+      "owner_id": "KRS-BAK-1010"
+    },
+    "ostatnia_produkcja": {
+      "food": 87.48
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.703807544040392,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.9550000000000087,
+      "food": 0.0007979685619626427,
+      "cereal": 8.980000000000004,
+      "protein": 2.7755575615628914e-17,
+      "livestock": 2.7755575615628914e-17
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-1011",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-BAK-1011",
+    "rok_budowy": 1962,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 1092959.8416022214,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 10.0,
+        "energy": 5.0,
+        "silver": 1.0,
+        "luxury": 3.0,
+        "gold": 1.0
+      },
+      "outputs": {
+        "luxury_furniture": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 53,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region4",
+    "cluster_info": {
+      "region_id": "Baktria-Region4",
+      "scale_factor": 53,
+      "sector": "light_industry",
+      "owner_id": "KRS-BAK-1011"
+    },
+    "ostatnia_produkcja": {
+      "luxury_furniture": 21.465
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6366379309621659,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 1.715,
+      "luxury_furniture": 1.0730992930962167,
+      "food": 0.5,
+      "luxury": 2.7755575615628914e-17
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-1012",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-BAK-1012",
+    "rok_budowy": 1970,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 667123.6452933454,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "industrial_fiber": 12.0
+      },
+      "outputs": {
+        "fibers": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 30,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Baktria-Region4",
+    "cluster_info": {
+      "region_id": "Baktria-Region4",
+      "scale_factor": 30,
+      "sector": "light_industry",
+      "owner_id": "KRS-BAK-1012"
+    },
+    "ostatnia_produkcja": {
+      "fibers": 0.03854267280523297
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7764649765910714,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.00667236328125001,
+      "food": 0.505,
+      "industrial_fiber": 0.7826894531249992,
+      "fibers": 9.250928187520998
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-BAK-1013",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-BAK-1013",
+    "rok_budowy": 1951,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 84,
+    "zatrudnienie_aktualne": 84,
+    "rezerwa_zakladowa": 472977.36735962064,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "silver": 1.0,
+        "luxury": 5.0,
+        "fibers": 8.0,
+        "gold": 1.0
+      },
+      "outputs": {
+        "luxury_clothing": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 19,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Baktria-Region4",
+    "cluster_info": {
+      "region_id": "Baktria-Region4",
+      "scale_factor": 19,
+      "sector": "light_industry",
+      "owner_id": "KRS-BAK-1013"
+    },
+    "ostatnia_produkcja": {
+      "luxury_clothing": 7.98
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7766514950137337,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 1.068,
+      "food": 0.52,
+      "luxury_clothing": 1.1305830054814283,
+      "luxury": 2.7755575615628914e-17,
+      "fibers": 1.3439999999999999
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-BAK-1014",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-BAK-1014",
+    "rok_budowy": 1960,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 85,
+    "zatrudnienie_aktualne": 85,
+    "rezerwa_zakladowa": 362083.55881657754,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 15.0,
+        "energy": 3.0
+      },
+      "outputs": {
+        "planks": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 13,
+    "pojemnosc_budowlana": 106,
+    "region_id": "Baktria-Region4",
+    "cluster_info": {
+      "region_id": "Baktria-Region4",
+      "scale_factor": 13,
+      "sector": "light_industry",
+      "owner_id": "KRS-BAK-1014"
+    },
+    "ostatnia_produkcja": {
+      "planks": 0.00028970575837350133
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7717454265893865,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "planks": 5.142757056979429,
+      "timber": 0.0003137111663818359,
+      "energy": 0.5730627422332762,
+      "food": 0.53
+    },
+    "pojemność_magazynu": 1060.0
+  },
+  {
+    "id": "B-BAK-1015",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-BAK-1015",
+    "rok_budowy": 1972,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 85,
+    "zatrudnienie_aktualne": 85,
+    "rezerwa_zakladowa": 302421.9683204442,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fibers": 10.0
+      },
+      "outputs": {
+        "clothing": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 106,
+    "region_id": "Baktria-Region4",
+    "cluster_info": {
+      "region_id": "Baktria-Region4",
+      "scale_factor": 10,
+      "sector": "light_industry",
+      "owner_id": "KRS-BAK-1015"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 0.28146247278121317
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6958510066705474,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.09265378182236918,
+      "clothing": 0.28146247278121317,
+      "fibers": 0.5411540605921028
+    },
+    "pojemność_magazynu": 1060.0
+  },
+  {
+    "id": "B-BAK-1016",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-BAK-1016",
+    "rok_budowy": 1958,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 267453.55800792435,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "fibers": 15.0
+      },
+      "outputs": {
+        "clothing": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region4",
+    "cluster_info": {
+      "region_id": "Baktria-Region4",
+      "scale_factor": 9,
+      "sector": "light_industry",
+      "owner_id": "KRS-BAK-1016"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 0.23089322628550166
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6996757932809299,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.9556373596191404,
+      "food": 0.5,
+      "clothing": 3.483125280198285,
+      "fibers": 0.1519120788574219
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-1017",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-BAK-1017",
+    "rok_budowy": 1963,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 84,
+    "zatrudnienie_aktualne": 84,
+    "rezerwa_zakladowa": 258345.73362510343,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 3.0,
+        "energy": 5.0,
+        "steel": 8.0,
+        "glass": 5.0
+      },
+      "outputs": {
+        "medical_equipment": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Baktria-Region4",
+    "cluster_info": {
+      "region_id": "Baktria-Region4",
+      "scale_factor": 8,
+      "sector": "light_industry",
+      "owner_id": "KRS-BAK-1017"
+    },
+    "ostatnia_produkcja": {
+      "medical_equipment": 0.04869919691519922
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.797523442285621,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.07575,
+      "energy": 1.9062499999999998,
+      "food": 0.52,
+      "steel": 0.042,
+      "glass": 2.6062499999999997,
+      "medical_equipment": 1.5636803337279883
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-BAK-1018",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-BAK-1018",
+    "rok_budowy": 1968,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 85,
+    "zatrudnienie_aktualne": 85,
+    "rezerwa_zakladowa": 241347.07237313825,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 10.0,
+        "fibers": 20.0
+      },
+      "outputs": {
+        "clothing": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Baktria-Region4",
+    "cluster_info": {
+      "region_id": "Baktria-Region4",
+      "scale_factor": 7,
+      "sector": "light_industry",
+      "owner_id": "KRS-BAK-1018"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 0.37440368444257544
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8612750746985051,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 1.2524625244140624,
+      "food": 0.525,
+      "clothing": 8.308958527046192,
+      "fibers": 0.21292504882812502
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-BAK-1019",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-BAK-1019",
+    "rok_budowy": 1954,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 94,
+    "zatrudnienie_aktualne": 94,
+    "rezerwa_zakladowa": 223216.7373828846,
+    "aktywna_metoda": {
+      "rok": 1935,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "electronic_components": 5.0,
+        "energy": 5.0,
+        "plastics": 3.0,
+        "steel": 8.0
+      },
+      "outputs": {
+        "agd": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 116,
+    "region_id": "Baktria-Region4",
+    "cluster_info": {
+      "region_id": "Baktria-Region4",
+      "scale_factor": 5,
+      "sector": "light_industry",
+      "owner_id": "KRS-BAK-1019"
+    },
+    "ostatnia_produkcja": {
+      "agd": 0.01629927815354884
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8503676788939059,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "agd": 1.6368846487349522,
+      "electronic_components": 0.4929366784696341,
+      "energy": 2.4829366784696343,
+      "plastics": 0.29576200708178046,
+      "food": 0.5800000000000001,
+      "steel": 0.009286754296572374
+    },
+    "pojemność_magazynu": 1160.0
+  },
+  {
+    "id": "B-BAK-1020",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-BAK-1020",
+    "rok_budowy": 1971,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 189271.7581934234,
+    "aktywna_metoda": {
+      "rok": 1935,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "chemicals": 10.0
+      },
+      "outputs": {
+        "clothing": 40.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Baktria-Region4",
+    "cluster_info": {
+      "region_id": "Baktria-Region4",
+      "scale_factor": 5,
+      "sector": "light_industry",
+      "owner_id": "KRS-BAK-1020"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 0.05323077697076262
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.6779495435480116,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 2.097375,
+      "food": 0.515,
+      "clothing": 3.3636372304080444,
+      "chemicals": 0.01171875
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-BAK-1021",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-BAK-1021",
+    "rok_budowy": 1960,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 88,
+    "zatrudnienie_aktualne": 88,
+    "rezerwa_zakladowa": 199605.69119537267,
+    "aktywna_metoda": {
+      "rok": 1935,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "plastics": 10.0,
+        "chemicals": 3.0
+      },
+      "outputs": {
+        "fibers": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 121,
+    "region_id": "Baktria-Region4",
+    "cluster_info": {
+      "region_id": "Baktria-Region4",
+      "scale_factor": 4,
+      "sector": "light_industry",
+      "owner_id": "KRS-BAK-1021"
+    },
+    "ostatnia_produkcja": {
+      "fibers": 7.039999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.624459599828891,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 1.9749999999999996,
+      "food": 0.605,
+      "chemicals": 0.264,
+      "fibers": 0.16789624631718336
+    },
+    "pojemność_magazynu": 1210.0
+  },
+  {
+    "id": "B-BAK-1022",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-BAK-1022",
+    "rok_budowy": 1954,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 87,
+    "zatrudnienie_aktualne": 87,
+    "rezerwa_zakladowa": 174428.57800981,
+    "aktywna_metoda": {
+      "rok": 1965,
+      "eksperci": 0.25,
+      "sredni": 0.4,
+      "szeregowi": 0.35,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "electronic_components": 3.0,
+        "energy": 15.0,
+        "fibers": 25.0
+      },
+      "outputs": {
+        "clothing": 60.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 119,
+    "region_id": "Baktria-Region4",
+    "cluster_info": {
+      "region_id": "Baktria-Region4",
+      "scale_factor": 3,
+      "sector": "light_industry",
+      "owner_id": "KRS-BAK-1022"
+    },
+    "ostatnia_produkcja": {
+      "clothing": 9.688651726007626e-21
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7191705218869439,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "electronic_components": 4.235164736271502e-22,
+      "energy": 5.835,
+      "food": 0.595,
+      "clothing": 6.41435058588294e-16,
+      "fibers": 6.938
+    },
+    "pojemność_magazynu": 1190.0
+  },
+  {
+    "id": "B-BAK-1023",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-BAK-1023",
+    "rok_budowy": 1967,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 87,
+    "zatrudnienie_aktualne": 87,
+    "rezerwa_zakladowa": 152152.38533987335,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 15.0,
+        "energy": 8.0,
+        "chemicals": 3.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "paper": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 119,
+    "region_id": "Baktria-Region4",
+    "cluster_info": {
+      "region_id": "Baktria-Region4",
+      "scale_factor": 2,
+      "sector": "light_industry",
+      "owner_id": "KRS-BAK-1023"
+    },
+    "ostatnia_produkcja": {
+      "paper": 0.028432102321897863
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8098804233763198,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 1.3253906250000005,
+      "energy": 2.4348750000000003,
+      "paper": 6.467862192466481,
+      "food": 0.595,
+      "chemicals": 0.004078125,
+      "water": 2.8545937500000007
+    },
+    "pojemność_magazynu": 1190.0
+  },
+  {
+    "id": "B-BAK-1024",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-BAK-1024",
+    "rok_budowy": 1971,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 83,
+    "zatrudnienie_aktualne": 83,
+    "rezerwa_zakladowa": 144901.00456643436,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 12.0,
+        "energy": 3.0,
+        "steel": 3.0
+      },
+      "outputs": {
+        "furniture": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 113,
+    "region_id": "Baktria-Region4",
+    "cluster_info": {
+      "region_id": "Baktria-Region4",
+      "scale_factor": 2,
+      "sector": "light_industry",
+      "owner_id": "KRS-BAK-1024"
+    },
+    "ostatnia_produkcja": {
+      "furniture": 0.009082683859913742
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.618784616152228,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "planks": 1.2105163049955057,
+      "energy": 1.4156290762488764,
+      "furniture": 1.2664697180154383,
+      "food": 0.5650000000000001,
+      "steel": 0.002424728250074909
+    },
+    "pojemność_magazynu": 1130.0
+  },
+  {
+    "id": "B-BAK-1025",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-BAK-1025",
+    "rok_budowy": 1966,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 73,
+    "rezerwa_zakladowa": 108723.89138087168,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "cereal": 10.0,
+        "vegetable": 5.0,
+        "protein": 3.0,
+        "livestock": 3.0
+      },
+      "outputs": {
+        "food": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 99,
+    "region_id": "Baktria-Region4",
+    "cluster_info": {
+      "region_id": "Baktria-Region4",
+      "scale_factor": 1,
+      "sector": "light_industry",
+      "owner_id": "KRS-BAK-1025"
+    },
+    "ostatnia_produkcja": {
+      "food": 1.3139999999999998
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8748158162332026,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.921,
+      "food": 0.004292795811405705,
+      "cereal": 8.360000000000001,
+      "protein": 2.7755575615628914e-17,
+      "livestock": 2.7755575615628914e-17
+    },
+    "pojemność_magazynu": 990.0
+  },
+  {
+    "id": "B-BAK-1026",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-BAK-1026",
+    "rok_budowy": 1971,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 60,
+    "zatrudnienie_aktualne": 42,
+    "rezerwa_zakladowa": 89196.8202207132,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "planks": 10.0,
+        "energy": 5.0,
+        "silver": 1.0,
+        "luxury": 3.0,
+        "gold": 1.0
+      },
+      "outputs": {
+        "luxury_furniture": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 81,
+    "region_id": "Baktria-Region4",
+    "cluster_info": {
+      "region_id": "Baktria-Region4",
+      "scale_factor": 1,
+      "sector": "light_industry",
+      "owner_id": "KRS-BAK-1026"
+    },
+    "ostatnia_produkcja": {
+      "luxury_furniture": 0.21000000000000002
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7177102794406532,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "planks": 1.1102230246251565e-16,
+      "energy": 1.2250000000000003,
+      "luxury_furniture": 0.8757789576346929,
+      "food": 0.405,
+      "silver": 6.938893903907228e-18,
+      "gold": 6.938893903907228e-18
+    },
+    "pojemność_magazynu": 810.0
+  },
+  {
+    "id": "B-BAK-1027",
+    "name": "Factory",
+    "wlasciciel_id": "KRS-BAK-1027",
+    "rok_budowy": 1955,
+    "sektor_pkb": "light_industry",
+    "pojemnosc_pracownikow": 4,
+    "zatrudnienie_aktualne": 2,
+    "rezerwa_zakladowa": 5550.460257812997,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "industrial_fiber": 12.0
+      },
+      "outputs": {
+        "fibers": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 4,
+    "region_id": "Baktria-Region4",
+    "cluster_info": {
+      "region_id": "Baktria-Region4",
+      "scale_factor": 1,
+      "sector": "light_industry",
+      "owner_id": "KRS-BAK-1027"
+    },
+    "ostatnia_produkcja": {
+      "fibers": 9.935821895655483e-6
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8565502698993285,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 5.39671217768884e-7,
+      "food": 0.02,
+      "industrial_fiber": 0.0360021586848711,
+      "fibers": 0.325885644417977
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

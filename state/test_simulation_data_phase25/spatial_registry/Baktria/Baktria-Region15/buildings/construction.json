@@ -1,0 +1,1675 @@
+[
+  {
+    "id": "B-BAK-0082",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-BAK-0082",
+    "rok_budowy": 1957,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 48,
+    "zatrudnienie_aktualne": 48,
+    "rezerwa_zakladowa": 62900.0,
+    "aktywna_metoda": {
+      "rok": 1950,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 10.0,
+        "construction_machinery": 5.0,
+        "steel": 15.0
+      },
+      "outputs": {
+        "construction_services": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 5,
+      "sector": "construction",
+      "owner_id": "KRS-BAK-0082"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 2.763180250314893
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7566255214893604,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.96,
+      "food": 0.5,
+      "construction_services": 7.763180250314893
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-0336",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-BAK-0336",
+    "rok_budowy": 1958,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 760827.6375782848,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 35,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 35,
+      "sector": "construction",
+      "owner_id": "KRS-BAK-0336"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 28.35,
+      "renovation_services": 14.175
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.739757075278549,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.4514458281228436,
+      "construction_services": 1.710293849033426,
+      "renovation_services": 0.855146924516713
+    },
+    "pojemność_magazynu": 1010.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-BAK-0336_Construction_Company_22",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Baktria-Region15",
+      "typ_budynku_docelowy": "Construction Company",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 573,
+      "zwiększenie_kapitału": 3363210.3743471345,
+      "nowy_budynek": false,
+      "koszt_całkowity": 3447634.99848897,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 1,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 1,
+      "investor_id": "KRS-BAK-0336",
+      "main_contractor_id": "KRS-BAK-0440",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 689526.9996977941,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 1034290.499546691,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 1034290.499546691,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 689526.9996977941,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 3447634.99848897,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-BAK-0337",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-BAK-0337",
+    "rok_budowy": 1960,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 679293.2606768551,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 31,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 31,
+      "sector": "construction",
+      "owner_id": "KRS-BAK-0337"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 50.22,
+      "renovation_services": 20.088
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7914051028765372,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.296044326528264,
+      "food": 0.5,
+      "construction_services": 2.0,
+      "renovation_services": 0.8
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-BAK-0337_Construction_Company_18",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Baktria-Region15",
+      "typ_budynku_docelowy": "Construction Company",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 503,
+      "zwiększenie_kapitału": 2699341.4607885964,
+      "nowy_budynek": false,
+      "koszt_całkowity": 2767700.4952688147,
+      "koszt_wydany": 553540.099053763,
+      "czas_trwania": 0,
+      "turny_minione": 5,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 5,
+      "investor_id": "KRS-BAK-0337",
+      "main_contractor_id": "KRS-BAK-0527",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 553540.099053763,
+          "released": true,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 830310.1485806444,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 830310.1485806444,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 553540.099053763,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 1,
+      "contract_price": 2767700.4952688147,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-BAK-0338",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-BAK-0338",
+    "rok_budowy": 1971,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 653943.7629297217,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 29,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 29,
+      "sector": "construction",
+      "owner_id": "KRS-BAK-0338"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 71.34,
+      "renovation_services": 23.78
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8225316631670528,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 3.9899999999999998,
+      "food": 0.7562614489111701,
+      "construction_services": 3.0599999999999996,
+      "renovation_services": 1.02
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-BAK-0339",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-BAK-0339",
+    "rok_budowy": 1957,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 604365.0980088739,
+    "aktywna_metoda": {
+      "rok": 1950,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 10.0,
+        "construction_machinery": 5.0,
+        "steel": 15.0
+      },
+      "outputs": {
+        "construction_services": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 27,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 27,
+      "sector": "construction",
+      "owner_id": "KRS-BAK-0339"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 109.35
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8903733838296795,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 2.62,
+      "food": 0.5,
+      "construction_services": 5.0
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-BAK-0340",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-BAK-0340",
+    "rok_budowy": 1952,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 533795.3046943014,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 23,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 23,
+      "sector": "construction",
+      "owner_id": "KRS-BAK-0340"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.017751052404913863,
+      "renovation_services": 0.008875526202456931
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7622569763495965,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 0.8125112080119901,
+      "food": 0.007701432128838862,
+      "construction_services": 2.7445736501571547,
+      "renovation_services": 1.3722868250785774
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-BAK-0341",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-BAK-0341",
+    "rok_budowy": 1963,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 83,
+    "zatrudnienie_aktualne": 83,
+    "rezerwa_zakladowa": 525518.041514114,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 22,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 22,
+      "sector": "construction",
+      "owner_id": "KRS-BAK-0341"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 36.52,
+      "renovation_services": 14.608
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8298094738050412,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.326044326528264,
+      "food": 0.515,
+      "construction_services": 2.06,
+      "renovation_services": 0.824
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-BAK-0342",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-BAK-0342",
+    "rok_budowy": 1946,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 495956.58254697087,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 21,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 21,
+      "sector": "construction",
+      "owner_id": "KRS-BAK-0342"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 51.03,
+      "renovation_services": 17.01
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8770012317689483,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 2.73,
+      "food": 0.751255505565712,
+      "construction_services": 3.03,
+      "renovation_services": 1.01
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-BAK-0343",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-BAK-0343",
+    "rok_budowy": 1962,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 443770.2666460342,
+    "aktywna_metoda": {
+      "rok": 1950,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 10.0,
+        "construction_machinery": 5.0,
+        "steel": 15.0
+      },
+      "outputs": {
+        "construction_services": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 18,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 18,
+      "sector": "construction",
+      "owner_id": "KRS-BAK-0343"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 73.8
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8403370454203662,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 2.66,
+      "food": 0.51,
+      "steel": 0.0,
+      "construction_services": 5.1
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-BAK-0344",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-BAK-0344",
+    "rok_budowy": 1964,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 85,
+    "zatrudnienie_aktualne": 85,
+    "rezerwa_zakladowa": 437816.92590586655,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 17,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 17,
+      "sector": "construction",
+      "owner_id": "KRS-BAK-0344"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 14.450000000000001,
+      "renovation_services": 7.2250000000000005
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8995939287972978,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.24638383481068404,
+      "construction_services": 2.308729275047433,
+      "renovation_services": 1.1543646375237164
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-BAK-0345",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-BAK-0345",
+    "rok_budowy": 1956,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 401359.77717864444,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 16,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 16,
+      "sector": "construction",
+      "owner_id": "KRS-BAK-0345"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 25.92,
+      "renovation_services": 10.368
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8343014689726175,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.306044326528264,
+      "food": 0.505,
+      "construction_services": 2.02,
+      "renovation_services": 0.808
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-BAK-0346",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-BAK-0346",
+    "rok_budowy": 1946,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 83,
+    "zatrudnienie_aktualne": 83,
+    "rezerwa_zakladowa": 371166.0264180726,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 14,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 14,
+      "sector": "construction",
+      "owner_id": "KRS-BAK-0346"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 34.86,
+      "renovation_services": 11.62
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.723588648167521,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 4.035,
+      "food": 0.7612567791758045,
+      "construction_services": 3.09,
+      "renovation_services": 1.03
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-BAK-0347",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-BAK-0347",
+    "rok_budowy": 1947,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 84,
+    "zatrudnienie_aktualne": 84,
+    "rezerwa_zakladowa": 316544.5452304265,
+    "aktywna_metoda": {
+      "rok": 1950,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 10.0,
+        "construction_machinery": 5.0,
+        "steel": 15.0
+      },
+      "outputs": {
+        "construction_services": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 11,
+      "sector": "construction",
+      "owner_id": "KRS-BAK-0347"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 46.2
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8032550169961227,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 2.72,
+      "food": 0.52,
+      "steel": 0.0,
+      "construction_services": 5.2
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-BAK-0348",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-BAK-0348",
+    "rok_budowy": 1971,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 80,
+    "zatrudnienie_aktualne": 80,
+    "rezerwa_zakladowa": 284347.2026032537,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 110,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 9,
+      "sector": "construction",
+      "owner_id": "KRS-BAK-0348"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.28192139699114527,
+      "renovation_services": 0.14096069849557263
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7205879405913072,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 0.5535905400643099,
+      "food": 0.12320472996784507,
+      "construction_services": 2.6612088439212336,
+      "renovation_services": 1.3306044219606168
+    },
+    "pojemność_magazynu": 1100.0
+  },
+  {
+    "id": "B-BAK-0349",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-BAK-0349",
+    "rok_budowy": 1972,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 83,
+    "zatrudnienie_aktualne": 83,
+    "rezerwa_zakladowa": 252031.6845226227,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 114,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 7,
+      "sector": "construction",
+      "owner_id": "KRS-BAK-0349"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 11.62,
+      "renovation_services": 4.648
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8708635761169711,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.4347802433852026,
+      "food": 0.5700000000000001,
+      "construction_services": 2.28,
+      "renovation_services": 0.912
+    },
+    "pojemność_magazynu": 1140.0
+  },
+  {
+    "id": "B-BAK-0350",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-BAK-0350",
+    "rok_budowy": 1957,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 67,
+    "zatrudnienie_aktualne": 67,
+    "rezerwa_zakladowa": 198290.08888201142,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 6,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 6,
+      "sector": "construction",
+      "owner_id": "KRS-BAK-0350"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 12.06,
+      "renovation_services": 4.0200000000000005
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8009042799997161,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 4.604999999999999,
+      "food": 0.6098719353374129,
+      "construction_services": 3.0599999999999996,
+      "renovation_services": 1.02
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-BAK-0351",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-BAK-0351",
+    "rok_budowy": 1956,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 105,
+    "zatrudnienie_aktualne": 105,
+    "rezerwa_zakladowa": 170432.97516076907,
+    "aktywna_metoda": {
+      "rok": 1950,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 10.0,
+        "construction_machinery": 5.0,
+        "steel": 15.0
+      },
+      "outputs": {
+        "construction_services": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 117,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 2,
+      "sector": "construction",
+      "owner_id": "KRS-BAK-0351"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 10.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7136850124315837,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.1700000000000002,
+      "food": 0.5850000000000001,
+      "construction_services": 5.8500000000000005
+    },
+    "pojemność_magazynu": 1170.0
+  },
+  {
+    "id": "B-BAK-0352",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-BAK-0352",
+    "rok_budowy": 1956,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 48,
+    "zatrudnienie_aktualne": 48,
+    "rezerwa_zakladowa": 72949.74887356668,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 71,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-BAK-0352"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.0037421576260737903,
+      "renovation_services": 0.0018710788130368952
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7828119181755594,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 1.605590524741298,
+      "construction_services": 1.6424946409898535,
+      "renovation_services": 0.8212473204949268
+    },
+    "pojemność_magazynu": 710.0
+  },
+  {
+    "id": "B-BAK-0353",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-BAK-0353",
+    "rok_budowy": 1974,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 39,
+    "zatrudnienie_aktualne": 39,
+    "rezerwa_zakladowa": 56204.059113487805,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 47,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-BAK-0353"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.78,
+      "renovation_services": 0.312
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8635211094535274,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 2.0300000000000002,
+      "food": 0.43,
+      "construction_services": 0.94,
+      "renovation_services": 0.376
+    },
+    "pojemność_magazynu": 470.0
+  },
+  {
+    "id": "B-BAK-0354",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-BAK-0354",
+    "rok_budowy": 1956,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 6,
+    "zatrudnienie_aktualne": 6,
+    "rezerwa_zakladowa": 8323.92244001972,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 6,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-BAK-0354"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.18,
+      "renovation_services": 0.06
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7849610980276551,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 0.27,
+      "food": 0.07048588839260975,
+      "steel": 0.0,
+      "construction_services": 0.18,
+      "renovation_services": 0.06
+    },
+    "pojemność_magazynu": 100.0
+  },
+  {
+    "id": "B-BAK-0355",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-BAK-0355",
+    "rok_budowy": 1948,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 5,
+    "zatrudnienie_aktualne": 5,
+    "rezerwa_zakladowa": 6936.602033349766,
+    "aktywna_metoda": {
+      "rok": 1950,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 10.0,
+        "construction_machinery": 5.0,
+        "steel": 15.0
+      },
+      "outputs": {
+        "construction_services": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 5,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-BAK-0355"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.25
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8562519316242518,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 0.05,
+      "food": 0.025,
+      "construction_services": 0.25
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

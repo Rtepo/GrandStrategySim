@@ -1,0 +1,1638 @@
+[
+  {
+    "id": "B-HEL-0144",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-HEL-0144",
+    "rok_budowy": 1965,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 55,
+    "zatrudnienie_aktualne": 55,
+    "rezerwa_zakladowa": 62150.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 125,
+    "region_id": "Helwecja-Region4",
+    "cluster_info": {
+      "region_id": "Helwecja-Region4",
+      "scale_factor": 2,
+      "sector": "export_services",
+      "owner_id": "KRS-HEL-0144"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.6192347542317412,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.625
+    },
+    "pojemność_magazynu": 1250.0
+  },
+  {
+    "id": "B-HEL-1269",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-HEL-1269",
+    "rok_budowy": 1947,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 19304497.034043785,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 159,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region4",
+    "cluster_info": {
+      "region_id": "Helwecja-Region4",
+      "scale_factor": 159,
+      "sector": "export_services",
+      "owner_id": "KRS-HEL-1269"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.6127071847022113,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-HEL-1269_Export_Company_18",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Helwecja-Region4",
+      "typ_budynku_docelowy": "Export Company",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 2576,
+      "zwiększenie_kapitału": 66997882.23476492,
+      "nowy_budynek": false,
+      "koszt_całkowity": 68669719.21935824,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 5,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 5,
+      "investor_id": "KRS-HEL-1269",
+      "main_contractor_id": "KRS-HEL-2034",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 13733943.843871647,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 20600915.76580747,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 20600915.76580747,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 13733943.843871647,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 68669719.21935824,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.042605951110743515,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-HEL-1270",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-HEL-1270",
+    "rok_budowy": 1970,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 18700522.284545552,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 154,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region4",
+    "cluster_info": {
+      "region_id": "Helwecja-Region4",
+      "scale_factor": 154,
+      "sector": "export_services",
+      "owner_id": "KRS-HEL-1270"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.6607853963468839,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-HEL-1270_Export_Company_18",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Helwecja-Region4",
+      "typ_budynku_docelowy": "Export Company",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 2495,
+      "zwiększenie_kapitału": 64919087.58281701,
+      "nowy_budynek": false,
+      "koszt_całkowity": 66602498.227732256,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 5,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 5,
+      "investor_id": "KRS-HEL-1270",
+      "main_contractor_id": "KRS-HEL-1953",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 13320499.645546451,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 19980749.468319677,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 19980749.468319677,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 13320499.645546451,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 66602498.227732256,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-HEL-1271",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-HEL-1271",
+    "rok_budowy": 1958,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 17246932.8857498,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 142,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region4",
+    "cluster_info": {
+      "region_id": "Helwecja-Region4",
+      "scale_factor": 142,
+      "sector": "export_services",
+      "owner_id": "KRS-HEL-1271"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.6618323667872131,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-HEL-1271_Export_Company_21",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Helwecja-Region4",
+      "typ_budynku_docelowy": "Export Company",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 2301,
+      "zwiększenie_kapitału": 31127758.097771853,
+      "nowy_budynek": false,
+      "koszt_całkowity": 31902375.76030891,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 2,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 2,
+      "investor_id": "KRS-HEL-1271",
+      "main_contractor_id": "KRS-HEL-2089",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 6380475.152061783,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 9570712.728092672,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 9570712.728092672,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 6380475.152061783,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 31902375.76030891,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-HEL-1272",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-HEL-1272",
+    "rok_budowy": 1971,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 12656724.789563231,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 104,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region4",
+    "cluster_info": {
+      "region_id": "Helwecja-Region4",
+      "scale_factor": 104,
+      "sector": "export_services",
+      "owner_id": "KRS-HEL-1272"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.8802136698158177,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-HEL-1272_Export_Company_21",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Helwecja-Region4",
+      "typ_budynku_docelowy": "Export Company",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 1685,
+      "zwiększenie_kapitału": 22938506.45083899,
+      "nowy_budynek": false,
+      "koszt_całkowity": 23512877.531412303,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 2,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 2,
+      "investor_id": "KRS-HEL-1272",
+      "main_contractor_id": "KRS-HEL-2067",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 4702575.506282461,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 7053863.259423691,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 7053863.259423691,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 4702575.506282461,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 23512877.531412303,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-HEL-1273",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-HEL-1273",
+    "rok_budowy": 1972,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 11569570.240466416,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 95,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region4",
+    "cluster_info": {
+      "region_id": "Helwecja-Region4",
+      "scale_factor": 95,
+      "sector": "export_services",
+      "owner_id": "KRS-HEL-1273"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.6695050379774031,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-HEL-1273_Export_Company_21",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Helwecja-Region4",
+      "typ_budynku_docelowy": "Export Company",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 1540,
+      "zwiększenie_kapitału": 21001077.83215395,
+      "nowy_budynek": false,
+      "koszt_całkowity": 21574257.215613496,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 2,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 2,
+      "investor_id": "KRS-HEL-1273",
+      "main_contractor_id": "KRS-HEL-2000",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 4314851.443122699,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 6472277.164684049,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 6472277.164684049,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 4314851.443122699,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 21574257.215613496,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-HEL-1274",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-HEL-1274",
+    "rok_budowy": 1955,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 8146241.360310432,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 66,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Helwecja-Region4",
+    "cluster_info": {
+      "region_id": "Helwecja-Region4",
+      "scale_factor": 66,
+      "sector": "export_services",
+      "owner_id": "KRS-HEL-1274"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.6663923143345222,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-HEL-1275",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-HEL-1275",
+    "rok_budowy": 1974,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 7902235.561513147,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 64,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Helwecja-Region4",
+    "cluster_info": {
+      "region_id": "Helwecja-Region4",
+      "scale_factor": 64,
+      "sector": "export_services",
+      "owner_id": "KRS-HEL-1275"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.6452280616579333,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-HEL-1276",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-HEL-1276",
+    "rok_budowy": 1966,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 6316197.86933079,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 51,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Helwecja-Region4",
+    "cluster_info": {
+      "region_id": "Helwecja-Region4",
+      "scale_factor": 51,
+      "sector": "export_services",
+      "owner_id": "KRS-HEL-1276"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.8400296444163557,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-HEL-1277",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-HEL-1277",
+    "rok_budowy": 1956,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 6133797.494982324,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 50,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region4",
+    "cluster_info": {
+      "region_id": "Helwecja-Region4",
+      "scale_factor": 50,
+      "sector": "export_services",
+      "owner_id": "KRS-HEL-1277"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.8777310579060982,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-1278",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-HEL-1278",
+    "rok_budowy": 1968,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 6133797.494982324,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 50,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region4",
+    "cluster_info": {
+      "region_id": "Helwecja-Region4",
+      "scale_factor": 50,
+      "sector": "export_services",
+      "owner_id": "KRS-HEL-1278"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.8975979672977817,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-1279",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-HEL-1279",
+    "rok_budowy": 1963,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 5828186.271736218,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 47,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Helwecja-Region4",
+    "cluster_info": {
+      "region_id": "Helwecja-Region4",
+      "scale_factor": 47,
+      "sector": "export_services",
+      "owner_id": "KRS-HEL-1279"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.6223134878075091,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-HEL-1280",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-HEL-1280",
+    "rok_budowy": 1962,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 5771412.645283383,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 47,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region4",
+    "cluster_info": {
+      "region_id": "Helwecja-Region4",
+      "scale_factor": 47,
+      "sector": "export_services",
+      "owner_id": "KRS-HEL-1280"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.8911893571412116,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-1281",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-HEL-1281",
+    "rok_budowy": 1960,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 2348881.462121382,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 18,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Helwecja-Region4",
+    "cluster_info": {
+      "region_id": "Helwecja-Region4",
+      "scale_factor": 18,
+      "sector": "export_services",
+      "owner_id": "KRS-HEL-1281"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.6027388917148498,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.52
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-HEL-1282",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-HEL-1282",
+    "rok_budowy": 1962,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 76,
+    "zatrudnienie_aktualne": 76,
+    "rezerwa_zakladowa": 1610766.3687355453,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Helwecja-Region4",
+    "cluster_info": {
+      "region_id": "Helwecja-Region4",
+      "scale_factor": 12,
+      "sector": "export_services",
+      "owner_id": "KRS-HEL-1282"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.690069898656833,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.525
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-HEL-1283",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-HEL-1283",
+    "rok_budowy": 1960,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 78,
+    "zatrudnienie_aktualne": 78,
+    "rezerwa_zakladowa": 1265226.9130245638,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 108,
+    "region_id": "Helwecja-Region4",
+    "cluster_info": {
+      "region_id": "Helwecja-Region4",
+      "scale_factor": 9,
+      "sector": "export_services",
+      "owner_id": "KRS-HEL-1283"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.8693781610764562,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.54
+    },
+    "pojemność_magazynu": 1080.0
+  },
+  {
+    "id": "B-HEL-1284",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-HEL-1284",
+    "rok_budowy": 1957,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 73,
+    "rezerwa_zakladowa": 1172354.549096818,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region4",
+    "cluster_info": {
+      "region_id": "Helwecja-Region4",
+      "scale_factor": 9,
+      "sector": "export_services",
+      "owner_id": "KRS-HEL-1284"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.6144452234955289,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-1285",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-HEL-1285",
+    "rok_budowy": 1961,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 35,
+    "rezerwa_zakladowa": 568379.7995985858,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region4",
+    "cluster_info": {
+      "region_id": "Helwecja-Region4",
+      "scale_factor": 4,
+      "sector": "export_services",
+      "owner_id": "KRS-HEL-1285"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.7651873035541169,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-1286",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-HEL-1286",
+    "rok_budowy": 1961,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 77,
+    "zatrudnienie_aktualne": 18,
+    "rezerwa_zakladowa": 343469.3947892576,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Helwecja-Region4",
+    "cluster_info": {
+      "region_id": "Helwecja-Region4",
+      "scale_factor": 2,
+      "sector": "export_services",
+      "owner_id": "KRS-HEL-1286"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.6401096777066074,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.525
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-HEL-1287",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-HEL-1287",
+    "rok_budowy": 1952,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 9,
+    "zatrudnienie_aktualne": 1,
+    "rezerwa_zakladowa": 29069.24248494697,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 15,
+    "region_id": "Helwecja-Region4",
+    "cluster_info": {
+      "region_id": "Helwecja-Region4",
+      "scale_factor": 1,
+      "sector": "export_services",
+      "owner_id": "KRS-HEL-1287"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.6649614067734901,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.075
+    },
+    "pojemność_magazynu": 150.0
+  },
+  {
+    "id": "B-HEL-1288",
+    "name": "Export Company",
+    "wlasciciel_id": "KRS-HEL-1288",
+    "rok_budowy": 1970,
+    "sektor_pkb": "export_services",
+    "pojemnosc_pracownikow": 9,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 22429.494989964645,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 10,
+    "region_id": "Helwecja-Region4",
+    "cluster_info": {
+      "region_id": "Helwecja-Region4",
+      "scale_factor": 1,
+      "sector": "export_services",
+      "owner_id": "KRS-HEL-1288"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 3.0,
+        "condition": 0.8325429927053217,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.05
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

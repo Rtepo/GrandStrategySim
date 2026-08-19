@@ -1,0 +1,73 @@
+[
+  {
+    "id": "B-DAC-0050",
+    "name": "Transport Depot",
+    "wlasciciel_id": "KRS-DAC-0050",
+    "rok_budowy": 1966,
+    "sektor_pkb": "transport_logistics",
+    "pojemnosc_pracownikow": 80,
+    "zatrudnienie_aktualne": 80,
+    "rezerwa_zakladowa": 92790.0,
+    "aktywna_metoda": {
+      "rok": 1960,
+      "eksperci": 0.25,
+      "sredni": 0.4,
+      "szeregowi": 0.35,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "aluminum": 8.0,
+        "fuels": 25.0
+      },
+      "outputs": {
+        "passenger_transport": 40.0,
+        "freight_capacity": 60.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 134,
+    "region_id": "Dacja-Region4",
+    "cluster_info": {
+      "region_id": "Dacja-Region4",
+      "scale_factor": 2,
+      "sector": "transport_logistics",
+      "owner_id": "KRS-DAC-0050"
+    },
+    "ostatnia_produkcja": {
+      "passenger_transport": 6.4,
+      "freight_capacity": 9.6
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 4.0,
+        "condition": 0.7030920344572814,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 2.2276099703873715,
+      "food": 0.67
+    },
+    "pojemność_magazynu": 1340.0
+  }
+]

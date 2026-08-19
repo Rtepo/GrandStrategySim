@@ -1,0 +1,2447 @@
+[
+    {
+        "id": "[ID-9XX-6917]",
+        "nazwa": "Huta Szkła",
+        "wlasciciel_id": "[KRS-1HV-1741]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1800,
+        "zatrudnienie_aktualne": 1440,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Piasek": 15,
+                "Wapień": 5,
+                "Węgiel Kamienny": 8
+            },
+            "outputs": {
+                "Szkło": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Szkliste Ręczne",
+                "produkcja": "Tradycyjna Huta Szkła",
+                "organizacja": "Lokalne Huty Szkła"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-1HV-1741]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3719]",
+        "nazwa": "Asfaltownia",
+        "wlasciciel_id": "[KRS-2HV-4509]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Bitumin": 5,
+                "Piasek": 10,
+                "Żwir": 10
+            },
+            "outputs": {
+                "Asfalt": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Mieszalniki Ręczne",
+                "produkcja": "Tradycyjna Asfaltownia",
+                "organizacja": "Lokalne Asfaltownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-4509]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4408]",
+        "nazwa": "Asfaltownia",
+        "wlasciciel_id": "[ID-9HV-5746]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Bitumin": 5,
+                "Piasek": 10,
+                "Żwir": 10
+            },
+            "outputs": {
+                "Asfalt": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Mieszalniki Ręczne",
+                "produkcja": "Tradycyjna Asfaltownia",
+                "organizacja": "Lokalne Asfaltownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-5746]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9288]",
+        "nazwa": "Tartak",
+        "wlasciciel_id": "[REG-4HV-3346]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Drewno": 8,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Deski": 10000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piły Tarczowe i Traki",
+                "produkcja": "Mechaniczne Przeróbka",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-3346]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8938]",
+        "nazwa": "Fabryka Pociągów",
+        "wlasciciel_id": "[KRS-1HV-9872]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4500,
+        "zatrudnienie_aktualne": 3600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.2195,
+            "sredni": 0.6951,
+            "szeregowi": 0.0854,
+            "wydajnosc": 2.08,
+            "inputs": {
+                "Stal": 20,
+                "Żelazo": 10,
+                "Drewno": 15
+            },
+            "outputs": {
+                "Pociągi": 5
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Linie Montażowe Parowe",
+                "produkcja": "Pociągi Parowe",
+                "organizacja": "Państwowe Monopole Kolejowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-1HV-9872]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7971]",
+        "nazwa": "Fabryka Maszyn Ciężkich",
+        "wlasciciel_id": "[KRS-2HV-5556]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1616,
+            "sredni": 0.5556,
+            "szeregowi": 0.2828,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 10,
+                "Żelazo": 5
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 300,
+                "Części Mechaniczne": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dźwigi Parowe",
+                "produkcja": "Warsztaty Odlewnicze",
+                "organizacja": "Zakłady Państwowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-5556]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9174]",
+        "nazwa": "Asfaltownia",
+        "wlasciciel_id": "[ID-9HV-8423]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Bitumin": 5,
+                "Piasek": 10,
+                "Żwir": 10
+            },
+            "outputs": {
+                "Asfalt": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Mieszalniki Ręczne",
+                "produkcja": "Tradycyjna Asfaltownia",
+                "organizacja": "Lokalne Asfaltownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-8423]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8710]",
+        "nazwa": "Asfaltownia",
+        "wlasciciel_id": "[REG-4HV-6179]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Bitumin": 5,
+                "Piasek": 10,
+                "Żwir": 10
+            },
+            "outputs": {
+                "Asfalt": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Mieszalniki Ręczne",
+                "produkcja": "Tradycyjna Asfaltownia",
+                "organizacja": "Lokalne Asfaltownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-6179]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6447]",
+        "nazwa": "Huta Aluminium",
+        "wlasciciel_id": "[KRS-1HV-3233]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1529,
+            "sredni": 0.4706,
+            "szeregowi": 0.3765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Boksyt": 15,
+                "Paliwa": 10
+            },
+            "outputs": {
+                "Aluminium": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Elektryczne Proste",
+                "produkcja": "Proces Halla-Héroulta",
+                "organizacja": "Laboratoria Badawcze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-1HV-3233]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6836]",
+        "nazwa": "Fabryka Maszyn Ciężkich",
+        "wlasciciel_id": "[KRS-2HV-8677]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1616,
+            "sredni": 0.5556,
+            "szeregowi": 0.2828,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 10,
+                "Żelazo": 5
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 300,
+                "Części Mechaniczne": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dźwigi Parowe",
+                "produkcja": "Warsztaty Odlewnicze",
+                "organizacja": "Zakłady Państwowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-8677]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5022]",
+        "nazwa": "Fabryka Maszyn Rolnych",
+        "wlasciciel_id": "[ID-9HV-7595]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1772,
+            "sredni": 0.6329,
+            "szeregowi": 0.1899,
+            "wydajnosc": 1.8,
+            "inputs": {
+                "Stal": 8,
+                "Żelazo": 5,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Maszyny Rolne": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Linie Montażowe Maszynowe",
+                "produkcja": "Proste Narzędzia Rolne",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-7595]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1391]",
+        "nazwa": "Koksownia",
+        "wlasciciel_id": "[REG-4HV-2887]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1800,
+        "zatrudnienie_aktualne": 1440,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.2222,
+            "sredni": 0.7619,
+            "szeregowi": 0.0159,
+            "wydajnosc": 2.52,
+            "inputs": {
+                "Węgiel Kamienny": 12,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Koks": 8000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Automatyzacja Pieców",
+                "produkcja": "Wysokosprawne Piece",
+                "organizacja": "Kartele Koksownicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-2887]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3457]",
+        "nazwa": "Asfaltownia",
+        "wlasciciel_id": "[KRS-1HV-5702]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Bitumin": 5,
+                "Piasek": 10,
+                "Żwir": 10
+            },
+            "outputs": {
+                "Asfalt": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Mieszalniki Ręczne",
+                "produkcja": "Tradycyjna Asfaltownia",
+                "organizacja": "Lokalne Asfaltownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-1HV-5702]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4356]",
+        "nazwa": "Zakłady Chemiczne",
+        "wlasciciel_id": "[KRS-2HV-1703]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1930,
+            "eksperci": 0.2778,
+            "sredni": 0.6444,
+            "szeregowi": 0.0778,
+            "wydajnosc": 1.3,
+            "inputs": {
+                "Siarka": 5,
+                "Gaz Ziemny": 5
+            },
+            "outputs": {
+                "Nawozy": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece i Zbiorniki Ręczne",
+                "produkcja": "Proces Habera-Boscha",
+                "organizacja": "Koncern Chemiczny (IG Farben)"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-1703]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2733]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[ID-9HV-7583]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.5341,
+            "szeregowi": 0.3182,
+            "wydajnosc": 1.6,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Suwnice i Spawarki",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-7583]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7934]",
+        "nazwa": "Koksownia",
+        "wlasciciel_id": "[REG-4HV-6512]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1800,
+        "zatrudnienie_aktualne": 1440,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.2222,
+            "sredni": 0.7619,
+            "szeregowi": 0.0159,
+            "wydajnosc": 2.52,
+            "inputs": {
+                "Węgiel Kamienny": 12,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Koks": 8000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Automatyzacja Pieców",
+                "produkcja": "Wysokosprawne Piece",
+                "organizacja": "Kartele Koksownicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-6512]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9619]",
+        "nazwa": "Fabryka Maszyn Ciężkich",
+        "wlasciciel_id": "[KRS-1HV-7611]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1616,
+            "sredni": 0.5556,
+            "szeregowi": 0.2828,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 10,
+                "Żelazo": 5
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 300,
+                "Części Mechaniczne": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dźwigi Parowe",
+                "produkcja": "Warsztaty Odlewnicze",
+                "organizacja": "Zakłady Państwowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-1HV-7611]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9950]",
+        "nazwa": "Cementownia",
+        "wlasciciel_id": "[KRS-2HV-4173]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Wapień": 10,
+                "Węgiel Kamienny": 5
+            },
+            "outputs": {
+                "Cement": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Rotacyjne Ręczne",
+                "produkcja": "Tradycyjna Cementownia",
+                "organizacja": "Lokalne Cementownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-4173]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5572]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[ID-9HV-1313]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.5341,
+            "szeregowi": 0.3182,
+            "wydajnosc": 1.6,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Suwnice i Spawarki",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-1313]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4157]",
+        "nazwa": "Rafineria",
+        "wlasciciel_id": "[REG-4HV-6782]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1772,
+            "sredni": 0.5949,
+            "szeregowi": 0.2278,
+            "wydajnosc": 1.6,
+            "inputs": {
+                "Ropa Naftowa": 20
+            },
+            "outputs": {
+                "Paliwa": 1500,
+                "Bitumin": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Destylacja Frakcyjna",
+                "produkcja": "Prosta Destylacja",
+                "organizacja": "Małe Rafinerie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-6782]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7828]",
+        "nazwa": "Fabryka Maszyn",
+        "wlasciciel_id": "[KRS-1HV-9781]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.2841,
+            "sredni": 0.7045,
+            "szeregowi": 0.0114,
+            "wydajnosc": 3.12,
+            "inputs": {
+                "Stal": 8,
+                "Części Mechaniczne": 3
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 500,
+                "Części Mechaniczne": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Obrabiarki Sterowane Elektrycznie",
+                "produkcja": "Linie Montażowe Elektryczne",
+                "organizacja": "Standaryzacja i Części Wymienne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-1HV-9781]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6505]",
+        "nazwa": "Fabryka Maszyn",
+        "wlasciciel_id": "[KRS-2HV-9425]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.2841,
+            "sredni": 0.7045,
+            "szeregowi": 0.0114,
+            "wydajnosc": 3.12,
+            "inputs": {
+                "Stal": 8,
+                "Części Mechaniczne": 3
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 500,
+                "Części Mechaniczne": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Obrabiarki Sterowane Elektrycznie",
+                "produkcja": "Linie Montażowe Elektryczne",
+                "organizacja": "Standaryzacja i Części Wymienne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-9425]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1343]",
+        "nazwa": "Rafineria",
+        "wlasciciel_id": "[ID-9HV-6603]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1772,
+            "sredni": 0.5949,
+            "szeregowi": 0.2278,
+            "wydajnosc": 1.6,
+            "inputs": {
+                "Ropa Naftowa": 20
+            },
+            "outputs": {
+                "Paliwa": 1500,
+                "Bitumin": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Destylacja Frakcyjna",
+                "produkcja": "Prosta Destylacja",
+                "organizacja": "Małe Rafinerie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-6603]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5289]",
+        "nazwa": "Huta Szkła",
+        "wlasciciel_id": "[REG-4HV-8426]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1800,
+        "zatrudnienie_aktualne": 1440,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Piasek": 15,
+                "Wapień": 5,
+                "Węgiel Kamienny": 8
+            },
+            "outputs": {
+                "Szkło": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Szkliste Ręczne",
+                "produkcja": "Tradycyjna Huta Szkła",
+                "organizacja": "Lokalne Huty Szkła"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-8426]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1836]",
+        "nazwa": "Tartak",
+        "wlasciciel_id": "[KRS-1HV-3398]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Drewno": 8,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Deski": 10000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piły Tarczowe i Traki",
+                "produkcja": "Mechaniczne Przeróbka",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-1HV-3398]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1956]",
+        "nazwa": "Huta Stali",
+        "wlasciciel_id": "[KRS-2HV-1748]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.2295,
+            "sredni": 0.7541,
+            "szeregowi": 0.0164,
+            "wydajnosc": 2.73,
+            "inputs": {
+                "Żelazo": 20,
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Stal": 3500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Suwnice Elektryczne i Walcarki",
+                "produkcja": "Piec Martenowski",
+                "organizacja": "Naukowe Zarządzanie (Taylorizm)"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-1748]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6263]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[ID-9HV-6438]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.5341,
+            "szeregowi": 0.3182,
+            "wydajnosc": 1.6,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Suwnice i Spawarki",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-6438]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2793]",
+        "nazwa": "Tartak",
+        "wlasciciel_id": "[REG-4HV-6901]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Drewno": 8,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Deski": 10000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piły Tarczowe i Traki",
+                "produkcja": "Mechaniczne Przeróbka",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-6901]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3421]",
+        "nazwa": "Cegielnia (Przemysłowa)",
+        "wlasciciel_id": "[KRS-1HV-2209]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Glina": 6,
+                "Węgiel Kamienny": 2,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Cegły": 12000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Automatyzacja Formowania",
+                "produkcja": "Mechaniczne Formowanie",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-1HV-2209]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3914]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[KRS-2HV-3745]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1915,
+            "eksperci": 0.1839,
+            "sredni": 0.8046,
+            "szeregowi": 0.0115,
+            "wydajnosc": 4.536,
+            "inputs": {
+                "Stal": 15,
+                "Części Mechaniczne": 5,
+                "Paliwa": 2
+            },
+            "outputs": {
+                "Samochody": 100,
+                "Ciężarówki": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Linia Montażowa Fordowska",
+                "produkcja": "Linia Montażowa",
+                "organizacja": "Masowa Produkcja (Fordyzm)"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-3745]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5759]",
+        "nazwa": "Cementownia",
+        "wlasciciel_id": "[ID-9HV-6126]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Wapień": 10,
+                "Węgiel Kamienny": 5
+            },
+            "outputs": {
+                "Cement": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Rotacyjne Ręczne",
+                "produkcja": "Tradycyjna Cementownia",
+                "organizacja": "Lokalne Cementownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-6126]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7482]",
+        "nazwa": "Zakłady Chemiczne",
+        "wlasciciel_id": "[REG-4HV-4262]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1930,
+            "eksperci": 0.2778,
+            "sredni": 0.6444,
+            "szeregowi": 0.0778,
+            "wydajnosc": 1.3,
+            "inputs": {
+                "Siarka": 5,
+                "Gaz Ziemny": 5
+            },
+            "outputs": {
+                "Nawozy": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece i Zbiorniki Ręczne",
+                "produkcja": "Proces Habera-Boscha",
+                "organizacja": "Koncern Chemiczny (IG Farben)"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-4262]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4121]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[KRS-1HV-4886]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.5341,
+            "szeregowi": 0.3182,
+            "wydajnosc": 1.6,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Suwnice i Spawarki",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-1HV-4886]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3696]",
+        "nazwa": "Asfaltownia",
+        "wlasciciel_id": "[KRS-2HV-8710]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Bitumin": 5,
+                "Piasek": 10,
+                "Żwir": 10
+            },
+            "outputs": {
+                "Asfalt": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Mieszalniki Ręczne",
+                "produkcja": "Tradycyjna Asfaltownia",
+                "organizacja": "Lokalne Asfaltownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-8710]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2099]",
+        "nazwa": "Huta Szkła",
+        "wlasciciel_id": "[ID-9HV-8531]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1800,
+        "zatrudnienie_aktualne": 1440,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Piasek": 15,
+                "Wapień": 5,
+                "Węgiel Kamienny": 8
+            },
+            "outputs": {
+                "Szkło": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Szkliste Ręczne",
+                "produkcja": "Tradycyjna Huta Szkła",
+                "organizacja": "Lokalne Huty Szkła"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-8531]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5453]",
+        "nazwa": "Fabryka Maszyn Rolnych",
+        "wlasciciel_id": "[REG-4HV-6544]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1772,
+            "sredni": 0.6329,
+            "szeregowi": 0.1899,
+            "wydajnosc": 1.8,
+            "inputs": {
+                "Stal": 8,
+                "Żelazo": 5,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Maszyny Rolne": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Linie Montażowe Maszynowe",
+                "produkcja": "Proste Narzędzia Rolne",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-6544]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1931]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[KRS-1HV-2030]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1915,
+            "eksperci": 0.1839,
+            "sredni": 0.8046,
+            "szeregowi": 0.0115,
+            "wydajnosc": 4.536,
+            "inputs": {
+                "Stal": 15,
+                "Części Mechaniczne": 5,
+                "Paliwa": 2
+            },
+            "outputs": {
+                "Samochody": 100,
+                "Ciężarówki": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Linia Montażowa Fordowska",
+                "produkcja": "Linia Montażowa",
+                "organizacja": "Masowa Produkcja (Fordyzm)"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-1HV-2030]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3378]",
+        "nazwa": "Cementownia",
+        "wlasciciel_id": "[KRS-2HV-9340]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Wapień": 10,
+                "Węgiel Kamienny": 5
+            },
+            "outputs": {
+                "Cement": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Rotacyjne Ręczne",
+                "produkcja": "Tradycyjna Cementownia",
+                "organizacja": "Lokalne Cementownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-9340]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8024]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[ID-9HV-5030]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.5341,
+            "szeregowi": 0.3182,
+            "wydajnosc": 1.6,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Suwnice i Spawarki",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-5030]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8640]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[REG-4HV-3963]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.5341,
+            "szeregowi": 0.3182,
+            "wydajnosc": 1.6,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Suwnice i Spawarki",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-3963]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8253]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[KRS-1HV-3233]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1915,
+            "eksperci": 0.1839,
+            "sredni": 0.8046,
+            "szeregowi": 0.0115,
+            "wydajnosc": 4.536,
+            "inputs": {
+                "Stal": 15,
+                "Części Mechaniczne": 5,
+                "Paliwa": 2
+            },
+            "outputs": {
+                "Samochody": 100,
+                "Ciężarówki": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Linia Montażowa Fordowska",
+                "produkcja": "Linia Montażowa",
+                "organizacja": "Masowa Produkcja (Fordyzm)"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-1HV-3233]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7924]",
+        "nazwa": "Fabryka Maszyn",
+        "wlasciciel_id": "[KRS-2HV-3215]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.2841,
+            "sredni": 0.7045,
+            "szeregowi": 0.0114,
+            "wydajnosc": 3.12,
+            "inputs": {
+                "Stal": 8,
+                "Części Mechaniczne": 3
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 500,
+                "Części Mechaniczne": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Obrabiarki Sterowane Elektrycznie",
+                "produkcja": "Linie Montażowe Elektryczne",
+                "organizacja": "Standaryzacja i Części Wymienne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-3215]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3119]",
+        "nazwa": "Fabryka Maszyn Ciężkich",
+        "wlasciciel_id": "[ID-9HV-6355]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1616,
+            "sredni": 0.5556,
+            "szeregowi": 0.2828,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 10,
+                "Żelazo": 5
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 300,
+                "Części Mechaniczne": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dźwigi Parowe",
+                "produkcja": "Warsztaty Odlewnicze",
+                "organizacja": "Zakłady Państwowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-6355]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2214]",
+        "nazwa": "Huta Stali",
+        "wlasciciel_id": "[REG-4HV-3051]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.2295,
+            "sredni": 0.7541,
+            "szeregowi": 0.0164,
+            "wydajnosc": 2.73,
+            "inputs": {
+                "Żelazo": 20,
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Stal": 3500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Suwnice Elektryczne i Walcarki",
+                "produkcja": "Piec Martenowski",
+                "organizacja": "Naukowe Zarządzanie (Taylorizm)"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-3051]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9808]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[KRS-1HV-1644]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.5341,
+            "szeregowi": 0.3182,
+            "wydajnosc": 1.6,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Suwnice i Spawarki",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-1HV-1644]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1383]",
+        "nazwa": "Fabryka Maszyn Rolnych",
+        "wlasciciel_id": "[KRS-2HV-5265]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1772,
+            "sredni": 0.6329,
+            "szeregowi": 0.1899,
+            "wydajnosc": 1.8,
+            "inputs": {
+                "Stal": 8,
+                "Żelazo": 5,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Maszyny Rolne": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Linie Montażowe Maszynowe",
+                "produkcja": "Proste Narzędzia Rolne",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-5265]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9356]",
+        "nazwa": "Huta Szkła",
+        "wlasciciel_id": "[ID-9HV-7001]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1800,
+        "zatrudnienie_aktualne": 1440,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Piasek": 15,
+                "Wapień": 5,
+                "Węgiel Kamienny": 8
+            },
+            "outputs": {
+                "Szkło": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Szkliste Ręczne",
+                "produkcja": "Tradycyjna Huta Szkła",
+                "organizacja": "Lokalne Huty Szkła"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-7001]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4609]",
+        "nazwa": "Huta Szkła",
+        "wlasciciel_id": "[REG-4HV-1903]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1800,
+        "zatrudnienie_aktualne": 1440,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Piasek": 15,
+                "Wapień": 5,
+                "Węgiel Kamienny": 8
+            },
+            "outputs": {
+                "Szkło": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Szkliste Ręczne",
+                "produkcja": "Tradycyjna Huta Szkła",
+                "organizacja": "Lokalne Huty Szkła"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-1903]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9035]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[KRS-1HV-6654]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.5341,
+            "szeregowi": 0.3182,
+            "wydajnosc": 1.6,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Suwnice i Spawarki",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-1HV-6654]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2946]",
+        "nazwa": "Fabryka Maszyn Ciężkich",
+        "wlasciciel_id": "[KRS-2HV-4353]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1616,
+            "sredni": 0.5556,
+            "szeregowi": 0.2828,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 10,
+                "Żelazo": 5
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 300,
+                "Części Mechaniczne": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dźwigi Parowe",
+                "produkcja": "Warsztaty Odlewnicze",
+                "organizacja": "Zakłady Państwowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-4353]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9526]",
+        "nazwa": "Fabryka Pociągów",
+        "wlasciciel_id": "[ID-9HV-9341]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4500,
+        "zatrudnienie_aktualne": 3600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.2195,
+            "sredni": 0.6951,
+            "szeregowi": 0.0854,
+            "wydajnosc": 2.08,
+            "inputs": {
+                "Stal": 20,
+                "Żelazo": 10,
+                "Drewno": 15
+            },
+            "outputs": {
+                "Pociągi": 5
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Linie Montażowe Parowe",
+                "produkcja": "Pociągi Parowe",
+                "organizacja": "Państwowe Monopole Kolejowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-9341]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3235]",
+        "nazwa": "Tartak",
+        "wlasciciel_id": "[REG-4HV-4007]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Drewno": 8,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Deski": 10000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piły Tarczowe i Traki",
+                "produkcja": "Mechaniczne Przeróbka",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-4007]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9802]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[KRS-1HV-7366]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1915,
+            "eksperci": 0.1839,
+            "sredni": 0.8046,
+            "szeregowi": 0.0115,
+            "wydajnosc": 4.536,
+            "inputs": {
+                "Stal": 15,
+                "Części Mechaniczne": 5,
+                "Paliwa": 2
+            },
+            "outputs": {
+                "Samochody": 100,
+                "Ciężarówki": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Linia Montażowa Fordowska",
+                "produkcja": "Linia Montażowa",
+                "organizacja": "Masowa Produkcja (Fordyzm)"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-1HV-7366]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2122]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[KRS-2HV-7878]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.5341,
+            "szeregowi": 0.3182,
+            "wydajnosc": 1.6,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Suwnice i Spawarki",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-7878]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8097]",
+        "nazwa": "Koksownia",
+        "wlasciciel_id": "[ID-9HV-2412]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1800,
+        "zatrudnienie_aktualne": 1440,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.2222,
+            "sredni": 0.7619,
+            "szeregowi": 0.0159,
+            "wydajnosc": 2.52,
+            "inputs": {
+                "Węgiel Kamienny": 12,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Koks": 8000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Automatyzacja Pieców",
+                "produkcja": "Wysokosprawne Piece",
+                "organizacja": "Kartele Koksownicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-2412]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7327]",
+        "nazwa": "Huta Stali",
+        "wlasciciel_id": "[REG-4HV-5474]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.2295,
+            "sredni": 0.7541,
+            "szeregowi": 0.0164,
+            "wydajnosc": 2.73,
+            "inputs": {
+                "Żelazo": 20,
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Stal": 3500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Suwnice Elektryczne i Walcarki",
+                "produkcja": "Piec Martenowski",
+                "organizacja": "Naukowe Zarządzanie (Taylorizm)"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-5474]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2470]",
+        "nazwa": "Fabryka Pociągów",
+        "wlasciciel_id": "[KRS-1HV-8964]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4500,
+        "zatrudnienie_aktualne": 3600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.2195,
+            "sredni": 0.6951,
+            "szeregowi": 0.0854,
+            "wydajnosc": 2.08,
+            "inputs": {
+                "Stal": 20,
+                "Żelazo": 10,
+                "Drewno": 15
+            },
+            "outputs": {
+                "Pociągi": 5
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Linie Montażowe Parowe",
+                "produkcja": "Pociągi Parowe",
+                "organizacja": "Państwowe Monopole Kolejowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-1HV-8964]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7522]",
+        "nazwa": "Cegielnia (Przemysłowa)",
+        "wlasciciel_id": "[KRS-2HV-1519]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Glina": 6,
+                "Węgiel Kamienny": 2,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Cegły": 12000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Automatyzacja Formowania",
+                "produkcja": "Mechaniczne Formowanie",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-1519]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9096]",
+        "nazwa": "Huta Aluminium",
+        "wlasciciel_id": "[ID-9HV-4661]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1529,
+            "sredni": 0.4706,
+            "szeregowi": 0.3765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Boksyt": 15,
+                "Paliwa": 10
+            },
+            "outputs": {
+                "Aluminium": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Elektryczne Proste",
+                "produkcja": "Proces Halla-Héroulta",
+                "organizacja": "Laboratoria Badawcze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-4661]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4776]",
+        "nazwa": "Asfaltownia",
+        "wlasciciel_id": "[REG-4HV-3047]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Bitumin": 5,
+                "Piasek": 10,
+                "Żwir": 10
+            },
+            "outputs": {
+                "Asfalt": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Mieszalniki Ręczne",
+                "produkcja": "Tradycyjna Asfaltownia",
+                "organizacja": "Lokalne Asfaltownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Baktria-Region15",
+        "cluster_info": {
+            "region_id": "Baktria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-3047]"
+        }
+    }
+]

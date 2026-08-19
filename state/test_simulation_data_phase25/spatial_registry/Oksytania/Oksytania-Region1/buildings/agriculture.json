@@ -1,0 +1,1850 @@
+[
+  {
+    "id": "B-OKS-0047",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-OKS-0047",
+    "rok_budowy": 1967,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 72,
+    "zatrudnienie_aktualne": 72,
+    "rezerwa_zakladowa": 132750.0,
+    "aktywna_metoda": {
+      "rok": 1960,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fertilizers": 10.0,
+        "seeds": 12.0
+      },
+      "outputs": {
+        "cereal": 70.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 15,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 15,
+      "sector": "agriculture",
+      "owner_id": "KRS-OKS-0047"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 75.60000000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.8829946560935764,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fertilizers": 2.1599999999999997,
+      "food": 0.5,
+      "cereal": 10.323613518531008
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-OKS-0432",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-OKS-0432",
+    "rok_budowy": 1957,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 74,
+    "zatrudnienie_aktualne": 74,
+    "rezerwa_zakladowa": 3743224.785933371,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 6.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "protein": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 40,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 40,
+      "sector": "agriculture",
+      "owner_id": "KRS-OKS-0432"
+    },
+    "ostatnia_produkcja": {
+      "protein": 35.519999999999996
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.6656195894319764,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.8879999999999999,
+      "protein": 2.6340397754929477,
+      "water": 4.779999999999999
+    },
+    "pojemność_magazynu": 1020.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-OKS-0432_Farm_18",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Oksytania-Region1",
+      "typ_budynku_docelowy": "Farm",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 596,
+      "zwiększenie_kapitału": 13425335.730621753,
+      "nowy_budynek": false,
+      "koszt_całkowity": 13764040.842309993,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 5,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 5,
+      "investor_id": "KRS-OKS-0432",
+      "main_contractor_id": "KRS-OKS-0615",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 2752808.168461999,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 4129212.2526929975,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 4129212.2526929975,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 2752808.168461999,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 13764040.842309993,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.029909034831283824,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-OKS-0433",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-OKS-0433",
+    "rok_budowy": 1948,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 74,
+    "zatrudnienie_aktualne": 74,
+    "rezerwa_zakladowa": 3651916.6662850375,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "cereal": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "seeds": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 39,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 39,
+      "sector": "agriculture",
+      "owner_id": "KRS-OKS-0433"
+    },
+    "ostatnia_produkcja": {
+      "seeds": 0.5233814845746813
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.8939356371022662,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.22199999999999992,
+      "cereal": 1.7879999999999994,
+      "seeds": 6.361387475985403,
+      "water": 1.0949999999999998
+    },
+    "pojemność_magazynu": 1020.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-OKS-0433_Farm_18",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Oksytania-Region1",
+      "typ_budynku_docelowy": "Farm",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 581,
+      "zwiększenie_kapitału": 13121085.317240737,
+      "nowy_budynek": false,
+      "koszt_całkowity": 13474791.151362922,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 5,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 5,
+      "investor_id": "KRS-OKS-0433",
+      "main_contractor_id": "KRS-OKS-0598",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 2694958.2302725846,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 4042437.3454088764,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 4042437.3454088764,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 2694958.2302725846,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 13474791.151362922,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0452070937245505,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-OKS-0434",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-OKS-0434",
+    "rok_budowy": 1950,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 72,
+    "zatrudnienie_aktualne": 72,
+    "rezerwa_zakladowa": 3486275.0457222583,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 2.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "timber": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 38,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 38,
+      "sector": "agriculture",
+      "owner_id": "KRS-OKS-0434"
+    },
+    "ostatnia_produkcja": {
+      "timber": 27.360000000000003
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.7367963073694844,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 1.8899999999999997
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-OKS-0434_Farm_22",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Oksytania-Region1",
+      "typ_budynku_docelowy": "Farm",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 555,
+      "zwiększenie_kapitału": 6587700.217221708,
+      "nowy_budynek": false,
+      "koszt_całkowity": 6795071.2921681525,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 1,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 1,
+      "investor_id": "KRS-OKS-0434",
+      "main_contractor_id": "KRS-OKS-0622",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 1359014.2584336307,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 2038521.3876504456,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 2038521.3876504456,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 1359014.2584336307,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 6795071.2921681525,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-OKS-0435",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-OKS-0435",
+    "rok_budowy": 1955,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 2946252.2160503073,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "vegetable": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 31,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 31,
+      "sector": "agriculture",
+      "owner_id": "KRS-OKS-0435"
+    },
+    "ostatnia_produkcja": {
+      "vegetable": 1.8174889308465792e-18
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.8206168687720213,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.75,
+      "vegetable": 4.047262634940665,
+      "seeds": 4.336808689942018e-19,
+      "water": 3.1520000000000157
+    },
+    "pojemność_magazynu": 1030.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-OKS-0435_Farm_21",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Oksytania-Region1",
+      "typ_budynku_docelowy": "Farm",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 466,
+      "zwiększenie_kapitału": 5637886.928300422,
+      "nowy_budynek": false,
+      "koszt_całkowity": 5782004.928102462,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 2,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 2,
+      "investor_id": "KRS-OKS-0435",
+      "main_contractor_id": "KRS-OKS-0583",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 1156400.9856204924,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 1734601.4784307384,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 1734601.4784307384,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 1156400.9856204924,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 5782004.928102462,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.009442589163924766,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-OKS-0436",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-OKS-0436",
+    "rok_budowy": 1960,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 74,
+    "zatrudnienie_aktualne": 74,
+    "rezerwa_zakladowa": 2552119.230505026,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "seeds": 5.0,
+        "draft_animals": 3.0
+      },
+      "outputs": {
+        "cereal": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 27,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 27,
+      "sector": "agriculture",
+      "owner_id": "KRS-OKS-0436"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 1.484272406562862e-18
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.7041652540696034,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.8872750306526843,
+      "cereal": 3.3043472427452985,
+      "seeds": 4.336808689942018e-19
+    },
+    "pojemność_magazynu": 1020.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-OKS-0436_Farm_21",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Oksytania-Region1",
+      "typ_budynku_docelowy": "Farm",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 402,
+      "zwiększenie_kapitału": 4945031.807518503,
+      "nowy_budynek": false,
+      "koszt_całkowity": 5067172.941551224,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 2,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 2,
+      "investor_id": "KRS-OKS-0436",
+      "main_contractor_id": "KRS-OKS-0620",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 1013434.588310245,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 1520151.8824653672,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 1520151.8824653672,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 1013434.588310245,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 5067172.941551224,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-OKS-0437",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-OKS-0437",
+    "rok_budowy": 1959,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 73,
+    "rezerwa_zakladowa": 2255560.6081133555,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fodder": 15.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "meat": 10.0,
+        "livestock": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 24,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 24,
+      "sector": "agriculture",
+      "owner_id": "KRS-OKS-0437"
+    },
+    "ostatnia_produkcja": {
+      "meat": 9.554255068803426e-19,
+      "livestock": 4.777127534401713e-19
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.7706378631102535,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "meat": 2.1947252316816046,
+      "food": 0.946699432461416,
+      "fodder": 4.379999999999999,
+      "water": 8.27833533783203e-19,
+      "livestock": 1.0973626158408023
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-OKS-0438",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-OKS-0438",
+    "rok_budowy": 1973,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 73,
+    "rezerwa_zakladowa": 2255560.6081133555,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "industrial_fiber": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 24,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 24,
+      "sector": "agriculture",
+      "owner_id": "KRS-OKS-0438"
+    },
+    "ostatnia_produkcja": {
+      "industrial_fiber": 21.024
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.7032510350538249,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505,
+      "industrial_fiber": 0.2773357108970471,
+      "water": 3.056
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-OKS-0439",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-OKS-0439",
+    "rok_budowy": 1962,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 2024219.2431308536,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cereal": 8.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "fodder": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 21,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 21,
+      "sector": "agriculture",
+      "owner_id": "KRS-OKS-0439"
+    },
+    "ostatnia_produkcja": {
+      "fodder": 0.6381883127002196
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.6727850017797293,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.515,
+      "cereal": 1.6317499999999991,
+      "fodder": 4.045193394913797,
+      "water": 0.33984375
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-OKS-0440",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-OKS-0440",
+    "rok_budowy": 1959,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 74,
+    "zatrudnienie_aktualne": 74,
+    "rezerwa_zakladowa": 1912962.3929666856,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 4.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "luxury": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 20,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 20,
+      "sector": "agriculture",
+      "owner_id": "KRS-OKS-0440"
+    },
+    "ostatnia_produkcja": {
+      "luxury": 11.84
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.669574999550723,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.74,
+      "luxury": 1.7566733999266781,
+      "water": 2.96
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-OKS-0441",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-OKS-0441",
+    "rok_budowy": 1954,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 72,
+    "zatrudnienie_aktualne": 72,
+    "rezerwa_zakladowa": 1874955.287222241,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 4.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "fruit": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 20,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 20,
+      "sector": "agriculture",
+      "owner_id": "KRS-OKS-0441"
+    },
+    "ostatnia_produkcja": {
+      "fruit": 21.599999999999998
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.602867866188496,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fruit": 3.2091693598565487,
+      "food": 0.72,
+      "water": 2.3039999999999994
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-OKS-0442",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-OKS-0442",
+    "rok_budowy": 1972,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 1670724.073904461,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 5.0,
+        "seeds": 5.0,
+        "draft_animals": 5.0
+      },
+      "outputs": {
+        "cereal": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 17,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 17,
+      "sector": "agriculture",
+      "owner_id": "KRS-OKS-0442"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 31.874999999999996
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.7786767646029928,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.9444401000010243,
+      "cereal": 5.653972500926891
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-OKS-0443",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-OKS-0443",
+    "rok_budowy": 1951,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 76,
+    "zatrudnienie_aktualne": 76,
+    "rezerwa_zakladowa": 1311117.4835291794,
+    "aktywna_metoda": {
+      "rok": 1895,
+      "eksperci": 0.08,
+      "sredni": 0.2,
+      "szeregowi": 0.72,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "seeds": 8.0
+      },
+      "outputs": {
+        "cereal": 40.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 13,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 13,
+      "sector": "agriculture",
+      "owner_id": "KRS-OKS-0443"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 39.519999999999996
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.6137782114108264,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.0491364988361051,
+      "food": 0.525,
+      "cereal": 8.994838897585096
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-OKS-0444",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-OKS-0444",
+    "rok_budowy": 1955,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 61,
+    "zatrudnienie_aktualne": 61,
+    "rezerwa_zakladowa": 818037.7994844522,
+    "aktywna_metoda": {
+      "rok": 1950,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "agricultural_machinery": 3.0,
+        "fertilizers": 8.0,
+        "fuels": 15.0
+      },
+      "outputs": {
+        "cereal": 90.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 8,
+      "sector": "agriculture",
+      "owner_id": "KRS-OKS-0444"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 0.018176641500999773
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.6174825972358626,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fertilizers": 0.9544284850181304,
+      "fuels": 0.0026964393727337,
+      "food": 0.52,
+      "cereal": 14.745654456023285
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-OKS-0445",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-OKS-0445",
+    "rok_budowy": 1955,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 62,
+    "zatrudnienie_aktualne": 62,
+    "rezerwa_zakladowa": 738721.8115594514,
+    "aktywna_metoda": {
+      "rok": 1960,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fertilizers": 10.0,
+        "seeds": 12.0
+      },
+      "outputs": {
+        "cereal": 70.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 106,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 7,
+      "sector": "agriculture",
+      "owner_id": "KRS-OKS-0445"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 30.38
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.8430070660544842,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fertilizers": 1.3320000000000003,
+      "food": 0.53,
+      "cereal": 16.231022602691525
+    },
+    "pojemność_magazynu": 1060.0
+  },
+  {
+    "id": "B-OKS-0446",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-OKS-0446",
+    "rok_budowy": 1955,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 63,
+    "zatrudnienie_aktualne": 31,
+    "rezerwa_zakladowa": 360216.49066833634,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 6.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "protein": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 106,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 3,
+      "sector": "agriculture",
+      "owner_id": "KRS-OKS-0446"
+    },
+    "ostatnia_produkcja": {
+      "protein": 1.224
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.7625849930786913,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.38774532947268303,
+      "protein": 2.7620016422392197,
+      "water": 0.0
+    },
+    "pojemność_magazynu": 1060.0
+  },
+  {
+    "id": "B-OKS-0447",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-OKS-0447",
+    "rok_budowy": 1951,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 72,
+    "zatrudnienie_aktualne": 12,
+    "rezerwa_zakladowa": 220300.75832361245,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "cereal": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "seeds": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 145,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-OKS-0447"
+    },
+    "ostatnia_produkcja": {
+      "seeds": 2.3736778884054028e-18
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.7013839219840843,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.14421351510716587,
+      "cereal": 1.5380000000000043,
+      "seeds": 3.7569200448504616,
+      "water": 8.673617379884035e-19
+    },
+    "pojemność_magazynu": 1450.0
+  },
+  {
+    "id": "B-OKS-0448",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-OKS-0448",
+    "rok_budowy": 1953,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 30,
+    "zatrudnienie_aktualne": 5,
+    "rezerwa_zakladowa": 89420.30332944499,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 2.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "timber": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 58,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-OKS-0448"
+    },
+    "ostatnia_produkcja": {
+      "timber": 2.3791709000583158e-21
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.6176584577270984,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 0.0025961977630101912,
+      "food": 0.29000000000000004,
+      "seeds": 4.235164736271502e-22,
+      "water": 0.26499999999999996
+    },
+    "pojemność_magazynu": 580.0
+  },
+  {
+    "id": "B-OKS-0449",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-OKS-0449",
+    "rok_budowy": 1950,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 13,
+    "zatrudnienie_aktualne": 2,
+    "rezerwa_zakladowa": 38979.44109027801,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "vegetable": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 25,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-OKS-0449"
+    },
+    "ostatnia_produkcja": {
+      "vegetable": 0.036000000000000004
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.6548493633519622,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.030902102133072006,
+      "vegetable": 0.9674291427016768,
+      "water": 2.7755575615628914e-17
+    },
+    "pojemność_magazynu": 250.0
+  },
+  {
+    "id": "B-OKS-0450",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-OKS-0450",
+    "rok_budowy": 1974,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 9,
+    "zatrudnienie_aktualne": 1,
+    "rezerwa_zakladowa": 20246.954079722324,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "seeds": 5.0,
+        "draft_animals": 3.0
+      },
+      "outputs": {
+        "cereal": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 11,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-OKS-0450"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 0.015
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.6087357303103049,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.020920931559177378,
+      "cereal": 0.35320727910024
+    },
+    "pojemność_magazynu": 110.0
+  },
+  {
+    "id": "B-OKS-0451",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-OKS-0451",
+    "rok_budowy": 1965,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 2,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 4090.355287222241,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fodder": 15.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "meat": 10.0,
+        "livestock": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 2,
+    "region_id": "Oksytania-Region1",
+    "cluster_info": {
+      "region_id": "Oksytania-Region1",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-OKS-0451"
+    },
+    "ostatnia_produkcja": {
+      "meat": 0.0,
+      "livestock": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.6427780334726598,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "meat": 0.04295524546722397,
+      "water": 0.05,
+      "livestock": 0.021477622733611985
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

@@ -1,0 +1,1555 @@
+[
+  {
+    "id": "B-ANA-0209",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANA-0209",
+    "rok_budowy": 1875,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 360,
+    "zatrudnienie_aktualne": 360,
+    "rezerwa_zakladowa": 126800.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "catalysts": 1.0,
+        "oil": 25.0
+      },
+      "outputs": {
+        "bitumen": 3.0,
+        "fuels": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region15",
+    "cluster_info": {
+      "region_id": "Anatolia-Region15",
+      "scale_factor": 2,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANA-0209"
+    },
+    "ostatnia_produkcja": {
+      "bitumen": 2.4000000000000004,
+      "fuels": 14.4
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.966,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7618944518962175,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "limestone": 5.274993186084011
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANA-0212",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANA-0212",
+    "rok_budowy": 1893,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 36,
+    "zatrudnienie_aktualne": 36,
+    "rezerwa_zakladowa": 71440.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "energy": 8.0,
+        "steel": 12.0
+      },
+      "outputs": {
+        "industrial_machinery": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Anatolia-Region15",
+    "cluster_info": {
+      "region_id": "Anatolia-Region15",
+      "scale_factor": 12,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANA-0212"
+    },
+    "ostatnia_produkcja": {
+      "industrial_machinery": 4.8
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6775871287871377,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "salt": 4.13241601368245
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-ANA-0497",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANA-0497",
+    "rok_budowy": 1875,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 3,
+    "zatrudnienie_aktualne": 3,
+    "rezerwa_zakladowa": 1502706.6195894154,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "steel": 10.0,
+        "iron": 5.0
+      },
+      "outputs": {
+        "agricultural_machinery": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 81,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region15",
+    "cluster_info": {
+      "region_id": "Anatolia-Region15",
+      "scale_factor": 81,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANA-0497"
+    },
+    "ostatnia_produkcja": {
+      "agricultural_machinery": 1.944
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6571881433996479,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "vegetable": 4.41693271740814,
+      "seeds": 5.551115123125783e-17,
+      "water": 5.896
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANA-0498",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANA-0498",
+    "rok_budowy": 1899,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 1,
+    "rezerwa_zakladowa": 1435941.5596046222,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "coke": 8.0,
+        "fuels": 10.0,
+        "iron": 20.0
+      },
+      "outputs": {
+        "steel": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 78,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region15",
+    "cluster_info": {
+      "region_id": "Anatolia-Region15",
+      "scale_factor": 78,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANA-0498"
+    },
+    "ostatnia_produkcja": {
+      "steel": 1.17
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8431642591349909,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "meat": 1.1805944512732631,
+      "food": 1.0408340855860843e-17,
+      "water": 5.55,
+      "livestock": 0.5902972256366315
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANA-0499",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANA-0499",
+    "rok_budowy": 1898,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 111,
+    "zatrudnienie_aktualne": 111,
+    "rezerwa_zakladowa": 1434386.539609691,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 10.0,
+        "clay": 8.0,
+        "limestone": 25.0
+      },
+      "outputs": {
+        "cement": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 77,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region15",
+    "cluster_info": {
+      "region_id": "Anatolia-Region15",
+      "scale_factor": 77,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANA-0499"
+    },
+    "ostatnia_produkcja": {
+      "cement": 256.41
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8935836675833471,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cereal": 3.2600208960209613
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANA-0500",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANA-0500",
+    "rok_budowy": 1884,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 124,
+    "zatrudnienie_aktualne": 124,
+    "rezerwa_zakladowa": 1274641.3596553116,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "energy": 8.0,
+        "steel": 12.0
+      },
+      "outputs": {
+        "industrial_machinery": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 68,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region15",
+    "cluster_info": {
+      "region_id": "Anatolia-Region15",
+      "scale_factor": 68,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANA-0500"
+    },
+    "ostatnia_produkcja": {
+      "industrial_machinery": 84.32000000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7859857628181609,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "protein": 2.6108903441954605,
+      "seeds": 2.7755575615628914e-17,
+      "water": 6.05
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANA-0501",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANA-0501",
+    "rok_budowy": 1897,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 124,
+    "zatrudnienie_aktualne": 124,
+    "rezerwa_zakladowa": 1252536.3396603805,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "industrial_machinery": 2.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "mechanical_components": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 67,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region15",
+    "cluster_info": {
+      "region_id": "Anatolia-Region15",
+      "scale_factor": 67,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANA-0501"
+    },
+    "ostatnia_produkcja": {
+      "mechanical_components": 124.62
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6965504586800415,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "fodder": 3.262677541232175,
+      "water": 5.525
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANA-0502",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANA-0502",
+    "rok_budowy": 1890,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 123,
+    "zatrudnienie_aktualne": 123,
+    "rezerwa_zakladowa": 1182321.2796755873,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 5.0,
+        "steel": 10.0,
+        "iron": 5.0
+      },
+      "outputs": {
+        "construction_machinery": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 64,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region15",
+    "cluster_info": {
+      "region_id": "Anatolia-Region15",
+      "scale_factor": 64,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANA-0502"
+    },
+    "ostatnia_produkcja": {
+      "construction_machinery": 62.976
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6379308493763746,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 2.149790694268569,
+      "food": 0.5,
+      "water": 5.525
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANA-0503",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANA-0503",
+    "rok_budowy": 1877,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 128,
+    "zatrudnienie_aktualne": 128,
+    "rezerwa_zakladowa": 1108051.199695863,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 3.0,
+        "timber": 5.0,
+        "fuels": 2.0,
+        "steel": 8.0
+      },
+      "outputs": {
+        "trucks": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 60,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region15",
+    "cluster_info": {
+      "region_id": "Anatolia-Region15",
+      "scale_factor": 60,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANA-0503"
+    },
+    "ostatnia_produkcja": {
+      "trucks": 38.4
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7221110452870204,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "seeds": 2.5745596439734815,
+      "water": 5.5249999999999995
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANA-0504",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANA-0504",
+    "rok_budowy": 1896,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 131,
+    "zatrudnienie_aktualne": 131,
+    "rezerwa_zakladowa": 1048439.9309133004,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "catalysts": 1.0,
+        "oil": 25.0
+      },
+      "outputs": {
+        "bitumen": 3.0,
+        "fuels": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 56,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Anatolia-Region15",
+    "cluster_info": {
+      "region_id": "Anatolia-Region15",
+      "scale_factor": 56,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANA-0504"
+    },
+    "ostatnia_produkcja": {
+      "bitumen": 22.008000000000003,
+      "fuels": 132.048
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6228021001428231,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "industrial_fiber": 2.6308837552354474,
+      "water": 5.84
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ANA-0505",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANA-0505",
+    "rok_budowy": 1883,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 195,
+    "zatrudnienie_aktualne": 195,
+    "rezerwa_zakladowa": 714385.7398124489,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "clay": 20.0
+      },
+      "outputs": {
+        "bricks": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 37,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region15",
+    "cluster_info": {
+      "region_id": "Anatolia-Region15",
+      "scale_factor": 37,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANA-0505"
+    },
+    "ostatnia_produkcja": {
+      "bricks": 180.375
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6647318234788452,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "vegetable": 3.867114215690637,
+      "water": 5.84
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANA-0506",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANA-0506",
+    "rok_budowy": 1879,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 197,
+    "zatrudnienie_aktualne": 197,
+    "rezerwa_zakladowa": 583956.4914500606,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "coke": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 29,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Anatolia-Region15",
+    "cluster_info": {
+      "region_id": "Anatolia-Region15",
+      "scale_factor": 29,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANA-0506"
+    },
+    "ostatnia_produkcja": {
+      "coke": 85.69500000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8902213217517134,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "meat": 2.175306935145884,
+      "water": 6.05,
+      "livestock": 1.087653467572942
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ANA-0507",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANA-0507",
+    "rok_budowy": 1890,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 214,
+    "zatrudnienie_aktualne": 214,
+    "rezerwa_zakladowa": 507776.754872009,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 12.0,
+        "sand": 20.0,
+        "soda_ash": 5.0
+      },
+      "outputs": {
+        "glass": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 25,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Anatolia-Region15",
+    "cluster_info": {
+      "region_id": "Anatolia-Region15",
+      "scale_factor": 25,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANA-0507"
+    },
+    "ostatnia_produkcja": {
+      "glass": 96.3
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7671695812615447,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fruit": 3.249649705708383,
+      "water": 5.84
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ANA-0508",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANA-0508",
+    "rok_budowy": 1892,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 229,
+    "zatrudnienie_aktualne": 229,
+    "rezerwa_zakladowa": 458456.6486862528,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "salt": 10.0,
+        "limestone": 8.0,
+        "ammonia": 3.0
+      },
+      "outputs": {
+        "soda_ash": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 22,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Anatolia-Region15",
+    "cluster_info": {
+      "region_id": "Anatolia-Region15",
+      "scale_factor": 22,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANA-0508"
+    },
+    "ostatnia_produkcja": {
+      "soda_ash": 60.456
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8265518849655304,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "luxury": 1.7506423276159004,
+      "water": 6.05
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ANA-0509",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANA-0509",
+    "rok_budowy": 1891,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 306,
+    "zatrudnienie_aktualne": 306,
+    "rezerwa_zakladowa": 380597.1231180858,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "sulfur": 8.0,
+        "salt": 5.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "chemicals": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 16,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Anatolia-Region15",
+    "cluster_info": {
+      "region_id": "Anatolia-Region15",
+      "scale_factor": 16,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANA-0509"
+    },
+    "ostatnia_produkcja": {
+      "chemicals": 73.44
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8253862453558221,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cereal": 5.399626875923126
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ANA-0510",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANA-0510",
+    "rok_budowy": 1887,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 430,
+    "zatrudnienie_aktualne": 430,
+    "rezerwa_zakladowa": 291914.08355346706,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "coke": 10.0,
+        "fuels": 12.0,
+        "iron": 25.0
+      },
+      "outputs": {
+        "steel": 22.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Anatolia-Region15",
+    "cluster_info": {
+      "region_id": "Anatolia-Region15",
+      "scale_factor": 9,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANA-0510"
+    },
+    "ostatnia_produkcja": {
+      "steel": 85.14
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8407370949310101,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "cereal": 8.55001270506341
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ANA-0511",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANA-0511",
+    "rok_budowy": 1896,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 843,
+    "zatrudnienie_aktualne": 843,
+    "rezerwa_zakladowa": 315570.4895772911,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "chemicals": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "pharmaceuticals": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 112,
+    "region_id": "Anatolia-Region15",
+    "cluster_info": {
+      "region_id": "Anatolia-Region15",
+      "scale_factor": 4,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANA-0511"
+    },
+    "ostatnia_produkcja": {
+      "pharmaceuticals": 40.464
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7332314730523387,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cereal": 3.2071931992615212
+    },
+    "pojemność_magazynu": 1120.0
+  },
+  {
+    "id": "B-ANA-0512",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANA-0512",
+    "rok_budowy": 1888,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 3045,
+    "zatrudnienie_aktualne": 3045,
+    "rezerwa_zakladowa": 841962.5761933597,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 10.0,
+        "energy": 5.0,
+        "steel": 25.0
+      },
+      "outputs": {
+        "trains": 3.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 131,
+    "region_id": "Anatolia-Region15",
+    "cluster_info": {
+      "region_id": "Anatolia-Region15",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANA-0512"
+    },
+    "ostatnia_produkcja": {
+      "trains": 9.135
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8647359763233826,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "protein": 2.6511573639467594,
+      "seeds": 2.7755575615628914e-17,
+      "water": 6.049999999999999
+    },
+    "pojemność_magazynu": 1310.0
+  },
+  {
+    "id": "B-ANA-0513",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANA-0513",
+    "rok_budowy": 1880,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 2610,
+    "zatrudnienie_aktualne": 2610,
+    "rezerwa_zakladowa": 696409.2207947283,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 10.0,
+        "energy": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "prefabricates": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Anatolia-Region15",
+    "cluster_info": {
+      "region_id": "Anatolia-Region15",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANA-0513"
+    },
+    "ostatnia_produkcja": {
+      "prefabricates": 52.199999999999996
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7902564968366593,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "fodder": 3.225699440225201,
+      "water": 5.525
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-ANA-0514",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANA-0514",
+    "rok_budowy": 1871,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 2454,
+    "zatrudnienie_aktualne": 2454,
+    "rezerwa_zakladowa": 1249331.0701948802,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "bitumen": 8.0,
+        "energy": 3.0,
+        "sand": 10.0,
+        "gravel": 8.0
+      },
+      "outputs": {
+        "asphalt": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Anatolia-Region15",
+    "cluster_info": {
+      "region_id": "Anatolia-Region15",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANA-0514"
+    },
+    "ostatnia_produkcja": {
+      "asphalt": 49.080000000000005
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7607972670881358,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 2.181829112920196,
+      "food": 0.505,
+      "water": 5.525
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ANA-0515",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANA-0515",
+    "rok_budowy": 1895,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 1660,
+    "zatrudnienie_aktualne": 1660,
+    "rezerwa_zakladowa": 984768.9035990876,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "bauxite": 20.0,
+        "energy": 30.0,
+        "catalysts": 2.0
+      },
+      "outputs": {
+        "aluminum": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 18,
+    "region_id": "Anatolia-Region15",
+    "cluster_info": {
+      "region_id": "Anatolia-Region15",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANA-0515"
+    },
+    "ostatnia_produkcja": {
+      "aluminum": 22.14
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6708638274765442,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "seeds": 2.5916282461609907,
+      "water": 5.525
+    },
+    "pojemność_magazynu": 180.0
+  },
+  {
+    "id": "B-ANA-0516",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ANA-0516",
+    "rok_budowy": 1899,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 228,
+    "zatrudnienie_aktualne": 228,
+    "rezerwa_zakladowa": 645240.7529992396,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "rare_earth_elements": 1.0,
+        "chemicals": 8.0
+      },
+      "outputs": {
+        "catalysts": 6.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 15,
+    "region_id": "Anatolia-Region15",
+    "cluster_info": {
+      "region_id": "Anatolia-Region15",
+      "scale_factor": 1,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ANA-0516"
+    },
+    "ostatnia_produkcja": {
+      "catalysts": 1.518
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.784465850407309,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.52,
+      "industrial_fiber": 2.685436907550917,
+      "water": 5.832
+    },
+    "pojemność_magazynu": 150.0
+  }
+]

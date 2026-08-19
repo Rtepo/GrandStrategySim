@@ -1,0 +1,696 @@
+[
+  {
+    "id": "B-SAR-0077",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-SAR-0077",
+    "rok_budowy": 1872,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 22,
+    "rezerwa_zakladowa": 49900.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "hard_coal": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 150,
+    "region_id": "Sarmatia-Region11",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region11",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-SAR-0077"
+    },
+    "ostatnia_produkcja": {
+      "hard_coal": 1.1707159134276306
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9602005591257807,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "bitumen": 0.6755187212425394,
+      "energy": 0.775,
+      "fuels": 4.053112327455236,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1500.0,
+    "deposit_id": "Formation-0/hard_coal"
+  },
+  {
+    "id": "B-SAR-1662",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-SAR-1662",
+    "rok_budowy": 1893,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 74,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 356794.20221445017,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 2.0,
+        "fuels": 5.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "oil": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 37,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Sarmatia-Region11",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region11",
+      "scale_factor": 37,
+      "sector": "mining",
+      "owner_id": "KRS-SAR-1662"
+    },
+    "ostatnia_produkcja": {
+      "oil": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8970721846779257,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 2.7755575615628914e-17,
+      "food": 2.7755575615628914e-17,
+      "oil": 7.010352204010591
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-SAR-1663",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-SAR-1663",
+    "rok_budowy": 1890,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 74,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 284719.7801140285,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "copper": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 29,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Sarmatia-Region11",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region11",
+      "scale_factor": 29,
+      "sector": "mining",
+      "owner_id": "KRS-SAR-1663"
+    },
+    "ostatnia_produkcja": {
+      "copper": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7062410132062767,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "copper": 1.820646468076456,
+      "food": 2.7755575615628914e-17
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-SAR-1664",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-SAR-1664",
+    "rok_budowy": 1882,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 251190.73150561983,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "stone": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 25,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Sarmatia-Region11",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region11",
+      "scale_factor": 25,
+      "sector": "mining",
+      "owner_id": "KRS-SAR-1664"
+    },
+    "ostatnia_produkcja": {
+      "stone": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.892877743585746,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "stone": 5.895831278383819
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-SAR-1665",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-SAR-1665",
+    "rok_budowy": 1875,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 165885.62023808996,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "iron": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 16,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Sarmatia-Region11",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region11",
+      "scale_factor": 16,
+      "sector": "mining",
+      "owner_id": "KRS-SAR-1665"
+    },
+    "ostatnia_produkcja": {
+      "iron": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7818836180541676,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 2.7755575615628914e-17,
+      "iron": 2.732908782796105
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-SAR-1666",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-SAR-1666",
+    "rok_budowy": 1873,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 66,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 120230.73891368684,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "brown_coal": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Sarmatia-Region11",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region11",
+      "scale_factor": 11,
+      "sector": "mining",
+      "owner_id": "KRS-SAR-1666"
+    },
+    "ostatnia_produkcja": {
+      "brown_coal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7577057752765336,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 2.7755575615628914e-17,
+      "brown_coal": 4.085593592418037
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-SAR-1667",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-SAR-1667",
+    "rok_budowy": 1888,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 67,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 112493.02762552707,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "limestone": 22.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Sarmatia-Region11",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region11",
+      "scale_factor": 10,
+      "sector": "mining",
+      "owner_id": "KRS-SAR-1667"
+    },
+    "ostatnia_produkcja": {
+      "limestone": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7356239205631444,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "limestone": 5.027432869996341
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-SAR-1668",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-SAR-1668",
+    "rok_budowy": 1874,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 55,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 30420.976264880625,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "sand": 20.0,
+        "gravel": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Sarmatia-Region11",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region11",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-SAR-1668"
+    },
+    "ostatnia_produkcja": {
+      "sand": 0.0,
+      "gravel": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9433432676744985,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "sand": 0.01704443542006273,
+      "gravel": 0.14778332656504767
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-SAR-1669",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-SAR-1669",
+    "rok_budowy": 1886,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 9,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 4148.24446973711,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "clay": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 13,
+    "region_id": "Sarmatia-Region11",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region11",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-SAR-1669"
+    },
+    "ostatnia_produkcja": {
+      "clay": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7098302469865129,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "clay": 0.5804061789377141,
+      "food": 1.734723475976807e-18
+    },
+    "pojemność_magazynu": 130.0
+  },
+  {
+    "id": "B-SAR-1670",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-SAR-1670",
+    "rok_budowy": 1899,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 4,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 1553.3059906883416,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "salt": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 4,
+    "region_id": "Sarmatia-Region11",
+    "cluster_info": {
+      "region_id": "Sarmatia-Region11",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-SAR-1670"
+    },
+    "ostatnia_produkcja": {
+      "salt": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8262438721349936,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "salt": 0.16334270271264312
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

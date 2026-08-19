@@ -1,0 +1,61 @@
+{
+  "ui": {
+    "world_generator": {
+      "title": "GENERATOR ŚWIATA (Lata 1880 - 2000)",
+      "prompt_countries": "Ile państw wygenerować? (4-16):",
+      "scenario_title": "WYBÓR SCENARIUSZA STARTOWEGO",
+      "scenario_1900": "Rok 1900 (Wiek Pary i Węgla)",
+      "scenario_1925": "Rok 1925 (Era Fabryk i Prądu)",
+      "scenario_1950": "Rok 1950 (Złoty Wiek Przemysłu)",
+      "scenario_1975": "Rok 1975 (Początek Ery Krzemu)",
+      "world_ready": "Świat gotowy: {count} państw, rok {year}."
+    }
+  },
+  "sectors": {
+    "mining": "Sektor Wydobywczy",
+    "agriculture": "Rolnictwo",
+    "heavy_industry": "Przemysł Ciężki",
+    "light_industry": "Przemysł Lekki",
+    "armaments_industry": "Przemysł Zbrojeniowy",
+    "local_services": "Usługi Lokalne",
+    "export_services": "Usługi Eksportowe",
+    "construction": "Budownictwo",
+    "energy": "Energetyka",
+    "public_services": "Usługi Publiczne",
+    "medical_services": "Usługi Medyczne",
+    "educational_services": "Usługi Edukacyjne",
+    "transport_logistics": "Transport i Logistyka",
+    "public_administration": "Administracja Publiczna",
+    "banking": "Sektor Bankowy"
+  },
+  "commodities": {
+    "gold": "Złoto",
+    "steel": "Stal",
+    "oil": "Ropa Naftowa",
+    "aluminum": "Aluminium",
+    "copper": "Miedź",
+    "iron_ore": "Ruda Żelaza",
+    "coal": "Węgiel",
+    "natural_gas": "Gaz Ziemny",
+    "uranium": "Uran",
+    "timber": "Drewno",
+    "food": "Produkty Spożywcze",
+    "consumer_goods": "AGD",
+    "military_equipment": "Sprzęt Wojskowy"
+  },
+  "labor_tiers": {
+    "expert": "Eksperci",
+    "skilled": "Średni",
+    "unskilled": "Szeregowi"
+  },
+  "wealth_brackets": {
+    "very_high": "Bardzo Wysoki",
+    "high": "Wysoki",
+    "medium": "Średni",
+    "low": "Niski"
+  },
+  "regime_types": {
+    "democracy": "Demokracja",
+    "autocracy": "Autokracja"
+  }
+}

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "B-ANG-0121",
+    "name": "Maintenance Workshop",
+    "wlasciciel_id": "KRS-ANG-0121",
+    "rok_budowy": 1881,
+    "sektor_pkb": "maintenance_workshops",
+    "pojemnosc_pracownikow": 2929,
+    "zatrudnienie_aktualne": 1011,
+    "rezerwa_zakladowa": 455420.0,
+    "aktywna_metoda": {
+      "rok": 1850,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 2.0,
+        "fuels": 1.0,
+        "steel": 3.0
+      },
+      "outputs": {
+        "maintenance_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 164,
+    "region_id": "Anglia-Region7",
+    "cluster_info": {
+      "region_id": "Anglia-Region7",
+      "scale_factor": 1,
+      "sector": "maintenance_workshops",
+      "owner_id": "KRS-ANG-0121"
+    },
+    "ostatnia_produkcja": {
+      "maintenance_services": 28.27
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.988,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 3.0,
+        "condition": 0.8361250365676535,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.328,
+      "fuels": 0.164,
+      "food": 0.8200000000000001,
+      "maintenance_services": 1.64
+    },
+    "pojemność_magazynu": 1640.0
+  }
+]

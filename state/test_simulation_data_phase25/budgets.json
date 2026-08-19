@@ -1,0 +1,1061 @@
+{
+  "Eldoria": {
+    "gdp": 158457346832.89755,
+    "population": 42553055,
+    "nominal_budget": 30025671439.8002,
+    "liquid_reserves": 4826439532.663371,
+    "citizen_savings": 27789692353.90435,
+    "private_capital": 197540010973.3839,
+    "infrastructure_level": 121.02818845086729,
+    "energy_infrastructure": 4114.4629762683,
+    "stock_market": {
+      "index": 1000.0,
+      "confidence": 61.09543479055089,
+      "last_change": 0.0,
+      "sector_indices": {}
+    },
+    "allocations": {
+      "industry": 0.0531904937594694,
+      "education_propaganda": 0.0808028173457123,
+      "healthcare": 0.1713656825084348,
+      "infrastructure_transport": 0.17748559950407888,
+      "social_programs": 0.10069411008356349,
+      "agriculture_rural": 0.13309234795935737,
+      "armed_forces": 0.20062545100965348,
+      "justice": 0.0212507210897546,
+      "public_administration": 0.06149277673997566
+    },
+    "sectors": {
+      "light_industry": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.4,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.957062352510725,
+        "zatrudnienie": 2168012
+      },
+      "public_services": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.2,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 92.65179251541883,
+        "zatrudnienie": 75413
+      },
+      "agriculture": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.2,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.73927047967267,
+        "zatrudnienie": 301939
+      },
+      "mining": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.5,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.97317956157499,
+        "zatrudnienie": 2569726
+      },
+      "local_services": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.3,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.97593154283305,
+        "zatrudnienie": 3282815
+      },
+      "export_services": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.7,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.951620788831626,
+        "zatrudnienie": 2039231
+      },
+      "energy": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.3,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.863870640700455,
+        "zatrudnienie": 641254
+      },
+      "heavy_industry": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.6,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.966887431771795,
+        "zatrudnienie": 2728816
+      },
+      "construction": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.8,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.886669607866025,
+        "zatrudnienie": 487314
+      }
+    },
+    "science": {
+      "innovation_points": 0.0,
+      "researching": null,
+      "discovered": [
+        "tech_001",
+        "tech_002",
+        "tech_003",
+        "tech_004",
+        "tech_005",
+        "tech_006",
+        "tech_007",
+        "tech_008",
+        "tech_009",
+        "tech_010",
+        "tech_011",
+        "tech_012",
+        "tech_013",
+        "tech_014",
+        "tech_015",
+        "tech_016",
+        "tech_017",
+        "tech_018",
+        "tech_019",
+        "tech_020"
+      ],
+      "base_innovativeness": 0.0
+    },
+    "last_balance_log": "",
+    "długi_korporacyjne": {},
+    "wydatki_upadłościowe": 0.0,
+    "przychód_logistyczny": 0.0
+  },
+  "Oksytania": {
+    "gdp": 102688833387.02107,
+    "population": 9207816,
+    "nominal_budget": 28550348188.638187,
+    "liquid_reserves": 3652121530.011577,
+    "citizen_savings": 11474100710.185328,
+    "private_capital": 139321852728.66983,
+    "infrastructure_level": 778.8998931729527,
+    "energy_infrastructure": 13050.001486894847,
+    "stock_market": {
+      "index": 1000.0,
+      "confidence": 72.60478557416823,
+      "last_change": 0.0,
+      "sector_indices": {}
+    },
+    "allocations": {
+      "industry": 0.08148996421070531,
+      "education_propaganda": 0.09184430440607853,
+      "healthcare": 0.12341422475890508,
+      "infrastructure_transport": 0.17273424744132213,
+      "social_programs": 0.12477426843816526,
+      "agriculture_rural": 0.14623487635733978,
+      "armed_forces": 0.17184430836840558,
+      "justice": 0.04916221588178265,
+      "public_administration": 0.03850159013729556
+    },
+    "sectors": {
+      "energy": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.3,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.86240895973616,
+        "zatrudnienie": 139398
+      },
+      "public_services": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.2,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 92.04756933412011,
+        "zatrudnienie": 20279
+      },
+      "mining": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.5,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.96874417507474,
+        "zatrudnienie": 569453
+      },
+      "export_services": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.7,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.8949626657751,
+        "zatrudnienie": 300965
+      },
+      "light_industry": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.4,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.96913720672763,
+        "zatrudnienie": 790837
+      },
+      "agriculture": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.2,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.63336247730133,
+        "zatrudnienie": 62067
+      },
+      "heavy_industry": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.6,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.91408444357661,
+        "zatrudnienie": 359001
+      },
+      "construction": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.8,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.85483474124498,
+        "zatrudnienie": 145962
+      },
+      "local_services": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.3,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.97472250905034,
+        "zatrudnienie": 982753
+      }
+    },
+    "science": {
+      "innovation_points": 0.0,
+      "researching": null,
+      "discovered": [
+        "tech_001",
+        "tech_002",
+        "tech_003",
+        "tech_004",
+        "tech_005",
+        "tech_006",
+        "tech_007",
+        "tech_008",
+        "tech_009",
+        "tech_010",
+        "tech_011",
+        "tech_012",
+        "tech_013",
+        "tech_014",
+        "tech_015",
+        "tech_016",
+        "tech_017",
+        "tech_018",
+        "tech_019",
+        "tech_020",
+        "tech_021",
+        "tech_022",
+        "tech_023",
+        "tech_024",
+        "tech_025",
+        "tech_026",
+        "tech_027",
+        "tech_028",
+        "tech_029",
+        "tech_030",
+        "tech_031",
+        "tech_032",
+        "tech_033",
+        "tech_034",
+        "tech_035",
+        "tech_036",
+        "tech_037",
+        "tech_038",
+        "tech_039",
+        "tech_040",
+        "tech_041",
+        "tech_042",
+        "tech_043",
+        "tech_044",
+        "tech_045",
+        "tech_046",
+        "tech_047",
+        "tech_048",
+        "tech_049",
+        "tech_050",
+        "tech_051",
+        "tech_052",
+        "tech_053",
+        "tech_054",
+        "tech_055"
+      ],
+      "base_innovativeness": 0.0
+    },
+    "last_balance_log": "",
+    "długi_korporacyjne": {},
+    "wydatki_upadłościowe": 0.0,
+    "przychód_logistyczny": 0.0
+  },
+  "Dacja": {
+    "gdp": 12642447763.42482,
+    "population": 5975119,
+    "nominal_budget": 2427160221.4573445,
+    "liquid_reserves": 842365859.7800152,
+    "citizen_savings": 1885176648.4726233,
+    "private_capital": 19922999749.26906,
+    "infrastructure_level": 104.59316738591298,
+    "energy_infrastructure": 1305.3496872442481,
+    "stock_market": {
+      "index": 1000.0,
+      "confidence": 72.48801053973199,
+      "last_change": 0.0,
+      "sector_indices": {}
+    },
+    "allocations": {
+      "industry": 0.18853617751259238,
+      "education_propaganda": 0.09962454000270536,
+      "healthcare": 0.1823883412360531,
+      "infrastructure_transport": 0.1343459262430606,
+      "social_programs": 0.10099315351762257,
+      "agriculture_rural": 0.11729383744303853,
+      "armed_forces": 0.06677702080974772,
+      "justice": 0.04496607180318958,
+      "public_administration": 0.0650749314319902
+    },
+    "sectors": {
+      "local_services": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.3,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.962287386172555,
+        "zatrudnienie": 702135
+      },
+      "energy": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.3,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.83487936229272,
+        "zatrudnienie": 151326
+      },
+      "agriculture": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.2,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.691488558265995,
+        "zatrudnienie": 31615
+      },
+      "construction": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.8,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.877302129605035,
+        "zatrudnienie": 193836
+      },
+      "heavy_industry": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.6,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.79697166814649,
+        "zatrudnienie": 125939
+      },
+      "light_industry": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.4,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.933398324314005,
+        "zatrudnienie": 354732
+      },
+      "mining": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.5,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.927850829246964,
+        "zatrudnienie": 383742
+      },
+      "public_services": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.2,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 95.84117512049576,
+        "zatrudnienie": 20879
+      },
+      "export_services": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.7,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.9584040395679,
+        "zatrudnienie": 579462
+      }
+    },
+    "science": {
+      "innovation_points": 0.0,
+      "researching": null,
+      "discovered": [
+        "tech_001",
+        "tech_002",
+        "tech_003",
+        "tech_004",
+        "tech_005",
+        "tech_006",
+        "tech_007",
+        "tech_008",
+        "tech_009",
+        "tech_010",
+        "tech_011",
+        "tech_012",
+        "tech_013",
+        "tech_014",
+        "tech_015",
+        "tech_016",
+        "tech_017",
+        "tech_018",
+        "tech_019",
+        "tech_020"
+      ],
+      "base_innovativeness": 0.0
+    },
+    "last_balance_log": "",
+    "długi_korporacyjne": {},
+    "wydatki_upadłościowe": 0.0,
+    "przychód_logistyczny": 0.0
+  },
+  "Anglia": {
+    "gdp": 416915396996.1341,
+    "population": 27145325,
+    "nominal_budget": 118449156482.31291,
+    "liquid_reserves": 8946566237.667,
+    "citizen_savings": 59089012787.252495,
+    "private_capital": 656506443559.0304,
+    "infrastructure_level": 973.056592904647,
+    "energy_infrastructure": 8450.582191388932,
+    "stock_market": {
+      "index": 1000.0,
+      "confidence": 30.458837224912724,
+      "last_change": 0.0,
+      "sector_indices": {}
+    },
+    "allocations": {
+      "industry": 0.16029376139063223,
+      "education_propaganda": 0.09522069079585485,
+      "healthcare": 0.13554201001607127,
+      "infrastructure_transport": 0.07510696740376867,
+      "social_programs": 0.28444735903623036,
+      "agriculture_rural": 0.04792459708003409,
+      "armed_forces": 0.13449243710387945,
+      "justice": 0.04772754311896203,
+      "public_administration": 0.019244634054567094
+    },
+    "sectors": {
+      "local_services": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.3,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.98418437159007,
+        "zatrudnienie": 3558326
+      },
+      "construction": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.8,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.90435310326502,
+        "zatrudnienie": 865682
+      },
+      "heavy_industry": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.6,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.9670125187814,
+        "zatrudnienie": 2229438
+      },
+      "mining": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.5,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.94364864420463,
+        "zatrudnienie": 1695189
+      },
+      "agriculture": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.2,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.76414476270343,
+        "zatrudnienie": 228054
+      },
+      "light_industry": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.4,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.94133880957637,
+        "zatrudnienie": 1200233
+      },
+      "export_services": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.7,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.88074880107038,
+        "zatrudnienie": 923736
+      },
+      "public_services": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.2,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 92.90100642520042,
+        "zatrudnienie": 65354
+      },
+      "energy": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.3,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.867561838898844,
+        "zatrudnienie": 762323
+      }
+    },
+    "science": {
+      "innovation_points": 0.0,
+      "researching": null,
+      "discovered": [
+        "tech_001",
+        "tech_002",
+        "tech_003",
+        "tech_004",
+        "tech_005",
+        "tech_006",
+        "tech_007",
+        "tech_008",
+        "tech_009",
+        "tech_010",
+        "tech_011",
+        "tech_012",
+        "tech_013",
+        "tech_014",
+        "tech_015",
+        "tech_016",
+        "tech_017",
+        "tech_018",
+        "tech_019",
+        "tech_020",
+        "tech_021",
+        "tech_022",
+        "tech_023",
+        "tech_024",
+        "tech_025",
+        "tech_026",
+        "tech_027",
+        "tech_028",
+        "tech_029",
+        "tech_030",
+        "tech_031",
+        "tech_032",
+        "tech_033",
+        "tech_034",
+        "tech_035",
+        "tech_036",
+        "tech_037",
+        "tech_038",
+        "tech_039",
+        "tech_040",
+        "tech_041",
+        "tech_042",
+        "tech_043",
+        "tech_044",
+        "tech_045",
+        "tech_046",
+        "tech_047",
+        "tech_048",
+        "tech_049",
+        "tech_050",
+        "tech_051",
+        "tech_052",
+        "tech_053",
+        "tech_054",
+        "tech_055"
+      ],
+      "base_innovativeness": 0.0
+    },
+    "last_balance_log": "",
+    "długi_korporacyjne": {},
+    "wydatki_upadłościowe": 0.0,
+    "przychód_logistyczny": 0.0
+  },
+  "Baktria": {
+    "gdp": 107027567588.45741,
+    "population": 45854310,
+    "nominal_budget": 22432979827.26272,
+    "liquid_reserves": 5313589701.451738,
+    "citizen_savings": 13546098709.584019,
+    "private_capital": 112638971846.45967,
+    "infrastructure_level": 77.36256677287155,
+    "energy_infrastructure": 1274.7336762375162,
+    "stock_market": {
+      "index": 1000.0,
+      "confidence": 43.02432187561362,
+      "last_change": 0.0,
+      "sector_indices": {}
+    },
+    "allocations": {
+      "industry": 0.12206819237038477,
+      "education_propaganda": 0.12761492613032707,
+      "healthcare": 0.09617292670558625,
+      "infrastructure_transport": 0.22972018348754117,
+      "social_programs": 0.09867946884528937,
+      "agriculture_rural": 0.1085162458311839,
+      "armed_forces": 0.10544228490545009,
+      "justice": 0.0608143181997843,
+      "public_administration": 0.05097145352445301
+    },
+    "sectors": {
+      "construction": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.8,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.92511010336137,
+        "zatrudnienie": 1008382
+      },
+      "mining": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.5,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.9125724642551,
+        "zatrudnienie": 1158950
+      },
+      "light_industry": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.4,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.93566664122941,
+        "zatrudnienie": 1657205
+      },
+      "public_services": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.2,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 92.96055418504399,
+        "zatrudnienie": 74612
+      },
+      "heavy_industry": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.6,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.95838899253811,
+        "zatrudnienie": 2095683
+      },
+      "agriculture": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.2,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.802340865320545,
+        "zatrudnienie": 228851
+      },
+      "local_services": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.3,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.96969175277326,
+        "zatrudnienie": 4019844
+      },
+      "export_services": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.7,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.943861380533484,
+        "zatrudnienie": 2128305
+      },
+      "energy": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.3,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.89649532688331,
+        "zatrudnienie": 637594
+      }
+    },
+    "science": {
+      "innovation_points": 0.0,
+      "researching": null,
+      "discovered": [
+        "tech_001",
+        "tech_002",
+        "tech_003",
+        "tech_004",
+        "tech_005",
+        "tech_006",
+        "tech_007",
+        "tech_008",
+        "tech_009",
+        "tech_010",
+        "tech_011",
+        "tech_012",
+        "tech_013",
+        "tech_014",
+        "tech_015",
+        "tech_016",
+        "tech_017",
+        "tech_018",
+        "tech_019",
+        "tech_020"
+      ],
+      "base_innovativeness": 0.0
+    },
+    "last_balance_log": "",
+    "długi_korporacyjne": {},
+    "wydatki_upadłościowe": 0.0,
+    "przychód_logistyczny": 0.0
+  },
+  "Helwecja": {
+    "gdp": 471525375108.1886,
+    "population": 31346470,
+    "nominal_budget": 81815731133.06477,
+    "liquid_reserves": 12856812308.869934,
+    "citizen_savings": 78298690639.14398,
+    "private_capital": 557271853047.804,
+    "infrastructure_level": 344.1359244427791,
+    "energy_infrastructure": 17622.736459767493,
+    "stock_market": {
+      "index": 1000.0,
+      "confidence": 74.47013663897229,
+      "last_change": 0.0,
+      "sector_indices": {}
+    },
+    "allocations": {
+      "industry": 0.1512730069325133,
+      "education_propaganda": 0.0664622182526552,
+      "healthcare": 0.183950834160531,
+      "infrastructure_transport": 0.1680127029319447,
+      "social_programs": 0.16777695721088412,
+      "agriculture_rural": 0.041625748898540656,
+      "armed_forces": 0.15740787825502972,
+      "justice": 0.04004249208619378,
+      "public_administration": 0.023448161271707475
+    },
+    "sectors": {
+      "local_services": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.3,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.97198540933285,
+        "zatrudnienie": 3388365
+      },
+      "agriculture": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.2,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.76540778740787,
+        "zatrudnienie": 285895
+      },
+      "energy": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.3,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.87249022903991,
+        "zatrudnienie": 654274
+      },
+      "export_services": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.7,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.95487246346618,
+        "zatrudnienie": 1784263
+      },
+      "public_services": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.2,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 94.33762002320243,
+        "zatrudnienie": 76438
+      },
+      "mining": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.5,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.79726345733918,
+        "zatrudnienie": 268641
+      },
+      "heavy_industry": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.6,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.908295868428354,
+        "zatrudnienie": 1299762
+      },
+      "construction": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.8,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.876185916964054,
+        "zatrudnienie": 550334
+      },
+      "light_industry": {
+        "gdp_share": 0.1111111111111111,
+        "crisis_vulnerability": 0.4,
+        "active_method": {
+          "automation": "Tradycyjne",
+          "production": "Tradycyjne",
+          "organization": "Tradycyjne"
+        },
+        "pmi": 59.92901004408541,
+        "zatrudnienie": 1713368
+      }
+    },
+    "science": {
+      "innovation_points": 0.0,
+      "researching": null,
+      "discovered": [
+        "tech_001",
+        "tech_002",
+        "tech_003",
+        "tech_004",
+        "tech_005",
+        "tech_006",
+        "tech_007",
+        "tech_008",
+        "tech_009",
+        "tech_010",
+        "tech_011",
+        "tech_012",
+        "tech_013",
+        "tech_014",
+        "tech_015",
+        "tech_016",
+        "tech_017",
+        "tech_018",
+        "tech_019",
+        "tech_020",
+        "tech_021",
+        "tech_022",
+        "tech_023",
+        "tech_024",
+        "tech_025",
+        "tech_026",
+        "tech_027",
+        "tech_028",
+        "tech_029",
+        "tech_030",
+        "tech_031",
+        "tech_032",
+        "tech_033",
+        "tech_034",
+        "tech_035",
+        "tech_036",
+        "tech_037",
+        "tech_038",
+        "tech_039",
+        "tech_040",
+        "tech_041",
+        "tech_042",
+        "tech_043",
+        "tech_044",
+        "tech_045",
+        "tech_046",
+        "tech_047",
+        "tech_048",
+        "tech_049",
+        "tech_050",
+        "tech_051",
+        "tech_052",
+        "tech_053",
+        "tech_054",
+        "tech_055"
+      ],
+      "base_innovativeness": 0.0
+    },
+    "last_balance_log": "",
+    "długi_korporacyjne": {},
+    "wydatki_upadłościowe": 0.0,
+    "przychód_logistyczny": 0.0
+  }
+}

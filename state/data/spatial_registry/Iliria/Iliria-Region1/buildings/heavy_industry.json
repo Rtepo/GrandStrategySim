@@ -1,0 +1,1516 @@
+[
+  {
+    "id": "B-ILI-0054",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ILI-0054",
+    "rok_budowy": 1880,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 46,
+    "zatrudnienie_aktualne": 46,
+    "rezerwa_zakladowa": 44640.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "energy": 8.0,
+        "steel": 12.0
+      },
+      "outputs": {
+        "industrial_machinery": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Iliria-Region1",
+    "cluster_info": {
+      "region_id": "Iliria-Region1",
+      "scale_factor": 12,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ILI-0054"
+    },
+    "ostatnia_produkcja": {
+      "industrial_machinery": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9591301665955791,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "hard_coal": 3.457480319110031
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-ILI-1004",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ILI-1004",
+    "rok_budowy": 1885,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 50,
+    "zatrudnienie_aktualne": 32,
+    "rezerwa_zakladowa": 24076833.76340556,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 5.0,
+        "steel": 10.0,
+        "iron": 5.0
+      },
+      "outputs": {
+        "construction_machinery": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 990,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region1",
+    "cluster_info": {
+      "region_id": "Iliria-Region1",
+      "scale_factor": 990,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ILI-1004"
+    },
+    "ostatnia_produkcja": {
+      "construction_machinery": 396.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.741084244834413,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 10.439999999999998,
+      "food": 3.9408313507877777,
+      "protein": 1.3877787807814457e-17,
+      "livestock": 1.3877787807814457e-17
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1005",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ILI-1005",
+    "rok_budowy": 1871,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 50,
+    "zatrudnienie_aktualne": 36,
+    "rezerwa_zakladowa": 20405652.55302754,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "clay": 20.0
+      },
+      "outputs": {
+        "bricks": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 839,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region1",
+    "cluster_info": {
+      "region_id": "Iliria-Region1",
+      "scale_factor": 839,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ILI-1005"
+    },
+    "ostatnia_produkcja": {
+      "bricks": 1048.75
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8292440945369428,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 4.440892098500626e-16,
+      "energy": 0.0,
+      "paper": 4.117293989000729,
+      "food": 0.525,
+      "chemicals": 1.1102230246251563e-16,
+      "water": 2.775557561562891e-16
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1006",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ILI-1006",
+    "rok_budowy": 1898,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 50,
+    "zatrudnienie_aktualne": 10,
+    "rezerwa_zakladowa": 19870778.469396304,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "hard_coal": 20.0
+      },
+      "outputs": {
+        "coke": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 817,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region1",
+    "cluster_info": {
+      "region_id": "Iliria-Region1",
+      "scale_factor": 817,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ILI-1006"
+    },
+    "ostatnia_produkcja": {
+      "coke": 612.75
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9864579602740956,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.61,
+      "fibers": 1.1102230246251563e-16
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1007",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ILI-1007",
+    "rok_budowy": 1889,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 50,
+    "zatrudnienie_aktualne": 5,
+    "rezerwa_zakladowa": 19700591.260968182,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 12.0,
+        "sand": 20.0,
+        "soda_ash": 5.0
+      },
+      "outputs": {
+        "glass": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 810,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region1",
+    "cluster_info": {
+      "region_id": "Iliria-Region1",
+      "scale_factor": 810,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ILI-1007"
+    },
+    "ostatnia_produkcja": {
+      "glass": 729.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7572849622670137,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.378,
+      "energy": 0.6299999999999999,
+      "food": 0.63,
+      "glass": 0.63,
+      "medical_equipment": 1.008
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1008",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ILI-1008",
+    "rok_budowy": 1875,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 50,
+    "zatrudnienie_aktualne": 6,
+    "rezerwa_zakladowa": 17561094.926443245,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "coke": 8.0,
+        "fuels": 10.0,
+        "iron": 20.0
+      },
+      "outputs": {
+        "steel": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 722,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region1",
+    "cluster_info": {
+      "region_id": "Iliria-Region1",
+      "scale_factor": 722,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ILI-1008"
+    },
+    "ostatnia_produkcja": {
+      "steel": 541.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8576075144592372,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 54.624,
+      "food": 0.6,
+      "luxury_clothing": 1.3123991269667434
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1009",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ILI-1009",
+    "rok_budowy": 1895,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 50,
+    "zatrudnienie_aktualne": 4,
+    "rezerwa_zakladowa": 13014665.215577751,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "industrial_machinery": 2.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "mechanical_components": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 535,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region1",
+    "cluster_info": {
+      "region_id": "Iliria-Region1",
+      "scale_factor": 535,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ILI-1009"
+    },
+    "ostatnia_produkcja": {
+      "mechanical_components": 401.25
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.741455334317917,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "planks": 1.08,
+      "energy": 0.27,
+      "furniture": 0.8999999999999999,
+      "food": 0.45
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1010",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ILI-1010",
+    "rok_budowy": 1894,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 50,
+    "zatrudnienie_aktualne": 4,
+    "rezerwa_zakladowa": 10850856.42270594,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 3.0,
+        "timber": 5.0,
+        "fuels": 2.0,
+        "steel": 8.0
+      },
+      "outputs": {
+        "trucks": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 446,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region1",
+    "cluster_info": {
+      "region_id": "Iliria-Region1",
+      "scale_factor": 446,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ILI-1010"
+    },
+    "ostatnia_produkcja": {
+      "trucks": 111.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7184922405124106,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "planks": 1.8466063311971812,
+      "energy": 67.20699999999995,
+      "food": 0.355
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1011",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ILI-1011",
+    "rok_budowy": 1891,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 50,
+    "zatrudnienie_aktualne": 5,
+    "rezerwa_zakladowa": 9221921.71346536,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 5.0,
+        "energy": 8.0,
+        "steel": 12.0
+      },
+      "outputs": {
+        "industrial_machinery": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 379,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region1",
+    "cluster_info": {
+      "region_id": "Iliria-Region1",
+      "scale_factor": 379,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ILI-1011"
+    },
+    "ostatnia_produkcja": {
+      "industrial_machinery": 189.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7231419491273151,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.07,
+      "fibers": 0.44864208951046675
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1012",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ILI-1012",
+    "rok_budowy": 1883,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 6214676.878452947,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "sulfur": 8.0,
+        "salt": 5.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "chemicals": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 255,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region1",
+    "cluster_info": {
+      "region_id": "Iliria-Region1",
+      "scale_factor": 255,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ILI-1012"
+    },
+    "ostatnia_produkcja": {
+      "chemicals": 382.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7077599227572223,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.5,
+      "chemicals": 3.335711559493499
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1013",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ILI-1013",
+    "rok_budowy": 1878,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 5971552.294984204,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 10.0,
+        "clay": 8.0,
+        "limestone": 25.0
+      },
+      "outputs": {
+        "cement": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 245,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region1",
+    "cluster_info": {
+      "region_id": "Iliria-Region1",
+      "scale_factor": 245,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ILI-1013"
+    },
+    "ostatnia_produkcja": {
+      "cement": 735.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8904654269966514,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 6.843127828655379,
+      "energy": 0.0,
+      "clay": 1.1102230246251563e-16,
+      "food": 0.5,
+      "limestone": 2.220446049250313e-16
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1014",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ILI-1014",
+    "rok_budowy": 1884,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 4464179.877477997,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "catalysts": 1.0,
+        "oil": 25.0
+      },
+      "outputs": {
+        "bitumen": 3.0,
+        "fuels": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 183,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region1",
+    "cluster_info": {
+      "region_id": "Iliria-Region1",
+      "scale_factor": 183,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ILI-1014"
+    },
+    "ostatnia_produkcja": {
+      "bitumen": 54.900000000000006,
+      "fuels": 329.40000000000003
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8769734187330058,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "bitumen": 0.6830448181310345,
+      "energy": 0.0,
+      "catalysts": 1.3877787807814457e-17,
+      "fuels": 4.098268908786207,
+      "food": 0.5,
+      "oil": 2.220446049250313e-16
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1015",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ILI-1015",
+    "rok_budowy": 1887,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 2737995.334849922,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "steel": 10.0,
+        "iron": 5.0
+      },
+      "outputs": {
+        "agricultural_machinery": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 112,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region1",
+    "cluster_info": {
+      "region_id": "Iliria-Region1",
+      "scale_factor": 112,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ILI-1015"
+    },
+    "ostatnia_produkcja": {
+      "agricultural_machinery": 89.6
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6937153440577586,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.30000000000000004,
+      "food": 0.5,
+      "iron": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1016",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ILI-1016",
+    "rok_budowy": 1899,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 2470558.2930343044,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 8.0,
+        "salt": 10.0,
+        "limestone": 8.0,
+        "ammonia": 3.0
+      },
+      "outputs": {
+        "soda_ash": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 101,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region1",
+    "cluster_info": {
+      "region_id": "Iliria-Region1",
+      "scale_factor": 101,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ILI-1016"
+    },
+    "ostatnia_produkcja": {
+      "soda_ash": 121.19999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9586883988636812,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.5,
+      "soda_ash": 2.7628972237917875,
+      "ammonia": 1.3877787807814457e-17
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1017",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ILI-1017",
+    "rok_budowy": 1887,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 2251746.1679124357,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "coke": 10.0,
+        "fuels": 12.0,
+        "iron": 25.0
+      },
+      "outputs": {
+        "steel": 22.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 92,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region1",
+    "cluster_info": {
+      "region_id": "Iliria-Region1",
+      "scale_factor": 92,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ILI-1017"
+    },
+    "ostatnia_produkcja": {
+      "steel": 202.39999999999998
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7584531890576409,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.1102230246251563e-16,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1018",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ILI-1018",
+    "rok_budowy": 1872,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 100,
+    "rezerwa_zakladowa": 1230622.917343715,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "chemicals": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "pharmaceuticals": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 50,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region1",
+    "cluster_info": {
+      "region_id": "Iliria-Region1",
+      "scale_factor": 50,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ILI-1018"
+    },
+    "ostatnia_produkcja": {
+      "pharmaceuticals": 60.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7147199829568618,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "food": 0.5,
+      "chemicals": 1.1102230246251563e-16,
+      "water": 5.551115123125783e-17,
+      "pharmaceuticals": 2.6711856441195314
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ILI-1019",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ILI-1019",
+    "rok_budowy": 1879,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 360931.905193365,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 10.0,
+        "energy": 5.0,
+        "steel": 25.0
+      },
+      "outputs": {
+        "trains": 3.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 14,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Iliria-Region1",
+    "cluster_info": {
+      "region_id": "Iliria-Region1",
+      "scale_factor": 14,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ILI-1019"
+    },
+    "ostatnia_produkcja": {
+      "trains": 3.822
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6986271564542342,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 1.02,
+      "energy": 0.51,
+      "food": 0.51
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ILI-1020",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ILI-1020",
+    "rok_budowy": 1874,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 84,
+    "zatrudnienie_aktualne": 84,
+    "rezerwa_zakladowa": 241614.61012674347,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "bitumen": 8.0,
+        "energy": 3.0,
+        "sand": 10.0,
+        "gravel": 8.0
+      },
+      "outputs": {
+        "asphalt": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Iliria-Region1",
+    "cluster_info": {
+      "region_id": "Iliria-Region1",
+      "scale_factor": 9,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ILI-1020"
+    },
+    "ostatnia_produkcja": {
+      "asphalt": 16.74
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7922345785696328,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "asphalt": 4.680552184853928,
+      "bitumen": 5.551115123125783e-17,
+      "energy": 0.0,
+      "sand": 0.0,
+      "food": 0.52,
+      "gravel": 2.775557561562891e-16
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-ILI-1021",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ILI-1021",
+    "rok_budowy": 1873,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 212139.6601104943,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.12,
+      "sredni": 0.3,
+      "szeregowi": 0.58,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "rare_earth_elements": 1.0,
+        "chemicals": 8.0
+      },
+      "outputs": {
+        "catalysts": 6.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Iliria-Region1",
+    "cluster_info": {
+      "region_id": "Iliria-Region1",
+      "scale_factor": 8,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ILI-1021"
+    },
+    "ostatnia_produkcja": {
+      "catalysts": 4.368
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8367510352986098,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.0,
+      "catalysts": 1.3856985427370296,
+      "food": 0.51,
+      "rare_earth_elements": 6.938893903907228e-18,
+      "chemicals": 5.551115123125783e-17
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ILI-1022",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ILI-1022",
+    "rok_budowy": 1887,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 91,
+    "zatrudnienie_aktualne": 91,
+    "rezerwa_zakladowa": 207561.5455237757,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "bauxite": 20.0,
+        "energy": 30.0,
+        "catalysts": 2.0
+      },
+      "outputs": {
+        "aluminum": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 113,
+    "region_id": "Iliria-Region1",
+    "cluster_info": {
+      "region_id": "Iliria-Region1",
+      "scale_factor": 7,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ILI-1022"
+    },
+    "ostatnia_produkcja": {
+      "aluminum": 8.484
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9677264029376108,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "aluminum": 3.125900514430842,
+      "energy": 0.0,
+      "catalysts": 4.163336342344337e-17,
+      "food": 0.5650000000000001
+    },
+    "pojemność_magazynu": 1130.0
+  },
+  {
+    "id": "B-ILI-1023",
+    "name": "Heavy Industry Plant",
+    "wlasciciel_id": "KRS-ILI-1023",
+    "rok_budowy": 1897,
+    "sektor_pkb": "heavy_industry",
+    "pojemnosc_pracownikow": 88,
+    "zatrudnienie_aktualne": 81,
+    "rezerwa_zakladowa": 94251.73879427896,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 10.0,
+        "energy": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "prefabricates": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 109,
+    "region_id": "Iliria-Region1",
+    "cluster_info": {
+      "region_id": "Iliria-Region1",
+      "scale_factor": 3,
+      "sector": "heavy_industry",
+      "owner_id": "KRS-ILI-1023"
+    },
+    "ostatnia_produkcja": {
+      "prefabricates": 5.88
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.710498677732511,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.09,
+      "energy": 0.5450000000000002,
+      "prefabricates": 2.18,
+      "food": 0.545
+    },
+    "pojemność_magazynu": 1090.0
+  }
+]

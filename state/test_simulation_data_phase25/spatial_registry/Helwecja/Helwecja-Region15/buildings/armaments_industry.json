@@ -1,0 +1,78 @@
+[
+  {
+    "id": "B-HEL-0068",
+    "name": "Armaments Factory",
+    "wlasciciel_id": "KRS-HEL-0068",
+    "rok_budowy": 1956,
+    "sektor_pkb": "armaments_industry",
+    "pojemnosc_pracownikow": 45,
+    "zatrudnienie_aktualne": 45,
+    "rezerwa_zakladowa": 63350.0,
+    "aktywna_metoda": {
+      "rok": 1965,
+      "eksperci": 0.3,
+      "sredni": 0.45,
+      "szeregowi": 0.25,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "electronic_components": 10.0,
+        "steel": 20.0,
+        "chemicals": 15.0
+      },
+      "outputs": {
+        "ammunition": 40.0,
+        "support_equipment": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 115,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 4,
+      "sector": "armaments_industry",
+      "owner_id": "KRS-HEL-0068"
+    },
+    "ostatnia_produkcja": {
+      "ammunition": 0.04101983176928494,
+      "support_equipment": 0.010254957942321235
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.998,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8285825015818516,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "ammunition": 5.498354939546499,
+      "electronic_components": 0.9578157745347085,
+      "food": 0.5750000000000001,
+      "support_equipment": 1.3745887348866246,
+      "steel": 0.01759425716207686,
+      "chemicals": 1.4367236618020627
+    },
+    "pojemność_magazynu": 1150.0
+  }
+]

@@ -1,0 +1,466 @@
+{
+    "Wenedia": {
+        "income_tax": {
+            "stawka": 0.13969660200233544,
+            "type": "liniowy"
+        },
+        "corporate_tax": 0.1226359117008709,
+        "vat": {
+            "usługi": {
+                "stawka": 0.15,
+                "udział_konsumpcji": 0.45
+            },
+            "przemysł": {
+                "stawka": 0.23,
+                "udział_konsumpcji": 0.35
+            },
+            "rolnictwo": {
+                "stawka": 0.05,
+                "udział_konsumpcji": 0.2
+            }
+        },
+        "dług_publiczny": {
+            "aktualne_zadłużenie": 0,
+            "oprocentowanie": 0.07649171252391179,
+            "kredyty": [],
+            "rating_kredytowy": "AAA"
+        },
+        "import_duties": 0.02,
+        "export_subsidy": 0.0
+    },
+    "Krasnowia": {
+        "income_tax": {
+            "stawka": 0.14673331387616123,
+            "type": "liniowy"
+        },
+        "corporate_tax": 0.07503111689064262,
+        "vat": {
+            "usługi": {
+                "stawka": 0.15,
+                "udział_konsumpcji": 0.45
+            },
+            "przemysł": {
+                "stawka": 0.23,
+                "udział_konsumpcji": 0.35
+            },
+            "rolnictwo": {
+                "stawka": 0.05,
+                "udział_konsumpcji": 0.2
+            }
+        },
+        "dług_publiczny": {
+            "aktualne_zadłużenie": 0.0,
+            "oprocentowanie": 0.15654780976601668,
+            "kredyty": [],
+            "rating_kredytowy": "AAA"
+        },
+        "import_duties": 0.2,
+        "export_subsidy": 0.0
+    },
+    "Persja": {
+        "income_tax": {
+            "stawka": 0.15,
+            "type": "liniowy"
+        },
+        "corporate_tax": 0.15,
+        "vat": {
+            "usługi": {
+                "stawka": 0.15,
+                "udział_konsumpcji": 0.45
+            },
+            "przemysł": {
+                "stawka": 0.23,
+                "udział_konsumpcji": 0.35
+            },
+            "rolnictwo": {
+                "stawka": 0.05,
+                "udział_konsumpcji": 0.2
+            }
+        },
+        "dług_publiczny": {
+            "aktualne_zadłużenie": 0,
+            "oprocentowanie": 0.032329929118095777,
+            "kredyty": [],
+            "rating_kredytowy": "AAA"
+        },
+        "import_duties": 0.2,
+        "export_subsidy": 0.0
+    },
+    "Eldoria": {
+        "income_tax": {
+            "stawka": 0.15,
+            "type": "liniowy"
+        },
+        "corporate_tax": 0.10043067350280115,
+        "vat": {
+            "usługi": {
+                "stawka": 0.15,
+                "udział_konsumpcji": 0.45
+            },
+            "przemysł": {
+                "stawka": 0.23,
+                "udział_konsumpcji": 0.35
+            },
+            "rolnictwo": {
+                "stawka": 0.05,
+                "udział_konsumpcji": 0.2
+            }
+        },
+        "dług_publiczny": {
+            "aktualne_zadłużenie": 0,
+            "oprocentowanie": 0.0761997669176005,
+            "kredyty": [],
+            "rating_kredytowy": "AAA"
+        },
+        "import_duties": 0.2,
+        "export_subsidy": 0.0
+    },
+    "Galia": {
+        "income_tax": {
+            "stawka": 0.12631954701502277,
+            "type": "liniowy"
+        },
+        "corporate_tax": 0.0817713271871891,
+        "vat": {
+            "usługi": {
+                "stawka": 0.15,
+                "udział_konsumpcji": 0.45
+            },
+            "przemysł": {
+                "stawka": 0.23,
+                "udział_konsumpcji": 0.35
+            },
+            "rolnictwo": {
+                "stawka": 0.05,
+                "udział_konsumpcji": 0.2
+            }
+        },
+        "dług_publiczny": {
+            "aktualne_zadłużenie": 0,
+            "oprocentowanie": 0.06911083353511172,
+            "kredyty": [],
+            "rating_kredytowy": "AAA"
+        },
+        "import_duties": 0.2,
+        "export_subsidy": 0.0
+    },
+    "Baktria": {
+        "income_tax": {
+            "stawka": 0.13480839919680876,
+            "type": "liniowy"
+        },
+        "corporate_tax": 0.15546899648923382,
+        "vat": {
+            "usługi": {
+                "stawka": 0.15,
+                "udział_konsumpcji": 0.45
+            },
+            "przemysł": {
+                "stawka": 0.23,
+                "udział_konsumpcji": 0.35
+            },
+            "rolnictwo": {
+                "stawka": 0.05,
+                "udział_konsumpcji": 0.2
+            }
+        },
+        "dług_publiczny": {
+            "aktualne_zadłużenie": 0,
+            "oprocentowanie": 0.06510382634146701,
+            "kredyty": [],
+            "rating_kredytowy": "AAA"
+        },
+        "import_duties": 0.2,
+        "export_subsidy": 0.0
+    },
+    "Iliria": {
+        "income_tax": {
+            "stawka": 0.23978431087883456,
+            "type": "liniowy"
+        },
+        "corporate_tax": 0.14160075666030775,
+        "vat": {
+            "usługi": {
+                "stawka": 0.15,
+                "udział_konsumpcji": 0.45
+            },
+            "przemysł": {
+                "stawka": 0.23,
+                "udział_konsumpcji": 0.35
+            },
+            "rolnictwo": {
+                "stawka": 0.05,
+                "udział_konsumpcji": 0.2
+            }
+        },
+        "dług_publiczny": {
+            "aktualne_zadłużenie": 0,
+            "oprocentowanie": 0.03174477136567276,
+            "kredyty": [],
+            "rating_kredytowy": "AAA"
+        },
+        "import_duties": 0.2,
+        "export_subsidy": 0.0
+    },
+    "Anatolia": {
+        "income_tax": {
+            "stawka": 0.15,
+            "type": "liniowy"
+        },
+        "corporate_tax": 0.14172774382916165,
+        "vat": {
+            "usługi": {
+                "stawka": 0.15,
+                "udział_konsumpcji": 0.45
+            },
+            "przemysł": {
+                "stawka": 0.23,
+                "udział_konsumpcji": 0.35
+            },
+            "rolnictwo": {
+                "stawka": 0.05,
+                "udział_konsumpcji": 0.2
+            }
+        },
+        "dług_publiczny": {
+            "aktualne_zadłużenie": 0,
+            "oprocentowanie": 0.06684599354088233,
+            "kredyty": [],
+            "rating_kredytowy": "AAA"
+        },
+        "import_duties": 0.2,
+        "export_subsidy": 0.0
+    },
+    "Helwecja": {
+        "income_tax": {
+            "stawka": 0.20950675999335505,
+            "type": "liniowy"
+        },
+        "corporate_tax": 0.18630231071690706,
+        "vat": {
+            "usługi": {
+                "stawka": 0.15,
+                "udział_konsumpcji": 0.45
+            },
+            "przemysł": {
+                "stawka": 0.23,
+                "udział_konsumpcji": 0.35
+            },
+            "rolnictwo": {
+                "stawka": 0.05,
+                "udział_konsumpcji": 0.2
+            }
+        },
+        "dług_publiczny": {
+            "aktualne_zadłużenie": 0,
+            "oprocentowanie": 0.07060727396774466,
+            "kredyty": [],
+            "rating_kredytowy": "AAA"
+        },
+        "import_duties": 0.2,
+        "export_subsidy": 0.0
+    },
+    "Anglia": {
+        "income_tax": {
+            "stawka": 0.24668248302408996,
+            "type": "liniowy"
+        },
+        "corporate_tax": 0.19165096927255582,
+        "vat": {
+            "usługi": {
+                "stawka": 0.15,
+                "udział_konsumpcji": 0.45
+            },
+            "przemysł": {
+                "stawka": 0.23,
+                "udział_konsumpcji": 0.35
+            },
+            "rolnictwo": {
+                "stawka": 0.05,
+                "udział_konsumpcji": 0.2
+            }
+        },
+        "dług_publiczny": {
+            "aktualne_zadłużenie": 0,
+            "oprocentowanie": 0.03886476999074333,
+            "kredyty": [],
+            "rating_kredytowy": "AAA"
+        },
+        "import_duties": 0.02,
+        "export_subsidy": 0.0
+    },
+    "Dacja": {
+        "income_tax": {
+            "stawka": 0.13257879658177132,
+            "type": "liniowy"
+        },
+        "corporate_tax": 0.17979523607008607,
+        "vat": {
+            "usługi": {
+                "stawka": 0.15,
+                "udział_konsumpcji": 0.45
+            },
+            "przemysł": {
+                "stawka": 0.23,
+                "udział_konsumpcji": 0.35
+            },
+            "rolnictwo": {
+                "stawka": 0.05,
+                "udział_konsumpcji": 0.2
+            }
+        },
+        "dług_publiczny": {
+            "aktualne_zadłużenie": 0,
+            "oprocentowanie": 0.04112655108134384,
+            "kredyty": [],
+            "rating_kredytowy": "AAA"
+        },
+        "import_duties": 0.2,
+        "export_subsidy": 0.0
+    },
+    "Sarmatia": {
+        "income_tax": {
+            "stawka": 0.2443518013257706,
+            "type": "liniowy"
+        },
+        "corporate_tax": 0.07686341926325962,
+        "vat": {
+            "usługi": {
+                "stawka": 0.15,
+                "udział_konsumpcji": 0.45
+            },
+            "przemysł": {
+                "stawka": 0.23,
+                "udział_konsumpcji": 0.35
+            },
+            "rolnictwo": {
+                "stawka": 0.05,
+                "udział_konsumpcji": 0.2
+            }
+        },
+        "dług_publiczny": {
+            "aktualne_zadłużenie": 0,
+            "oprocentowanie": 0.05204595986857864,
+            "kredyty": [],
+            "rating_kredytowy": "AAA"
+        },
+        "import_duties": 0.02,
+        "export_subsidy": 0.0
+    },
+    "Oksytania": {
+        "income_tax": {
+            "stawka": 0.13813423345706974,
+            "type": "liniowy"
+        },
+        "corporate_tax": 0.07913322910804363,
+        "vat": {
+            "usługi": {
+                "stawka": 0.15,
+                "udział_konsumpcji": 0.45
+            },
+            "przemysł": {
+                "stawka": 0.23,
+                "udział_konsumpcji": 0.35
+            },
+            "rolnictwo": {
+                "stawka": 0.05,
+                "udział_konsumpcji": 0.2
+            }
+        },
+        "dług_publiczny": {
+            "aktualne_zadłużenie": 0,
+            "oprocentowanie": 0.0642919172478841,
+            "kredyty": [],
+            "rating_kredytowy": "AAA"
+        },
+        "import_duties": 0.2,
+        "export_subsidy": 0.0
+    },
+    "Nordia": {
+        "income_tax": {
+            "stawka": 0.13778780792273734,
+            "type": "liniowy"
+        },
+        "corporate_tax": 0.03132173243708482,
+        "vat": {
+            "usługi": {
+                "stawka": 0.15,
+                "udział_konsumpcji": 0.45
+            },
+            "przemysł": {
+                "stawka": 0.23,
+                "udział_konsumpcji": 0.35
+            },
+            "rolnictwo": {
+                "stawka": 0.05,
+                "udział_konsumpcji": 0.2
+            }
+        },
+        "dług_publiczny": {
+            "aktualne_zadłużenie": 0,
+            "oprocentowanie": 0.037669676448011266,
+            "kredyty": [],
+            "rating_kredytowy": "AAA"
+        },
+        "import_duties": 0.2,
+        "export_subsidy": 0.0
+    },
+    "Iberia": {
+        "income_tax": {
+            "stawka": 0.15,
+            "type": "liniowy"
+        },
+        "corporate_tax": 0.15,
+        "vat": {
+            "usługi": {
+                "stawka": 0.15,
+                "udział_konsumpcji": 0.45
+            },
+            "przemysł": {
+                "stawka": 0.23,
+                "udział_konsumpcji": 0.35
+            },
+            "rolnictwo": {
+                "stawka": 0.05,
+                "udział_konsumpcji": 0.2
+            }
+        },
+        "dług_publiczny": {
+            "aktualne_zadłużenie": 0,
+            "oprocentowanie": 0.03733392920085936,
+            "kredyty": [],
+            "rating_kredytowy": "AAA"
+        },
+        "import_duties": 0.2,
+        "export_subsidy": 0.0
+    },
+    "Lechia": {
+        "income_tax": {
+            "stawka": 0.21468350730576666,
+            "type": "liniowy"
+        },
+        "corporate_tax": 0.07620117641226244,
+        "vat": {
+            "usługi": {
+                "stawka": 0.15,
+                "udział_konsumpcji": 0.45
+            },
+            "przemysł": {
+                "stawka": 0.23,
+                "udział_konsumpcji": 0.35
+            },
+            "rolnictwo": {
+                "stawka": 0.05,
+                "udział_konsumpcji": 0.2
+            }
+        },
+        "dług_publiczny": {
+            "aktualne_zadłużenie": 0,
+            "oprocentowanie": 0.04986006425370683,
+            "kredyty": [],
+            "rating_kredytowy": "AAA"
+        },
+        "import_duties": 0.2,
+        "export_subsidy": 0.0
+    }
+}

@@ -1,0 +1,1634 @@
+[
+  {
+    "id_budynku": "B-ILI-1262",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Iliria-Region3",
+    "właściciel": "KRS-ILI-1227",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 2803.055,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 28030.55,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 25.392000000000003,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1227",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1262",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1227",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1262",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1227",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1262",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1227",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1262",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1227",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1262",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1227",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1262",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 12.15,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1227",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1262",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 8.978,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1227",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1262",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 210.0,
+        "fruit": 168.0,
+        "cereal": 564.1440000000001,
+        "vegetable": 250.44600000000005,
+        "protein": 274.05
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 4587.26,
+        "fruit": 1758.4579999999999,
+        "cereal": 76634.37359999992,
+        "vegetable": 54069.92739999997,
+        "protein": 33459.20349999999
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 1.09838380668445,
+        "fruit": 1.09838380668445,
+        "cereal": 1.0966253554375236,
+        "vegetable": 1.0904953614563277,
+        "protein": 1.096171499541012
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-ILI-1262",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Iliria-Region3",
+    "właściciel": "KRS-ILI-1227",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 2803.055,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 28030.55,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1227",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1262",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1227",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1262",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1227",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1262",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1227",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1262",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1227",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1262",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1227",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1262",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1227",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1262",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1227",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1262",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {},
+      "niespełniony_popyt_ostatni_turn": {},
+      "udział_rynku_ostatni_turn": {},
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-ILI-1263",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Iliria-Region6",
+    "właściciel": "KRS-ILI-1228",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 3624.6,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 36246.0,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 25.392000000000003,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1228",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1263",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1228",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1263",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1228",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1263",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1228",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1263",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1228",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1263",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1228",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1263",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 12.15,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1228",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1263",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 8.978,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1228",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1263",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 210.0,
+        "fruit": 168.0,
+        "cereal": 564.1440000000001,
+        "vegetable": 250.44600000000005,
+        "protein": 274.05
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 4587.26,
+        "fruit": 1758.4579999999999,
+        "cereal": 76634.37359999992,
+        "vegetable": 54069.92739999997,
+        "protein": 33459.20349999999
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 1.09838380668445,
+        "fruit": 1.09838380668445,
+        "cereal": 1.0966253554375236,
+        "vegetable": 1.0904953614563277,
+        "protein": 1.096171499541012
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-ILI-1263",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Iliria-Region6",
+    "właściciel": "KRS-ILI-1228",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 3624.6,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 36246.0,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1228",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1263",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1228",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1263",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1228",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1263",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1228",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1263",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1228",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1263",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1228",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1263",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1228",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1263",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1228",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1263",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {},
+      "niespełniony_popyt_ostatni_turn": {},
+      "udział_rynku_ostatni_turn": {},
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-ILI-1264",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Iliria-Region4",
+    "właściciel": "KRS-ILI-1229",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 4344.885,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 43448.850000000006,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 25.392000000000003,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1229",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1264",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1229",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1264",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1229",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1264",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1229",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1264",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1229",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1264",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1229",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1264",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 12.15,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1229",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1264",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 8.978,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1229",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1264",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 210.0,
+        "fruit": 168.0,
+        "cereal": 564.1440000000001,
+        "vegetable": 250.44600000000005,
+        "protein": 274.05
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 4587.26,
+        "fruit": 1758.4579999999999,
+        "cereal": 76634.37359999992,
+        "vegetable": 54069.92739999997,
+        "protein": 33459.20349999999
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 1.09838380668445,
+        "fruit": 1.09838380668445,
+        "cereal": 1.0966253554375236,
+        "vegetable": 1.0904953614563277,
+        "protein": 1.096171499541012
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-ILI-1264",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Iliria-Region4",
+    "właściciel": "KRS-ILI-1229",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 4344.885,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 43448.850000000006,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1229",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1264",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1229",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1264",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1229",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1264",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1229",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1264",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1229",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1264",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1229",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1264",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1229",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1264",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1229",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1264",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {},
+      "niespełniony_popyt_ostatni_turn": {},
+      "udział_rynku_ostatni_turn": {},
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-ILI-1266",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Iliria-Region2",
+    "właściciel": "KRS-ILI-1231",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 2597.925,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 25979.25,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 25.392000000000003,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1231",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1266",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1231",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1266",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1231",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1266",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1231",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1266",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1231",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1266",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1231",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1266",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 12.15,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1231",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1266",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 8.978,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1231",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1266",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 210.0,
+        "fruit": 168.0,
+        "cereal": 564.1440000000001,
+        "vegetable": 250.44600000000005,
+        "protein": 274.05
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 4587.26,
+        "fruit": 1758.4579999999999,
+        "cereal": 76634.37359999992,
+        "vegetable": 54069.92739999997,
+        "protein": 33459.20349999999
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 1.09838380668445,
+        "fruit": 1.09838380668445,
+        "cereal": 1.0966253554375236,
+        "vegetable": 1.0904953614563277,
+        "protein": 1.096171499541012
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-ILI-1266",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Iliria-Region2",
+    "właściciel": "KRS-ILI-1231",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 2597.925,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 25979.25,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1231",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1266",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1231",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1266",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1231",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1266",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1231",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1266",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1231",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1266",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1231",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1266",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1231",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1266",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1231",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1266",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {},
+      "niespełniony_popyt_ostatni_turn": {},
+      "udział_rynku_ostatni_turn": {},
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-ILI-1267",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Iliria-Region5",
+    "właściciel": "KRS-ILI-1232",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 2784.685,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 27846.85,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 25.392000000000003,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1232",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1267",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1232",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1267",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1232",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1267",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1232",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1267",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1232",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1267",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1232",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1267",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 12.15,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1232",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1267",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 8.978,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1232",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1267",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 210.0,
+        "fruit": 168.0,
+        "cereal": 564.1440000000001,
+        "vegetable": 250.44600000000005,
+        "protein": 274.05
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 4587.26,
+        "fruit": 1758.4579999999999,
+        "cereal": 76634.37359999992,
+        "vegetable": 54069.92739999997,
+        "protein": 33459.20349999999
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 1.09838380668445,
+        "fruit": 1.09838380668445,
+        "cereal": 1.0966253554375236,
+        "vegetable": 1.0904953614563277,
+        "protein": 1.096171499541012
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-ILI-1267",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Iliria-Region5",
+    "właściciel": "KRS-ILI-1232",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 2784.685,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 27846.85,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1232",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1267",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1232",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1267",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1232",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1267",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1232",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1267",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1232",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1267",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1232",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1267",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1232",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1267",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1232",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1267",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {},
+      "niespełniony_popyt_ostatni_turn": {},
+      "udział_rynku_ostatni_turn": {},
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-ILI-1268",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Iliria-Region7",
+    "właściciel": "KRS-ILI-1233",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 2161.44,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 21614.4,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 25.392000000000003,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1233",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1268",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1233",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1268",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1233",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1268",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1233",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1268",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1233",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1268",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1233",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1268",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 12.15,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1233",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1268",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 8.978,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1233",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1268",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 210.0,
+        "fruit": 168.0,
+        "cereal": 564.1440000000001,
+        "vegetable": 250.44600000000005,
+        "protein": 274.05
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 4587.26,
+        "fruit": 1758.4579999999999,
+        "cereal": 76634.37359999992,
+        "vegetable": 54069.92739999997,
+        "protein": 33459.20349999999
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 1.09838380668445,
+        "fruit": 1.09838380668445,
+        "cereal": 1.0966253554375236,
+        "vegetable": 1.0904953614563277,
+        "protein": 1.096171499541012
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-ILI-1268",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Iliria-Region7",
+    "właściciel": "KRS-ILI-1233",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 2161.44,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 21614.4,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1233",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1268",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1233",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1268",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1233",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1268",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1233",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1268",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1233",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1268",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1233",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1268",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1233",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1268",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ILI-1233",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ILI-1268",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {},
+      "niespełniony_popyt_ostatni_turn": {},
+      "udział_rynku_ostatni_turn": {},
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  }
+]

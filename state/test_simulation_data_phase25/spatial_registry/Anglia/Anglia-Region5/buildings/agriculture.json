@@ -1,0 +1,1641 @@
+[
+  {
+    "id": "B-ANG-0094",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANG-0094",
+    "rok_budowy": 1965,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 59,
+    "zatrudnienie_aktualne": 59,
+    "rezerwa_zakladowa": 119400.0,
+    "aktywna_metoda": {
+      "rok": 1960,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fertilizers": 10.0,
+        "seeds": 12.0
+      },
+      "outputs": {
+        "cereal": 70.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 15,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 15,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANG-0094"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 61.95
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.9123249999999992,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fertilizers": 1.7699999999999996,
+      "food": 0.5,
+      "maintenance_services": 0.588251316330225,
+      "cereal": 1.1263427788565217
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-1370",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANG-1370",
+    "rok_budowy": 1946,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 59,
+    "zatrudnienie_aktualne": 59,
+    "rezerwa_zakladowa": 3654073.3893436715,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 6.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "protein": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 29,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 29,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANG-1370"
+    },
+    "ostatnia_produkcja": {
+      "protein": 1.992429330684235e-18
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.7427865543882031,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.236,
+      "protein": 2.6009139730531694,
+      "seeds": 8.673617379884035e-19,
+      "water": 2.218000000000001
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ANG-1370_Farm_18",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Anglia-Region5",
+      "typ_budynku_docelowy": "Farm",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 343,
+      "zwiększenie_kapitału": 13079295.68832364,
+      "nowy_budynek": false,
+      "koszt_całkowity": 13421068.037681334,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 5,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 5,
+      "investor_id": "KRS-ANG-1370",
+      "main_contractor_id": "KRS-ANG-0592",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 2684213.607536267,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 4026320.4113044,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 4026320.4113044,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 2684213.607536267,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 13421068.037681334,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ANG-1371",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANG-1371",
+    "rok_budowy": 1965,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 59,
+    "zatrudnienie_aktualne": 59,
+    "rezerwa_zakladowa": 3283762.34906674,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "cereal": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "seeds": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 26,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 26,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANG-1371"
+    },
+    "ostatnia_produkcja": {
+      "seeds": 0.40769427424495497
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.7583937040247877,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.06637499999999999,
+      "cereal": 2.5518749999999994,
+      "seeds": 3.7785912161701956,
+      "water": 1.1659374999999998
+    },
+    "pojemność_magazynu": 1000.0,
+    "projekt_budowlany": {
+      "id_projektu": "proj_tender_KRS-ANG-1371_Farm_18",
+      "typ_projektu": "factory",
+      "mikroregion_id": "Anglia-Region5",
+      "typ_budynku_docelowy": "Farm",
+      "materiały_wymagane": {
+        "bricks": 500.0,
+        "cement": 100.0,
+        "planks": 150.0,
+        "timber": 250.0,
+        "construction_machinery": 50.0,
+        "prefabricates": 0.0,
+        "steel": 200.0,
+        "glass": 100.0
+      },
+      "materiały_dostarczone": {},
+      "zwiększenie_pojemności": 308,
+      "zwiększenie_kapitału": 11825412.144616002,
+      "nowy_budynek": false,
+      "koszt_całkowity": 12130369.848315043,
+      "koszt_wydany": 0.0,
+      "czas_trwania": 0,
+      "turny_minione": 5,
+      "postęp": 0.0,
+      "wstrzymany": true,
+      "powód_wstrzymania": "Material shortage on B2B market",
+      "consecutive_hold_turns": 5,
+      "investor_id": "KRS-ANG-1371",
+      "main_contractor_id": "KRS-ANG-0728",
+      "subcontractors": [],
+      "tranches": [
+        {
+          "tranche_id": "tranche_1",
+          "trigger_progress": 0.0,
+          "amount": 2426073.9696630086,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_2",
+          "trigger_progress": 0.33,
+          "amount": 3639110.954494513,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_3",
+          "trigger_progress": 0.66,
+          "amount": 3639110.954494513,
+          "released": false,
+          "released_turn": 0
+        },
+        {
+          "tranche_id": "tranche_4",
+          "trigger_progress": 1.0,
+          "amount": 2426073.9696630086,
+          "released": false,
+          "released_turn": 0
+        }
+      ],
+      "paid_tranches": 0,
+      "contract_price": 12130369.848315043,
+      "contractor_margin": 0.15,
+      "structural_defect": 0.0,
+      "ohs_health_required": 0.0,
+      "ohs_education_required": 0.0,
+      "ohs_health_delivered": 0.0,
+      "ohs_education_delivered": 0.0,
+      "ohs_coverage_ratio": 1.0,
+      "ohs_accidents": 0
+    }
+  },
+  {
+    "id": "B-ANG-1372",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANG-1372",
+    "rok_budowy": 1957,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 60,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 3123462.9718819163,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 2.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "timber": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 24,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 24,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANG-1372"
+    },
+    "ostatnia_produkcja": {
+      "timber": 14.399999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.6647777703440292,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 0.016376387357538436,
+      "food": 0.515,
+      "water": 0.905
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-ANG-1373",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANG-1373",
+    "rok_budowy": 1962,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 59,
+    "zatrudnienie_aktualne": 59,
+    "rezerwa_zakladowa": 3033288.322215453,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "vegetable": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 24,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 24,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANG-1373"
+    },
+    "ostatnia_produkcja": {
+      "vegetable": 25.488
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.6666189034966893,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.236,
+      "vegetable": 3.873953605258809,
+      "water": 1.4240000000000002
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANG-1374",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANG-1374",
+    "rok_budowy": 1965,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 60,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 2464209.3201889778,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "seeds": 5.0,
+        "draft_animals": 3.0
+      },
+      "outputs": {
+        "cereal": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 19,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 19,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANG-1374"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 6.093263225830026e-18
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.8542118385746021,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.36,
+      "cereal": 3.3502614976038285,
+      "seeds": 1.734723475976807e-18
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ANG-1375",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANG-1375",
+    "rok_budowy": 1965,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 59,
+    "zatrudnienie_aktualne": 59,
+    "rezerwa_zakladowa": 2314934.9040782056,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fodder": 15.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "meat": 10.0,
+        "livestock": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 18,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 18,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANG-1375"
+    },
+    "ostatnia_produkcja": {
+      "meat": 0.3419394044107199,
+      "livestock": 0.17096970220535995
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.7955831256054228,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "meat": 3.184348703011449,
+      "food": 0.0995625,
+      "fodder": 0.572812500000001,
+      "water": 0.931875,
+      "livestock": 1.5921743515057245
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-ANG-1376",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANG-1376",
+    "rok_budowy": 1958,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 62,
+    "zatrudnienie_aktualne": 62,
+    "rezerwa_zakladowa": 1906255.2792365549,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "industrial_fiber": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 14,
+    "pojemnosc_budowlana": 106,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 14,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANG-1376"
+    },
+    "ostatnia_produkcja": {
+      "industrial_fiber": 10.416
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.8830498483677054,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.53,
+      "industrial_fiber": 0.044647901424744875,
+      "water": 1.4959999999999996
+    },
+    "pojemność_magazynu": 1060.0
+  },
+  {
+    "id": "B-ANG-1377",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANG-1377",
+    "rok_budowy": 1955,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 61,
+    "zatrudnienie_aktualne": 61,
+    "rezerwa_zakladowa": 1853061.7335977843,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cereal": 8.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "fodder": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 14,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 14,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANG-1377"
+    },
+    "ostatnia_produkcja": {
+      "fodder": 0.0006552567378727062
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.8648646570861251,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.515,
+      "cereal": 1.8722979354858393,
+      "fodder": 2.903030538598022,
+      "water": 0.0001862096786499023
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-ANG-1378",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANG-1378",
+    "rok_budowy": 1947,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 62,
+    "zatrudnienie_aktualne": 62,
+    "rezerwa_zakladowa": 1775412.0450053725,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 4.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "luxury": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 13,
+    "pojemnosc_budowlana": 106,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 13,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANG-1378"
+    },
+    "ostatnia_produkcja": {
+      "luxury": 6.448
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.8545090170620537,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.248,
+      "luxury": 1.8569247426270579,
+      "water": 1.9469999999999996
+    },
+    "pojemność_magazynu": 1060.0
+  },
+  {
+    "id": "B-ANG-1379",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANG-1379",
+    "rok_budowy": 1957,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 61,
+    "zatrudnienie_aktualne": 61,
+    "rezerwa_zakladowa": 1613743.9275520353,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 4.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "fruit": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 104,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 12,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANG-1379"
+    },
+    "ostatnia_produkcja": {
+      "fruit": 10.98
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.6961151570519734,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fruit": 3.366624279000215,
+      "food": 0.244,
+      "water": 0.9879999999999998
+    },
+    "pojemność_magazynu": 1040.0
+  },
+  {
+    "id": "B-ANG-1380",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANG-1380",
+    "rok_budowy": 1971,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 60,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 1597781.485940958,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 5.0,
+        "seeds": 5.0,
+        "draft_animals": 5.0
+      },
+      "outputs": {
+        "cereal": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 12,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANG-1380"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 18.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.6331224821579894,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.4319519308558851,
+      "cereal": 5.524638494978031
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-ANG-1381",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANG-1381",
+    "rok_budowy": 1961,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 55,
+    "zatrudnienie_aktualne": 55,
+    "rezerwa_zakladowa": 1363838.6409692606,
+    "aktywna_metoda": {
+      "rok": 1895,
+      "eksperci": 0.08,
+      "sredni": 0.2,
+      "szeregowi": 0.72,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "seeds": 8.0
+      },
+      "outputs": {
+        "cereal": 40.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 10,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANG-1381"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 22.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.741766061213175,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.15077570232800455,
+      "food": 0.525,
+      "cereal": 9.102348691419067
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-ANG-1382",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANG-1382",
+    "rok_budowy": 1951,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 57,
+    "zatrudnienie_aktualne": 57,
+    "rezerwa_zakladowa": 1258598.4392889503,
+    "aktywna_metoda": {
+      "rok": 1950,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "agricultural_machinery": 3.0,
+        "fertilizers": 8.0,
+        "fuels": 15.0
+      },
+      "outputs": {
+        "cereal": 90.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 9,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANG-1382"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 0.09975052924714149
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.8781662798144014,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fertilizers": 0.9778637628767534,
+      "fuels": 0.014141389862470715,
+      "food": 0.535,
+      "cereal": 1.0578711938742602
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-ANG-1383",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANG-1383",
+    "rok_budowy": 1947,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 53,
+    "zatrudnienie_aktualne": 48,
+    "rezerwa_zakladowa": 745753.5738410413,
+    "aktywna_metoda": {
+      "rok": 1960,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fertilizers": 10.0,
+        "seeds": 12.0
+      },
+      "outputs": {
+        "cereal": 70.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 110,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 5,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANG-1383"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 18.55
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.6617883764850461,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fertilizers": 1.0600000000000003,
+      "food": 0.55,
+      "cereal": 0.13247363311988536
+    },
+    "pojemność_magazynu": 1100.0
+  },
+  {
+    "id": "B-ANG-1384",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANG-1384",
+    "rok_budowy": 1952,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 60,
+    "zatrudnienie_aktualne": 32,
+    "rezerwa_zakladowa": 534735.6899433951,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 6.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "protein": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 124,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 3,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANG-1384"
+    },
+    "ostatnia_produkcja": {
+      "protein": 1.296
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.7506681508512454,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.11895208299515829,
+      "protein": 3.2274773616933308,
+      "water": 1.94
+    },
+    "pojemność_magazynu": 1240.0
+  },
+  {
+    "id": "B-ANG-1385",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANG-1385",
+    "rok_budowy": 1946,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 51,
+    "zatrudnienie_aktualne": 28,
+    "rezerwa_zakladowa": 460782.8130963168,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "cereal": 10.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "seeds": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 3,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANG-1385"
+    },
+    "ostatnia_produkcja": {
+      "seeds": 0.10418737171970913
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.6407612893140398,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.015392037583810357,
+      "cereal": 1.9446347159772503,
+      "seeds": 3.3473411244548292,
+      "water": 0.35731735798862524
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-ANG-1386",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANG-1386",
+    "rok_budowy": 1963,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 61,
+    "zatrudnienie_aktualne": 22,
+    "rezerwa_zakladowa": 388011.2738326225,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "seeds": 2.0,
+        "water": 5.0
+      },
+      "outputs": {
+        "timber": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 126,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 2,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANG-1386"
+    },
+    "ostatnia_produkcja": {
+      "timber": 0.48
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.6679636512505084,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 0.012101390115127564,
+      "food": 0.63,
+      "water": 1.3449999999999998
+    },
+    "pojemność_magazynu": 1260.0
+  },
+  {
+    "id": "B-ANG-1387",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANG-1387",
+    "rok_budowy": 1968,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 54,
+    "zatrudnienie_aktualne": 11,
+    "rezerwa_zakladowa": 237221.22785610633,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 2.0,
+        "seeds": 5.0,
+        "water": 8.0
+      },
+      "outputs": {
+        "vegetable": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 133,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANG-1387"
+    },
+    "ostatnia_produkcja": {
+      "vegetable": 0.23399999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.8156264160128114,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.03586452497022377,
+      "vegetable": 5.223706097986935,
+      "water": 0.64
+    },
+    "pojemność_magazynu": 1330.0
+  },
+  {
+    "id": "B-ANG-1388",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANG-1388",
+    "rok_budowy": 1962,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 30,
+    "zatrudnienie_aktualne": 6,
+    "rezerwa_zakladowa": 126305.90939795069,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "seeds": 5.0,
+        "draft_animals": 3.0
+      },
+      "outputs": {
+        "cereal": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 70,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANG-1388"
+    },
+    "ostatnia_produkcja": {
+      "cereal": 2.9199428710853608e-18
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.6107748804962844,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.01969774794827059,
+      "cereal": 2.24807902490422,
+      "seeds": 8.673617379884035e-19
+    },
+    "pojemność_magazynu": 700.0
+  },
+  {
+    "id": "B-ANG-1389",
+    "name": "Farm",
+    "wlasciciel_id": "KRS-ANG-1389",
+    "rok_budowy": 1966,
+    "sektor_pkb": "agriculture",
+    "pojemnosc_pracownikow": 27,
+    "zatrudnienie_aktualne": 5,
+    "rezerwa_zakladowa": 115299.68859241207,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.12,
+      "szeregowi": 0.85,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0,
+        "fodder": 15.0,
+        "water": 10.0
+      },
+      "outputs": {
+        "meat": 10.0,
+        "livestock": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 64,
+    "region_id": "Anglia-Region5",
+    "cluster_info": {
+      "region_id": "Anglia-Region5",
+      "scale_factor": 1,
+      "sector": "agriculture",
+      "owner_id": "KRS-ANG-1389"
+    },
+    "ostatnia_produkcja": {
+      "meat": 0.012321118409637411,
+      "livestock": 0.006160559204818706
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "agricultural_machinery",
+        "count": 5.0,
+        "condition": 0.8785983693502741,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "meat": 1.4659053123666088,
+      "food": 0.003143891868989646,
+      "fodder": 0.22184868520473025,
+      "water": 0.32789912346982003,
+      "livestock": 0.7329526561833044
+    },
+    "pojemność_magazynu": 640.0
+  }
+]

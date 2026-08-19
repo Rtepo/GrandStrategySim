@@ -1,0 +1,1294 @@
+[
+  {
+    "id": "B-ANA-0108",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANA-0108",
+    "rok_budowy": 1896,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 36,
+    "zatrudnienie_aktualne": 36,
+    "rezerwa_zakladowa": 58050.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 115,
+    "region_id": "Anatolia-Region14",
+    "cluster_info": {
+      "region_id": "Anatolia-Region14",
+      "scale_factor": 4,
+      "sector": "construction",
+      "owner_id": "KRS-ANA-0108"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 4.8,
+      "renovation_services": 1.6
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7223690891078218,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.5,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1150.0
+  },
+  {
+    "id": "B-ANA-1277",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANA-1277",
+    "rok_budowy": 1891,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 71,
+    "zatrudnienie_aktualne": 71,
+    "rezerwa_zakladowa": 864935.4171098905,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 47,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region14",
+    "cluster_info": {
+      "region_id": "Anatolia-Region14",
+      "scale_factor": 47,
+      "sector": "construction",
+      "owner_id": "KRS-ANA-1277"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 33.370000000000005,
+      "renovation_services": 16.685000000000002
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.642179634380266,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 1.4999999999999998
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANA-1278",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANA-1278",
+    "rok_budowy": 1872,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 93,
+    "zatrudnienie_aktualne": 93,
+    "rezerwa_zakladowa": 669805.0934217678,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 35,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Anatolia-Region14",
+    "cluster_info": {
+      "region_id": "Anatolia-Region14",
+      "scale_factor": 35,
+      "sector": "construction",
+      "owner_id": "KRS-ANA-1278"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 65.1,
+      "renovation_services": 26.04
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.628128306587646,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 11.394286431415924
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ANA-1279",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANA-1279",
+    "rok_budowy": 1884,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 74,
+    "zatrudnienie_aktualne": 74,
+    "rezerwa_zakladowa": 647212.0907525745,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 34,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Anatolia-Region14",
+    "cluster_info": {
+      "region_id": "Anatolia-Region14",
+      "scale_factor": 34,
+      "sector": "construction",
+      "owner_id": "KRS-ANA-1279"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 75.48,
+      "renovation_services": 25.16
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.6525859530175532,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 1.2
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ANA-1280",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANA-1280",
+    "rok_budowy": 1875,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 66,
+    "zatrudnienie_aktualne": 66,
+    "rezerwa_zakladowa": 616108.9098856677,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 33,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region14",
+    "cluster_info": {
+      "region_id": "Anatolia-Region14",
+      "scale_factor": 33,
+      "sector": "construction",
+      "owner_id": "KRS-ANA-1280"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 21.78,
+      "renovation_services": 10.89
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7169957256067688,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 1.4999999999999998
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANA-1281",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANA-1281",
+    "rok_budowy": 1890,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 76,
+    "zatrudnienie_aktualne": 76,
+    "rezerwa_zakladowa": 442497.11901122297,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 23,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anatolia-Region14",
+    "cluster_info": {
+      "region_id": "Anatolia-Region14",
+      "scale_factor": 23,
+      "sector": "construction",
+      "owner_id": "KRS-ANA-1281"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 38.64,
+      "renovation_services": 15.456
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8968423580081843,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505,
+      "water": 1.4999999999999996
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-ANA-1282",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANA-1282",
+    "rok_budowy": 1882,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 36,
+    "zatrudnienie_aktualne": 36,
+    "rezerwa_zakladowa": 426846.0587222541,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 22,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Anatolia-Region14",
+    "cluster_info": {
+      "region_id": "Anatolia-Region14",
+      "scale_factor": 22,
+      "sector": "construction",
+      "owner_id": "KRS-ANA-1282"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 26.4,
+      "renovation_services": 8.8
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.6378443406000569,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 9.476183258897926
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ANA-1283",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANA-1283",
+    "rok_budowy": 1874,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 42,
+    "zatrudnienie_aktualne": 42,
+    "rezerwa_zakladowa": 318988.0427070939,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 16,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Anatolia-Region14",
+    "cluster_info": {
+      "region_id": "Anatolia-Region14",
+      "scale_factor": 16,
+      "sector": "construction",
+      "owner_id": "KRS-ANA-1283"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 7.52,
+      "renovation_services": 3.76
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8739987881073574,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.52,
+      "water": 1.2000000000000002
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ANA-1284",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANA-1284",
+    "rok_budowy": 1876,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 70,
+    "zatrudnienie_aktualne": 70,
+    "rezerwa_zakladowa": 205419.84849422032,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 106,
+    "region_id": "Anatolia-Region14",
+    "cluster_info": {
+      "region_id": "Anatolia-Region14",
+      "scale_factor": 9,
+      "sector": "construction",
+      "owner_id": "KRS-ANA-1284"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 14.04,
+      "renovation_services": 5.616
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7284552048133629,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51,
+      "water": 1.4700000000000002
+    },
+    "pojemność_magazynu": 1060.0
+  },
+  {
+    "id": "B-ANA-1285",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANA-1285",
+    "rok_budowy": 1897,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 76,
+    "zatrudnienie_aktualne": 76,
+    "rezerwa_zakladowa": 189480.4929885247,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Anatolia-Region14",
+    "cluster_info": {
+      "region_id": "Anatolia-Region14",
+      "scale_factor": 8,
+      "sector": "construction",
+      "owner_id": "KRS-ANA-1285"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 20.400000000000002,
+      "renovation_services": 6.800000000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8365137764423785,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.525,
+      "water": 1.52
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-ANA-1286",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANA-1286",
+    "rok_budowy": 1884,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 69,
+    "zatrudnienie_aktualne": 69,
+    "rezerwa_zakladowa": 179894.02135354694,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Anatolia-Region14",
+    "cluster_info": {
+      "region_id": "Anatolia-Region14",
+      "scale_factor": 8,
+      "sector": "construction",
+      "owner_id": "KRS-ANA-1286"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 6.08,
+      "renovation_services": 3.04
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8481525880913698,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505,
+      "water": 9.602918018902168
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-ANA-1287",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANA-1287",
+    "rok_budowy": 1894,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 150785.36974139354,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 6,
+    "pojemnosc_budowlana": 107,
+    "region_id": "Anatolia-Region14",
+    "cluster_info": {
+      "region_id": "Anatolia-Region14",
+      "scale_factor": 6,
+      "sector": "construction",
+      "owner_id": "KRS-ANA-1287"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 9.96,
+      "renovation_services": 3.984
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8684943270357006,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.515,
+      "water": 1.184,
+      "brown_coal": 5.551115123125783e-17
+    },
+    "pojemność_magazynu": 1070.0
+  },
+  {
+    "id": "B-ANA-1288",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANA-1288",
+    "rok_budowy": 1894,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 72,
+    "zatrudnienie_aktualne": 72,
+    "rezerwa_zakladowa": 140449.27975280574,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 115,
+    "region_id": "Anatolia-Region14",
+    "cluster_info": {
+      "region_id": "Anatolia-Region14",
+      "scale_factor": 5,
+      "sector": "construction",
+      "owner_id": "KRS-ANA-1288"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 12.0,
+      "renovation_services": 4.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.6789908602096427,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.55,
+      "water": 1.5899999999999999
+    },
+    "pojemność_magazynu": 1150.0
+  },
+  {
+    "id": "B-ANA-1289",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANA-1289",
+    "rok_budowy": 1891,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 121,
+    "zatrudnienie_aktualne": 121,
+    "rezerwa_zakladowa": 95433.41846385786,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 128,
+    "region_id": "Anatolia-Region14",
+    "cluster_info": {
+      "region_id": "Anatolia-Region14",
+      "scale_factor": 2,
+      "sector": "construction",
+      "owner_id": "KRS-ANA-1289"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 2.7,
+      "renovation_services": 1.35
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.6302115241193569,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.555,
+      "water": 1.6099999999999997
+    },
+    "pojemność_magazynu": 1280.0
+  },
+  {
+    "id": "B-ANA-1290",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANA-1290",
+    "rok_budowy": 1887,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 108,
+    "zatrudnienie_aktualne": 108,
+    "rezerwa_zakladowa": 91979.77130036008,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 126,
+    "region_id": "Anatolia-Region14",
+    "cluster_info": {
+      "region_id": "Anatolia-Region14",
+      "scale_factor": 2,
+      "sector": "construction",
+      "owner_id": "KRS-ANA-1290"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 4.8,
+      "renovation_services": 1.92
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.7147469654258528,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.595,
+      "water": 5.146490413912007
+    },
+    "pojemność_magazynu": 1260.0
+  },
+  {
+    "id": "B-ANA-1291",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANA-1291",
+    "rok_budowy": 1876,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 175,
+    "zatrudnienie_aktualne": 175,
+    "rezerwa_zakladowa": 64076.590433453355,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.3,
+      "szeregowi": 0.55,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "cement": 15.0,
+        "food": 5.0,
+        "steel": 10.0
+      },
+      "outputs": {
+        "construction_services": 30.0,
+        "renovation_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 84,
+    "region_id": "Anatolia-Region14",
+    "cluster_info": {
+      "region_id": "Anatolia-Region14",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-ANA-1291"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 5.82,
+      "renovation_services": 1.94
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8803184685983675,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.6,
+      "water": 1.392
+    },
+    "pojemność_magazynu": 840.0
+  },
+  {
+    "id": "B-ANA-1292",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANA-1292",
+    "rok_budowy": 1894,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 22,
+    "zatrudnienie_aktualne": 22,
+    "rezerwa_zakladowa": 19684.648053228902,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "timber": 10.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "construction_services": 10.0,
+        "renovation_services": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 38,
+    "region_id": "Anatolia-Region14",
+    "cluster_info": {
+      "region_id": "Anatolia-Region14",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-ANA-1292"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.25,
+      "renovation_services": 0.125
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.8227695253053208,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.305,
+      "water": 0.89
+    },
+    "pojemność_magazynu": 380.0
+  },
+  {
+    "id": "B-ANA-1293",
+    "name": "Construction Company",
+    "wlasciciel_id": "KRS-ANA-1293",
+    "rok_budowy": 1874,
+    "sektor_pkb": "construction",
+    "pojemnosc_pracownikow": 8,
+    "zatrudnienie_aktualne": 8,
+    "rezerwa_zakladowa": 3253.647163497779,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 10.0,
+        "food": 5.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "construction_services": 20.0,
+        "renovation_services": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 4,
+    "region_id": "Anatolia-Region14",
+    "cluster_info": {
+      "region_id": "Anatolia-Region14",
+      "scale_factor": 1,
+      "sector": "construction",
+      "owner_id": "KRS-ANA-1293"
+    },
+    "ostatnia_produkcja": {
+      "construction_services": 0.18,
+      "renovation_services": 0.072
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.972,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "construction_machinery",
+        "count": 5.0,
+        "condition": 0.6932973480751136,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.11,
+      "peat": 1.3877787807814457e-17,
+      "water": 0.32
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

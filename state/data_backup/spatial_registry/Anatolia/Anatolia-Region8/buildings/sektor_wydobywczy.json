@@ -1,0 +1,2017 @@
+[
+  {
+    "id": "[ID-9XX-2204]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-9099]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.2131,
+      "sredni": 0.7705,
+      "szeregowi": 0.0164,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 2.0,
+        "Paliwa": 3.0
+      },
+      "outputs": {
+        "Ołów": 3200.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Materiały Wybuchowe",
+        "produkcja": "Odkrywka Maszynowa",
+        "organizacja": "Państwowe Zasoby"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 800,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 8,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-9099]"
+    },
+    "ostatnia_produkcja": {
+      "Ołów": 49152.0
+    },
+    "rentownosc_ost_rok": -9842887.930819377,
+    "nazwa": "Kopalnia Ołowiu"
+  },
+  {
+    "id": "[ID-9XX-3805]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-4174]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Cynk": 1000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-4174]"
+    },
+    "ostatnia_produkcja": {
+      "Cynk": 3680.0
+    },
+    "rentownosc_ost_rok": -1578333.2157495876,
+    "nazwa": "Kopalnia Cynku"
+  },
+  {
+    "id": "[ID-9XX-8205]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-8688]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1205,
+      "sredni": 0.4578,
+      "szeregowi": 0.4217,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Stal": 3.0
+      },
+      "outputs": {
+        "Gaz Ziemny": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Odwierty Proste",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Lokalne Koncesje"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-8688]"
+    },
+    "ostatnia_produkcja": {
+      "Gaz Ziemny": 4000.0
+    },
+    "rentownosc_ost_rok": -790887.4137280341,
+    "nazwa": "Kopalnie Gazu Ziemnego"
+  },
+  {
+    "id": "[ID-9XX-1714]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-1387]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.0642,
+      "sredni": 0.2477,
+      "szeregowi": 0.6881,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Miedź": 1500.0,
+        "Złoto": 100.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Narzędzia Ręczne",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 800,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 8,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-1387]"
+    },
+    "ostatnia_produkcja": {
+      "Miedź": 24000.0,
+      "Złoto": 1600.0
+    },
+    "rentownosc_ost_rok": -6746246.3729989445,
+    "nazwa": "Kopalnie Metali Kolorowych"
+  },
+  {
+    "id": "[ID-9XX-5747]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-9649]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.0642,
+      "sredni": 0.2477,
+      "szeregowi": 0.6881,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Miedź": 1500.0,
+        "Złoto": 100.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Narzędzia Ręczne",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-9649]"
+    },
+    "ostatnia_produkcja": {
+      "Miedź": 6000.0,
+      "Złoto": 400.0
+    },
+    "rentownosc_ost_rok": -1686561.5932497361,
+    "nazwa": "Kopalnie Metali Kolorowych"
+  },
+  {
+    "id": "[ID-9XX-6417]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-2565]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1205,
+      "sredni": 0.4578,
+      "szeregowi": 0.4217,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Stal": 3.0
+      },
+      "outputs": {
+        "Gaz Ziemny": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Odwierty Proste",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Lokalne Koncesje"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-2565]"
+    },
+    "ostatnia_produkcja": {
+      "Gaz Ziemny": 4000.0
+    },
+    "rentownosc_ost_rok": -790887.4137280341,
+    "nazwa": "Kopalnie Gazu Ziemnego"
+  },
+  {
+    "id": "[ID-9XX-9628]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-1182]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.6,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Siarka": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Materiały Wybuchowe",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 800,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 8,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-1182]"
+    },
+    "ostatnia_produkcja": {
+      "Siarka": 21120.0
+    },
+    "rentownosc_ost_rok": -7156222.934793879,
+    "nazwa": "Kopalnia Siarki"
+  },
+  {
+    "id": "[ID-9XX-8433]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-5643]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Wapień": 11000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Kruszarki",
+        "produkcja": "Mechaniczne Obróbka",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-5643]"
+    },
+    "ostatnia_produkcja": {
+      "Wapień": 58080.0
+    },
+    "rentownosc_ost_rok": -1266361.68042422,
+    "nazwa": "Kamieniolom Wapienia"
+  },
+  {
+    "id": "[ID-9XX-5926]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-9203]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Boksyt": 1800.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-9203]"
+    },
+    "ostatnia_produkcja": {
+      "Boksyt": 8640.0
+    },
+    "rentownosc_ost_rok": -1866695.4988038102,
+    "nazwa": "Kopalnia Boksytu"
+  },
+  {
+    "id": "[ID-9XX-8420]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-7018]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Sól": 8000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Pompy",
+        "produkcja": "Odkrywka Solna",
+        "organizacja": "Państwowe Monopole"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 800,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 8,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-7018]"
+    },
+    "ostatnia_produkcja": {
+      "Sól": 128000.0
+    },
+    "rentownosc_ost_rok": -6237459.637649152,
+    "nazwa": "Kopalnia Soli"
+  },
+  {
+    "id": "[ID-9XX-4134]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-1731]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Drewno": 4.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Węgiel Kamienny": 6000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kombajny Chodnikowe",
+        "produkcja": "Wydobycie Maszynowe",
+        "organizacja": "Narodowe Kopalnictwo"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-1731]"
+    },
+    "ostatnia_produkcja": {
+      "Węgiel Kamienny": 38400.0
+    },
+    "rentownosc_ost_rok": -3135217.1422671303,
+    "nazwa": "Kopalnia Węgla"
+  },
+  {
+    "id": "[ID-9XX-2075]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-3000]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Kamień": 12000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Piły Tarczowe",
+        "produkcja": "Mechaniczne Obróbka",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-3000]"
+    },
+    "ostatnia_produkcja": {
+      "Kamień": 67200.0
+    },
+    "rentownosc_ost_rok": -1063110.873177203,
+    "nazwa": "Kamieniolom"
+  },
+  {
+    "id": "[ID-9XX-6391]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-5685]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Drewno": 4.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Węgiel Kamienny": 6000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kombajny Chodnikowe",
+        "produkcja": "Wydobycie Maszynowe",
+        "organizacja": "Narodowe Kopalnictwo"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 800,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 8,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-5685]"
+    },
+    "ostatnia_produkcja": {
+      "Węgiel Kamienny": 153600.0
+    },
+    "rentownosc_ost_rok": -12540868.569068521,
+    "nazwa": "Kopalnia Węgla"
+  },
+  {
+    "id": "[ID-9XX-5629]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-5215]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Kamień": 12000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Piły Tarczowe",
+        "produkcja": "Mechaniczne Obróbka",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-5215]"
+    },
+    "ostatnia_produkcja": {
+      "Kamień": 67200.0
+    },
+    "rentownosc_ost_rok": -1063110.873177203,
+    "nazwa": "Kamieniolom"
+  },
+  {
+    "id": "[ID-9XX-3516]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-7079]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Cynk": 1000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-7079]"
+    },
+    "ostatnia_produkcja": {
+      "Cynk": 3680.0
+    },
+    "rentownosc_ost_rok": -1578333.2157495876,
+    "nazwa": "Kopalnia Cynku"
+  },
+  {
+    "id": "[ID-9XX-5092]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-5097]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.0642,
+      "sredni": 0.2477,
+      "szeregowi": 0.6881,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Miedź": 1500.0,
+        "Złoto": 100.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Narzędzia Ręczne",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 800,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 8,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-5097]"
+    },
+    "ostatnia_produkcja": {
+      "Miedź": 24000.0,
+      "Złoto": 1600.0
+    },
+    "rentownosc_ost_rok": -6746246.3729989445,
+    "nazwa": "Kopalnie Metali Kolorowych"
+  },
+  {
+    "id": "[ID-9XX-1418]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-9463]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.6,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Cyna": 1200.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Przesiewacze",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-9463]"
+    },
+    "ostatnia_produkcja": {
+      "Cyna": 4224.0
+    },
+    "rentownosc_ost_rok": -1841855.7336984698,
+    "nazwa": "Kopalnia Cyny"
+  },
+  {
+    "id": "[ID-9XX-1370]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-2232]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.2462,
+      "sredni": 0.6769,
+      "szeregowi": 0.0769,
+      "wydajnosc": 1.5,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Stal": 5.0
+      },
+      "outputs": {
+        "Ropa Naftowa": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Odwierty Rotacyjne",
+        "produkcja": "Wieże Wiertnicze",
+        "organizacja": "Prywatne Koncesje"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-2232]"
+    },
+    "ostatnia_produkcja": {
+      "Ropa Naftowa": 7200.0
+    },
+    "rentownosc_ost_rok": -1538024.7199744054,
+    "nazwa": "Szyby Naftowe"
+  },
+  {
+    "id": "[ID-9XX-2934]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-3158]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Drewno": 4.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Węgiel Kamienny": 6000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kombajny Chodnikowe",
+        "produkcja": "Wydobycie Maszynowe",
+        "organizacja": "Narodowe Kopalnictwo"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 800,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 8,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-3158]"
+    },
+    "ostatnia_produkcja": {
+      "Węgiel Kamienny": 153600.0
+    },
+    "rentownosc_ost_rok": -12540868.569068521,
+    "nazwa": "Kopalnia Węgla"
+  },
+  {
+    "id": "[ID-9XX-3751]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-6452]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Drewno": 4.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Węgiel Kamienny": 6000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kombajny Chodnikowe",
+        "produkcja": "Wydobycie Maszynowe",
+        "organizacja": "Narodowe Kopalnictwo"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-6452]"
+    },
+    "ostatnia_produkcja": {
+      "Węgiel Kamienny": 38400.0
+    },
+    "rentownosc_ost_rok": -3135217.1422671303,
+    "nazwa": "Kopalnia Węgla"
+  },
+  {
+    "id": "[ID-9XX-6292]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-7114]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Kamień": 12000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Piły Tarczowe",
+        "produkcja": "Mechaniczne Obróbka",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-7114]"
+    },
+    "ostatnia_produkcja": {
+      "Kamień": 67200.0
+    },
+    "rentownosc_ost_rok": -1063110.873177203,
+    "nazwa": "Kamieniolom"
+  },
+  {
+    "id": "[ID-9XX-1741]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-1694]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1205,
+      "sredni": 0.4578,
+      "szeregowi": 0.4217,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Stal": 3.0
+      },
+      "outputs": {
+        "Gaz Ziemny": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Odwierty Proste",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Lokalne Koncesje"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 800,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 8,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-1694]"
+    },
+    "ostatnia_produkcja": {
+      "Gaz Ziemny": 16000.0
+    },
+    "rentownosc_ost_rok": -3163549.6549121365,
+    "nazwa": "Kopalnie Gazu Ziemnego"
+  },
+  {
+    "id": "[ID-9XX-4267]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-6016]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.6,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Siarka": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Materiały Wybuchowe",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-6016]"
+    },
+    "ostatnia_produkcja": {
+      "Siarka": 5280.0
+    },
+    "rentownosc_ost_rok": -1789055.7336984698,
+    "nazwa": "Kopalnia Siarki"
+  },
+  {
+    "id": "[ID-9XX-1852]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-7996]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.6,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Siarka": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Materiały Wybuchowe",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-7996]"
+    },
+    "ostatnia_produkcja": {
+      "Siarka": 5280.0
+    },
+    "rentownosc_ost_rok": -1789055.7336984698,
+    "nazwa": "Kopalnia Siarki"
+  },
+  {
+    "id": "[ID-9XX-6594]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-1526]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Cynk": 1000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 800,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 8,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-1526]"
+    },
+    "ostatnia_produkcja": {
+      "Cynk": 14720.0
+    },
+    "rentownosc_ost_rok": -6313332.8629983505,
+    "nazwa": "Kopalnia Cynku"
+  },
+  {
+    "id": "[ID-9XX-9539]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-9471]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Cynk": 1000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-9471]"
+    },
+    "ostatnia_produkcja": {
+      "Cynk": 3680.0
+    },
+    "rentownosc_ost_rok": -1578333.2157495876,
+    "nazwa": "Kopalnia Cynku"
+  },
+  {
+    "id": "[ID-9XX-3859]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-5475]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Boksyt": 1800.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-5475]"
+    },
+    "ostatnia_produkcja": {
+      "Boksyt": 8640.0
+    },
+    "rentownosc_ost_rok": -1866695.4988038102,
+    "nazwa": "Kopalnia Boksytu"
+  },
+  {
+    "id": "[ID-9XX-5425]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-5586]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Piasek": 18000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Przesiewacze",
+        "produkcja": "Mechaniczne Przesiewanie",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 800,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 8,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-5586]"
+    },
+    "ostatnia_produkcja": {
+      "Piasek": 322560.00000000006
+    },
+    "rentownosc_ost_rok": 1974045.2058329545,
+    "nazwa": "Piaskownia"
+  },
+  {
+    "id": "[ID-9XX-2399]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-3493]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Wapień": 11000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Kruszarki",
+        "produkcja": "Mechaniczne Obróbka",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-3493]"
+    },
+    "ostatnia_produkcja": {
+      "Wapień": 58080.0
+    },
+    "rentownosc_ost_rok": -1266361.68042422,
+    "nazwa": "Kamieniolom Wapienia"
+  },
+  {
+    "id": "[ID-9XX-9692]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-6394]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.6,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Siarka": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Materiały Wybuchowe",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-6394]"
+    },
+    "ostatnia_produkcja": {
+      "Siarka": 5280.0
+    },
+    "rentownosc_ost_rok": -1789055.7336984698,
+    "nazwa": "Kopalnia Siarki"
+  },
+  {
+    "id": "[ID-9XX-8550]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-2936]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Cynk": 1000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 800,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 8,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-2936]"
+    },
+    "ostatnia_produkcja": {
+      "Cynk": 14720.0
+    },
+    "rentownosc_ost_rok": -6313332.8629983505,
+    "nazwa": "Kopalnia Cynku"
+  },
+  {
+    "id": "[ID-9XX-3597]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-3830]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Żwir": 15000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Przesiewacze",
+        "produkcja": "Mechaniczne Przesiewanie",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-3830]"
+    },
+    "ostatnia_produkcja": {
+      "Żwir": 72000.0
+    },
+    "rentownosc_ost_rok": -191237.89129474526,
+    "nazwa": "Żwirownia"
+  },
+  {
+    "id": "[ID-9XX-1563]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-3531]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Glina": 10000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Mieszalniki",
+        "produkcja": "Mechaniczne Wydobywanie",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-3531]"
+    },
+    "ostatnia_produkcja": {
+      "Glina": 51200.0
+    },
+    "rentownosc_ost_rok": -1483987.0840477287,
+    "nazwa": "Cegielnia (Glina)"
+  },
+  {
+    "id": "[ID-9XX-1126]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-6483]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Kamień": 12000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Piły Tarczowe",
+        "produkcja": "Mechaniczne Obróbka",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 800,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 8,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-6483]"
+    },
+    "ostatnia_produkcja": {
+      "Kamień": 268800.0
+    },
+    "rentownosc_ost_rok": -4252443.492708812,
+    "nazwa": "Kamieniolom"
+  },
+  {
+    "id": "[ID-9XX-6922]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-1937]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Drewno": 4.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Węgiel Kamienny": 6000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kombajny Chodnikowe",
+        "produkcja": "Wydobycie Maszynowe",
+        "organizacja": "Narodowe Kopalnictwo"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-1937]"
+    },
+    "ostatnia_produkcja": {
+      "Węgiel Kamienny": 38400.0
+    },
+    "rentownosc_ost_rok": -3135217.1422671303,
+    "nazwa": "Kopalnia Węgla"
+  },
+  {
+    "id": "[ID-9XX-2487]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-8820]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Glina": 10000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Mieszalniki",
+        "produkcja": "Mechaniczne Wydobywanie",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-8820]"
+    },
+    "ostatnia_produkcja": {
+      "Glina": 51200.0
+    },
+    "rentownosc_ost_rok": -1483987.0840477287,
+    "nazwa": "Cegielnia (Glina)"
+  },
+  {
+    "id": "[ID-9XX-4228]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-9166]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Sól": 8000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Pompy",
+        "produkcja": "Odkrywka Solna",
+        "organizacja": "Państwowe Monopole"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 800,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 8,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-9166]"
+    },
+    "ostatnia_produkcja": {
+      "Sól": 128000.0
+    },
+    "rentownosc_ost_rok": -6237459.637649152,
+    "nazwa": "Kopalnia Soli"
+  },
+  {
+    "id": "[ID-9XX-1407]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-7523]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Wapień": 11000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Kruszarki",
+        "produkcja": "Mechaniczne Obróbka",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-7523]"
+    },
+    "ostatnia_produkcja": {
+      "Wapień": 58080.0
+    },
+    "rentownosc_ost_rok": -1266361.68042422,
+    "nazwa": "Kamieniolom Wapienia"
+  },
+  {
+    "id": "[ID-9XX-2715]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-7345]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.0642,
+      "sredni": 0.2477,
+      "szeregowi": 0.6881,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Magnez": 900.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Narzędzia Ręczne",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-7345]"
+    },
+    "ostatnia_produkcja": {
+      "Magnez": 3024.0
+    },
+    "rentownosc_ost_rok": -1534311.738329778,
+    "nazwa": "Kopalnia Magnezu"
+  },
+  {
+    "id": "[ID-9XX-3884]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-9624]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Sól": 8000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Pompy",
+        "produkcja": "Odkrywka Solna",
+        "organizacja": "Państwowe Monopole"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 800,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 8,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-9624]"
+    },
+    "ostatnia_produkcja": {
+      "Sól": 128000.0
+    },
+    "rentownosc_ost_rok": -6237459.637649152,
+    "nazwa": "Kopalnia Soli"
+  },
+  {
+    "id": "[ID-9XX-4254]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-9215]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0909,
+      "sredni": 0.5682,
+      "szeregowi": 0.3409,
+      "wydajnosc": 1.82,
+      "inputs": {
+        "Drewno": 2.0,
+        "Maszyny Przemysłowe": 0.5
+      },
+      "outputs": {
+        "Surowce Mineralne": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Proste Maszyny Parowe",
+        "produkcja": "Wydobycie Maszynowe",
+        "organizacja": "Prywatna Kopalnia"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-9215]"
+    },
+    "ostatnia_produkcja": {
+      "Surowce Mineralne": 12000.0
+    },
+    "rentownosc_ost_rok": -2462113.304798309,
+    "nazwa": "Kopalnia Odkrywkowa"
+  },
+  {
+    "id": "[ID-9XX-7797]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-3204]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Wapień": 11000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Kruszarki",
+        "produkcja": "Mechaniczne Obróbka",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-3204]"
+    },
+    "ostatnia_produkcja": {
+      "Wapień": 58080.0
+    },
+    "rentownosc_ost_rok": -1266361.68042422,
+    "nazwa": "Kamieniolom Wapienia"
+  },
+  {
+    "id": "[ID-9XX-2039]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-7735]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1205,
+      "sredni": 0.4578,
+      "szeregowi": 0.4217,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Stal": 3.0
+      },
+      "outputs": {
+        "Gaz Ziemny": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Odwierty Proste",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Lokalne Koncesje"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 800,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 8,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-7735]"
+    },
+    "ostatnia_produkcja": {
+      "Gaz Ziemny": 16000.0
+    },
+    "rentownosc_ost_rok": -3163549.6549121365,
+    "nazwa": "Kopalnie Gazu Ziemnego"
+  },
+  {
+    "id": "[ID-9XX-5904]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-4483]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Kamień": 12000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Piły Tarczowe",
+        "produkcja": "Mechaniczne Obróbka",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-4483]"
+    },
+    "ostatnia_produkcja": {
+      "Kamień": 67200.0
+    },
+    "rentownosc_ost_rok": -1063110.873177203,
+    "nazwa": "Kamieniolom"
+  },
+  {
+    "id": "[ID-9XX-2156]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-7825]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.2131,
+      "sredni": 0.7705,
+      "szeregowi": 0.0164,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 2.0,
+        "Paliwa": 3.0
+      },
+      "outputs": {
+        "Srebro": 2000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Materiały Wybuchowe",
+        "produkcja": "Odkrywka Maszynowa",
+        "organizacja": "Państwowe Zasoby"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Anatolia-Region8",
+    "cluster_info": {
+      "region_id": "Anatolia-Region8",
+      "scale_factor": 2,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-7825]"
+    },
+    "ostatnia_produkcja": {
+      "Srebro": 6400.0
+    },
+    "rentownosc_ost_rok": -2242601.652254037,
+    "nazwa": "Kopalnia Srebra"
+  }
+]

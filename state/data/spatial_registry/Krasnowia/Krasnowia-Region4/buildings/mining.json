@@ -1,0 +1,1721 @@
+[
+  {
+    "id": "B-KRA-0170",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-KRA-0170",
+    "rok_budowy": 1896,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 150,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 4500.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 2.0,
+        "fuels": 5.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "oil": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 150,
+    "region_id": "Krasnowia-Region4",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region4",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-KRA-0170"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9736895069793308,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.3,
+      "fuels": 0.75,
+      "food": 0.75,
+      "oil": 4.5
+    },
+    "pojemność_magazynu": 1500.0,
+    "deposit_id": "Formation-1/oil"
+  },
+  {
+    "id": "B-KRA-0171",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-KRA-0171",
+    "rok_budowy": 1881,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 150,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 4500.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "hard_coal": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 150,
+    "region_id": "Krasnowia-Region4",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region4",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-KRA-0171"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7668412143561363,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.3,
+      "food": 0.75,
+      "hard_coal": 1.5
+    },
+    "pojemność_magazynu": 1500.0,
+    "deposit_id": "Formation-1/uranium"
+  },
+  {
+    "id": "B-KRA-0172",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-KRA-0172",
+    "rok_budowy": 1876,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 150,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 4500.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "copper": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 150,
+    "region_id": "Krasnowia-Region4",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region4",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-KRA-0172"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8823134273835557,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "copper": 1.2,
+      "fuels": 0.44999999999999996,
+      "food": 0.75
+    },
+    "pojemność_magazynu": 1500.0,
+    "deposit_id": "Formation-2/copper"
+  },
+  {
+    "id": "B-KRA-0173",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-KRA-0173",
+    "rok_budowy": 1885,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 150,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 4500.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "iron": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 150,
+    "region_id": "Krasnowia-Region4",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region4",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-KRA-0173"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8579042739669288,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.44999999999999996,
+      "food": 0.75,
+      "iron": 1.7999999999999998
+    },
+    "pojemność_magazynu": 1500.0,
+    "deposit_id": "Formation-2/iron"
+  },
+  {
+    "id": "B-KRA-0174",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-KRA-0174",
+    "rok_budowy": 1874,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 150,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 4500.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "zinc": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 150,
+    "region_id": "Krasnowia-Region4",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region4",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-KRA-0174"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7276010463423899,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "zinc": 1.2,
+      "fuels": 0.44999999999999996,
+      "food": 0.75
+    },
+    "pojemność_magazynu": 1500.0,
+    "deposit_id": "Formation-2/zinc"
+  },
+  {
+    "id": "B-KRA-0448",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-KRA-0448",
+    "rok_budowy": 1884,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 101,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 992431.1317625362,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "salt": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 64,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Krasnowia-Region4",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region4",
+      "scale_factor": 64,
+      "sector": "mining",
+      "owner_id": "KRS-KRA-0448"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8206489501688076,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.202,
+      "food": 0.30300000000000005,
+      "salt": 1.818
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-KRA-0449",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-KRA-0449",
+    "rok_budowy": 1883,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 951898.6721732246,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0
+      },
+      "outputs": {
+        "peat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 62,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Krasnowia-Region4",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region4",
+      "scale_factor": 62,
+      "sector": "mining",
+      "owner_id": "KRS-KRA-0449"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7105557656817747,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.30000000000000004,
+      "peat": 1.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-KRA-0450",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-KRA-0450",
+    "rok_budowy": 1871,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 813719.8326642083,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "brown_coal": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 53,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Krasnowia-Region4",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region4",
+      "scale_factor": 53,
+      "sector": "mining",
+      "owner_id": "KRS-KRA-0450"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7685046400568956,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.2,
+      "food": 0.5,
+      "brown_coal": 1.8
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-KRA-0451",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-KRA-0451",
+    "rok_budowy": 1894,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 783013.4238844268,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "iron": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 51,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Krasnowia-Region4",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region4",
+      "scale_factor": 51,
+      "sector": "mining",
+      "owner_id": "KRS-KRA-0451"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.892834062814524,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.30000000000000004,
+      "food": 0.5,
+      "iron": 1.2000000000000002
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-KRA-0452",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-KRA-0452",
+    "rok_budowy": 1883,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 101,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 744323.3488219022,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "sand": 20.0,
+        "gravel": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 48,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Krasnowia-Region4",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region4",
+      "scale_factor": 48,
+      "sector": "mining",
+      "owner_id": "KRS-KRA-0452"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7078109776933619,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.202,
+      "sand": 2.02,
+      "food": 0.30300000000000005,
+      "gravel": 1.5150000000000001
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-KRA-0453",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-KRA-0453",
+    "rok_budowy": 1891,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 101,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 697803.1395205334,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "limestone": 22.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 45,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Krasnowia-Region4",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region4",
+      "scale_factor": 45,
+      "sector": "mining",
+      "owner_id": "KRS-KRA-0453"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9371680756311314,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.202,
+      "food": 0.30300000000000005,
+      "limestone": 2.222
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-KRA-0454",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-KRA-0454",
+    "rok_budowy": 1879,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 101,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 527229.0387488473,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "clay": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 34,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Krasnowia-Region4",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region4",
+      "scale_factor": 34,
+      "sector": "mining",
+      "owner_id": "KRS-KRA-0454"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9105894658395047,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "clay": 2.02,
+      "fuels": 0.202,
+      "food": 0.30300000000000005
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-KRA-0455",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-KRA-0455",
+    "rok_budowy": 1898,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 103,
+    "zatrudnienie_aktualne": 61,
+    "rezerwa_zakladowa": 458600.21512603585,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "hard_coal": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 29,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Krasnowia-Region4",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region4",
+      "scale_factor": 29,
+      "sector": "mining",
+      "owner_id": "KRS-KRA-0455"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7984897594788499,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.206,
+      "food": 0.515,
+      "hard_coal": 1.03
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-KRA-0456",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-KRA-0456",
+    "rok_budowy": 1896,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 105,
+    "zatrudnienie_aktualne": 63,
+    "rezerwa_zakladowa": 290175.5629689346,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 2.0,
+        "fuels": 5.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "oil": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 18,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Krasnowia-Region4",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region4",
+      "scale_factor": 18,
+      "sector": "mining",
+      "owner_id": "KRS-KRA-0456"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9852248768522185,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.21,
+      "fuels": 0.525,
+      "food": 0.525,
+      "oil": 3.15
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-KRA-0457",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-KRA-0457",
+    "rok_budowy": 1876,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 101,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 201587.57363926517,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "copper": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 13,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Krasnowia-Region4",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region4",
+      "scale_factor": 13,
+      "sector": "mining",
+      "owner_id": "KRS-KRA-0457"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9849335563536668,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "copper": 0.808,
+      "fuels": 0.30300000000000005,
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-KRA-0458",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-KRA-0458",
+    "rok_budowy": 1874,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 101,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 155067.3643378963,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "stone": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Krasnowia-Region4",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region4",
+      "scale_factor": 10,
+      "sector": "mining",
+      "owner_id": "KRS-KRA-0458"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9398782396000267,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "stone": 2.5250000000000004,
+      "fuels": 0.202,
+      "food": 0.30300000000000005
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-KRA-0459",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-KRA-0459",
+    "rok_budowy": 1880,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 153532.04389890723,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 2.0,
+        "fuels": 5.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "hard_coal": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Krasnowia-Region4",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region4",
+      "scale_factor": 10,
+      "sector": "mining",
+      "owner_id": "KRS-KRA-0459"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7843583576936576,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.2,
+      "fuels": 0.5,
+      "food": 0.5,
+      "hard_coal": 1.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-KRA-0460",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-KRA-0460",
+    "rok_budowy": 1891,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 138178.83950901648,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "fuels": 3.0
+      },
+      "outputs": {
+        "hard_coal": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Krasnowia-Region4",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region4",
+      "scale_factor": 9,
+      "sector": "mining",
+      "owner_id": "KRS-KRA-0460"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8995375591625754,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.5,
+      "fuels": 0.30000000000000004,
+      "food": 0.5,
+      "hard_coal": 1.8
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-KRA-0461",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-KRA-0461",
+    "rok_budowy": 1877,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 112,
+    "zatrudnienie_aktualne": 67,
+    "rezerwa_zakladowa": 103173.53350006565,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "tin": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 6,
+    "pojemnosc_budowlana": 112,
+    "region_id": "Krasnowia-Region4",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region4",
+      "scale_factor": 6,
+      "sector": "mining",
+      "owner_id": "KRS-KRA-0461"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7456313650375946,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "tin": 0.896,
+      "fuels": 0.336,
+      "food": 0.56
+    },
+    "pojemność_magazynu": 1120.0
+  },
+  {
+    "id": "B-KRA-0462",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-KRA-0462",
+    "rok_budowy": 1896,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 105,
+    "zatrudnienie_aktualne": 63,
+    "rezerwa_zakladowa": 80604.32304692629,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "fuels": 5.0,
+        "chemicals": 2.0
+      },
+      "outputs": {
+        "silver": 3.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Krasnowia-Region4",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region4",
+      "scale_factor": 5,
+      "sector": "mining",
+      "owner_id": "KRS-KRA-0462"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9960548998935943,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.315,
+      "fuels": 0.525,
+      "food": 0.525,
+      "silver": 0.315,
+      "chemicals": 0.21
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-KRA-0463",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-KRA-0463",
+    "rok_budowy": 1899,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 101,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 62026.945735158515,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 2.0,
+        "fuels": 3.0
+      },
+      "outputs": {
+        "sulfur": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Krasnowia-Region4",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region4",
+      "scale_factor": 4,
+      "sector": "mining",
+      "owner_id": "KRS-KRA-0463"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8918640213654608,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.202,
+      "fuels": 0.30300000000000005,
+      "food": 0.505,
+      "sulfur": 1.01
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-KRA-0464",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-KRA-0464",
+    "rok_budowy": 1873,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 111,
+    "zatrudnienie_aktualne": 66,
+    "rezerwa_zakladowa": 51126.1706183361,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "bauxite": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 111,
+    "region_id": "Krasnowia-Region4",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region4",
+      "scale_factor": 3,
+      "sector": "mining",
+      "owner_id": "KRS-KRA-0464"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9152705842830052,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "bauxite": 1.665,
+      "fuels": 0.333,
+      "food": 0.555
+    },
+    "pojemność_magazynu": 1110.0
+  },
+  {
+    "id": "B-KRA-0465",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-KRA-0465",
+    "rok_budowy": 1875,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 134,
+    "zatrudnienie_aktualne": 80,
+    "rezerwa_zakladowa": 41146.58776490713,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "zinc": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 134,
+    "region_id": "Krasnowia-Region4",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region4",
+      "scale_factor": 2,
+      "sector": "mining",
+      "owner_id": "KRS-KRA-0465"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9825090094742939,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "zinc": 1.072,
+      "fuels": 0.402,
+      "food": 0.67
+    },
+    "pojemność_magazynu": 1340.0
+  },
+  {
+    "id": "B-KRA-0466",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-KRA-0466",
+    "rok_budowy": 1892,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 103,
+    "zatrudnienie_aktualne": 62,
+    "rezerwa_zakladowa": 31627.601043174887,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "fuels": 5.0,
+        "chemicals": 3.0
+      },
+      "outputs": {
+        "gold": 2.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Krasnowia-Region4",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region4",
+      "scale_factor": 2,
+      "sector": "mining",
+      "owner_id": "KRS-KRA-0466"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8343179803069845,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.309,
+      "fuels": 0.515,
+      "food": 0.515,
+      "chemicals": 0.309,
+      "gold": 0.206
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-KRA-0467",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-KRA-0467",
+    "rok_budowy": 1876,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 88,
+    "zatrudnienie_aktualne": 53,
+    "rezerwa_zakladowa": 13510.819863103834,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "lead": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 88,
+    "region_id": "Krasnowia-Region4",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region4",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-KRA-0467"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.776301460063182,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "lead": 0.704,
+      "fuels": 0.264,
+      "food": 0.43999999999999995
+    },
+    "pojemność_magazynu": 880.0
+  }
+]

@@ -1,0 +1,70 @@
+[
+  {
+    "id": "B-PER-0012",
+    "name": "School",
+    "wlasciciel_id": "KRS-PER-0012",
+    "rok_budowy": 1893,
+    "sektor_pkb": "educational_services",
+    "pojemnosc_pracownikow": 125,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 7500.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.3,
+      "sredni": 0.4,
+      "szeregowi": 0.3,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "paper": 5.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "education_slots": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 125,
+    "region_id": "Persja-Region1",
+    "cluster_info": {
+      "region_id": "Persja-Region1",
+      "scale_factor": 2,
+      "sector": "educational_services",
+      "owner_id": "KRS-PER-0012"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 3.0,
+        "condition": 0.8000162986490922,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "paper": 0.625,
+      "food": 0.625,
+      "education_slots": 1.875
+    },
+    "pojemność_magazynu": 1250.0
+  }
+]

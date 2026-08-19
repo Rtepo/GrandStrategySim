@@ -1,0 +1,2702 @@
+[
+  {
+    "id": "[ID-9XX-4310]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1XX-2011]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 600,
+    "zatrudnienie_aktualne": 480,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-1XX-2011]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 1440.0
+    },
+    "rentownosc_ost_rok": 62046.20967814153,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-2941]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2XX-2330]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-2XX-2330]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-7606]",
+    "name": "",
+    "wlasciciel_id": "[ID-9XX-6067]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 600,
+    "zatrudnienie_aktualne": 480,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[ID-9XX-6067]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 1440.0
+    },
+    "rentownosc_ost_rok": 62046.20967814153,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-6942]",
+    "name": "",
+    "wlasciciel_id": "[REG-4XX-1661]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 500,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[REG-4XX-1661]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-4895]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1XX-8748]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 600,
+    "zatrudnienie_aktualne": 480,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-1XX-8748]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 1440.0
+    },
+    "rentownosc_ost_rok": 62046.20967814153,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-1017]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2XX-5480]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-2XX-5480]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-2049]",
+    "name": "",
+    "wlasciciel_id": "[ID-9XX-4713]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 600,
+    "zatrudnienie_aktualne": 480,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[ID-9XX-4713]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 1440.0
+    },
+    "rentownosc_ost_rok": 62046.20967814153,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-6868]",
+    "name": "",
+    "wlasciciel_id": "[REG-4XX-3469]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[REG-4XX-3469]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-4973]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1XX-9602]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 600,
+    "zatrudnienie_aktualne": 480,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-1XX-9602]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 1440.0
+    },
+    "rentownosc_ost_rok": 62046.20967814153,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-2447]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2XX-6052]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 500,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-2XX-6052]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-4391]",
+    "name": "",
+    "wlasciciel_id": "[ID-9XX-2041]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 600,
+    "zatrudnienie_aktualne": 480,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[ID-9XX-2041]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 1440.0
+    },
+    "rentownosc_ost_rok": 62046.20967814153,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-8350]",
+    "name": "",
+    "wlasciciel_id": "[REG-4XX-8335]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 500,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[REG-4XX-8335]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-9861]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1XX-1693]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 500,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-1XX-1693]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-2358]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2XX-4796]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 600,
+    "zatrudnienie_aktualne": 480,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-2XX-4796]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 1440.0
+    },
+    "rentownosc_ost_rok": 62046.20967814153,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-2571]",
+    "name": "",
+    "wlasciciel_id": "[ID-9XX-4086]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 500,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[ID-9XX-4086]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-5082]",
+    "name": "",
+    "wlasciciel_id": "[REG-4XX-5196]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[REG-4XX-5196]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-6726]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1XX-5563]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 600,
+    "zatrudnienie_aktualne": 480,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-1XX-5563]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 1440.0
+    },
+    "rentownosc_ost_rok": 62046.20967814153,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-4085]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2XX-5251]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 8250,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-2XX-5251]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-6643]",
+    "name": "",
+    "wlasciciel_id": "[ID-9XX-4827]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 600,
+    "zatrudnienie_aktualne": 480,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[ID-9XX-4827]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 1440.0
+    },
+    "rentownosc_ost_rok": 62046.20967814153,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-1590]",
+    "name": "",
+    "wlasciciel_id": "[REG-4XX-3682]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 500,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[REG-4XX-3682]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-6335]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1XX-2926]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 500,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-1XX-2926]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-7254]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2XX-4646]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 600,
+    "zatrudnienie_aktualne": 480,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-2XX-4646]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 1440.0
+    },
+    "rentownosc_ost_rok": 62046.20967814153,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-6008]",
+    "name": "",
+    "wlasciciel_id": "[ID-9XX-9305]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 500,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[ID-9XX-9305]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-1738]",
+    "name": "",
+    "wlasciciel_id": "[REG-4XX-8781]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 600,
+    "zatrudnienie_aktualne": 480,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[REG-4XX-8781]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 1440.0
+    },
+    "rentownosc_ost_rok": 62046.20967814153,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-4313]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1XX-5594]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 2666,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-1XX-5594]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-5506]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2XX-5574]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 500,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-2XX-5574]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-9423]",
+    "name": "",
+    "wlasciciel_id": "[ID-9XX-2694]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[ID-9XX-2694]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-5773]",
+    "name": "",
+    "wlasciciel_id": "[REG-4XX-4501]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 500,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[REG-4XX-4501]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-5896]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1XX-3726]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 500,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-1XX-3726]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-9330]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2XX-3787]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 500,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-2XX-3787]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-3266]",
+    "name": "",
+    "wlasciciel_id": "[ID-9XX-7813]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 600,
+    "zatrudnienie_aktualne": 480,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[ID-9XX-7813]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 1440.0
+    },
+    "rentownosc_ost_rok": 62046.20967814153,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-8128]",
+    "name": "",
+    "wlasciciel_id": "[REG-4XX-3922]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 600,
+    "zatrudnienie_aktualne": 480,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[REG-4XX-3922]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 1440.0
+    },
+    "rentownosc_ost_rok": 62046.20967814153,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-2839]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1XX-9056]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 500,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-1XX-9056]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-7849]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2XX-6513]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 500,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-2XX-6513]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-5001]",
+    "name": "",
+    "wlasciciel_id": "[ID-9XX-2100]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[ID-9XX-2100]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-3103]",
+    "name": "",
+    "wlasciciel_id": "[REG-4XX-8524]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[REG-4XX-8524]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-5073]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1XX-6253]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 500,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-1XX-6253]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-2903]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2XX-8682]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 600,
+    "zatrudnienie_aktualne": 480,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-2XX-8682]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 1440.0
+    },
+    "rentownosc_ost_rok": 62046.20967814153,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-4792]",
+    "name": "",
+    "wlasciciel_id": "[ID-9XX-6059]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[ID-9XX-6059]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-1038]",
+    "name": "",
+    "wlasciciel_id": "[REG-4XX-9797]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 600,
+    "zatrudnienie_aktualne": 480,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[REG-4XX-9797]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 1440.0
+    },
+    "rentownosc_ost_rok": 62046.20967814153,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-8531]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1XX-2078]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 500,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-1XX-2078]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-5447]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2XX-8926]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 500,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-2XX-8926]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-9989]",
+    "name": "",
+    "wlasciciel_id": "[ID-9XX-1346]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 500,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[ID-9XX-1346]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-7466]",
+    "name": "",
+    "wlasciciel_id": "[REG-4XX-9639]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 500,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[REG-4XX-9639]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-4598]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1XX-6926]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 500,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-1XX-6926]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-3278]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2XX-7121]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 600,
+    "zatrudnienie_aktualne": 480,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-2XX-7121]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 1440.0
+    },
+    "rentownosc_ost_rok": 62046.20967814153,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-1801]",
+    "name": "",
+    "wlasciciel_id": "[ID-9XX-4230]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 500,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[ID-9XX-4230]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-9982]",
+    "name": "",
+    "wlasciciel_id": "[REG-4XX-3621]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[REG-4XX-3621]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-3985]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1XX-1940]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 500,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-1XX-1940]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-1893]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2XX-7488]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 600,
+    "zatrudnienie_aktualne": 480,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-2XX-7488]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 1440.0
+    },
+    "rentownosc_ost_rok": 62046.20967814153,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-9773]",
+    "name": "",
+    "wlasciciel_id": "[ID-9XX-6993]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 600,
+    "zatrudnienie_aktualne": 480,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[ID-9XX-6993]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 1440.0
+    },
+    "rentownosc_ost_rok": 62046.20967814153,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-6864]",
+    "name": "",
+    "wlasciciel_id": "[REG-4XX-1079]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 600,
+    "zatrudnienie_aktualne": 480,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[REG-4XX-1079]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 1440.0
+    },
+    "rentownosc_ost_rok": 62046.20967814153,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-5669]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1XX-1960]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 600,
+    "zatrudnienie_aktualne": 480,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-1XX-1960]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 1440.0
+    },
+    "rentownosc_ost_rok": 62046.20967814153,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-2888]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2XX-3011]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 600,
+    "zatrudnienie_aktualne": 480,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-2XX-3011]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 1440.0
+    },
+    "rentownosc_ost_rok": 62046.20967814153,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-9528]",
+    "name": "",
+    "wlasciciel_id": "[ID-9XX-8322]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 600,
+    "zatrudnienie_aktualne": 480,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[ID-9XX-8322]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 1440.0
+    },
+    "rentownosc_ost_rok": 62046.20967814153,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-8458]",
+    "name": "",
+    "wlasciciel_id": "[REG-4XX-4470]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 600,
+    "zatrudnienie_aktualne": 480,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[REG-4XX-4470]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 1440.0
+    },
+    "rentownosc_ost_rok": 62046.20967814153,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-4942]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1XX-5065]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 600,
+    "zatrudnienie_aktualne": 480,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0667,
+      "sredni": 0.5,
+      "szeregowi": 0.4333,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Energia": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Zapory i Turbiny",
+        "produkcja": "Mała Elektrownia Wodna",
+        "organizacja": "Lokalne Elektrownie Wodne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-1XX-5065]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 1440.0
+    },
+    "rentownosc_ost_rok": 62046.20967814153,
+    "moc_zainstalowana_mw": 300,
+    "nazwa": "Elektrownia Wodna",
+    "paliwo": "brak"
+  },
+  {
+    "id": "[ID-9XX-6816]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2XX-6903]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 500,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[KRS-2XX-6903]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-1817]",
+    "name": "",
+    "wlasciciel_id": "[ID-9XX-5789]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 500,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[ID-9XX-5789]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-5502]",
+    "name": "",
+    "wlasciciel_id": "[REG-4XX-7127]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 500,
+    "zatrudnienie_aktualne": 400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1667,
+      "sredni": 0.7708,
+      "szeregowi": 0.0625,
+      "wydajnosc": 1.68,
+      "inputs": {
+        "Węgiel Kamienny": 8.0
+      },
+      "outputs": {
+        "Energia": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczne Obsługi Kotłów",
+        "produkcja": "Generacja Węgla Kamiennego",
+        "organizacja": "Krajowe Sieci Elektroenergetyczne"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "energetyka",
+      "owner_id": "[REG-4XX-7127]"
+    },
+    "ostatnia_produkcja": {
+      "Energia": 2800.0
+    },
+    "rentownosc_ost_rok": 191700.34325371688,
+    "moc_zainstalowana_mw": 500,
+    "nazwa": "Elektrownia Węglowa",
+    "paliwo": "węgiel"
+  }
+]

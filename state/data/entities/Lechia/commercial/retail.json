@@ -1,0 +1,3538 @@
+[
+  {
+    "id_budynku": "B-LEC-2647",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region4",
+    "właściciel": "KRS-LEC-2572",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 2986.25,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 29862.5,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 25.392000000000003,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2572",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2647",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2572",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2647",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2572",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2647",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2572",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2647",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2572",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2647",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2572",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2647",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 12.15,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2572",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2647",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 8.978,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2572",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2647",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 450.0,
+        "fruit": 360.0,
+        "cereal": 1208.8800000000008,
+        "vegetable": 536.67,
+        "protein": 587.2499999999998
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 7791.530000000001,
+        "fruit": 2964.094,
+        "cereal": 130929.35880000005,
+        "vegetable": 92418.90420000005,
+        "protein": 57157.99549999998
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 1.1802659532614683,
+        "fruit": 1.1802659532614683,
+        "cereal": 1.1810068217973955,
+        "vegetable": 1.1836155687560959,
+        "protein": 1.181198577130909
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-LEC-2647",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region4",
+    "właściciel": "KRS-LEC-2572",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 2986.25,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 29862.5,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2572",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2647",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2572",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2647",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2572",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2647",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2572",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2647",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2572",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2647",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2572",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2647",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2572",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2647",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2572",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2647",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {},
+      "niespełniony_popyt_ostatni_turn": {},
+      "udział_rynku_ostatni_turn": {},
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-LEC-2649",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region6",
+    "właściciel": "KRS-LEC-2574",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 5918.8,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 59188.0,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 25.392000000000003,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2574",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2649",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2574",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2649",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2574",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2649",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2574",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2649",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2574",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2649",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2574",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2649",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 12.15,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2574",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2649",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 8.978,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2574",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2649",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 450.0,
+        "fruit": 360.0,
+        "cereal": 1208.8800000000008,
+        "vegetable": 536.67,
+        "protein": 587.2499999999998
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 7791.530000000001,
+        "fruit": 2964.094,
+        "cereal": 130929.35880000005,
+        "vegetable": 92418.90420000005,
+        "protein": 57157.99549999998
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 1.1802659532614683,
+        "fruit": 1.1802659532614683,
+        "cereal": 1.1810068217973955,
+        "vegetable": 1.1836155687560959,
+        "protein": 1.181198577130909
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-LEC-2649",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region6",
+    "właściciel": "KRS-LEC-2574",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 5918.8,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 59188.0,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2574",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2649",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2574",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2649",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2574",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2649",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2574",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2649",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2574",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2649",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2574",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2649",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2574",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2649",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2574",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2649",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {},
+      "niespełniony_popyt_ostatni_turn": {},
+      "udział_rynku_ostatni_turn": {},
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-LEC-2650",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region11",
+    "właściciel": "KRS-LEC-2575",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 3803.325,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 38033.25,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 25.392000000000003,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2575",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2650",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2575",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2650",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2575",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2650",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2575",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2650",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2575",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2650",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2575",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2650",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 12.15,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2575",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2650",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 8.978,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2575",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2650",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 450.0,
+        "fruit": 360.0,
+        "cereal": 1208.8800000000008,
+        "vegetable": 536.67,
+        "protein": 587.2499999999998
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 7791.530000000001,
+        "fruit": 2964.094,
+        "cereal": 130929.35880000005,
+        "vegetable": 92418.90420000005,
+        "protein": 57157.99549999998
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 1.1802659532614683,
+        "fruit": 1.1802659532614683,
+        "cereal": 1.1810068217973955,
+        "vegetable": 1.1836155687560959,
+        "protein": 1.181198577130909
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-LEC-2650",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region11",
+    "właściciel": "KRS-LEC-2575",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 3803.325,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 38033.25,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2575",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2650",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2575",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2650",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2575",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2650",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2575",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2650",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2575",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2650",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2575",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2650",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2575",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2650",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2575",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2650",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {},
+      "niespełniony_popyt_ostatni_turn": {},
+      "udział_rynku_ostatni_turn": {},
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-LEC-2651",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region8",
+    "właściciel": "KRS-LEC-2576",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 5756.06,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 57560.600000000006,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 25.392000000000003,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2576",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2651",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2576",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2651",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2576",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2651",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2576",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2651",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2576",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2651",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2576",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2651",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 12.15,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2576",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2651",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 8.978,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2576",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2651",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 450.0,
+        "fruit": 360.0,
+        "cereal": 1208.8800000000008,
+        "vegetable": 536.67,
+        "protein": 587.2499999999998
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 7791.530000000001,
+        "fruit": 2964.094,
+        "cereal": 130929.35880000005,
+        "vegetable": 92418.90420000005,
+        "protein": 57157.99549999998
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 1.1802659532614683,
+        "fruit": 1.1802659532614683,
+        "cereal": 1.1810068217973955,
+        "vegetable": 1.1836155687560959,
+        "protein": 1.181198577130909
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-LEC-2651",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region8",
+    "właściciel": "KRS-LEC-2576",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 5756.06,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 57560.600000000006,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2576",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2651",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2576",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2651",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2576",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2651",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2576",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2651",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2576",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2651",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2576",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2651",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2576",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2651",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2576",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2651",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {},
+      "niespełniony_popyt_ostatni_turn": {},
+      "udział_rynku_ostatni_turn": {},
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-LEC-2652",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region15",
+    "właściciel": "KRS-LEC-2577",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 3264.135,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 32641.35,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 25.392000000000003,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2577",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2652",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2577",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2652",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2577",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2652",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2577",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2652",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2577",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2652",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2577",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2652",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 12.15,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2577",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2652",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 8.978,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2577",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2652",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 450.0,
+        "fruit": 360.0,
+        "cereal": 1208.8800000000008,
+        "vegetable": 536.67,
+        "protein": 587.2499999999998
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 7791.530000000001,
+        "fruit": 2964.094,
+        "cereal": 130929.35880000005,
+        "vegetable": 92418.90420000005,
+        "protein": 57157.99549999998
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 1.1802659532614683,
+        "fruit": 1.1802659532614683,
+        "cereal": 1.1810068217973955,
+        "vegetable": 1.1836155687560959,
+        "protein": 1.181198577130909
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-LEC-2652",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region15",
+    "właściciel": "KRS-LEC-2577",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 3264.135,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 32641.35,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2577",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2652",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2577",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2652",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2577",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2652",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2577",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2652",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2577",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2652",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2577",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2652",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2577",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2652",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2577",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2652",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {},
+      "niespełniony_popyt_ostatni_turn": {},
+      "udział_rynku_ostatni_turn": {},
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-LEC-2653",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region5",
+    "właściciel": "KRS-LEC-2578",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 5745.63,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 57456.3,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 25.392000000000003,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2578",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2653",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2578",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2653",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2578",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2653",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2578",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2653",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2578",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2653",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2578",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2653",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 12.15,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2578",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2653",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 8.978,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2578",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2653",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 450.0,
+        "fruit": 360.0,
+        "cereal": 1208.8800000000008,
+        "vegetable": 536.67,
+        "protein": 587.2499999999998
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 7791.530000000001,
+        "fruit": 2964.094,
+        "cereal": 130929.35880000005,
+        "vegetable": 92418.90420000005,
+        "protein": 57157.99549999998
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 1.1802659532614683,
+        "fruit": 1.1802659532614683,
+        "cereal": 1.1810068217973955,
+        "vegetable": 1.1836155687560959,
+        "protein": 1.181198577130909
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-LEC-2653",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region5",
+    "właściciel": "KRS-LEC-2578",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 5745.63,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 57456.3,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2578",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2653",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2578",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2653",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2578",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2653",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2578",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2653",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2578",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2653",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2578",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2653",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2578",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2653",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2578",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2653",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {},
+      "niespełniony_popyt_ostatni_turn": {},
+      "udział_rynku_ostatni_turn": {},
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-LEC-2654",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region3",
+    "właściciel": "KRS-LEC-2579",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 6624.59,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 66245.9,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 25.392000000000003,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2579",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2654",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2579",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2654",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2579",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2654",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2579",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2654",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2579",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2654",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2579",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2654",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 12.15,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2579",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2654",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 8.978,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2579",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2654",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 450.0,
+        "fruit": 360.0,
+        "cereal": 1208.8800000000008,
+        "vegetable": 536.67,
+        "protein": 587.2499999999998
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 7791.530000000001,
+        "fruit": 2964.094,
+        "cereal": 130929.35880000005,
+        "vegetable": 92418.90420000005,
+        "protein": 57157.99549999998
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 1.1802659532614683,
+        "fruit": 1.1802659532614683,
+        "cereal": 1.1810068217973955,
+        "vegetable": 1.1836155687560959,
+        "protein": 1.181198577130909
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-LEC-2654",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region3",
+    "właściciel": "KRS-LEC-2579",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 6624.59,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 66245.9,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2579",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2654",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2579",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2654",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2579",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2654",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2579",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2654",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2579",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2654",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2579",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2654",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2579",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2654",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2579",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2654",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {},
+      "niespełniony_popyt_ostatni_turn": {},
+      "udział_rynku_ostatni_turn": {},
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-LEC-2655",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region12",
+    "właściciel": "KRS-LEC-2580",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 4401.99,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 44019.899999999994,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 25.392000000000003,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2580",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2655",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2580",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2655",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2580",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2655",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2580",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2655",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2580",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2655",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2580",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2655",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 12.15,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2580",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2655",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 8.978,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2580",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2655",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 450.0,
+        "fruit": 360.0,
+        "cereal": 1208.8800000000008,
+        "vegetable": 536.67,
+        "protein": 587.2499999999998
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 7791.530000000001,
+        "fruit": 2964.094,
+        "cereal": 130929.35880000005,
+        "vegetable": 92418.90420000005,
+        "protein": 57157.99549999998
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 1.1802659532614683,
+        "fruit": 1.1802659532614683,
+        "cereal": 1.1810068217973955,
+        "vegetable": 1.1836155687560959,
+        "protein": 1.181198577130909
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-LEC-2655",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region12",
+    "właściciel": "KRS-LEC-2580",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 4401.99,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 44019.899999999994,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2580",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2655",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2580",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2655",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2580",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2655",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2580",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2655",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2580",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2655",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2580",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2655",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2580",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2655",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2580",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2655",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {},
+      "niespełniony_popyt_ostatni_turn": {},
+      "udział_rynku_ostatni_turn": {},
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-LEC-2656",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region14",
+    "właściciel": "KRS-LEC-2581",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 2553.19,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 25531.9,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 25.392000000000003,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2581",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2656",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2581",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2656",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2581",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2656",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2581",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2656",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2581",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2656",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2581",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2656",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 12.15,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2581",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2656",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 8.978,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2581",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2656",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 450.0,
+        "fruit": 360.0,
+        "cereal": 1208.8800000000008,
+        "vegetable": 536.67,
+        "protein": 587.2499999999998
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 7791.530000000001,
+        "fruit": 2964.094,
+        "cereal": 130929.35880000005,
+        "vegetable": 92418.90420000005,
+        "protein": 57157.99549999998
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 1.1802659532614683,
+        "fruit": 1.1802659532614683,
+        "cereal": 1.1810068217973955,
+        "vegetable": 1.1836155687560959,
+        "protein": 1.181198577130909
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-LEC-2656",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region14",
+    "właściciel": "KRS-LEC-2581",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 2553.19,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 25531.9,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2581",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2656",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2581",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2656",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2581",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2656",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2581",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2656",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2581",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2656",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2581",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2656",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2581",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2656",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2581",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2656",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {},
+      "niespełniony_popyt_ostatni_turn": {},
+      "udział_rynku_ostatni_turn": {},
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-LEC-2657",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region9",
+    "właściciel": "KRS-LEC-2582",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 3704.56,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 37045.6,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 25.392000000000003,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2582",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2657",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2582",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2657",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2582",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2657",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2582",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2657",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2582",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2657",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2582",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2657",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 12.15,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2582",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2657",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 8.978,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2582",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2657",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 450.0,
+        "fruit": 360.0,
+        "cereal": 1208.8800000000008,
+        "vegetable": 536.67,
+        "protein": 587.2499999999998
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 7791.530000000001,
+        "fruit": 2964.094,
+        "cereal": 130929.35880000005,
+        "vegetable": 92418.90420000005,
+        "protein": 57157.99549999998
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 1.1802659532614683,
+        "fruit": 1.1802659532614683,
+        "cereal": 1.1810068217973955,
+        "vegetable": 1.1836155687560959,
+        "protein": 1.181198577130909
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-LEC-2657",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region9",
+    "właściciel": "KRS-LEC-2582",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 3704.56,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 37045.6,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2582",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2657",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2582",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2657",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2582",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2657",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2582",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2657",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2582",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2657",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2582",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2657",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2582",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2657",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2582",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2657",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {},
+      "niespełniony_popyt_ostatni_turn": {},
+      "udział_rynku_ostatni_turn": {},
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-LEC-2659",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region7",
+    "właściciel": "KRS-LEC-2584",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 2849.82,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 28498.2,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 25.392000000000003,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2584",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2659",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2584",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2659",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2584",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2659",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2584",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2659",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2584",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2659",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2584",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2659",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 12.15,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2584",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2659",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 8.978,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2584",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2659",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 450.0,
+        "fruit": 360.0,
+        "cereal": 1208.8800000000008,
+        "vegetable": 536.67,
+        "protein": 587.2499999999998
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 7791.530000000001,
+        "fruit": 2964.094,
+        "cereal": 130929.35880000005,
+        "vegetable": 92418.90420000005,
+        "protein": 57157.99549999998
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 1.1802659532614683,
+        "fruit": 1.1802659532614683,
+        "cereal": 1.1810068217973955,
+        "vegetable": 1.1836155687560959,
+        "protein": 1.181198577130909
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-LEC-2659",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region7",
+    "właściciel": "KRS-LEC-2584",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 2849.82,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 28498.2,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2584",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2659",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2584",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2659",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2584",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2659",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2584",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2659",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2584",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2659",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2584",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2659",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2584",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2659",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2584",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2659",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {},
+      "niespełniony_popyt_ostatni_turn": {},
+      "udział_rynku_ostatni_turn": {},
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-LEC-2660",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region13",
+    "właściciel": "KRS-LEC-2585",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 2445.655,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 24456.550000000003,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 25.392000000000003,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2585",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2660",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2585",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2660",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2585",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2660",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2585",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2660",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2585",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2660",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2585",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2660",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 12.15,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2585",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2660",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 8.978,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2585",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2660",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 450.0,
+        "fruit": 360.0,
+        "cereal": 1208.8800000000008,
+        "vegetable": 536.67,
+        "protein": 587.2499999999998
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 7791.530000000001,
+        "fruit": 2964.094,
+        "cereal": 130929.35880000005,
+        "vegetable": 92418.90420000005,
+        "protein": 57157.99549999998
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 1.1802659532614683,
+        "fruit": 1.1802659532614683,
+        "cereal": 1.1810068217973955,
+        "vegetable": 1.1836155687560959,
+        "protein": 1.181198577130909
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-LEC-2660",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region13",
+    "właściciel": "KRS-LEC-2585",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 2445.655,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 24456.550000000003,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2585",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2660",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2585",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2660",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2585",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2660",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2585",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2660",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2585",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2660",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2585",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2660",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2585",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2660",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2585",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2660",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {},
+      "niespełniony_popyt_ostatni_turn": {},
+      "udział_rynku_ostatni_turn": {},
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-LEC-2661",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region10",
+    "właściciel": "KRS-LEC-2586",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 4135.175,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 41351.75,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 25.392000000000003,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2586",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2661",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2586",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2661",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2586",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2661",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2586",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2661",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2586",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2661",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2586",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2661",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 12.15,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2586",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2661",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 8.978,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2586",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2661",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 450.0,
+        "fruit": 360.0,
+        "cereal": 1208.8800000000008,
+        "vegetable": 536.67,
+        "protein": 587.2499999999998
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 7791.530000000001,
+        "fruit": 2964.094,
+        "cereal": 130929.35880000005,
+        "vegetable": 92418.90420000005,
+        "protein": 57157.99549999998
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 1.1802659532614683,
+        "fruit": 1.1802659532614683,
+        "cereal": 1.1810068217973955,
+        "vegetable": 1.1836155687560959,
+        "protein": 1.181198577130909
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-LEC-2661",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Lechia-Region10",
+    "właściciel": "KRS-LEC-2586",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 4135.175,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 41351.75,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2586",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2661",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2586",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2661",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2586",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2661",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2586",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2661",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2586",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2661",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2586",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2661",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2586",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2661",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-LEC-2586",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-LEC-2661",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {},
+      "niespełniony_popyt_ostatni_turn": {},
+      "udział_rynku_ostatni_turn": {},
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  }
+]

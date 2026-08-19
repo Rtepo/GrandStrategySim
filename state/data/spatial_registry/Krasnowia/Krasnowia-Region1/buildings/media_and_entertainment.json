@@ -1,0 +1,69 @@
+[
+  {
+    "id": "B-KRA-0166",
+    "name": "Media Studio",
+    "wlasciciel_id": "KRS-KRA-0166",
+    "rok_budowy": 1896,
+    "sektor_pkb": "media_and_entertainment",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 6000.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "paper": 10.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "radio": 0.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Krasnowia-Region1",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region1",
+      "scale_factor": 2,
+      "sector": "media_and_entertainment",
+      "owner_id": "KRS-KRA-0166"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 3.0,
+        "condition": 0.7088252021035218,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "paper": 1.0,
+      "food": 0.30000000000000004
+    },
+    "pojemność_magazynu": 1000.0
+  }
+]

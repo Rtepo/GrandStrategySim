@@ -1,0 +1,1247 @@
+[
+  {
+    "id": "B-HEL-0109",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-HEL-0109",
+    "rok_budowy": 1891,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 146,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 294150.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "fuels": 3.0
+      },
+      "outputs": {
+        "natural_gas": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 150,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-HEL-0109"
+    },
+    "ostatnia_produkcja": {
+      "natural_gas": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.692798741522984,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.5,
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1500.0,
+    "deposit_id": "Formation-0/natural_gas"
+  },
+  {
+    "id": "B-HEL-0110",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-HEL-0110",
+    "rok_budowy": 1880,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 109,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 228150.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 2.0,
+        "fuels": 5.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "oil": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 150,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-HEL-0110"
+    },
+    "ostatnia_produkcja": {
+      "oil": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7462296165633675,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.2,
+      "health_capacity": 0.0,
+      "pharmaceuticals": 0.08000000000000002
+    },
+    "pojemność_magazynu": 1500.0,
+    "deposit_id": "Formation-0/oil"
+  },
+  {
+    "id": "B-HEL-0111",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-HEL-0111",
+    "rok_budowy": 1871,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 91,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 196050.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "hard_coal": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 150,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-HEL-0111"
+    },
+    "ostatnia_produkcja": {
+      "hard_coal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6691515941307341,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "paper": 0.25,
+      "food": 0.25,
+      "education_slots": 0.0
+    },
+    "pojemność_magazynu": 1500.0,
+    "deposit_id": "Formation-0/uranium"
+  },
+  {
+    "id": "B-HEL-0954",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-HEL-0954",
+    "rok_budowy": 1888,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 73,
+    "zatrudnienie_aktualne": 73,
+    "rezerwa_zakladowa": 106783.08627089592,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "iron": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 37,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 37,
+      "sector": "mining",
+      "owner_id": "KRS-HEL-0954"
+    },
+    "ostatnia_produkcja": {
+      "iron": 32.412
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7893681199768395,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-HEL-0955",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-HEL-0955",
+    "rok_budowy": 1872,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 67,
+    "zatrudnienie_aktualne": 67,
+    "rezerwa_zakladowa": 102775.21021547374,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "salt": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 36,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 36,
+      "sector": "mining",
+      "owner_id": "KRS-HEL-0955"
+    },
+    "ostatnia_produkcja": {
+      "salt": 43.416
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.926595763003616,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 5.964260098605523
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-0956",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-HEL-0956",
+    "rok_budowy": 1878,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 83,
+    "zatrudnienie_aktualne": 83,
+    "rezerwa_zakladowa": 83584.87404450879,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "hard_coal": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 26,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 26,
+      "sector": "mining",
+      "owner_id": "KRS-HEL-0956"
+    },
+    "ostatnia_produkcja": {
+      "hard_coal": 21.58
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7902057174554877,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-0957",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-HEL-0957",
+    "rok_budowy": 1899,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 82,
+    "zatrudnienie_aktualne": 82,
+    "rezerwa_zakladowa": 78897.5063890159,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "stone": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 23,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 23,
+      "sector": "mining",
+      "owner_id": "KRS-HEL-0957"
+    },
+    "ostatnia_produkcja": {
+      "stone": 47.15
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8984938583334294,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-HEL-0958",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-HEL-0958",
+    "rok_budowy": 1896,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 71202.28788657836,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "brown_coal": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 19,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 19,
+      "sector": "mining",
+      "owner_id": "KRS-HEL-0958"
+    },
+    "ostatnia_produkcja": {
+      "brown_coal": 30.78
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8861812472646042,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-HEL-0959",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-HEL-0959",
+    "rok_budowy": 1880,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 71202.28788657836,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "copper": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 19,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 19,
+      "sector": "mining",
+      "owner_id": "KRS-HEL-0959"
+    },
+    "ostatnia_produkcja": {
+      "copper": 13.68
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7342513542903181,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505,
+      "water": 6.280348185519479
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-HEL-0960",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-HEL-0960",
+    "rok_budowy": 1891,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 86,
+    "zatrudnienie_aktualne": 86,
+    "rezerwa_zakladowa": 68921.63872483336,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "clay": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 19,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 19,
+      "sector": "mining",
+      "owner_id": "KRS-HEL-0960"
+    },
+    "ostatnia_produkcja": {
+      "clay": 32.68
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7077449675588134,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505,
+      "water": 5.551115123125783e-17,
+      "brown_coal": 5.551115123125783e-17
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-HEL-0961",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-HEL-0961",
+    "rok_budowy": 1878,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 123,
+    "zatrudnienie_aktualne": 123,
+    "rezerwa_zakladowa": 62501.48324358967,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "limestone": 22.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 13,
+    "pojemnosc_budowlana": 106,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 13,
+      "sector": "mining",
+      "owner_id": "KRS-HEL-0961"
+    },
+    "ostatnia_produkcja": {
+      "limestone": 35.178
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.670486149636745,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51
+    },
+    "pojemność_magazynu": 1060.0
+  },
+  {
+    "id": "B-HEL-0962",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-HEL-0962",
+    "rok_budowy": 1883,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 127,
+    "zatrudnienie_aktualne": 127,
+    "rezerwa_zakladowa": 60812.90760946738,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "sand": 20.0,
+        "gravel": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 106,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 12,
+      "sector": "mining",
+      "owner_id": "KRS-HEL-0962"
+    },
+    "ostatnia_produkcja": {
+      "sand": 30.48,
+      "gravel": 22.86
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8693175328778974,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5
+    },
+    "pojemność_magazynu": 1060.0
+  },
+  {
+    "id": "B-HEL-0963",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-HEL-0963",
+    "rok_budowy": 1873,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 120,
+    "zatrudnienie_aktualne": 120,
+    "rezerwa_zakladowa": 57767.48743920949,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0
+      },
+      "outputs": {
+        "peat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 12,
+    "pojemnosc_budowlana": 101,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 12,
+      "sector": "mining",
+      "owner_id": "KRS-HEL-0963"
+    },
+    "ostatnia_produkcja": {
+      "peat": 2.179446108573759
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.6729274998974593,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "water": 6.052880710853442
+    },
+    "pojemność_magazynu": 1010.0
+  },
+  {
+    "id": "B-HEL-0964",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-HEL-0964",
+    "rok_budowy": 1889,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 704,
+    "zatrudnienie_aktualne": 704,
+    "rezerwa_zakladowa": 126888.50000868965,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 2.0,
+        "fuels": 5.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "oil": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 119,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 2,
+      "sector": "mining",
+      "owner_id": "KRS-HEL-0964"
+    },
+    "ostatnia_produkcja": {
+      "oil": 42.239999999999995
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7833721328172178,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505,
+      "water": 5.551115123125783e-17,
+      "brown_coal": 5.551115123125783e-17
+    },
+    "pojemność_magazynu": 1190.0
+  },
+  {
+    "id": "B-HEL-0965",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-HEL-0965",
+    "rok_budowy": 1886,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 1273,
+    "zatrudnienie_aktualne": 1273,
+    "rezerwa_zakladowa": 207516.98529795132,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 2.0,
+        "fuels": 5.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "hard_coal": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-HEL-0965"
+    },
+    "ostatnia_produkcja": {
+      "hard_coal": 19.095
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7959116965557905,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.505
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-HEL-0966",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-HEL-0966",
+    "rok_budowy": 1887,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 834,
+    "zatrudnienie_aktualne": 834,
+    "rezerwa_zakladowa": 138389.75840427412,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "fuels": 3.0
+      },
+      "outputs": {
+        "hard_coal": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 25,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-HEL-0966"
+    },
+    "ostatnia_produkcja": {
+      "hard_coal": 16.686
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8965818137837395,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.515
+    },
+    "pojemność_magazynu": 250.0
+  },
+  {
+    "id": "B-HEL-0967",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-HEL-0967",
+    "rok_budowy": 1888,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 632,
+    "zatrudnienie_aktualne": 632,
+    "rezerwa_zakladowa": 106043.18067234193,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "bauxite": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 2,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-HEL-0967"
+    },
+    "ostatnia_produkcja": {
+      "bauxite": 10.53
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7089498304104048,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.51,
+      "water": 4.097033893272997
+    },
+    "pojemność_magazynu": 100.0
+  },
+  {
+    "id": "B-HEL-0968",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-HEL-0968",
+    "rok_budowy": 1879,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 541,
+    "zatrudnienie_aktualne": 541,
+    "rezerwa_zakladowa": 90671.59033617095,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "zinc": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 1,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-HEL-0968"
+    },
+    "ostatnia_produkcja": {
+      "zinc": 4.808
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8970873292920982,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.53,
+      "hard_coal": 1.1102230246251563e-16
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

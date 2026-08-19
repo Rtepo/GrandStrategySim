@@ -137,12 +137,15 @@ function NewGameScreen({ onStart }: { onStart: () => void }) {
   const [startYear, setStartYear] = useState("1975");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { refreshStatus, resetStore } = useGameStore();
+  const { refreshStatus, resetStore, setLoading } = useGameStore();
   const queryClient = useQueryClient();
 
   const handleCreate = async () => {
     setCreating(true);
     setError(null);
+    // Phase 53: Set the global loading flag so the full-screen overlay
+    // persists from generation through the first game-view render.
+    setLoading(true);
     try {
       resetStore();
       queryClient.clear();
@@ -153,6 +156,8 @@ function NewGameScreen({ onStart }: { onStart: () => void }) {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       setError(msg);
+      // Clear loading on error so the user can retry.
+      setLoading(false);
     }
     setCreating(false);
   };
@@ -218,7 +223,7 @@ function NewGameScreen({ onStart }: { onStart: () => void }) {
 }
 
 export default function App() {
-  const { refreshStatus, gameStatus } = useGameStore();
+  const { refreshStatus, gameStatus, loading, setLoading } = useGameStore();
   const updater = useUpdater();
 
   useEffect(() => {
@@ -231,6 +236,21 @@ export default function App() {
     updater.checkForUpdates();
   }, []);
 
+  // Phase 53: Clear the loading flag once the game shell has rendered
+  // (gameStatus.has_game is true and loading is still active). This ensures
+  // the overlay stays visible through the transition from NewGameScreen to
+  // the game view, preventing the base-menu flash.
+  useEffect(() => {
+    if (loading && gameStatus?.has_game) {
+      // Defer clearing to the next frame so the game shell has a chance to
+      // mount and begin fetching its data.
+      const raf = requestAnimationFrame(() => {
+        setLoading(false);
+      });
+      return () => cancelAnimationFrame(raf);
+    }
+  }, [loading, gameStatus?.has_game, setLoading]);
+
   if (!gameStatus) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -240,7 +260,12 @@ export default function App() {
   }
 
   if (!gameStatus.has_game) {
-    return <NewGameScreen onStart={() => {}} />;
+    return (
+      <>
+        <NewGameScreen onStart={() => {}} />
+        {loading && <LoadingOverlay />}
+      </>
+    );
   }
 
   return (
@@ -270,6 +295,20 @@ export default function App() {
           </Routes>
         </ErrorBoundary>
       </main>
+      {loading && <LoadingOverlay />}
+    </div>
+  );
+}
+
+/// Phase 53: Full-screen loading overlay shown during world generation and
+/// the initial game-view render. Prevents the base-menu flash.
+function LoadingOverlay() {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95">
+      <div className="text-center space-y-4">
+        <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <p className="text-muted-foreground text-sm">Generating world...</p>
+      </div>
     </div>
   );
 }

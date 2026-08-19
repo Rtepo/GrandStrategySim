@@ -1,0 +1,1758 @@
+[
+    {
+        "id": "[ID-9XX-7606]",
+        "nazwa": "Kopalnia Ołowiu",
+        "wlasciciel_id": "[KRS-2MN-6874]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2400,
+        "zatrudnienie_aktualne": 1920,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Ołów": 1300
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-6874]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1734]",
+        "nazwa": "Kopalnia Węgla",
+        "wlasciciel_id": "[ID-9MN-6480]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Węgiel Kamienny": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki Konne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-6480]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4426]",
+        "nazwa": "Cegielnia (Glina)",
+        "wlasciciel_id": "[REG-4MN-3428]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3200,
+        "zatrudnienie_aktualne": 2560,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Glina": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-3428]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2451]",
+        "nazwa": "Kopalnia Węgla",
+        "wlasciciel_id": "[KRS-2MN-9709]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Węgiel Kamienny": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki Konne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-9709]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9076]",
+        "nazwa": "Cegielnia (Glina)",
+        "wlasciciel_id": "[ID-9MN-3864]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3200,
+        "zatrudnienie_aktualne": 2560,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Glina": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-3864]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4063]",
+        "nazwa": "Kopalnia Cyny",
+        "wlasciciel_id": "[REG-4MN-6545]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2200,
+        "zatrudnienie_aktualne": 1760,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Cyna": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Małe Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-6545]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1879]",
+        "nazwa": "Piaskownia",
+        "wlasciciel_id": "[KRS-2MN-5528]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2800,
+        "zatrudnienie_aktualne": 2240,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Piasek": 7000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Łopaty i Sieciaki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Piaskownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-5528]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5125]",
+        "nazwa": "Szyby Naftowe",
+        "wlasciciel_id": "[ID-9MN-8068]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1885,
+            "eksperci": 0.1625,
+            "sredni": 0.525,
+            "szeregowi": 0.3125,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ropa Naftowa": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wieże Wiertnicze (Kablowe)",
+                "produkcja": "Wieże Wiertnicze",
+                "organizacja": "Prywatne Koncesje"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-8068]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9083]",
+        "nazwa": "Cegielnia (Glina)",
+        "wlasciciel_id": "[REG-4MN-3729]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3200,
+        "zatrudnienie_aktualne": 2560,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Glina": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-3729]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4112]",
+        "nazwa": "Kopalnia Żelaza",
+        "wlasciciel_id": "[KRS-2MN-7859]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Żelazo": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilkofy i Wagoniki",
+                "produkcja": "Kilkofy i Wagoniki",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-7859]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8704]",
+        "nazwa": "Kamieniolom",
+        "wlasciciel_id": "[ID-9MN-4318]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Kamień": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-4318]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2210]",
+        "nazwa": "Kopalnia Srebra",
+        "wlasciciel_id": "[REG-4MN-9174]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Srebro": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-9174]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6725]",
+        "nazwa": "Kopalnia Ołowiu",
+        "wlasciciel_id": "[KRS-2MN-2232]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2400,
+        "zatrudnienie_aktualne": 1920,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Ołów": 1300
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-2232]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8309]",
+        "nazwa": "Kamieniolom Wapienia",
+        "wlasciciel_id": "[ID-9MN-3584]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3300,
+        "zatrudnienie_aktualne": 2640,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Wapień": 4500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-3584]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7366]",
+        "nazwa": "Kopalnia Cyny",
+        "wlasciciel_id": "[REG-4MN-4669]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2200,
+        "zatrudnienie_aktualne": 1760,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Cyna": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Małe Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-4669]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9535]",
+        "nazwa": "Piaskownia",
+        "wlasciciel_id": "[KRS-2MN-2220]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2800,
+        "zatrudnienie_aktualne": 2240,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Piasek": 7000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Łopaty i Sieciaki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Piaskownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-2220]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9272]",
+        "nazwa": "Kopalnia Odkrywkowa",
+        "wlasciciel_id": "[ID-9MN-9169]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0909,
+            "sredni": 0.5682,
+            "szeregowi": 0.3409,
+            "wydajnosc": 1.82,
+            "inputs": {
+                "Drewno": 2,
+                "Maszyny Przemysłowe": 0.5
+            },
+            "outputs": {
+                "Surowce Mineralne": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Proste Maszyny Parowe",
+                "produkcja": "Wydobycie Maszynowe",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-9169]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3964]",
+        "nazwa": "Kopalnia Węgla",
+        "wlasciciel_id": "[REG-4MN-8617]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Węgiel Kamienny": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki Konne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-8617]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8743]",
+        "nazwa": "Piaskownia",
+        "wlasciciel_id": "[KRS-2MN-6341]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2800,
+        "zatrudnienie_aktualne": 2240,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Piasek": 7000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Łopaty i Sieciaki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Piaskownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-6341]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9569]",
+        "nazwa": "Kopalnie Gazu Ziemnego",
+        "wlasciciel_id": "[ID-9MN-7005]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 1000,
+        "zatrudnienie_aktualne": 800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1205,
+            "sredni": 0.4578,
+            "szeregowi": 0.4217,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 3,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Gaz Ziemny": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Odwierty Proste",
+                "produkcja": "Tradycyjne Wydobycie",
+                "organizacja": "Lokalne Koncesje"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-7005]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2949]",
+        "nazwa": "Szyby Naftowe",
+        "wlasciciel_id": "[REG-4MN-7244]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1885,
+            "eksperci": 0.1625,
+            "sredni": 0.525,
+            "szeregowi": 0.3125,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ropa Naftowa": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wieże Wiertnicze (Kablowe)",
+                "produkcja": "Wieże Wiertnicze",
+                "organizacja": "Prywatne Koncesje"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-7244]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9109]",
+        "nazwa": "Kamieniolom Wapienia",
+        "wlasciciel_id": "[KRS-2MN-2715]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3300,
+        "zatrudnienie_aktualne": 2640,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Wapień": 4500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-2715]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9416]",
+        "nazwa": "Kamieniolom Wapienia",
+        "wlasciciel_id": "[ID-9MN-1942]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3300,
+        "zatrudnienie_aktualne": 2640,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Wapień": 4500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-1942]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8712]",
+        "nazwa": "Kopalnia Soli",
+        "wlasciciel_id": "[REG-4MN-7651]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Maszyny Przemysłowe": 1,
+                "Paliwa": 2
+            },
+            "outputs": {
+                "Sól": 8000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wiertnice i Pompy",
+                "produkcja": "Odkrywka Solna",
+                "organizacja": "Państwowe Monopole"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-7651]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5746]",
+        "nazwa": "Szyby Naftowe",
+        "wlasciciel_id": "[KRS-2MN-2101]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1885,
+            "eksperci": 0.1625,
+            "sredni": 0.525,
+            "szeregowi": 0.3125,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ropa Naftowa": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wieże Wiertnicze (Kablowe)",
+                "produkcja": "Wieże Wiertnicze",
+                "organizacja": "Prywatne Koncesje"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-2101]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4007]",
+        "nazwa": "Kopalnia Ołowiu",
+        "wlasciciel_id": "[ID-9MN-8683]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2400,
+        "zatrudnienie_aktualne": 1920,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Ołów": 1300
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-8683]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7512]",
+        "nazwa": "Piaskownia",
+        "wlasciciel_id": "[REG-4MN-9244]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2800,
+        "zatrudnienie_aktualne": 2240,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Piasek": 7000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Łopaty i Sieciaki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Piaskownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-9244]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4558]",
+        "nazwa": "Kopalnia Siarki",
+        "wlasciciel_id": "[KRS-2MN-2744]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2200,
+        "zatrudnienie_aktualne": 1760,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Siarka": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-2744]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5287]",
+        "nazwa": "Kopalnie Metali Kolorowych",
+        "wlasciciel_id": "[ID-9MN-6028]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0642,
+            "sredni": 0.2477,
+            "szeregowi": 0.6881,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Miedź": 1500,
+                "Złoto": 100
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne",
+                "produkcja": "Tradycyjne Wydobycie",
+                "organizacja": "Małe Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-6028]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3968]",
+        "nazwa": "Kopalnia Węgla",
+        "wlasciciel_id": "[REG-4MN-9316]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Węgiel Kamienny": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki Konne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-9316]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6974]",
+        "nazwa": "Kopalnia Żelaza",
+        "wlasciciel_id": "[KRS-2MN-2044]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Żelazo": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilkofy i Wagoniki",
+                "produkcja": "Kilkofy i Wagoniki",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-2044]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2669]",
+        "nazwa": "Cegielnia (Glina)",
+        "wlasciciel_id": "[ID-9MN-5203]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3200,
+        "zatrudnienie_aktualne": 2560,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Glina": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-5203]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1969]",
+        "nazwa": "Kamieniolom Wapienia",
+        "wlasciciel_id": "[REG-4MN-6264]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3300,
+        "zatrudnienie_aktualne": 2640,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Wapień": 4500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-6264]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1597]",
+        "nazwa": "Kopalnia Siarki",
+        "wlasciciel_id": "[KRS-2MN-7554]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2200,
+        "zatrudnienie_aktualne": 1760,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Siarka": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-7554]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9653]",
+        "nazwa": "Kopalnia Boksytu",
+        "wlasciciel_id": "[ID-9MN-6848]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Boksyt": 1800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-6848]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1277]",
+        "nazwa": "Kopalnia Ołowiu",
+        "wlasciciel_id": "[REG-4MN-3648]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2400,
+        "zatrudnienie_aktualne": 1920,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Ołów": 1300
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-3648]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1620]",
+        "nazwa": "Kopalnia Boksytu",
+        "wlasciciel_id": "[KRS-2MN-5769]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Boksyt": 1800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-5769]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4045]",
+        "nazwa": "Kopalnia Boksytu",
+        "wlasciciel_id": "[ID-9MN-5543]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Boksyt": 1800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-5543]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1585]",
+        "nazwa": "Kopalnia Węgla",
+        "wlasciciel_id": "[REG-4MN-2459]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Węgiel Kamienny": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki Konne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-2459]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3825]",
+        "nazwa": "Kopalnia Ołowiu",
+        "wlasciciel_id": "[KRS-2MN-3314]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2400,
+        "zatrudnienie_aktualne": 1920,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Ołów": 1300
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-3314]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1804]",
+        "nazwa": "Kopalnia Ołowiu",
+        "wlasciciel_id": "[ID-9MN-9454]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2400,
+        "zatrudnienie_aktualne": 1920,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Ołów": 1300
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-9454]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1983]",
+        "nazwa": "Kamieniolom",
+        "wlasciciel_id": "[REG-4MN-7644]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Kamień": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-7644]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4089]",
+        "nazwa": "Cegielnia (Glina)",
+        "wlasciciel_id": "[KRS-2MN-2818]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3200,
+        "zatrudnienie_aktualne": 2560,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Glina": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-2818]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5775]",
+        "nazwa": "Kopalnia Soli",
+        "wlasciciel_id": "[ID-9MN-4899]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Maszyny Przemysłowe": 1,
+                "Paliwa": 2
+            },
+            "outputs": {
+                "Sól": 8000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wiertnice i Pompy",
+                "produkcja": "Odkrywka Solna",
+                "organizacja": "Państwowe Monopole"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-4899]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9539]",
+        "nazwa": "Szyby Naftowe",
+        "wlasciciel_id": "[REG-4MN-5532]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1885,
+            "eksperci": 0.1625,
+            "sredni": 0.525,
+            "szeregowi": 0.3125,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ropa Naftowa": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wieże Wiertnicze (Kablowe)",
+                "produkcja": "Wieże Wiertnicze",
+                "organizacja": "Prywatne Koncesje"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region15",
+        "cluster_info": {
+            "region_id": "Oksytania-Region15",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-5532]"
+        }
+    }
+]

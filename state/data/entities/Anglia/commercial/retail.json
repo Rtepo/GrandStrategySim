@@ -1,0 +1,648 @@
+[
+  {
+    "id_budynku": "B-ANG-0676",
+    "typ_budynku": "retail_store",
+    "mikroregion_id": "Anglia-Region1",
+    "właściciel": "KRS-ANG-0656",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 31469.55,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 314695.5,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 79.88323199999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-0656",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-0676",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 31.46,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-0656",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-0676",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 62.92,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-0656",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-0676",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 25.168,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-0656",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-0676",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 15.73,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-0656",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-0676",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 31.46,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-0656",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-0676",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 38.2239,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-0656",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-0676",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 28.244788000000003,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-0656",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-0676",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.8,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.8,
+      "marża": 1.3,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 755.0400000000002,
+        "fruit": 604.032,
+        "cereal": 2058.5410559999996,
+        "vegetable": 983.5151039999997,
+        "protein": 1004.2031999999997
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 5601.469999999998,
+        "fruit": 2127.3179999999998,
+        "cereal": 94325.37109404159,
+        "vegetable": 66732.66402400001,
+        "protein": 41189.38346050001
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 2.6657251800593142,
+        "fruit": 2.665725180059314,
+        "cereal": 3.002281510691694,
+        "vegetable": 7.083497356812124,
+        "protein": 3.0951268629573403
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-ANG-0676",
+    "typ_budynku": "retail_store",
+    "mikroregion_id": "Anglia-Region1",
+    "właściciel": "KRS-ANG-0656",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 31469.55,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 314695.5,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 79.88323199999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-0656",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-0676",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 31.46,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-0656",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-0676",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 62.92,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-0656",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-0676",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 25.168,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-0656",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-0676",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 15.73,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-0656",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-0676",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 31.46,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-0656",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-0676",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 38.2239,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-0656",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-0676",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 28.244788000000003,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-0656",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-0676",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.8,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.8,
+      "marża": 1.3,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {},
+      "niespełniony_popyt_ostatni_turn": {},
+      "udział_rynku_ostatni_turn": {},
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-ANG-0676",
+    "typ_budynku": "retail_store",
+    "mikroregion_id": "Anglia-Region1",
+    "właściciel": "KRS-ANG-0656",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 31469.55,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 314695.5,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 86.8296,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-0656",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-0676",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 31.46,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-0656",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-0676",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 62.92,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-0656",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-0676",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 25.168,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-0656",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-0676",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 15.73,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-0656",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-0676",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 31.46,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-0656",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-0676",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 42.471,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-0656",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-0676",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 42.156400000000005,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-0656",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-0676",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.8,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.8,
+      "marża": 1.3,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {},
+      "niespełniony_popyt_ostatni_turn": {},
+      "udział_rynku_ostatni_turn": {},
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-ANG-1139",
+    "typ_budynku": "retail_store",
+    "mikroregion_id": "Anglia-Region1",
+    "właściciel": "KRS-ANG-1099",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 79435.83,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 794358.3,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 170.70927843840002,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-1099",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-1139",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 79.42999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-1099",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-1139",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 158.86,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-1099",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-1139",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 63.544,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-1099",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-1139",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 39.715,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-1099",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-1139",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 79.42999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-1099",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-1139",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 78.1710345,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-1099",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-1139",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.8,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.8,
+      "marża": 1.3,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 3812.6399999999967,
+        "fruit": 3050.111999999999,
+        "cereal": 9778.820117913603,
+        "protein": 4696.266978000002
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 5601.469999999998,
+        "fruit": 2127.3179999999998,
+        "cereal": 94325.37109404159,
+        "protein": 41189.38346050001
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 13.46081061996892,
+        "fruit": 13.460810619968928,
+        "cereal": 14.261931162762286,
+        "protein": 14.47470201173159
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-ANG-1139",
+    "typ_budynku": "retail_store",
+    "mikroregion_id": "Anglia-Region1",
+    "właściciel": "KRS-ANG-1099",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 79435.83,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 794358.3,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 185.55356352,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-1099",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-1139",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 79.42999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-1099",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-1139",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 158.86,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-1099",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-1139",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 63.544,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-1099",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-1139",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 39.715,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-1099",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-1139",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 79.42999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-1099",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-1139",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 86.856705,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ANG-1099",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ANG-1139",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.8,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.8,
+      "marża": 1.3,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {},
+      "niespełniony_popyt_ostatni_turn": {},
+      "udział_rynku_ostatni_turn": {},
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  }
+]

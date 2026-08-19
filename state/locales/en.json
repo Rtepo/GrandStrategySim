@@ -1,0 +1,61 @@
+{
+  "ui": {
+    "world_generator": {
+      "title": "WORLD GENERATOR (Years 1880 - 2000)",
+      "prompt_countries": "How many countries to generate? (4-16):",
+      "scenario_title": "STARTING SCENARIO SELECTION",
+      "scenario_1900": "Year 1900 (Steam and Coal Age)",
+      "scenario_1925": "Year 1925 (Factory and Electricity Era)",
+      "scenario_1950": "Year 1950 (Golden Age of Industry)",
+      "scenario_1975": "Year 1975 (Dawn of the Silicon Age)",
+      "world_ready": "World ready: {count} countries, year {year}."
+    }
+  },
+  "sectors": {
+    "mining": "Mining",
+    "agriculture": "Agriculture",
+    "heavy_industry": "Heavy Industry",
+    "light_industry": "Light Industry",
+    "armaments_industry": "Armaments Industry",
+    "local_services": "Local Services",
+    "export_services": "Export Services",
+    "construction": "Construction",
+    "energy": "Energy",
+    "public_services": "Public Services",
+    "medical_services": "Medical Services",
+    "educational_services": "Educational Services",
+    "transport_logistics": "Transport and Logistics",
+    "public_administration": "Public Administration",
+    "banking": "Banking"
+  },
+  "commodities": {
+    "gold": "Gold",
+    "steel": "Steel",
+    "oil": "Oil",
+    "aluminum": "Aluminum",
+    "copper": "Copper",
+    "iron_ore": "Iron Ore",
+    "coal": "Coal",
+    "natural_gas": "Natural Gas",
+    "uranium": "Uranium",
+    "timber": "Timber",
+    "food": "Food",
+    "consumer_goods": "Consumer Goods",
+    "military_equipment": "Military Equipment"
+  },
+  "labor_tiers": {
+    "expert": "Expert",
+    "skilled": "Skilled",
+    "unskilled": "Unskilled"
+  },
+  "wealth_brackets": {
+    "very_high": "Very High",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
+  },
+  "regime_types": {
+    "democracy": "Democracy",
+    "autocracy": "Autocracy"
+  }
+}

@@ -1,0 +1,824 @@
+{
+  "Eldoria": {
+    "links": {
+      "Eldoria-Region10|Eldoria-Region11": {
+        "region_a": "Eldoria-Region11",
+        "region_b": "Eldoria-Region10",
+        "level": "dirt_road",
+        "condition": 0.63526241301704,
+        "built_turn": 0
+      },
+      "Eldoria-Region10|Eldoria-Region9": {
+        "region_a": "Eldoria-Region9",
+        "region_b": "Eldoria-Region10",
+        "level": "none",
+        "condition": 0.562836860290927,
+        "built_turn": 0
+      },
+      "Eldoria-Region11|Eldoria-Region12": {
+        "region_a": "Eldoria-Region11",
+        "region_b": "Eldoria-Region12",
+        "level": "none",
+        "condition": 0.5584862669549383,
+        "built_turn": 0
+      },
+      "Eldoria-Region12|Eldoria-Region13": {
+        "region_a": "Eldoria-Region12",
+        "region_b": "Eldoria-Region13",
+        "level": "dirt_road",
+        "condition": 0.8895127304920827,
+        "built_turn": 0
+      },
+      "Eldoria-Region13|Eldoria-Region14": {
+        "region_a": "Eldoria-Region13",
+        "region_b": "Eldoria-Region14",
+        "level": "none",
+        "condition": 0.7169617769078825,
+        "built_turn": 0
+      },
+      "Eldoria-Region14|Eldoria-Region15": {
+        "region_a": "Eldoria-Region15",
+        "region_b": "Eldoria-Region14",
+        "level": "dirt_road",
+        "condition": 0.5872104895675189,
+        "built_turn": 0
+      },
+      "Eldoria-Region1|Eldoria-Region10": {
+        "region_a": "Eldoria-Region1",
+        "region_b": "Eldoria-Region10",
+        "level": "none",
+        "condition": 0.7907930155240785,
+        "built_turn": 0
+      },
+      "Eldoria-Region1|Eldoria-Region11": {
+        "region_a": "Eldoria-Region1",
+        "region_b": "Eldoria-Region11",
+        "level": "none",
+        "condition": 0.5347105302638332,
+        "built_turn": 0
+      },
+      "Eldoria-Region1|Eldoria-Region12": {
+        "region_a": "Eldoria-Region1",
+        "region_b": "Eldoria-Region12",
+        "level": "dirt_road",
+        "condition": 0.8700149394989578,
+        "built_turn": 0
+      },
+      "Eldoria-Region1|Eldoria-Region13": {
+        "region_a": "Eldoria-Region1",
+        "region_b": "Eldoria-Region13",
+        "level": "dirt_road",
+        "condition": 0.5951335550626085,
+        "built_turn": 0
+      },
+      "Eldoria-Region1|Eldoria-Region14": {
+        "region_a": "Eldoria-Region1",
+        "region_b": "Eldoria-Region14",
+        "level": "none",
+        "condition": 0.8698629775240347,
+        "built_turn": 0
+      },
+      "Eldoria-Region1|Eldoria-Region15": {
+        "region_a": "Eldoria-Region15",
+        "region_b": "Eldoria-Region1",
+        "level": "none",
+        "condition": 0.5859249013466965,
+        "built_turn": 0
+      },
+      "Eldoria-Region1|Eldoria-Region2": {
+        "region_a": "Eldoria-Region2",
+        "region_b": "Eldoria-Region1",
+        "level": "dirt_road",
+        "condition": 0.8223041421650328,
+        "built_turn": 0
+      },
+      "Eldoria-Region1|Eldoria-Region3": {
+        "region_a": "Eldoria-Region1",
+        "region_b": "Eldoria-Region3",
+        "level": "dirt_road",
+        "condition": 0.7656598892923885,
+        "built_turn": 0
+      },
+      "Eldoria-Region1|Eldoria-Region4": {
+        "region_a": "Eldoria-Region1",
+        "region_b": "Eldoria-Region4",
+        "level": "dirt_road",
+        "condition": 0.7712961314424438,
+        "built_turn": 0
+      },
+      "Eldoria-Region1|Eldoria-Region5": {
+        "region_a": "Eldoria-Region1",
+        "region_b": "Eldoria-Region5",
+        "level": "none",
+        "condition": 0.6039747141552192,
+        "built_turn": 0
+      },
+      "Eldoria-Region1|Eldoria-Region6": {
+        "region_a": "Eldoria-Region1",
+        "region_b": "Eldoria-Region6",
+        "level": "none",
+        "condition": 0.6789685646612708,
+        "built_turn": 0
+      },
+      "Eldoria-Region1|Eldoria-Region7": {
+        "region_a": "Eldoria-Region1",
+        "region_b": "Eldoria-Region7",
+        "level": "dirt_road",
+        "condition": 0.5339980407443934,
+        "built_turn": 0
+      },
+      "Eldoria-Region1|Eldoria-Region8": {
+        "region_a": "Eldoria-Region1",
+        "region_b": "Eldoria-Region8",
+        "level": "dirt_road",
+        "condition": 0.8149579041384991,
+        "built_turn": 0
+      },
+      "Eldoria-Region1|Eldoria-Region9": {
+        "region_a": "Eldoria-Region1",
+        "region_b": "Eldoria-Region9",
+        "level": "none",
+        "condition": 0.8923153762582599,
+        "built_turn": 0
+      },
+      "Eldoria-Region2|Eldoria-Region3": {
+        "region_a": "Eldoria-Region3",
+        "region_b": "Eldoria-Region2",
+        "level": "dirt_road",
+        "condition": 0.7205633906331166,
+        "built_turn": 0
+      },
+      "Eldoria-Region3|Eldoria-Region4": {
+        "region_a": "Eldoria-Region3",
+        "region_b": "Eldoria-Region4",
+        "level": "dirt_road",
+        "condition": 0.6517745668973112,
+        "built_turn": 0
+      },
+      "Eldoria-Region4|Eldoria-Region5": {
+        "region_a": "Eldoria-Region4",
+        "region_b": "Eldoria-Region5",
+        "level": "none",
+        "condition": 0.5686088962189545,
+        "built_turn": 0
+      },
+      "Eldoria-Region5|Eldoria-Region6": {
+        "region_a": "Eldoria-Region6",
+        "region_b": "Eldoria-Region5",
+        "level": "none",
+        "condition": 0.8689313958780668,
+        "built_turn": 0
+      },
+      "Eldoria-Region6|Eldoria-Region7": {
+        "region_a": "Eldoria-Region6",
+        "region_b": "Eldoria-Region7",
+        "level": "none",
+        "condition": 0.8648136532209209,
+        "built_turn": 0
+      },
+      "Eldoria-Region7|Eldoria-Region8": {
+        "region_a": "Eldoria-Region8",
+        "region_b": "Eldoria-Region7",
+        "level": "dirt_road",
+        "condition": 0.7338215715643872,
+        "built_turn": 0
+      },
+      "Eldoria-Region8|Eldoria-Region9": {
+        "region_a": "Eldoria-Region9",
+        "region_b": "Eldoria-Region8",
+        "level": "dirt_road",
+        "condition": 0.505491837119998,
+        "built_turn": 0
+      }
+    }
+  },
+  "Oksytania": {
+    "links": {
+      "Oksytania-Region1|Oksytania-Region2": {
+        "region_a": "Oksytania-Region2",
+        "region_b": "Oksytania-Region1",
+        "level": "dirt_road",
+        "condition": 0.8956564670755054,
+        "built_turn": 0
+      },
+      "Oksytania-Region1|Oksytania-Region3": {
+        "region_a": "Oksytania-Region1",
+        "region_b": "Oksytania-Region3",
+        "level": "none",
+        "condition": 0.5472381267594382,
+        "built_turn": 0
+      },
+      "Oksytania-Region1|Oksytania-Region4": {
+        "region_a": "Oksytania-Region1",
+        "region_b": "Oksytania-Region4",
+        "level": "none",
+        "condition": 0.640227658265213,
+        "built_turn": 0
+      },
+      "Oksytania-Region2|Oksytania-Region3": {
+        "region_a": "Oksytania-Region2",
+        "region_b": "Oksytania-Region3",
+        "level": "none",
+        "condition": 0.5376426228682555,
+        "built_turn": 0
+      },
+      "Oksytania-Region3|Oksytania-Region4": {
+        "region_a": "Oksytania-Region3",
+        "region_b": "Oksytania-Region4",
+        "level": "none",
+        "condition": 0.8831265054613457,
+        "built_turn": 0
+      }
+    }
+  },
+  "Helwecja": {
+    "links": {
+      "Helwecja-Region10|Helwecja-Region11": {
+        "region_a": "Helwecja-Region11",
+        "region_b": "Helwecja-Region10",
+        "level": "none",
+        "condition": 0.5892310789985815,
+        "built_turn": 0
+      },
+      "Helwecja-Region10|Helwecja-Region9": {
+        "region_a": "Helwecja-Region9",
+        "region_b": "Helwecja-Region10",
+        "level": "none",
+        "condition": 0.7407259327513829,
+        "built_turn": 0
+      },
+      "Helwecja-Region11|Helwecja-Region12": {
+        "region_a": "Helwecja-Region11",
+        "region_b": "Helwecja-Region12",
+        "level": "dirt_road",
+        "condition": 0.6542932312008531,
+        "built_turn": 0
+      },
+      "Helwecja-Region12|Helwecja-Region13": {
+        "region_a": "Helwecja-Region13",
+        "region_b": "Helwecja-Region12",
+        "level": "none",
+        "condition": 0.8618265166909205,
+        "built_turn": 0
+      },
+      "Helwecja-Region13|Helwecja-Region14": {
+        "region_a": "Helwecja-Region13",
+        "region_b": "Helwecja-Region14",
+        "level": "dirt_road",
+        "condition": 0.7910937083781051,
+        "built_turn": 0
+      },
+      "Helwecja-Region14|Helwecja-Region15": {
+        "region_a": "Helwecja-Region15",
+        "region_b": "Helwecja-Region14",
+        "level": "none",
+        "condition": 0.852555163006433,
+        "built_turn": 0
+      },
+      "Helwecja-Region1|Helwecja-Region10": {
+        "region_a": "Helwecja-Region1",
+        "region_b": "Helwecja-Region10",
+        "level": "dirt_road",
+        "condition": 0.6137802695930678,
+        "built_turn": 0
+      },
+      "Helwecja-Region1|Helwecja-Region11": {
+        "region_a": "Helwecja-Region1",
+        "region_b": "Helwecja-Region11",
+        "level": "dirt_road",
+        "condition": 0.5628303761777167,
+        "built_turn": 0
+      },
+      "Helwecja-Region1|Helwecja-Region12": {
+        "region_a": "Helwecja-Region1",
+        "region_b": "Helwecja-Region12",
+        "level": "dirt_road",
+        "condition": 0.8758233281223877,
+        "built_turn": 0
+      },
+      "Helwecja-Region1|Helwecja-Region13": {
+        "region_a": "Helwecja-Region1",
+        "region_b": "Helwecja-Region13",
+        "level": "dirt_road",
+        "condition": 0.7276238612895198,
+        "built_turn": 0
+      },
+      "Helwecja-Region1|Helwecja-Region14": {
+        "region_a": "Helwecja-Region1",
+        "region_b": "Helwecja-Region14",
+        "level": "dirt_road",
+        "condition": 0.7782418683792449,
+        "built_turn": 0
+      },
+      "Helwecja-Region1|Helwecja-Region15": {
+        "region_a": "Helwecja-Region1",
+        "region_b": "Helwecja-Region15",
+        "level": "none",
+        "condition": 0.8232713393106141,
+        "built_turn": 0
+      },
+      "Helwecja-Region1|Helwecja-Region2": {
+        "region_a": "Helwecja-Region1",
+        "region_b": "Helwecja-Region2",
+        "level": "dirt_road",
+        "condition": 0.7892619956143934,
+        "built_turn": 0
+      },
+      "Helwecja-Region1|Helwecja-Region3": {
+        "region_a": "Helwecja-Region1",
+        "region_b": "Helwecja-Region3",
+        "level": "none",
+        "condition": 0.7981650067695203,
+        "built_turn": 0
+      },
+      "Helwecja-Region1|Helwecja-Region4": {
+        "region_a": "Helwecja-Region1",
+        "region_b": "Helwecja-Region4",
+        "level": "dirt_road",
+        "condition": 0.7134203323373987,
+        "built_turn": 0
+      },
+      "Helwecja-Region1|Helwecja-Region5": {
+        "region_a": "Helwecja-Region1",
+        "region_b": "Helwecja-Region5",
+        "level": "dirt_road",
+        "condition": 0.500615854169964,
+        "built_turn": 0
+      },
+      "Helwecja-Region1|Helwecja-Region6": {
+        "region_a": "Helwecja-Region1",
+        "region_b": "Helwecja-Region6",
+        "level": "dirt_road",
+        "condition": 0.7165541629881368,
+        "built_turn": 0
+      },
+      "Helwecja-Region1|Helwecja-Region7": {
+        "region_a": "Helwecja-Region1",
+        "region_b": "Helwecja-Region7",
+        "level": "dirt_road",
+        "condition": 0.8811831731453947,
+        "built_turn": 0
+      },
+      "Helwecja-Region1|Helwecja-Region8": {
+        "region_a": "Helwecja-Region1",
+        "region_b": "Helwecja-Region8",
+        "level": "dirt_road",
+        "condition": 0.5913834608170279,
+        "built_turn": 0
+      },
+      "Helwecja-Region1|Helwecja-Region9": {
+        "region_a": "Helwecja-Region1",
+        "region_b": "Helwecja-Region9",
+        "level": "dirt_road",
+        "condition": 0.6000769593437186,
+        "built_turn": 0
+      },
+      "Helwecja-Region2|Helwecja-Region3": {
+        "region_a": "Helwecja-Region3",
+        "region_b": "Helwecja-Region2",
+        "level": "dirt_road",
+        "condition": 0.6063000043693909,
+        "built_turn": 0
+      },
+      "Helwecja-Region3|Helwecja-Region4": {
+        "region_a": "Helwecja-Region3",
+        "region_b": "Helwecja-Region4",
+        "level": "none",
+        "condition": 0.7242019242168206,
+        "built_turn": 0
+      },
+      "Helwecja-Region4|Helwecja-Region5": {
+        "region_a": "Helwecja-Region5",
+        "region_b": "Helwecja-Region4",
+        "level": "none",
+        "condition": 0.738886905422026,
+        "built_turn": 0
+      },
+      "Helwecja-Region5|Helwecja-Region6": {
+        "region_a": "Helwecja-Region5",
+        "region_b": "Helwecja-Region6",
+        "level": "none",
+        "condition": 0.6995516356319271,
+        "built_turn": 0
+      },
+      "Helwecja-Region6|Helwecja-Region7": {
+        "region_a": "Helwecja-Region7",
+        "region_b": "Helwecja-Region6",
+        "level": "dirt_road",
+        "condition": 0.6263378214193404,
+        "built_turn": 0
+      },
+      "Helwecja-Region7|Helwecja-Region8": {
+        "region_a": "Helwecja-Region8",
+        "region_b": "Helwecja-Region7",
+        "level": "none",
+        "condition": 0.8074646471781974,
+        "built_turn": 0
+      },
+      "Helwecja-Region8|Helwecja-Region9": {
+        "region_a": "Helwecja-Region9",
+        "region_b": "Helwecja-Region8",
+        "level": "none",
+        "condition": 0.8205831009565887,
+        "built_turn": 0
+      }
+    }
+  },
+  "Dacja": {
+    "links": {
+      "Dacja-Region1|Dacja-Region2": {
+        "region_a": "Dacja-Region1",
+        "region_b": "Dacja-Region2",
+        "level": "dirt_road",
+        "condition": 0.7157609701987327,
+        "built_turn": 0
+      },
+      "Dacja-Region1|Dacja-Region3": {
+        "region_a": "Dacja-Region1",
+        "region_b": "Dacja-Region3",
+        "level": "dirt_road",
+        "condition": 0.8772280233845661,
+        "built_turn": 0
+      },
+      "Dacja-Region1|Dacja-Region4": {
+        "region_a": "Dacja-Region1",
+        "region_b": "Dacja-Region4",
+        "level": "dirt_road",
+        "condition": 0.6152881389941004,
+        "built_turn": 0
+      },
+      "Dacja-Region2|Dacja-Region3": {
+        "region_a": "Dacja-Region3",
+        "region_b": "Dacja-Region2",
+        "level": "dirt_road",
+        "condition": 0.6399581671756509,
+        "built_turn": 0
+      },
+      "Dacja-Region3|Dacja-Region4": {
+        "region_a": "Dacja-Region3",
+        "region_b": "Dacja-Region4",
+        "level": "dirt_road",
+        "condition": 0.6661360167676537,
+        "built_turn": 0
+      }
+    }
+  },
+  "Anglia": {
+    "links": {
+      "Anglia-Region10|Anglia-Region11": {
+        "region_a": "Anglia-Region10",
+        "region_b": "Anglia-Region11",
+        "level": "dirt_road",
+        "condition": 0.5067610872993144,
+        "built_turn": 0
+      },
+      "Anglia-Region10|Anglia-Region9": {
+        "region_a": "Anglia-Region9",
+        "region_b": "Anglia-Region10",
+        "level": "dirt_road",
+        "condition": 0.6880662394635995,
+        "built_turn": 0
+      },
+      "Anglia-Region11|Anglia-Region12": {
+        "region_a": "Anglia-Region11",
+        "region_b": "Anglia-Region12",
+        "level": "dirt_road",
+        "condition": 0.752850676999897,
+        "built_turn": 0
+      },
+      "Anglia-Region12|Anglia-Region13": {
+        "region_a": "Anglia-Region13",
+        "region_b": "Anglia-Region12",
+        "level": "dirt_road",
+        "condition": 0.726791183043005,
+        "built_turn": 0
+      },
+      "Anglia-Region1|Anglia-Region10": {
+        "region_a": "Anglia-Region1",
+        "region_b": "Anglia-Region10",
+        "level": "dirt_road",
+        "condition": 0.6374406488855353,
+        "built_turn": 0
+      },
+      "Anglia-Region1|Anglia-Region11": {
+        "region_a": "Anglia-Region1",
+        "region_b": "Anglia-Region11",
+        "level": "dirt_road",
+        "condition": 0.8960907445277109,
+        "built_turn": 0
+      },
+      "Anglia-Region1|Anglia-Region12": {
+        "region_a": "Anglia-Region1",
+        "region_b": "Anglia-Region12",
+        "level": "dirt_road",
+        "condition": 0.667654985471226,
+        "built_turn": 0
+      },
+      "Anglia-Region1|Anglia-Region13": {
+        "region_a": "Anglia-Region1",
+        "region_b": "Anglia-Region13",
+        "level": "dirt_road",
+        "condition": 0.7650775323140949,
+        "built_turn": 0
+      },
+      "Anglia-Region1|Anglia-Region2": {
+        "region_a": "Anglia-Region1",
+        "region_b": "Anglia-Region2",
+        "level": "dirt_road",
+        "condition": 0.7347293448646111,
+        "built_turn": 0
+      },
+      "Anglia-Region1|Anglia-Region3": {
+        "region_a": "Anglia-Region1",
+        "region_b": "Anglia-Region3",
+        "level": "dirt_road",
+        "condition": 0.7866266064249325,
+        "built_turn": 0
+      },
+      "Anglia-Region1|Anglia-Region4": {
+        "region_a": "Anglia-Region1",
+        "region_b": "Anglia-Region4",
+        "level": "none",
+        "condition": 0.5221937322553105,
+        "built_turn": 0
+      },
+      "Anglia-Region1|Anglia-Region5": {
+        "region_a": "Anglia-Region1",
+        "region_b": "Anglia-Region5",
+        "level": "dirt_road",
+        "condition": 0.8505954623029568,
+        "built_turn": 0
+      },
+      "Anglia-Region1|Anglia-Region6": {
+        "region_a": "Anglia-Region1",
+        "region_b": "Anglia-Region6",
+        "level": "none",
+        "condition": 0.6405570726763398,
+        "built_turn": 0
+      },
+      "Anglia-Region1|Anglia-Region7": {
+        "region_a": "Anglia-Region1",
+        "region_b": "Anglia-Region7",
+        "level": "dirt_road",
+        "condition": 0.7626004443104524,
+        "built_turn": 0
+      },
+      "Anglia-Region1|Anglia-Region8": {
+        "region_a": "Anglia-Region1",
+        "region_b": "Anglia-Region8",
+        "level": "dirt_road",
+        "condition": 0.5093381202103948,
+        "built_turn": 0
+      },
+      "Anglia-Region1|Anglia-Region9": {
+        "region_a": "Anglia-Region1",
+        "region_b": "Anglia-Region9",
+        "level": "dirt_road",
+        "condition": 0.5883021747330114,
+        "built_turn": 0
+      },
+      "Anglia-Region2|Anglia-Region3": {
+        "region_a": "Anglia-Region3",
+        "region_b": "Anglia-Region2",
+        "level": "dirt_road",
+        "condition": 0.8060954663094997,
+        "built_turn": 0
+      },
+      "Anglia-Region3|Anglia-Region4": {
+        "region_a": "Anglia-Region3",
+        "region_b": "Anglia-Region4",
+        "level": "none",
+        "condition": 0.5443815552722371,
+        "built_turn": 0
+      },
+      "Anglia-Region4|Anglia-Region5": {
+        "region_a": "Anglia-Region4",
+        "region_b": "Anglia-Region5",
+        "level": "none",
+        "condition": 0.7418488319793839,
+        "built_turn": 0
+      },
+      "Anglia-Region5|Anglia-Region6": {
+        "region_a": "Anglia-Region6",
+        "region_b": "Anglia-Region5",
+        "level": "none",
+        "condition": 0.6773736614620671,
+        "built_turn": 0
+      },
+      "Anglia-Region6|Anglia-Region7": {
+        "region_a": "Anglia-Region6",
+        "region_b": "Anglia-Region7",
+        "level": "none",
+        "condition": 0.6147282031083996,
+        "built_turn": 0
+      },
+      "Anglia-Region7|Anglia-Region8": {
+        "region_a": "Anglia-Region8",
+        "region_b": "Anglia-Region7",
+        "level": "dirt_road",
+        "condition": 0.8736644900792621,
+        "built_turn": 0
+      },
+      "Anglia-Region8|Anglia-Region9": {
+        "region_a": "Anglia-Region8",
+        "region_b": "Anglia-Region9",
+        "level": "dirt_road",
+        "condition": 0.712198921514635,
+        "built_turn": 0
+      }
+    }
+  },
+  "Baktria": {
+    "links": {
+      "Baktria-Region10|Baktria-Region11": {
+        "region_a": "Baktria-Region10",
+        "region_b": "Baktria-Region11",
+        "level": "none",
+        "condition": 0.8671963806013248,
+        "built_turn": 0
+      },
+      "Baktria-Region10|Baktria-Region9": {
+        "region_a": "Baktria-Region10",
+        "region_b": "Baktria-Region9",
+        "level": "dirt_road",
+        "condition": 0.6008629839295074,
+        "built_turn": 0
+      },
+      "Baktria-Region11|Baktria-Region12": {
+        "region_a": "Baktria-Region11",
+        "region_b": "Baktria-Region12",
+        "level": "dirt_road",
+        "condition": 0.8518053552472342,
+        "built_turn": 0
+      },
+      "Baktria-Region12|Baktria-Region13": {
+        "region_a": "Baktria-Region13",
+        "region_b": "Baktria-Region12",
+        "level": "dirt_road",
+        "condition": 0.769153848025993,
+        "built_turn": 0
+      },
+      "Baktria-Region13|Baktria-Region14": {
+        "region_a": "Baktria-Region13",
+        "region_b": "Baktria-Region14",
+        "level": "none",
+        "condition": 0.8637213244940736,
+        "built_turn": 0
+      },
+      "Baktria-Region14|Baktria-Region15": {
+        "region_a": "Baktria-Region14",
+        "region_b": "Baktria-Region15",
+        "level": "none",
+        "condition": 0.5176028770407964,
+        "built_turn": 0
+      },
+      "Baktria-Region1|Baktria-Region10": {
+        "region_a": "Baktria-Region1",
+        "region_b": "Baktria-Region10",
+        "level": "dirt_road",
+        "condition": 0.5618385759410895,
+        "built_turn": 0
+      },
+      "Baktria-Region1|Baktria-Region11": {
+        "region_a": "Baktria-Region1",
+        "region_b": "Baktria-Region11",
+        "level": "dirt_road",
+        "condition": 0.6171079222212554,
+        "built_turn": 0
+      },
+      "Baktria-Region1|Baktria-Region12": {
+        "region_a": "Baktria-Region1",
+        "region_b": "Baktria-Region12",
+        "level": "none",
+        "condition": 0.8480744671314759,
+        "built_turn": 0
+      },
+      "Baktria-Region1|Baktria-Region13": {
+        "region_a": "Baktria-Region1",
+        "region_b": "Baktria-Region13",
+        "level": "dirt_road",
+        "condition": 0.587840624784787,
+        "built_turn": 0
+      },
+      "Baktria-Region1|Baktria-Region14": {
+        "region_a": "Baktria-Region1",
+        "region_b": "Baktria-Region14",
+        "level": "dirt_road",
+        "condition": 0.515958185249015,
+        "built_turn": 0
+      },
+      "Baktria-Region1|Baktria-Region15": {
+        "region_a": "Baktria-Region1",
+        "region_b": "Baktria-Region15",
+        "level": "dirt_road",
+        "condition": 0.71912485217917,
+        "built_turn": 0
+      },
+      "Baktria-Region1|Baktria-Region2": {
+        "region_a": "Baktria-Region1",
+        "region_b": "Baktria-Region2",
+        "level": "dirt_road",
+        "condition": 0.7276868703989205,
+        "built_turn": 0
+      },
+      "Baktria-Region1|Baktria-Region3": {
+        "region_a": "Baktria-Region1",
+        "region_b": "Baktria-Region3",
+        "level": "none",
+        "condition": 0.5913536560411073,
+        "built_turn": 0
+      },
+      "Baktria-Region1|Baktria-Region4": {
+        "region_a": "Baktria-Region1",
+        "region_b": "Baktria-Region4",
+        "level": "dirt_road",
+        "condition": 0.7210590516110669,
+        "built_turn": 0
+      },
+      "Baktria-Region1|Baktria-Region5": {
+        "region_a": "Baktria-Region1",
+        "region_b": "Baktria-Region5",
+        "level": "none",
+        "condition": 0.814102498769922,
+        "built_turn": 0
+      },
+      "Baktria-Region1|Baktria-Region6": {
+        "region_a": "Baktria-Region1",
+        "region_b": "Baktria-Region6",
+        "level": "dirt_road",
+        "condition": 0.8139318743283543,
+        "built_turn": 0
+      },
+      "Baktria-Region1|Baktria-Region7": {
+        "region_a": "Baktria-Region1",
+        "region_b": "Baktria-Region7",
+        "level": "dirt_road",
+        "condition": 0.6660071755235163,
+        "built_turn": 0
+      },
+      "Baktria-Region1|Baktria-Region8": {
+        "region_a": "Baktria-Region1",
+        "region_b": "Baktria-Region8",
+        "level": "dirt_road",
+        "condition": 0.7650048490132955,
+        "built_turn": 0
+      },
+      "Baktria-Region1|Baktria-Region9": {
+        "region_a": "Baktria-Region1",
+        "region_b": "Baktria-Region9",
+        "level": "none",
+        "condition": 0.511969824483387,
+        "built_turn": 0
+      },
+      "Baktria-Region2|Baktria-Region3": {
+        "region_a": "Baktria-Region3",
+        "region_b": "Baktria-Region2",
+        "level": "dirt_road",
+        "condition": 0.8786837917743922,
+        "built_turn": 0
+      },
+      "Baktria-Region3|Baktria-Region4": {
+        "region_a": "Baktria-Region3",
+        "region_b": "Baktria-Region4",
+        "level": "none",
+        "condition": 0.6609223530474132,
+        "built_turn": 0
+      },
+      "Baktria-Region4|Baktria-Region5": {
+        "region_a": "Baktria-Region5",
+        "region_b": "Baktria-Region4",
+        "level": "none",
+        "condition": 0.7486132009725549,
+        "built_turn": 0
+      },
+      "Baktria-Region5|Baktria-Region6": {
+        "region_a": "Baktria-Region5",
+        "region_b": "Baktria-Region6",
+        "level": "dirt_road",
+        "condition": 0.6760793944211761,
+        "built_turn": 0
+      },
+      "Baktria-Region6|Baktria-Region7": {
+        "region_a": "Baktria-Region6",
+        "region_b": "Baktria-Region7",
+        "level": "dirt_road",
+        "condition": 0.6997565292460178,
+        "built_turn": 0
+      },
+      "Baktria-Region7|Baktria-Region8": {
+        "region_a": "Baktria-Region8",
+        "region_b": "Baktria-Region7",
+        "level": "none",
+        "condition": 0.5201216442678784,
+        "built_turn": 0
+      },
+      "Baktria-Region8|Baktria-Region9": {
+        "region_a": "Baktria-Region9",
+        "region_b": "Baktria-Region8",
+        "level": "dirt_road",
+        "condition": 0.8919213877835974,
+        "built_turn": 0
+      }
+    }
+  }
+}

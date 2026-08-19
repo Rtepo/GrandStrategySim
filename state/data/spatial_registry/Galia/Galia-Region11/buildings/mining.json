@@ -1,0 +1,1478 @@
+[
+  {
+    "id": "B-GAL-0179",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-GAL-0179",
+    "rok_budowy": 1898,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 110,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 22850.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "hard_coal": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 150,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-GAL-0179"
+    },
+    "ostatnia_produkcja": {
+      "hard_coal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.912340052975986,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.12,
+      "food": 0.30000000000000004,
+      "hard_coal": 2.659576446093777
+    },
+    "pojemność_magazynu": 1500.0
+  },
+  {
+    "id": "B-GAL-0465",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-GAL-0465",
+    "rok_budowy": 1884,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 1853120.3760441984,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 2.0,
+        "fuels": 5.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "oil": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 244,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 244,
+      "sector": "mining",
+      "owner_id": "KRS-GAL-0465"
+    },
+    "ostatnia_produkcja": {
+      "oil": 658.8000000000001
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7182669163356942,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "oil": 6.6812974809521135
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-GAL-0466",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-GAL-0466",
+    "rok_budowy": 1875,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 1838041.5205028525,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "copper": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 242,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 242,
+      "sector": "mining",
+      "owner_id": "KRS-GAL-0466"
+    },
+    "ostatnia_produkcja": {
+      "copper": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7379280867529322,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "copper": 1.3922150864594558,
+      "fuels": 0.12000000000000004,
+      "food": 0.2
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-GAL-0467",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-GAL-0467",
+    "rok_budowy": 1897,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 1800344.381649488,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "stone": 25.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 237,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 237,
+      "sector": "mining",
+      "owner_id": "KRS-GAL-0467"
+    },
+    "ostatnia_produkcja": {
+      "stone": 1.2806005694381415
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8957343446446041,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "stone": 5.705425044647986
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-GAL-0468",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-GAL-0468",
+    "rok_budowy": 1882,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 1717410.6761720856,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "iron": 12.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 226,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 226,
+      "sector": "mining",
+      "owner_id": "KRS-GAL-0468"
+    },
+    "ostatnia_produkcja": {
+      "iron": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9335210690137141,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.12000000000000004,
+      "food": 0.2,
+      "iron": 2.1324385238944283
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-GAL-0469",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-GAL-0469",
+    "rok_budowy": 1878,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 1332899.859867765,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "brown_coal": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 175,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 175,
+      "sector": "mining",
+      "owner_id": "KRS-GAL-0469"
+    },
+    "ostatnia_produkcja": {
+      "brown_coal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8738428437687757,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.08000000000000002,
+      "food": 0.2,
+      "brown_coal": 3.1784671974000367
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-GAL-0470",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-GAL-0470",
+    "rok_budowy": 1884,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 986086.1824168096,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "limestone": 22.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 129,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 129,
+      "sector": "mining",
+      "owner_id": "KRS-GAL-0470"
+    },
+    "ostatnia_produkcja": {
+      "limestone": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8696969480981719,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.08000000000000002,
+      "food": 0.12000000000000004,
+      "limestone": 3.883078882858212
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-GAL-0471",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-GAL-0471",
+    "rok_budowy": 1871,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 948389.0435634452,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "sand": 20.0,
+        "gravel": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 124,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 124,
+      "sector": "mining",
+      "owner_id": "KRS-GAL-0471"
+    },
+    "ostatnia_produkcja": {
+      "sand": 0.0,
+      "gravel": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9019032712623576,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.08000000000000002,
+      "sand": 2.342178577087593,
+      "food": 0.12000000000000004,
+      "gravel": 1.7566339328156946
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-GAL-0472",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-GAL-0472",
+    "rok_budowy": 1898,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 918231.3324807534,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "clay": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 120,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 120,
+      "sector": "mining",
+      "owner_id": "KRS-GAL-0472"
+    },
+    "ostatnia_produkcja": {
+      "clay": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9780803251148283,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "clay": 3.5708147344263237,
+      "fuels": 0.08000000000000002,
+      "food": 0.12000000000000004
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-GAL-0473",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-GAL-0473",
+    "rok_budowy": 1884,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 767442.7770672945,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.03,
+      "sredni": 0.15,
+      "szeregowi": 0.82,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "salt": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 100,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 100,
+      "sector": "mining",
+      "owner_id": "KRS-GAL-0473"
+    },
+    "ostatnia_produkcja": {
+      "salt": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.928794659225038,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.08000000000000002,
+      "food": 0.12000000000000004,
+      "salt": 3.1970587269812647
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-GAL-0474",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-GAL-0474",
+    "rok_budowy": 1885,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 624193.6494245086,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 2.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "hard_coal": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 81,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 81,
+      "sector": "mining",
+      "owner_id": "KRS-GAL-0474"
+    },
+    "ostatnia_produkcja": {
+      "hard_coal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.814531622097376,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.08000000000000002,
+      "food": 0.2,
+      "hard_coal": 1.7546670973070606
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-GAL-0475",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-GAL-0475",
+    "rok_budowy": 1878,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 601575.3661124896,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.1,
+      "szeregowi": 0.88,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "food": 3.0
+      },
+      "outputs": {
+        "peat": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 78,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 78,
+      "sector": "mining",
+      "owner_id": "KRS-GAL-0475"
+    },
+    "ostatnia_produkcja": {
+      "peat": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8236987247015076,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.12000000000000004,
+      "peat": 2.6345851899200543
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-GAL-0476",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-GAL-0476",
+    "rok_budowy": 1871,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 90,
+    "zatrudnienie_aktualne": 90,
+    "rezerwa_zakladowa": 594035.9383418168,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 2.0,
+        "fuels": 5.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "hard_coal": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 77,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 77,
+      "sector": "mining",
+      "owner_id": "KRS-GAL-0476"
+    },
+    "ostatnia_produkcja": {
+      "hard_coal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7525752709293194,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.08000000000000002,
+      "fuels": 0.2,
+      "food": 0.2,
+      "hard_coal": 2.614532867963904
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-GAL-0477",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-GAL-0477",
+    "rok_budowy": 1897,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 91,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 259736.9224347649,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "bauxite": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 32,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 32,
+      "sector": "mining",
+      "owner_id": "KRS-GAL-0477"
+    },
+    "ostatnia_produkcja": {
+      "bauxite": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7443812289951085,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "bauxite": 2.660759710084509,
+      "fuels": 0.123,
+      "food": 0.205
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-GAL-0478",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-GAL-0478",
+    "rok_budowy": 1888,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 91,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 236666.2734565057,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "tin": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 29,
+    "pojemnosc_budowlana": 102,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 29,
+      "sector": "mining",
+      "owner_id": "KRS-GAL-0478"
+    },
+    "ostatnia_produkcja": {
+      "tin": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8106329430110826,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "tin": 1.4291999052989135,
+      "fuels": 0.123,
+      "food": 0.205
+    },
+    "pojemność_magazynu": 1020.0
+  },
+  {
+    "id": "B-GAL-0479",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-GAL-0479",
+    "rok_budowy": 1878,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 81,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 125691.41656009418,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 2.0,
+        "fuels": 3.0
+      },
+      "outputs": {
+        "sulfur": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 15,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 15,
+      "sector": "mining",
+      "owner_id": "KRS-GAL-0479"
+    },
+    "ostatnia_produkcja": {
+      "sulfur": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9508034460461368,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.08000000000000002,
+      "fuels": 0.12000000000000004,
+      "food": 0.5,
+      "sulfur": 1.780280462448419
+    },
+    "pojemność_magazynu": 1000.0
+  },
+  {
+    "id": "B-GAL-0480",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-GAL-0480",
+    "rok_budowy": 1880,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 76,
+    "zatrudnienie_aktualne": 76,
+    "rezerwa_zakladowa": 76081.19327365275,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "lead": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 8,
+    "pojemnosc_budowlana": 105,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 8,
+      "sector": "mining",
+      "owner_id": "KRS-GAL-0480"
+    },
+    "ostatnia_produkcja": {
+      "lead": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.7184174407759845,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "lead": 1.4587454096304908,
+      "fuels": 0.126,
+      "food": 0.21
+    },
+    "pojemność_magazynu": 1050.0
+  },
+  {
+    "id": "B-GAL-0481",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-GAL-0481",
+    "rok_budowy": 1871,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 75,
+    "zatrudnienie_aktualne": 75,
+    "rezerwa_zakladowa": 66859.27422655193,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "fuels": 5.0,
+        "chemicals": 2.0
+      },
+      "outputs": {
+        "silver": 3.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 7,
+    "pojemnosc_budowlana": 103,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 7,
+      "sector": "mining",
+      "owner_id": "KRS-GAL-0481"
+    },
+    "ostatnia_produkcja": {
+      "silver": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9017031827425723,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.126,
+      "fuels": 0.21,
+      "food": 0.515,
+      "silver": 0.5441707624996912,
+      "chemicals": 0.08399999999999999
+    },
+    "pojemność_magazynu": 1030.0
+  },
+  {
+    "id": "B-GAL-0482",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-GAL-0482",
+    "rok_budowy": 1888,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 83,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 48229.790634268626,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.08,
+      "sredni": 0.25,
+      "szeregowi": 0.67,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "fuels": 5.0,
+        "chemicals": 3.0
+      },
+      "outputs": {
+        "gold": 2.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 114,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 4,
+      "sector": "mining",
+      "owner_id": "KRS-GAL-0482"
+    },
+    "ostatnia_produkcja": {
+      "gold": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9809129183855979,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.138,
+      "fuels": 0.23000000000000004,
+      "food": 0.5700000000000001,
+      "chemicals": 0.138,
+      "gold": 0.4061463491090225
+    },
+    "pojemność_magazynu": 1140.0
+  },
+  {
+    "id": "B-GAL-0483",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-GAL-0483",
+    "rok_budowy": 1877,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 4,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 901.5771108269178,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.05,
+      "sredni": 0.2,
+      "szeregowi": 0.75,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 3.0,
+        "food": 5.0
+      },
+      "outputs": {
+        "zinc": 8.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 4,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-GAL-0483"
+    },
+    "ostatnia_produkcja": {
+      "zinc": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.9126722375546732,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "zinc": 0.05261635735404246,
+      "fuels": 0.006,
+      "food": 0.01
+    },
+    "pojemność_magazynu": 100.0
+  },
+  {
+    "id": "B-GAL-0484",
+    "name": "Mine",
+    "wlasciciel_id": "KRS-GAL-0484",
+    "rok_budowy": 1891,
+    "sektor_pkb": "mining",
+    "pojemnosc_pracownikow": 1,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 225.39427770672944,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "fuels": 3.0
+      },
+      "outputs": {
+        "hard_coal": 18.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 1,
+    "region_id": "Galia-Region11",
+    "cluster_info": {
+      "region_id": "Galia-Region11",
+      "scale_factor": 1,
+      "sector": "mining",
+      "owner_id": "KRS-GAL-0484"
+    },
+    "ostatnia_produkcja": {
+      "hard_coal": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 8.0,
+        "condition": 0.8675271632169715,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.005,
+      "hard_coal": 0.022938840829390187
+    },
+    "pojemność_magazynu": 100.0
+  }
+]

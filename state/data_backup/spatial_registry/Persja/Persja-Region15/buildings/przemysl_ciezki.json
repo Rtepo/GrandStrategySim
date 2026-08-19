@@ -1,0 +1,1832 @@
+[
+    {
+        "id": "[ID-9XX-5263]",
+        "nazwa": "Koksownia",
+        "wlasciciel_id": "[KRS-2HV-8192]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 7200,
+        "zatrudnienie_aktualne": 5760,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.2222,
+            "sredni": 0.7619,
+            "szeregowi": 0.0159,
+            "wydajnosc": 2.52,
+            "inputs": {
+                "Węgiel Kamienny": 12,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Koks": 8000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Automatyzacja Pieców",
+                "produkcja": "Wysokosprawne Piece",
+                "organizacja": "Kartele Koksownicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 4,
+        "pojemnosc_budowlana": 400,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 4,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-8192]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4327]",
+        "nazwa": "Cegielnia (Przemysłowa)",
+        "wlasciciel_id": "[ID-9HV-2790]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Glina": 6,
+                "Węgiel Kamienny": 2,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Cegły": 12000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Automatyzacja Formowania",
+                "produkcja": "Mechaniczne Formowanie",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-2790]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5864]",
+        "nazwa": "Cementownia",
+        "wlasciciel_id": "[REG-4HV-8315]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Wapień": 10,
+                "Węgiel Kamienny": 5
+            },
+            "outputs": {
+                "Cement": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Rotacyjne Ręczne",
+                "produkcja": "Tradycyjna Cementownia",
+                "organizacja": "Lokalne Cementownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-8315]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3751]",
+        "nazwa": "Huta Stali",
+        "wlasciciel_id": "[KRS-2HV-1737]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 16000,
+        "zatrudnienie_aktualne": 12800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.2295,
+            "sredni": 0.7541,
+            "szeregowi": 0.0164,
+            "wydajnosc": 2.73,
+            "inputs": {
+                "Żelazo": 20,
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Stal": 3500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Suwnice Elektryczne i Walcarki",
+                "produkcja": "Piec Martenowski",
+                "organizacja": "Naukowe Zarządzanie (Taylorizm)"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 4,
+        "pojemnosc_budowlana": 400,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 4,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-1737]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7102]",
+        "nazwa": "Rafineria",
+        "wlasciciel_id": "[ID-9HV-4642]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1772,
+            "sredni": 0.5949,
+            "szeregowi": 0.2278,
+            "wydajnosc": 1.6,
+            "inputs": {
+                "Ropa Naftowa": 20
+            },
+            "outputs": {
+                "Paliwa": 1500,
+                "Bitumin": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Destylacja Frakcyjna",
+                "produkcja": "Prosta Destylacja",
+                "organizacja": "Małe Rafinerie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-4642]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5627]",
+        "nazwa": "Fabryka Maszyn",
+        "wlasciciel_id": "[REG-4HV-4398]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.2841,
+            "sredni": 0.7045,
+            "szeregowi": 0.0114,
+            "wydajnosc": 3.12,
+            "inputs": {
+                "Stal": 8,
+                "Części Mechaniczne": 3
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 500,
+                "Części Mechaniczne": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Obrabiarki Sterowane Elektrycznie",
+                "produkcja": "Linie Montażowe Elektryczne",
+                "organizacja": "Standaryzacja i Części Wymienne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-4398]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6398]",
+        "nazwa": "Asfaltownia",
+        "wlasciciel_id": "[KRS-2HV-2929]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Bitumin": 5,
+                "Piasek": 10,
+                "Żwir": 10
+            },
+            "outputs": {
+                "Asfalt": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Mieszalniki Ręczne",
+                "produkcja": "Tradycyjna Asfaltownia",
+                "organizacja": "Lokalne Asfaltownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 4,
+        "pojemnosc_budowlana": 400,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 4,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-2929]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2879]",
+        "nazwa": "Fabryka Maszyn",
+        "wlasciciel_id": "[ID-9HV-5080]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.2841,
+            "sredni": 0.7045,
+            "szeregowi": 0.0114,
+            "wydajnosc": 3.12,
+            "inputs": {
+                "Stal": 8,
+                "Części Mechaniczne": 3
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 500,
+                "Części Mechaniczne": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Obrabiarki Sterowane Elektrycznie",
+                "produkcja": "Linie Montażowe Elektryczne",
+                "organizacja": "Standaryzacja i Części Wymienne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-5080]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4652]",
+        "nazwa": "Cementownia",
+        "wlasciciel_id": "[REG-4HV-1567]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Wapień": 10,
+                "Węgiel Kamienny": 5
+            },
+            "outputs": {
+                "Cement": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Rotacyjne Ręczne",
+                "produkcja": "Tradycyjna Cementownia",
+                "organizacja": "Lokalne Cementownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-1567]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2605]",
+        "nazwa": "Fabryka Pociągów",
+        "wlasciciel_id": "[KRS-2HV-2159]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 18000,
+        "zatrudnienie_aktualne": 14400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.2195,
+            "sredni": 0.6951,
+            "szeregowi": 0.0854,
+            "wydajnosc": 2.08,
+            "inputs": {
+                "Stal": 20,
+                "Żelazo": 10,
+                "Drewno": 15
+            },
+            "outputs": {
+                "Pociągi": 5
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Linie Montażowe Parowe",
+                "produkcja": "Pociągi Parowe",
+                "organizacja": "Państwowe Monopole Kolejowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 4,
+        "pojemnosc_budowlana": 400,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 4,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-2159]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5290]",
+        "nazwa": "Huta Aluminium",
+        "wlasciciel_id": "[ID-9HV-2241]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1529,
+            "sredni": 0.4706,
+            "szeregowi": 0.3765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Boksyt": 15,
+                "Paliwa": 10
+            },
+            "outputs": {
+                "Aluminium": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Elektryczne Proste",
+                "produkcja": "Proces Halla-Héroulta",
+                "organizacja": "Laboratoria Badawcze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-2241]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7304]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[REG-4HV-2814]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1915,
+            "eksperci": 0.1839,
+            "sredni": 0.8046,
+            "szeregowi": 0.0115,
+            "wydajnosc": 4.536,
+            "inputs": {
+                "Stal": 15,
+                "Części Mechaniczne": 5,
+                "Paliwa": 2
+            },
+            "outputs": {
+                "Samochody": 100,
+                "Ciężarówki": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Linia Montażowa Fordowska",
+                "produkcja": "Linia Montażowa",
+                "organizacja": "Masowa Produkcja (Fordyzm)"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-2814]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2857]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[KRS-2HV-5593]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 24000,
+        "zatrudnienie_aktualne": 19200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.5341,
+            "szeregowi": 0.3182,
+            "wydajnosc": 1.6,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Suwnice i Spawarki",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 4,
+        "pojemnosc_budowlana": 400,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 4,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-5593]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9500]",
+        "nazwa": "Fabryka Pociągów",
+        "wlasciciel_id": "[ID-9HV-9070]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4500,
+        "zatrudnienie_aktualne": 3600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.2195,
+            "sredni": 0.6951,
+            "szeregowi": 0.0854,
+            "wydajnosc": 2.08,
+            "inputs": {
+                "Stal": 20,
+                "Żelazo": 10,
+                "Drewno": 15
+            },
+            "outputs": {
+                "Pociągi": 5
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Linie Montażowe Parowe",
+                "produkcja": "Pociągi Parowe",
+                "organizacja": "Państwowe Monopole Kolejowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-9070]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6900]",
+        "nazwa": "Koksownia",
+        "wlasciciel_id": "[REG-4HV-6534]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1800,
+        "zatrudnienie_aktualne": 1440,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.2222,
+            "sredni": 0.7619,
+            "szeregowi": 0.0159,
+            "wydajnosc": 2.52,
+            "inputs": {
+                "Węgiel Kamienny": 12,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Koks": 8000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Automatyzacja Pieców",
+                "produkcja": "Wysokosprawne Piece",
+                "organizacja": "Kartele Koksownicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-6534]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3142]",
+        "nazwa": "Fabryka Maszyn Ciężkich",
+        "wlasciciel_id": "[KRS-2HV-7885]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 12000,
+        "zatrudnienie_aktualne": 9600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1616,
+            "sredni": 0.5556,
+            "szeregowi": 0.2828,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 10,
+                "Żelazo": 5
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 300,
+                "Części Mechaniczne": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dźwigi Parowe",
+                "produkcja": "Warsztaty Odlewnicze",
+                "organizacja": "Zakłady Państwowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 4,
+        "pojemnosc_budowlana": 400,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 4,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-7885]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5754]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[ID-9HV-6959]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.5341,
+            "szeregowi": 0.3182,
+            "wydajnosc": 1.6,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Suwnice i Spawarki",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-6959]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6657]",
+        "nazwa": "Fabryka Maszyn Rolnych",
+        "wlasciciel_id": "[REG-4HV-4661]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1772,
+            "sredni": 0.6329,
+            "szeregowi": 0.1899,
+            "wydajnosc": 1.8,
+            "inputs": {
+                "Stal": 8,
+                "Żelazo": 5,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Maszyny Rolne": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Linie Montażowe Maszynowe",
+                "produkcja": "Proste Narzędzia Rolne",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-4661]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9234]",
+        "nazwa": "Tartak",
+        "wlasciciel_id": "[KRS-2HV-4138]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 12000,
+        "zatrudnienie_aktualne": 9600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Drewno": 8,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Deski": 10000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piły Tarczowe i Traki",
+                "produkcja": "Mechaniczne Przeróbka",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 4,
+        "pojemnosc_budowlana": 400,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 4,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-4138]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9067]",
+        "nazwa": "Huta Stali",
+        "wlasciciel_id": "[ID-9HV-3900]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.2295,
+            "sredni": 0.7541,
+            "szeregowi": 0.0164,
+            "wydajnosc": 2.73,
+            "inputs": {
+                "Żelazo": 20,
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Stal": 3500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Suwnice Elektryczne i Walcarki",
+                "produkcja": "Piec Martenowski",
+                "organizacja": "Naukowe Zarządzanie (Taylorizm)"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-3900]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8683]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[REG-4HV-2626]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1915,
+            "eksperci": 0.1839,
+            "sredni": 0.8046,
+            "szeregowi": 0.0115,
+            "wydajnosc": 4.536,
+            "inputs": {
+                "Stal": 15,
+                "Części Mechaniczne": 5,
+                "Paliwa": 2
+            },
+            "outputs": {
+                "Samochody": 100,
+                "Ciężarówki": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Linia Montażowa Fordowska",
+                "produkcja": "Linia Montażowa",
+                "organizacja": "Masowa Produkcja (Fordyzm)"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-2626]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9404]",
+        "nazwa": "Koksownia",
+        "wlasciciel_id": "[KRS-2HV-8628]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 7200,
+        "zatrudnienie_aktualne": 5760,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.2222,
+            "sredni": 0.7619,
+            "szeregowi": 0.0159,
+            "wydajnosc": 2.52,
+            "inputs": {
+                "Węgiel Kamienny": 12,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Koks": 8000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Automatyzacja Pieców",
+                "produkcja": "Wysokosprawne Piece",
+                "organizacja": "Kartele Koksownicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 4,
+        "pojemnosc_budowlana": 400,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 4,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-8628]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7786]",
+        "nazwa": "Cementownia",
+        "wlasciciel_id": "[ID-9HV-9479]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Wapień": 10,
+                "Węgiel Kamienny": 5
+            },
+            "outputs": {
+                "Cement": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Rotacyjne Ręczne",
+                "produkcja": "Tradycyjna Cementownia",
+                "organizacja": "Lokalne Cementownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-9479]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7505]",
+        "nazwa": "Asfaltownia",
+        "wlasciciel_id": "[REG-4HV-4983]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Bitumin": 5,
+                "Piasek": 10,
+                "Żwir": 10
+            },
+            "outputs": {
+                "Asfalt": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Mieszalniki Ręczne",
+                "produkcja": "Tradycyjna Asfaltownia",
+                "organizacja": "Lokalne Asfaltownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-4983]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6762]",
+        "nazwa": "Cementownia",
+        "wlasciciel_id": "[KRS-2HV-8182]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 8000,
+        "zatrudnienie_aktualne": 6400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Wapień": 10,
+                "Węgiel Kamienny": 5
+            },
+            "outputs": {
+                "Cement": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Rotacyjne Ręczne",
+                "produkcja": "Tradycyjna Cementownia",
+                "organizacja": "Lokalne Cementownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 4,
+        "pojemnosc_budowlana": 400,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 4,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-8182]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9447]",
+        "nazwa": "Fabryka Pociągów",
+        "wlasciciel_id": "[ID-9HV-4950]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4500,
+        "zatrudnienie_aktualne": 3600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.2195,
+            "sredni": 0.6951,
+            "szeregowi": 0.0854,
+            "wydajnosc": 2.08,
+            "inputs": {
+                "Stal": 20,
+                "Żelazo": 10,
+                "Drewno": 15
+            },
+            "outputs": {
+                "Pociągi": 5
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Linie Montażowe Parowe",
+                "produkcja": "Pociągi Parowe",
+                "organizacja": "Państwowe Monopole Kolejowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-4950]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4995]",
+        "nazwa": "Fabryka Maszyn",
+        "wlasciciel_id": "[REG-4HV-4297]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.2841,
+            "sredni": 0.7045,
+            "szeregowi": 0.0114,
+            "wydajnosc": 3.12,
+            "inputs": {
+                "Stal": 8,
+                "Części Mechaniczne": 3
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 500,
+                "Części Mechaniczne": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Obrabiarki Sterowane Elektrycznie",
+                "produkcja": "Linie Montażowe Elektryczne",
+                "organizacja": "Standaryzacja i Części Wymienne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-4297]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6834]",
+        "nazwa": "Fabryka Pociągów",
+        "wlasciciel_id": "[KRS-2HV-5808]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 18000,
+        "zatrudnienie_aktualne": 14400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.2195,
+            "sredni": 0.6951,
+            "szeregowi": 0.0854,
+            "wydajnosc": 2.08,
+            "inputs": {
+                "Stal": 20,
+                "Żelazo": 10,
+                "Drewno": 15
+            },
+            "outputs": {
+                "Pociągi": 5
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Linie Montażowe Parowe",
+                "produkcja": "Pociągi Parowe",
+                "organizacja": "Państwowe Monopole Kolejowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 4,
+        "pojemnosc_budowlana": 400,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 4,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-5808]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3288]",
+        "nazwa": "Zakłady Chemiczne",
+        "wlasciciel_id": "[ID-9HV-8054]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1930,
+            "eksperci": 0.2778,
+            "sredni": 0.6444,
+            "szeregowi": 0.0778,
+            "wydajnosc": 1.3,
+            "inputs": {
+                "Siarka": 5,
+                "Gaz Ziemny": 5
+            },
+            "outputs": {
+                "Nawozy": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece i Zbiorniki Ręczne",
+                "produkcja": "Proces Habera-Boscha",
+                "organizacja": "Koncern Chemiczny (IG Farben)"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-8054]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5581]",
+        "nazwa": "Fabryka Pociągów",
+        "wlasciciel_id": "[REG-4HV-2458]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4500,
+        "zatrudnienie_aktualne": 3600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.2195,
+            "sredni": 0.6951,
+            "szeregowi": 0.0854,
+            "wydajnosc": 2.08,
+            "inputs": {
+                "Stal": 20,
+                "Żelazo": 10,
+                "Drewno": 15
+            },
+            "outputs": {
+                "Pociągi": 5
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Linie Montażowe Parowe",
+                "produkcja": "Pociągi Parowe",
+                "organizacja": "Państwowe Monopole Kolejowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-2458]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3345]",
+        "nazwa": "Asfaltownia",
+        "wlasciciel_id": "[KRS-2HV-8972]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Bitumin": 5,
+                "Piasek": 10,
+                "Żwir": 10
+            },
+            "outputs": {
+                "Asfalt": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Mieszalniki Ręczne",
+                "produkcja": "Tradycyjna Asfaltownia",
+                "organizacja": "Lokalne Asfaltownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 4,
+        "pojemnosc_budowlana": 400,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 4,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-8972]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9783]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[ID-9HV-9258]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.5341,
+            "szeregowi": 0.3182,
+            "wydajnosc": 1.6,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Suwnice i Spawarki",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-9258]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3301]",
+        "nazwa": "Fabryka Maszyn Ciężkich",
+        "wlasciciel_id": "[REG-4HV-4351]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1616,
+            "sredni": 0.5556,
+            "szeregowi": 0.2828,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 10,
+                "Żelazo": 5
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 300,
+                "Części Mechaniczne": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dźwigi Parowe",
+                "produkcja": "Warsztaty Odlewnicze",
+                "organizacja": "Zakłady Państwowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-4351]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2885]",
+        "nazwa": "Asfaltownia",
+        "wlasciciel_id": "[KRS-2HV-2106]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Bitumin": 5,
+                "Piasek": 10,
+                "Żwir": 10
+            },
+            "outputs": {
+                "Asfalt": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Mieszalniki Ręczne",
+                "produkcja": "Tradycyjna Asfaltownia",
+                "organizacja": "Lokalne Asfaltownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 4,
+        "pojemnosc_budowlana": 400,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 4,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-2106]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8440]",
+        "nazwa": "Cementownia",
+        "wlasciciel_id": "[ID-9HV-9993]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Wapień": 10,
+                "Węgiel Kamienny": 5
+            },
+            "outputs": {
+                "Cement": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Rotacyjne Ręczne",
+                "produkcja": "Tradycyjna Cementownia",
+                "organizacja": "Lokalne Cementownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-9993]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9081]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[REG-4HV-2725]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1915,
+            "eksperci": 0.1839,
+            "sredni": 0.8046,
+            "szeregowi": 0.0115,
+            "wydajnosc": 4.536,
+            "inputs": {
+                "Stal": 15,
+                "Części Mechaniczne": 5,
+                "Paliwa": 2
+            },
+            "outputs": {
+                "Samochody": 100,
+                "Ciężarówki": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Linia Montażowa Fordowska",
+                "produkcja": "Linia Montażowa",
+                "organizacja": "Masowa Produkcja (Fordyzm)"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-2725]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1655]",
+        "nazwa": "Cementownia",
+        "wlasciciel_id": "[KRS-2HV-8851]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 8000,
+        "zatrudnienie_aktualne": 6400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Wapień": 10,
+                "Węgiel Kamienny": 5
+            },
+            "outputs": {
+                "Cement": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Rotacyjne Ręczne",
+                "produkcja": "Tradycyjna Cementownia",
+                "organizacja": "Lokalne Cementownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 4,
+        "pojemnosc_budowlana": 400,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 4,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-8851]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4617]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[ID-9HV-9309]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.5341,
+            "szeregowi": 0.3182,
+            "wydajnosc": 1.6,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Suwnice i Spawarki",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-9309]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3586]",
+        "nazwa": "Fabryka Pociągów",
+        "wlasciciel_id": "[REG-4HV-3562]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4500,
+        "zatrudnienie_aktualne": 3600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.2195,
+            "sredni": 0.6951,
+            "szeregowi": 0.0854,
+            "wydajnosc": 2.08,
+            "inputs": {
+                "Stal": 20,
+                "Żelazo": 10,
+                "Drewno": 15
+            },
+            "outputs": {
+                "Pociągi": 5
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Linie Montażowe Parowe",
+                "produkcja": "Pociągi Parowe",
+                "organizacja": "Państwowe Monopole Kolejowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-3562]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8560]",
+        "nazwa": "Asfaltownia",
+        "wlasciciel_id": "[KRS-2HV-5709]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Bitumin": 5,
+                "Piasek": 10,
+                "Żwir": 10
+            },
+            "outputs": {
+                "Asfalt": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Mieszalniki Ręczne",
+                "produkcja": "Tradycyjna Asfaltownia",
+                "organizacja": "Lokalne Asfaltownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 4,
+        "pojemnosc_budowlana": 400,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 4,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-5709]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4354]",
+        "nazwa": "Cementownia",
+        "wlasciciel_id": "[ID-9HV-4835]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Wapień": 10,
+                "Węgiel Kamienny": 5
+            },
+            "outputs": {
+                "Cement": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Rotacyjne Ręczne",
+                "produkcja": "Tradycyjna Cementownia",
+                "organizacja": "Lokalne Cementownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-4835]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4742]",
+        "nazwa": "Tartak",
+        "wlasciciel_id": "[REG-4HV-6767]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Drewno": 8,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Deski": 10000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piły Tarczowe i Traki",
+                "produkcja": "Mechaniczne Przeróbka",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-6767]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1771]",
+        "nazwa": "Zakłady Chemiczne",
+        "wlasciciel_id": "[KRS-2HV-8683]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 8000,
+        "zatrudnienie_aktualne": 6400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1930,
+            "eksperci": 0.2778,
+            "sredni": 0.6444,
+            "szeregowi": 0.0778,
+            "wydajnosc": 1.3,
+            "inputs": {
+                "Siarka": 5,
+                "Gaz Ziemny": 5
+            },
+            "outputs": {
+                "Nawozy": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece i Zbiorniki Ręczne",
+                "produkcja": "Proces Habera-Boscha",
+                "organizacja": "Koncern Chemiczny (IG Farben)"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 4,
+        "pojemnosc_budowlana": 400,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 4,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-8683]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7479]",
+        "nazwa": "Koksownia",
+        "wlasciciel_id": "[ID-9HV-8959]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1800,
+        "zatrudnienie_aktualne": 1440,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.2222,
+            "sredni": 0.7619,
+            "szeregowi": 0.0159,
+            "wydajnosc": 2.52,
+            "inputs": {
+                "Węgiel Kamienny": 12,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Koks": 8000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Automatyzacja Pieców",
+                "produkcja": "Wysokosprawne Piece",
+                "organizacja": "Kartele Koksownicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-8959]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4119]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[REG-4HV-3078]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1915,
+            "eksperci": 0.1839,
+            "sredni": 0.8046,
+            "szeregowi": 0.0115,
+            "wydajnosc": 4.536,
+            "inputs": {
+                "Stal": 15,
+                "Części Mechaniczne": 5,
+                "Paliwa": 2
+            },
+            "outputs": {
+                "Samochody": 100,
+                "Ciężarówki": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Linia Montażowa Fordowska",
+                "produkcja": "Linia Montażowa",
+                "organizacja": "Masowa Produkcja (Fordyzm)"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-3078]"
+        }
+    }
+]

@@ -1,0 +1,1831 @@
+[
+    {
+        "id": "[ID-9XX-4000]",
+        "nazwa": "Fabryka Maszyn Ciężkich",
+        "wlasciciel_id": "[KRS-2HV-9764]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 24000,
+        "zatrudnienie_aktualne": 19200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1616,
+            "sredni": 0.5556,
+            "szeregowi": 0.2828,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 10,
+                "Żelazo": 5
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 300,
+                "Części Mechaniczne": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dźwigi Parowe",
+                "produkcja": "Warsztaty Odlewnicze",
+                "organizacja": "Zakłady Państwowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 8,
+        "pojemnosc_budowlana": 800,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 8,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-9764]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1792]",
+        "nazwa": "Fabryka Pociągów",
+        "wlasciciel_id": "[ID-9HV-9124]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 9000,
+        "zatrudnienie_aktualne": 7200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1111,
+            "sredni": 0.5,
+            "szeregowi": 0.3889,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 20,
+                "Żelazo": 10,
+                "Drewno": 15
+            },
+            "outputs": {
+                "Pociągi": 5
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Kowalskie",
+                "produkcja": "Pociągi Parowe",
+                "organizacja": "Krajowe Zakłady Kolejowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-9124]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2228]",
+        "nazwa": "Fabryka Maszyn Ciężkich",
+        "wlasciciel_id": "[REG-4HV-9315]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1616,
+            "sredni": 0.5556,
+            "szeregowi": 0.2828,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 10,
+                "Żelazo": 5
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 300,
+                "Części Mechaniczne": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dźwigi Parowe",
+                "produkcja": "Warsztaty Odlewnicze",
+                "organizacja": "Zakłady Państwowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-9315]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9161]",
+        "nazwa": "Fabryka Pociągów",
+        "wlasciciel_id": "[KRS-2HV-4258]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 36000,
+        "zatrudnienie_aktualne": 28800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1111,
+            "sredni": 0.5,
+            "szeregowi": 0.3889,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 20,
+                "Żelazo": 10,
+                "Drewno": 15
+            },
+            "outputs": {
+                "Pociągi": 5
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Kowalskie",
+                "produkcja": "Pociągi Parowe",
+                "organizacja": "Krajowe Zakłady Kolejowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 8,
+        "pojemnosc_budowlana": 800,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 8,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-4258]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6249]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[ID-9HV-7411]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 10000,
+        "zatrudnienie_aktualne": 8000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0909,
+            "sredni": 0.5114,
+            "szeregowi": 0.3977,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2,
+                "Części Mechaniczne": 2
+            },
+            "outputs": {
+                "Samochody": 20,
+                "Ciężarówki": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Karoseryjne",
+                "produkcja": "Warsztaty Karoseryjne",
+                "organizacja": "Rzemiosło Indywidualne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-7411]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9094]",
+        "nazwa": "Fabryka Maszyn Rolnych",
+        "wlasciciel_id": "[REG-4HV-3143]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0889,
+            "sredni": 0.4444,
+            "szeregowi": 0.4667,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 8,
+                "Żelazo": 5,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Maszyny Rolne": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kowalstwo Ręczne",
+                "produkcja": "Proste Narzędzia Rolne",
+                "organizacja": "Lokalne Warsztaty"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-3143]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3002]",
+        "nazwa": "Fabryka Pociągów",
+        "wlasciciel_id": "[KRS-2HV-7872]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 36000,
+        "zatrudnienie_aktualne": 28800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1111,
+            "sredni": 0.5,
+            "szeregowi": 0.3889,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 20,
+                "Żelazo": 10,
+                "Drewno": 15
+            },
+            "outputs": {
+                "Pociągi": 5
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Kowalskie",
+                "produkcja": "Pociągi Parowe",
+                "organizacja": "Krajowe Zakłady Kolejowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 8,
+        "pojemnosc_budowlana": 800,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 8,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-7872]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9790]",
+        "nazwa": "Fabryka Maszyn Ciężkich",
+        "wlasciciel_id": "[ID-9HV-3339]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1616,
+            "sredni": 0.5556,
+            "szeregowi": 0.2828,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 10,
+                "Żelazo": 5
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 300,
+                "Części Mechaniczne": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dźwigi Parowe",
+                "produkcja": "Warsztaty Odlewnicze",
+                "organizacja": "Zakłady Państwowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-3339]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7985]",
+        "nazwa": "Rafineria",
+        "wlasciciel_id": "[REG-4HV-5030]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1087,
+            "sredni": 0.4565,
+            "szeregowi": 0.4348,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Ropa Naftowa": 20
+            },
+            "outputs": {
+                "Paliwa": 1500,
+                "Bitumin": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Destylacja Prosta",
+                "produkcja": "Prosta Destylacja",
+                "organizacja": "Małe Rafinerie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-5030]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6936]",
+        "nazwa": "Cementownia",
+        "wlasciciel_id": "[KRS-2HV-8024]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 16000,
+        "zatrudnienie_aktualne": 12800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Wapień": 10,
+                "Węgiel Kamienny": 5
+            },
+            "outputs": {
+                "Cement": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Rotacyjne Ręczne",
+                "produkcja": "Tradycyjna Cementownia",
+                "organizacja": "Lokalne Cementownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 8,
+        "pojemnosc_budowlana": 800,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 8,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-8024]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7189]",
+        "nazwa": "Fabryka Maszyn",
+        "wlasciciel_id": "[ID-9HV-6890]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.6023,
+            "szeregowi": 0.25,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 200,
+                "Części Mechaniczne": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne i Tokarki",
+                "produkcja": "Narzędzia Ręczne i Odlewnia",
+                "organizacja": "Manufaktura Warsztatowa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-6890]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1217]",
+        "nazwa": "Cegielnia (Przemysłowa)",
+        "wlasciciel_id": "[REG-4HV-7205]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Glina": 8,
+                "Węgiel Kamienny": 3
+            },
+            "outputs": {
+                "Cegły": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Cegielniane Ręczne",
+                "produkcja": "Tradycyjna Cegielnia",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-7205]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9508]",
+        "nazwa": "Huta Aluminium",
+        "wlasciciel_id": "[KRS-2HV-4618]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 28000,
+        "zatrudnienie_aktualne": 22400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1529,
+            "sredni": 0.4706,
+            "szeregowi": 0.3765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Boksyt": 15,
+                "Paliwa": 10
+            },
+            "outputs": {
+                "Aluminium": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Elektryczne Proste",
+                "produkcja": "Proces Halla-Héroulta",
+                "organizacja": "Laboratoria Badawcze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 8,
+        "pojemnosc_budowlana": 800,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 8,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-4618]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7737]",
+        "nazwa": "Fabryka Maszyn Ciężkich",
+        "wlasciciel_id": "[ID-9HV-9260]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1616,
+            "sredni": 0.5556,
+            "szeregowi": 0.2828,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 10,
+                "Żelazo": 5
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 300,
+                "Części Mechaniczne": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dźwigi Parowe",
+                "produkcja": "Warsztaty Odlewnicze",
+                "organizacja": "Zakłady Państwowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-9260]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2848]",
+        "nazwa": "Huta Stali",
+        "wlasciciel_id": "[REG-4HV-4046]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 8000,
+        "zatrudnienie_aktualne": 6400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1778,
+            "sredni": 0.7111,
+            "szeregowi": 0.1111,
+            "wydajnosc": 1.4,
+            "inputs": {
+                "Żelazo": 20,
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Stal": 3500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dmuchawy i Mechaniczne Mieszadła",
+                "produkcja": "Piec Martenowski",
+                "organizacja": "Zarządzanie Tradycyjne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-4046]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9616]",
+        "nazwa": "Cementownia",
+        "wlasciciel_id": "[KRS-2HV-6263]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 16000,
+        "zatrudnienie_aktualne": 12800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Wapień": 10,
+                "Węgiel Kamienny": 5
+            },
+            "outputs": {
+                "Cement": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Rotacyjne Ręczne",
+                "produkcja": "Tradycyjna Cementownia",
+                "organizacja": "Lokalne Cementownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 8,
+        "pojemnosc_budowlana": 800,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 8,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-6263]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6747]",
+        "nazwa": "Fabryka Pociągów",
+        "wlasciciel_id": "[ID-9HV-5339]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 9000,
+        "zatrudnienie_aktualne": 7200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1111,
+            "sredni": 0.5,
+            "szeregowi": 0.3889,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 20,
+                "Żelazo": 10,
+                "Drewno": 15
+            },
+            "outputs": {
+                "Pociągi": 5
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Kowalskie",
+                "produkcja": "Pociągi Parowe",
+                "organizacja": "Krajowe Zakłady Kolejowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-5339]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9023]",
+        "nazwa": "Tartak",
+        "wlasciciel_id": "[REG-4HV-9404]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Drewno": 8,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Deski": 10000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piły Tarczowe i Traki",
+                "produkcja": "Mechaniczne Przeróbka",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-9404]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2096]",
+        "nazwa": "Rafineria",
+        "wlasciciel_id": "[KRS-2HV-5253]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 12000,
+        "zatrudnienie_aktualne": 9600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1087,
+            "sredni": 0.4565,
+            "szeregowi": 0.4348,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Ropa Naftowa": 20
+            },
+            "outputs": {
+                "Paliwa": 1500,
+                "Bitumin": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Destylacja Prosta",
+                "produkcja": "Prosta Destylacja",
+                "organizacja": "Małe Rafinerie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 8,
+        "pojemnosc_budowlana": 800,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 8,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-5253]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1665]",
+        "nazwa": "Fabryka Maszyn Rolnych",
+        "wlasciciel_id": "[ID-9HV-2093]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0889,
+            "sredni": 0.4444,
+            "szeregowi": 0.4667,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 8,
+                "Żelazo": 5,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Maszyny Rolne": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kowalstwo Ręczne",
+                "produkcja": "Proste Narzędzia Rolne",
+                "organizacja": "Lokalne Warsztaty"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-2093]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8227]",
+        "nazwa": "Fabryka Maszyn Rolnych",
+        "wlasciciel_id": "[REG-4HV-8818]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0889,
+            "sredni": 0.4444,
+            "szeregowi": 0.4667,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 8,
+                "Żelazo": 5,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Maszyny Rolne": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kowalstwo Ręczne",
+                "produkcja": "Proste Narzędzia Rolne",
+                "organizacja": "Lokalne Warsztaty"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-8818]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6293]",
+        "nazwa": "Rafineria",
+        "wlasciciel_id": "[KRS-2HV-8292]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 12000,
+        "zatrudnienie_aktualne": 9600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1087,
+            "sredni": 0.4565,
+            "szeregowi": 0.4348,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Ropa Naftowa": 20
+            },
+            "outputs": {
+                "Paliwa": 1500,
+                "Bitumin": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Destylacja Prosta",
+                "produkcja": "Prosta Destylacja",
+                "organizacja": "Małe Rafinerie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 8,
+        "pojemnosc_budowlana": 800,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 8,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-8292]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3955]",
+        "nazwa": "Cegielnia (Przemysłowa)",
+        "wlasciciel_id": "[ID-9HV-7034]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Glina": 8,
+                "Węgiel Kamienny": 3
+            },
+            "outputs": {
+                "Cegły": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Cegielniane Ręczne",
+                "produkcja": "Tradycyjna Cegielnia",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-7034]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2253]",
+        "nazwa": "Fabryka Pociągów",
+        "wlasciciel_id": "[REG-4HV-5801]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 9000,
+        "zatrudnienie_aktualne": 7200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1111,
+            "sredni": 0.5,
+            "szeregowi": 0.3889,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 20,
+                "Żelazo": 10,
+                "Drewno": 15
+            },
+            "outputs": {
+                "Pociągi": 5
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Kowalskie",
+                "produkcja": "Pociągi Parowe",
+                "organizacja": "Krajowe Zakłady Kolejowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-5801]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5587]",
+        "nazwa": "Huta Szkła",
+        "wlasciciel_id": "[KRS-2HV-3429]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 14400,
+        "zatrudnienie_aktualne": 11520,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Piasek": 15,
+                "Wapień": 5,
+                "Węgiel Kamienny": 8
+            },
+            "outputs": {
+                "Szkło": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Szkliste Ręczne",
+                "produkcja": "Tradycyjna Huta Szkła",
+                "organizacja": "Lokalne Huty Szkła"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 8,
+        "pojemnosc_budowlana": 800,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 8,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-3429]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7610]",
+        "nazwa": "Cementownia",
+        "wlasciciel_id": "[ID-9HV-7646]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Wapień": 10,
+                "Węgiel Kamienny": 5
+            },
+            "outputs": {
+                "Cement": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Rotacyjne Ręczne",
+                "produkcja": "Tradycyjna Cementownia",
+                "organizacja": "Lokalne Cementownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-7646]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5029]",
+        "nazwa": "Cementownia",
+        "wlasciciel_id": "[REG-4HV-3157]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Wapień": 10,
+                "Węgiel Kamienny": 5
+            },
+            "outputs": {
+                "Cement": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Rotacyjne Ręczne",
+                "produkcja": "Tradycyjna Cementownia",
+                "organizacja": "Lokalne Cementownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-3157]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1246]",
+        "nazwa": "Zakłady Chemiczne",
+        "wlasciciel_id": "[KRS-2HV-9974]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 16000,
+        "zatrudnienie_aktualne": 12800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1930,
+            "eksperci": 0.2353,
+            "sredni": 0.5882,
+            "szeregowi": 0.1765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Siarka": 5,
+                "Gaz Ziemny": 5
+            },
+            "outputs": {
+                "Nawozy": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece i Zbiorniki Ręczne",
+                "produkcja": "Proces Habera-Boscha",
+                "organizacja": "Laboratoria Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 8,
+        "pojemnosc_budowlana": 800,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 8,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-9974]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6044]",
+        "nazwa": "Cegielnia (Przemysłowa)",
+        "wlasciciel_id": "[ID-9HV-5290]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Glina": 8,
+                "Węgiel Kamienny": 3
+            },
+            "outputs": {
+                "Cegły": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Cegielniane Ręczne",
+                "produkcja": "Tradycyjna Cegielnia",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-5290]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7031]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[REG-4HV-1092]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 10000,
+        "zatrudnienie_aktualne": 8000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0909,
+            "sredni": 0.5114,
+            "szeregowi": 0.3977,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2,
+                "Części Mechaniczne": 2
+            },
+            "outputs": {
+                "Samochody": 20,
+                "Ciężarówki": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Karoseryjne",
+                "produkcja": "Warsztaty Karoseryjne",
+                "organizacja": "Rzemiosło Indywidualne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-1092]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2088]",
+        "nazwa": "Cementownia",
+        "wlasciciel_id": "[KRS-2HV-6601]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 16000,
+        "zatrudnienie_aktualne": 12800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Wapień": 10,
+                "Węgiel Kamienny": 5
+            },
+            "outputs": {
+                "Cement": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Rotacyjne Ręczne",
+                "produkcja": "Tradycyjna Cementownia",
+                "organizacja": "Lokalne Cementownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 8,
+        "pojemnosc_budowlana": 800,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 8,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-6601]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9983]",
+        "nazwa": "Fabryka Maszyn Ciężkich",
+        "wlasciciel_id": "[ID-9HV-1319]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1616,
+            "sredni": 0.5556,
+            "szeregowi": 0.2828,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 10,
+                "Żelazo": 5
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 300,
+                "Części Mechaniczne": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dźwigi Parowe",
+                "produkcja": "Warsztaty Odlewnicze",
+                "organizacja": "Zakłady Państwowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-1319]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9177]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[REG-4HV-1307]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 10000,
+        "zatrudnienie_aktualne": 8000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0909,
+            "sredni": 0.5114,
+            "szeregowi": 0.3977,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2,
+                "Części Mechaniczne": 2
+            },
+            "outputs": {
+                "Samochody": 20,
+                "Ciężarówki": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Karoseryjne",
+                "produkcja": "Warsztaty Karoseryjne",
+                "organizacja": "Rzemiosło Indywidualne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-1307]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8660]",
+        "nazwa": "Koksownia",
+        "wlasciciel_id": "[KRS-2HV-2002]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 14400,
+        "zatrudnienie_aktualne": 11520,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 15
+            },
+            "outputs": {
+                "Koks": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Koksownicze Ręczne",
+                "produkcja": "Tradycyjna Koksownia",
+                "organizacja": "Lokalne Koksownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 8,
+        "pojemnosc_budowlana": 800,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 8,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-2002]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2113]",
+        "nazwa": "Cementownia",
+        "wlasciciel_id": "[ID-9HV-8673]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Wapień": 10,
+                "Węgiel Kamienny": 5
+            },
+            "outputs": {
+                "Cement": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Rotacyjne Ręczne",
+                "produkcja": "Tradycyjna Cementownia",
+                "organizacja": "Lokalne Cementownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-8673]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7896]",
+        "nazwa": "Huta Szkła",
+        "wlasciciel_id": "[REG-4HV-5160]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3600,
+        "zatrudnienie_aktualne": 2880,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Piasek": 15,
+                "Wapień": 5,
+                "Węgiel Kamienny": 8
+            },
+            "outputs": {
+                "Szkło": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Szkliste Ręczne",
+                "produkcja": "Tradycyjna Huta Szkła",
+                "organizacja": "Lokalne Huty Szkła"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-5160]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4154]",
+        "nazwa": "Fabryka Maszyn Rolnych",
+        "wlasciciel_id": "[KRS-2HV-6744]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 24000,
+        "zatrudnienie_aktualne": 19200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0889,
+            "sredni": 0.4444,
+            "szeregowi": 0.4667,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 8,
+                "Żelazo": 5,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Maszyny Rolne": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kowalstwo Ręczne",
+                "produkcja": "Proste Narzędzia Rolne",
+                "organizacja": "Lokalne Warsztaty"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 8,
+        "pojemnosc_budowlana": 800,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 8,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-6744]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3814]",
+        "nazwa": "Zakłady Chemiczne",
+        "wlasciciel_id": "[ID-9HV-7258]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1930,
+            "eksperci": 0.2353,
+            "sredni": 0.5882,
+            "szeregowi": 0.1765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Siarka": 5,
+                "Gaz Ziemny": 5
+            },
+            "outputs": {
+                "Nawozy": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece i Zbiorniki Ręczne",
+                "produkcja": "Proces Habera-Boscha",
+                "organizacja": "Laboratoria Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-7258]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5436]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[REG-4HV-2818]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 10000,
+        "zatrudnienie_aktualne": 8000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0909,
+            "sredni": 0.5114,
+            "szeregowi": 0.3977,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2,
+                "Części Mechaniczne": 2
+            },
+            "outputs": {
+                "Samochody": 20,
+                "Ciężarówki": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Karoseryjne",
+                "produkcja": "Warsztaty Karoseryjne",
+                "organizacja": "Rzemiosło Indywidualne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-2818]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3231]",
+        "nazwa": "Fabryka Maszyn Ciężkich",
+        "wlasciciel_id": "[KRS-2HV-1015]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 24000,
+        "zatrudnienie_aktualne": 19200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1616,
+            "sredni": 0.5556,
+            "szeregowi": 0.2828,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 10,
+                "Żelazo": 5
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 300,
+                "Części Mechaniczne": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dźwigi Parowe",
+                "produkcja": "Warsztaty Odlewnicze",
+                "organizacja": "Zakłady Państwowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 8,
+        "pojemnosc_budowlana": 800,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 8,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-1015]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9502]",
+        "nazwa": "Fabryka Maszyn",
+        "wlasciciel_id": "[ID-9HV-4296]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.6023,
+            "szeregowi": 0.25,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 200,
+                "Części Mechaniczne": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne i Tokarki",
+                "produkcja": "Narzędzia Ręczne i Odlewnia",
+                "organizacja": "Manufaktura Warsztatowa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-4296]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8617]",
+        "nazwa": "Cegielnia (Przemysłowa)",
+        "wlasciciel_id": "[REG-4HV-3128]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Glina": 8,
+                "Węgiel Kamienny": 3
+            },
+            "outputs": {
+                "Cegły": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Cegielniane Ręczne",
+                "produkcja": "Tradycyjna Cegielnia",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-3128]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3728]",
+        "nazwa": "Fabryka Maszyn Ciężkich",
+        "wlasciciel_id": "[KRS-2HV-6163]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 24000,
+        "zatrudnienie_aktualne": 19200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1616,
+            "sredni": 0.5556,
+            "szeregowi": 0.2828,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 10,
+                "Żelazo": 5
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 300,
+                "Części Mechaniczne": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dźwigi Parowe",
+                "produkcja": "Warsztaty Odlewnicze",
+                "organizacja": "Zakłady Państwowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 8,
+        "pojemnosc_budowlana": 800,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 8,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-6163]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3384]",
+        "nazwa": "Fabryka Maszyn Ciężkich",
+        "wlasciciel_id": "[ID-9HV-3882]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1616,
+            "sredni": 0.5556,
+            "szeregowi": 0.2828,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 10,
+                "Żelazo": 5
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 300,
+                "Części Mechaniczne": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dźwigi Parowe",
+                "produkcja": "Warsztaty Odlewnicze",
+                "organizacja": "Zakłady Państwowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-3882]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4354]",
+        "nazwa": "Huta Szkła",
+        "wlasciciel_id": "[REG-4HV-7857]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3600,
+        "zatrudnienie_aktualne": 2880,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Piasek": 15,
+                "Wapień": 5,
+                "Węgiel Kamienny": 8
+            },
+            "outputs": {
+                "Szkło": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Szkliste Ręczne",
+                "produkcja": "Tradycyjna Huta Szkła",
+                "organizacja": "Lokalne Huty Szkła"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Sarmatia-Region8",
+        "cluster_info": {
+            "region_id": "Sarmatia-Region8",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-7857]"
+        }
+    }
+]

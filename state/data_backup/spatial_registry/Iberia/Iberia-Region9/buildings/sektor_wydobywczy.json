@@ -1,0 +1,1763 @@
+[
+    {
+        "id": "[ID-9XX-6717]",
+        "nazwa": "Szyby Naftowe",
+        "wlasciciel_id": "[KRS-2MN-7172]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1885,
+            "eksperci": 0.1625,
+            "sredni": 0.525,
+            "szeregowi": 0.3125,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ropa Naftowa": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wieże Wiertnicze (Kablowe)",
+                "produkcja": "Wieże Wiertnicze",
+                "organizacja": "Prywatne Koncesje"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-7172]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7929]",
+        "nazwa": "Cegielnia (Glina)",
+        "wlasciciel_id": "[ID-9MN-3861]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3200,
+        "zatrudnienie_aktualne": 2560,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Glina": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-3861]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1729]",
+        "nazwa": "Cegielnia (Glina)",
+        "wlasciciel_id": "[REG-4MN-2907]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3200,
+        "zatrudnienie_aktualne": 2560,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Glina": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-2907]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1176]",
+        "nazwa": "Kamieniolom Wapienia",
+        "wlasciciel_id": "[KRS-2MN-3707]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3300,
+        "zatrudnienie_aktualne": 2640,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Wapień": 4500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-3707]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8393]",
+        "nazwa": "Kopalnia Soli",
+        "wlasciciel_id": "[ID-9MN-2999]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Maszyny Przemysłowe": 1,
+                "Paliwa": 2
+            },
+            "outputs": {
+                "Sól": 8000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wiertnice i Pompy",
+                "produkcja": "Odkrywka Solna",
+                "organizacja": "Państwowe Monopole"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-2999]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1742]",
+        "nazwa": "Kopalnia Cyny",
+        "wlasciciel_id": "[REG-4MN-4913]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2200,
+        "zatrudnienie_aktualne": 1760,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Cyna": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Małe Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-4913]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9742]",
+        "nazwa": "Kopalnia Ołowiu",
+        "wlasciciel_id": "[KRS-2MN-8752]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2400,
+        "zatrudnienie_aktualne": 1920,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Ołów": 1300
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-8752]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9712]",
+        "nazwa": "Kopalnie Metali Kolorowych",
+        "wlasciciel_id": "[ID-9MN-6044]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0642,
+            "sredni": 0.2477,
+            "szeregowi": 0.6881,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Miedź": 1500,
+                "Złoto": 100
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne",
+                "produkcja": "Tradycyjne Wydobycie",
+                "organizacja": "Małe Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-6044]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1060]",
+        "nazwa": "Kopalnia Cyny",
+        "wlasciciel_id": "[REG-4MN-6477]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2200,
+        "zatrudnienie_aktualne": 1760,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Cyna": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Małe Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-6477]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4542]",
+        "nazwa": "Szyby Naftowe",
+        "wlasciciel_id": "[KRS-2MN-5102]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1885,
+            "eksperci": 0.1625,
+            "sredni": 0.525,
+            "szeregowi": 0.3125,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ropa Naftowa": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wieże Wiertnicze (Kablowe)",
+                "produkcja": "Wieże Wiertnicze",
+                "organizacja": "Prywatne Koncesje"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-5102]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7591]",
+        "nazwa": "Kopalnie Metali Kolorowych",
+        "wlasciciel_id": "[ID-9MN-7445]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0642,
+            "sredni": 0.2477,
+            "szeregowi": 0.6881,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Miedź": 1500,
+                "Złoto": 100
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne",
+                "produkcja": "Tradycyjne Wydobycie",
+                "organizacja": "Małe Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-7445]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6474]",
+        "nazwa": "Kopalnia Cyny",
+        "wlasciciel_id": "[REG-4MN-6064]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2200,
+        "zatrudnienie_aktualne": 1760,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Cyna": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Małe Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-6064]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9105]",
+        "nazwa": "Kopalnia Srebra",
+        "wlasciciel_id": "[KRS-2MN-2303]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Srebro": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-2303]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7802]",
+        "nazwa": "Kopalnia Srebra",
+        "wlasciciel_id": "[ID-9MN-5580]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Srebro": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-5580]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5565]",
+        "nazwa": "Cegielnia (Glina)",
+        "wlasciciel_id": "[REG-4MN-7697]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3200,
+        "zatrudnienie_aktualne": 2560,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Glina": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-7697]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1022]",
+        "nazwa": "Piaskownia",
+        "wlasciciel_id": "[KRS-2MN-4240]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2800,
+        "zatrudnienie_aktualne": 2240,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Piasek": 7000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Łopaty i Sieciaki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Piaskownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-4240]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4973]",
+        "nazwa": "Kopalnia Cyny",
+        "wlasciciel_id": "[ID-9MN-6349]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2200,
+        "zatrudnienie_aktualne": 1760,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Cyna": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Małe Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-6349]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8762]",
+        "nazwa": "Cegielnia (Glina)",
+        "wlasciciel_id": "[REG-4MN-9101]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3200,
+        "zatrudnienie_aktualne": 2560,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Glina": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-9101]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2952]",
+        "nazwa": "Kopalnia Soli",
+        "wlasciciel_id": "[KRS-2MN-9418]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Maszyny Przemysłowe": 1,
+                "Paliwa": 2
+            },
+            "outputs": {
+                "Sól": 8000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wiertnice i Pompy",
+                "produkcja": "Odkrywka Solna",
+                "organizacja": "Państwowe Monopole"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-9418]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9791]",
+        "nazwa": "Kopalnia Węgla",
+        "wlasciciel_id": "[ID-9MN-4444]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Węgiel Kamienny": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki Konne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-4444]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9079]",
+        "nazwa": "Kopalnia Węgla",
+        "wlasciciel_id": "[REG-4MN-9619]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Węgiel Kamienny": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki Konne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-9619]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9211]",
+        "nazwa": "Kopalnia Ołowiu",
+        "wlasciciel_id": "[KRS-2MN-9256]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2400,
+        "zatrudnienie_aktualne": 1920,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Ołów": 1300
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-9256]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9331]",
+        "nazwa": "Kopalnia Ołowiu",
+        "wlasciciel_id": "[ID-9MN-2568]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2400,
+        "zatrudnienie_aktualne": 1920,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Ołów": 1300
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-2568]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4593]",
+        "nazwa": "Piaskownia",
+        "wlasciciel_id": "[REG-4MN-6979]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2800,
+        "zatrudnienie_aktualne": 2240,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Piasek": 7000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Łopaty i Sieciaki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Piaskownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-6979]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9792]",
+        "nazwa": "Kopalnia Odkrywkowa",
+        "wlasciciel_id": "[KRS-2MN-8105]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0909,
+            "sredni": 0.5682,
+            "szeregowi": 0.3409,
+            "wydajnosc": 1.82,
+            "inputs": {
+                "Drewno": 2,
+                "Maszyny Przemysłowe": 0.5
+            },
+            "outputs": {
+                "Surowce Mineralne": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Proste Maszyny Parowe",
+                "produkcja": "Wydobycie Maszynowe",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-8105]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3376]",
+        "nazwa": "Kamieniolom Wapienia",
+        "wlasciciel_id": "[ID-9MN-2016]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3300,
+        "zatrudnienie_aktualne": 2640,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Wapień": 4500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-2016]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5958]",
+        "nazwa": "Kopalnia Cynku",
+        "wlasciciel_id": "[REG-4MN-6982]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2300,
+        "zatrudnienie_aktualne": 1840,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Cynk": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-6982]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6384]",
+        "nazwa": "Cegielnia (Glina)",
+        "wlasciciel_id": "[KRS-2MN-7981]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3200,
+        "zatrudnienie_aktualne": 2560,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Glina": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-7981]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2624]",
+        "nazwa": "Kopalnia Srebra",
+        "wlasciciel_id": "[ID-9MN-8740]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Srebro": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-8740]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8322]",
+        "nazwa": "Kopalnia Soli",
+        "wlasciciel_id": "[REG-4MN-1413]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Maszyny Przemysłowe": 1,
+                "Paliwa": 2
+            },
+            "outputs": {
+                "Sól": 8000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wiertnice i Pompy",
+                "produkcja": "Odkrywka Solna",
+                "organizacja": "Państwowe Monopole"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-1413]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4266]",
+        "nazwa": "Kamieniolom",
+        "wlasciciel_id": "[KRS-2MN-3275]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Kamień": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-3275]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5714]",
+        "nazwa": "Cegielnia (Glina)",
+        "wlasciciel_id": "[ID-9MN-7873]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3200,
+        "zatrudnienie_aktualne": 2560,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Glina": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-7873]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5848]",
+        "nazwa": "Cegielnia (Glina)",
+        "wlasciciel_id": "[REG-4MN-7136]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3200,
+        "zatrudnienie_aktualne": 2560,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Glina": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-7136]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4326]",
+        "nazwa": "Cegielnia (Glina)",
+        "wlasciciel_id": "[KRS-2MN-2784]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3200,
+        "zatrudnienie_aktualne": 2560,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Glina": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-2784]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3090]",
+        "nazwa": "Kopalnia Odkrywkowa",
+        "wlasciciel_id": "[ID-9MN-5326]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0909,
+            "sredni": 0.5682,
+            "szeregowi": 0.3409,
+            "wydajnosc": 1.82,
+            "inputs": {
+                "Drewno": 2,
+                "Maszyny Przemysłowe": 0.5
+            },
+            "outputs": {
+                "Surowce Mineralne": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Proste Maszyny Parowe",
+                "produkcja": "Wydobycie Maszynowe",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-5326]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3734]",
+        "nazwa": "Kopalnie Gazu Ziemnego",
+        "wlasciciel_id": "[REG-4MN-2932]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 1000,
+        "zatrudnienie_aktualne": 800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1205,
+            "sredni": 0.4578,
+            "szeregowi": 0.4217,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 3,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Gaz Ziemny": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Odwierty Proste",
+                "produkcja": "Tradycyjne Wydobycie",
+                "organizacja": "Lokalne Koncesje"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-2932]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8405]",
+        "nazwa": "Kopalnia Żelaza",
+        "wlasciciel_id": "[KRS-2MN-6775]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Żelazo": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilkofy i Wagoniki",
+                "produkcja": "Kilkofy i Wagoniki",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-6775]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2695]",
+        "nazwa": "Kopalnia Odkrywkowa",
+        "wlasciciel_id": "[ID-9MN-6158]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0909,
+            "sredni": 0.5682,
+            "szeregowi": 0.3409,
+            "wydajnosc": 1.82,
+            "inputs": {
+                "Drewno": 2,
+                "Maszyny Przemysłowe": 0.5
+            },
+            "outputs": {
+                "Surowce Mineralne": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Proste Maszyny Parowe",
+                "produkcja": "Wydobycie Maszynowe",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-6158]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3500]",
+        "nazwa": "Kopalnia Odkrywkowa",
+        "wlasciciel_id": "[REG-4MN-7266]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0909,
+            "sredni": 0.5682,
+            "szeregowi": 0.3409,
+            "wydajnosc": 1.82,
+            "inputs": {
+                "Drewno": 2,
+                "Maszyny Przemysłowe": 0.5
+            },
+            "outputs": {
+                "Surowce Mineralne": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Proste Maszyny Parowe",
+                "produkcja": "Wydobycie Maszynowe",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-7266]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7880]",
+        "nazwa": "Kopalnia Ołowiu",
+        "wlasciciel_id": "[KRS-2MN-7829]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2400,
+        "zatrudnienie_aktualne": 1920,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Ołów": 1300
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-7829]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1642]",
+        "nazwa": "Piaskownia",
+        "wlasciciel_id": "[ID-9MN-1476]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2800,
+        "zatrudnienie_aktualne": 2240,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Piasek": 7000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Łopaty i Sieciaki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Piaskownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-1476]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6854]",
+        "nazwa": "Kopalnia Boksytu",
+        "wlasciciel_id": "[REG-4MN-9166]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Boksyt": 1800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-9166]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6258]",
+        "nazwa": "Kopalnia Węgla",
+        "wlasciciel_id": "[KRS-2MN-1266]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Węgiel Kamienny": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki Konne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-1266]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8038]",
+        "nazwa": "Kopalnia Boksytu",
+        "wlasciciel_id": "[ID-9MN-3445]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Boksyt": 1800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-3445]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6449]",
+        "nazwa": "Kamieniolom",
+        "wlasciciel_id": "[REG-4MN-3859]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Kamień": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Iberia-Region9",
+        "cluster_info": {
+            "region_id": "Iberia-Region9",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-3859]"
+        }
+    }
+]

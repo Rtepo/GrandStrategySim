@@ -1,0 +1,73 @@
+[
+  {
+    "id": "B-HEL-0064",
+    "name": "Transport Depot",
+    "wlasciciel_id": "KRS-HEL-0064",
+    "rok_budowy": 1957,
+    "sektor_pkb": "transport_logistics",
+    "pojemnosc_pracownikow": 54,
+    "zatrudnienie_aktualne": 54,
+    "rezerwa_zakladowa": 98120.0,
+    "aktywna_metoda": {
+      "rok": 1960,
+      "eksperci": 0.25,
+      "sredni": 0.4,
+      "szeregowi": 0.35,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "aluminum": 8.0,
+        "fuels": 25.0
+      },
+      "outputs": {
+        "passenger_transport": 40.0,
+        "freight_capacity": 60.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 123,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 3,
+      "sector": "transport_logistics",
+      "owner_id": "KRS-HEL-0064"
+    },
+    "ostatnia_produkcja": {
+      "passenger_transport": 7.08,
+      "freight_capacity": 10.62
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.99,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trucks",
+        "count": 4.0,
+        "condition": 0.8464329030506434,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.009316261307363497,
+      "food": 0.615
+    },
+    "pojemność_magazynu": 1230.0
+  }
+]

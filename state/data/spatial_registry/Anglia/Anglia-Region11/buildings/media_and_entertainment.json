@@ -1,0 +1,72 @@
+[
+  {
+    "id": "B-ANG-0222",
+    "name": "Media Studio",
+    "wlasciciel_id": "KRS-ANG-0222",
+    "rok_budowy": 1876,
+    "sektor_pkb": "media_and_entertainment",
+    "pojemnosc_pracownikow": 6700,
+    "zatrudnienie_aktualne": 2031,
+    "rezerwa_zakladowa": 1105940.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "paper": 10.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "radio": 0.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 178,
+    "region_id": "Anglia-Region11",
+    "cluster_info": {
+      "region_id": "Anglia-Region11",
+      "scale_factor": 1,
+      "sector": "media_and_entertainment",
+      "owner_id": "KRS-ANG-0222"
+    },
+    "ostatnia_produkcja": {
+      "radio": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.982,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 3.0,
+        "condition": 0.8718523032972857,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "timber": 2.8000000000000003,
+      "construction_services": 2.208399505409443,
+      "renovation_services": 1.1041997527047216
+    },
+    "pojemność_magazynu": 1780.0
+  }
+]

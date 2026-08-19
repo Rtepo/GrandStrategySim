@@ -1,0 +1,72 @@
+[
+  {
+    "id": "B-WEN-0248",
+    "name": "Armaments Factory",
+    "wlasciciel_id": "KRS-WEN-0248",
+    "rok_budowy": 1873,
+    "sektor_pkb": "armaments_industry",
+    "pojemnosc_pracownikow": 118,
+    "zatrudnienie_aktualne": 70,
+    "rezerwa_zakladowa": 14160.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 8.0,
+        "food": 5.0,
+        "steel": 15.0
+      },
+      "outputs": {
+        "towed_artillery": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 118,
+    "region_id": "Wenedia-Region5",
+    "cluster_info": {
+      "region_id": "Wenedia-Region5",
+      "scale_factor": 4,
+      "sector": "armaments_industry",
+      "owner_id": "KRS-WEN-0248"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.9833352726413378,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "towed_artillery": 0.59,
+      "fuels": 0.944,
+      "food": 0.59,
+      "steel": 1.77
+    },
+    "pojemność_magazynu": 1180.0
+  }
+]

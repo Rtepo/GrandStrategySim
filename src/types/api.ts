@@ -170,6 +170,12 @@ export type MacroIndicatorsResponse = { gdp: number, gdp_per_capita: number, pop
 export type MandateSummary = { description: string, required_spending: number, central_funding: number, funding_gap: number, status: string, };
 
 /**
+ * Phase 53: Megaregion drill-down data for the Regions tab.
+ * Analogous to `RegionDetail` but for the megaregion administrative layer.
+ */
+export type MegaregionDetail = { megaregion_id: string, display_name: string, country: string, member_region_ids: Array<string>, member_region_count: number, total_population: bigint, total_gdp: number, governor_name: string, governor_appointed: boolean, competence_level: string, budget_reserves: number, regional_transfers: number, development_expenditures: number, coordination_expenditures: number, budget_balance: number, };
+
+/**
  * A minister row for the Government tab.
  */
 export type MinisterRow = { ministry_name: string, minister_name: string, party: string, ideology: string, allocated_cash: number, spent_cash: number, 
@@ -401,9 +407,9 @@ company_page: PageQuery,
  */
 company_filter: CompanyFilter, 
 /**
- * If set, build a full detail for the company at this index in the filtered list.
+ * If set, build a full detail for the company with this ID.
  */
-company_detail_idx: number | null, 
+company_detail_id: string | null, 
 /**
  * Banking tab bank list pagination.
  */
@@ -411,7 +417,11 @@ bank_page: PageQuery,
 /**
  * If set, build a full region drill-down detail for this region ID.
  */
-region_drilldown_id: string | null, };
+region_drilldown_id: string | null, 
+/**
+ * Phase 53: If set, build a full megaregion drill-down detail for this megaregion ID.
+ */
+megaregion_drilldown_id: string | null, };
 
 /**
  * A full VIP dossier for the detail view.

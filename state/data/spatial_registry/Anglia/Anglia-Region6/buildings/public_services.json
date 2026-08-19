@@ -1,0 +1,74 @@
+[
+  {
+    "id": "B-ANG-0027",
+    "name": "Public Office",
+    "wlasciciel_id": "KRS-ANG-0027",
+    "rok_budowy": 1885,
+    "sektor_pkb": "public_services",
+    "pojemnosc_pracownikow": 67,
+    "zatrudnienie_aktualne": 52,
+    "rezerwa_zakladowa": 34800.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 5.0,
+        "food": 4.0,
+        "clothing": 2.0
+      },
+      "outputs": {
+        "local_services": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Anglia-Region6",
+    "cluster_info": {
+      "region_id": "Anglia-Region6",
+      "scale_factor": 2,
+      "sector": "public_services",
+      "owner_id": "KRS-ANG-0027"
+    },
+    "ostatnia_produkcja": {
+      "local_services": 3.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.988,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "office_machinery",
+        "count": 3.0,
+        "condition": 0.7725179545241877,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.5,
+      "food": 0.5,
+      "construction_services": 3.0,
+      "renovation_services": 1.0
+    },
+    "pojemność_magazynu": 1000.0
+  }
+]

@@ -27,7 +27,17 @@ export function GdpChart({ gdp, cpi, ppi, deltas, turn }: GdpChartProps) {
 
   const option: EChartsOption = {
     backgroundColor: "transparent",
-    tooltip: { trigger: "axis" },
+    tooltip: {
+      trigger: "axis",
+      valueFormatter: (v: unknown) => {
+        const n = typeof v === "number" ? v : Number(v);
+        if (!isFinite(n)) return String(v);
+        if (Math.abs(n) >= 1e9) return (n / 1e9).toFixed(2) + "B";
+        if (Math.abs(n) >= 1e6) return (n / 1e6).toFixed(2) + "M";
+        if (Math.abs(n) >= 1e3) return (n / 1e3).toFixed(2) + "K";
+        return n.toFixed(2);
+      },
+    },
     legend: {
       data: ["GDP", "CPI", "PPI"],
       textStyle: { color: "#94a3b8" },

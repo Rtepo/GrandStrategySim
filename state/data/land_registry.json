@@ -1,0 +1,3187 @@
+{
+  "Baktria": {
+    "climate": "Urodzajny",
+    "soil_profile": {
+      "III_Klasa": 0.3,
+      "II_Klasa": 0.3,
+      "IV_Klasa": 0.15,
+      "I_Klasa": 0.2,
+      "VI_Klasa": 0.0,
+      "V_Klasa": 0.05
+    },
+    "arable_land_max": 4129041,
+    "arable_land_used": 0,
+    "extraction_limits": {
+      "Kopalnia Boksytu": 16,
+      "Kopalnia Węgla": 163,
+      "Kopalnia Żelaza": 102,
+      "Kopalnie Gazu Ziemnego": 81,
+      "Kopalnie Metali Kolorowych": 47,
+      "Szyby Naftowe": 40
+    },
+    "extraction_used": {
+      "Kopalnia Boksytu": 0,
+      "Kopalnia Węgla": 0,
+      "Kopalnia Żelaza": 0,
+      "Kopalnie Gazu Ziemnego": 0,
+      "Kopalnie Metali Kolorowych": 0,
+      "Szyby Naftowe": 0
+    },
+    "resources": {
+      "boksyt": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 353921090696135,
+        "wydobycie_roczne": 0
+      },
+      "cynk": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 353921090696135,
+        "wydobycie_roczne": 0
+      },
+      "diamenty": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 353921090696135,
+        "wydobycie_roczne": 0
+      },
+      "gaz_ziemny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 589868484493559,
+        "wydobycie_roczne": 0
+      },
+      "kamień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1179736968987118,
+        "wydobycie_roczne": 0
+      },
+      "lasy": {
+        "wyeksploatowanie": 0.11775151423069873
+      },
+      "miedź": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 353921090696135,
+        "wydobycie_roczne": 0
+      },
+      "piasek": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1179736968987118,
+        "wydobycie_roczne": 0
+      },
+      "ropa": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 589868484493559,
+        "wydobycie_roczne": 0
+      },
+      "srebro": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 353921090696135,
+        "wydobycie_roczne": 0
+      },
+      "sól": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1179736968987118,
+        "wydobycie_roczne": 0
+      },
+      "torf": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 589868484493559,
+        "wydobycie_roczne": 0
+      },
+      "uran": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 589868484493559,
+        "wydobycie_roczne": 0
+      },
+      "wapień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1179736968987118,
+        "wydobycie_roczne": 0
+      },
+      "woda_slodka": {
+        "dostepnosc": 0.520557941054839
+      },
+      "węgiel": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 589868484493559,
+        "wydobycie_roczne": 0
+      },
+      "węgiel_brunatny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 589868484493559,
+        "wydobycie_roczne": 0
+      },
+      "złoto": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 353921090696135,
+        "wydobycie_roczne": 0
+      },
+      "żelazo": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 353921090696135,
+        "wydobycie_roczne": 0
+      }
+    },
+    "state_hectares": {
+      "III_Klasa": 619356,
+      "II_Klasa": 619356,
+      "IV_Klasa": 309678,
+      "I_Klasa": 412904,
+      "V_Klasa": 103226
+    },
+    "citizen_hectares": {
+      "III_Klasa": 495484,
+      "II_Klasa": 495484,
+      "IV_Klasa": 247742,
+      "I_Klasa": 330323,
+      "V_Klasa": 82580
+    },
+    "corporate_hectares": {
+      "III_Klasa": 123872,
+      "II_Klasa": 123872,
+      "IV_Klasa": 61936,
+      "I_Klasa": 82581,
+      "V_Klasa": 20646
+    },
+    "strategic_reserves": {
+      "boksyt": 58,
+      "cynk": 58,
+      "diamenty": 58,
+      "gaz_ziemny": 117,
+      "kamień": 23,
+      "miedź": 58,
+      "piasek": 23,
+      "ropa": 117,
+      "srebro": 58,
+      "sól": 23,
+      "torf": 117,
+      "uran": 117,
+      "wapień": 23,
+      "węgiel": 117,
+      "węgiel_brunatny": 117,
+      "złoto": 58,
+      "żelazo": 58
+    },
+    "built_land": 0
+  },
+  "Wenedia": {
+    "climate": "Górzysty",
+    "soil_profile": {
+      "III_Klasa": 0.25,
+      "II_Klasa": 0.1,
+      "IV_Klasa": 0.3,
+      "I_Klasa": 0.05,
+      "VI_Klasa": 0.1,
+      "V_Klasa": 0.2
+    },
+    "arable_land_max": 1866982,
+    "arable_land_used": 0,
+    "extraction_limits": {
+      "Kopalnia Boksytu": 75,
+      "Kopalnia Węgla": 186,
+      "Kopalnia Żelaza": 235,
+      "Kopalnie Gazu Ziemnego": 4,
+      "Kopalnie Metali Kolorowych": 119,
+      "Szyby Naftowe": 18
+    },
+    "extraction_used": {
+      "Kopalnia Boksytu": 0,
+      "Kopalnia Węgla": 0,
+      "Kopalnia Żelaza": 0,
+      "Kopalnie Gazu Ziemnego": 0,
+      "Kopalnie Metali Kolorowych": 0,
+      "Szyby Naftowe": 0
+    },
+    "resources": {
+      "boksyt": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 759039246157914,
+        "wydobycie_roczne": 0
+      },
+      "cynk": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 759039246157914,
+        "wydobycie_roczne": 0
+      },
+      "diamenty": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 759039246157914,
+        "wydobycie_roczne": 0
+      },
+      "gaz_ziemny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1265065410263191,
+        "wydobycie_roczne": 0
+      },
+      "kamień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2530130820526382,
+        "wydobycie_roczne": 0
+      },
+      "lasy": {
+        "wyeksploatowanie": 0.2657217183771138
+      },
+      "miedź": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 759039246157914,
+        "wydobycie_roczne": 0
+      },
+      "piasek": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2530130820526382,
+        "wydobycie_roczne": 0
+      },
+      "ropa": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1265065410263191,
+        "wydobycie_roczne": 0
+      },
+      "srebro": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 759039246157914,
+        "wydobycie_roczne": 0
+      },
+      "sól": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2530130820526382,
+        "wydobycie_roczne": 0
+      },
+      "torf": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1265065410263191,
+        "wydobycie_roczne": 0
+      },
+      "uran": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1265065410263191,
+        "wydobycie_roczne": 0
+      },
+      "wapień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2530130820526382,
+        "wydobycie_roczne": 0
+      },
+      "woda_slodka": {
+        "dostepnosc": 0.639824089246584
+      },
+      "węgiel": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1265065410263191,
+        "wydobycie_roczne": 0
+      },
+      "węgiel_brunatny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1265065410263191,
+        "wydobycie_roczne": 0
+      },
+      "złoto": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 759039246157914,
+        "wydobycie_roczne": 0
+      },
+      "żelazo": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 759039246157914,
+        "wydobycie_roczne": 0
+      }
+    },
+    "state_hectares": {
+      "III_Klasa": 233372,
+      "II_Klasa": 93349,
+      "IV_Klasa": 280047,
+      "I_Klasa": 46674,
+      "VI_Klasa": 93349,
+      "V_Klasa": 186698
+    },
+    "citizen_hectares": {
+      "III_Klasa": 186698,
+      "II_Klasa": 74679,
+      "IV_Klasa": 224037,
+      "I_Klasa": 37339,
+      "VI_Klasa": 74679,
+      "V_Klasa": 149358
+    },
+    "corporate_hectares": {
+      "III_Klasa": 46675,
+      "II_Klasa": 18670,
+      "IV_Klasa": 56010,
+      "I_Klasa": 9336,
+      "VI_Klasa": 18670,
+      "V_Klasa": 37340
+    },
+    "strategic_reserves": {
+      "boksyt": 126,
+      "cynk": 126,
+      "diamenty": 126,
+      "gaz_ziemny": 253,
+      "kamień": 50,
+      "miedź": 126,
+      "piasek": 50,
+      "ropa": 253,
+      "srebro": 126,
+      "sól": 50,
+      "torf": 253,
+      "uran": 253,
+      "wapień": 50,
+      "węgiel": 253,
+      "węgiel_brunatny": 253,
+      "złoto": 126,
+      "żelazo": 126
+    },
+    "built_land": 0
+  },
+  "Persja": {
+    "climate": "Pustynny",
+    "soil_profile": {
+      "III_Klasa": 0.1,
+      "II_Klasa": 0.04,
+      "IV_Klasa": 0.2,
+      "I_Klasa": 0.01,
+      "VI_Klasa": 0.35,
+      "V_Klasa": 0.3
+    },
+    "arable_land_max": 4907577,
+    "arable_land_used": 0,
+    "extraction_limits": {
+      "Kopalnia Boksytu": 289,
+      "Kopalnia Węgla": 187,
+      "Kopalnia Żelaza": 259,
+      "Kopalnie Gazu Ziemnego": 699,
+      "Kopalnie Metali Kolorowych": 242,
+      "Szyby Naftowe": 1719
+    },
+    "extraction_used": {
+      "Kopalnia Boksytu": 0,
+      "Kopalnia Węgla": 0,
+      "Kopalnia Żelaza": 0,
+      "Kopalnie Gazu Ziemnego": 0,
+      "Kopalnie Metali Kolorowych": 0,
+      "Szyby Naftowe": 0
+    },
+    "resources": {
+      "boksyt": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 336099011030603,
+        "wydobycie_roczne": 0
+      },
+      "cynk": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 336099011030603,
+        "wydobycie_roczne": 0
+      },
+      "diamenty": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 336099011030603,
+        "wydobycie_roczne": 0
+      },
+      "gaz_ziemny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 560165018384339,
+        "wydobycie_roczne": 0
+      },
+      "kamień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1120330036768679,
+        "wydobycie_roczne": 0
+      },
+      "lasy": {
+        "wyeksploatowanie": 0.20140777699496631
+      },
+      "miedź": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 336099011030603,
+        "wydobycie_roczne": 0
+      },
+      "piasek": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1120330036768679,
+        "wydobycie_roczne": 0
+      },
+      "ropa": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 560165018384339,
+        "wydobycie_roczne": 0
+      },
+      "srebro": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 336099011030603,
+        "wydobycie_roczne": 0
+      },
+      "sól": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1120330036768679,
+        "wydobycie_roczne": 0
+      },
+      "torf": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 560165018384339,
+        "wydobycie_roczne": 0
+      },
+      "uran": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 560165018384339,
+        "wydobycie_roczne": 0
+      },
+      "wapień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1120330036768679,
+        "wydobycie_roczne": 0
+      },
+      "woda_slodka": {
+        "dostepnosc": 0.770878602482945
+      },
+      "węgiel": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 560165018384339,
+        "wydobycie_roczne": 0
+      },
+      "węgiel_brunatny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 560165018384339,
+        "wydobycie_roczne": 0
+      },
+      "złoto": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 336099011030603,
+        "wydobycie_roczne": 0
+      },
+      "żelazo": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 336099011030603,
+        "wydobycie_roczne": 0
+      }
+    },
+    "state_hectares": {
+      "III_Klasa": 245378,
+      "II_Klasa": 98151,
+      "IV_Klasa": 490757,
+      "I_Klasa": 24537,
+      "VI_Klasa": 858825,
+      "V_Klasa": 736136
+    },
+    "citizen_hectares": {
+      "III_Klasa": 196302,
+      "II_Klasa": 78521,
+      "IV_Klasa": 392606,
+      "I_Klasa": 19630,
+      "VI_Klasa": 687060,
+      "V_Klasa": 588909
+    },
+    "corporate_hectares": {
+      "III_Klasa": 49077,
+      "II_Klasa": 19631,
+      "IV_Klasa": 98152,
+      "I_Klasa": 4908,
+      "VI_Klasa": 171766,
+      "V_Klasa": 147228
+    },
+    "strategic_reserves": {
+      "boksyt": 56,
+      "cynk": 56,
+      "diamenty": 56,
+      "gaz_ziemny": 112,
+      "kamień": 22,
+      "miedź": 56,
+      "piasek": 22,
+      "ropa": 112,
+      "srebro": 56,
+      "sól": 22,
+      "torf": 112,
+      "uran": 112,
+      "wapień": 22,
+      "węgiel": 112,
+      "węgiel_brunatny": 112,
+      "złoto": 56,
+      "żelazo": 56
+    },
+    "built_land": 0
+  },
+  "Sarmatia": {
+    "climate": "Górzysty",
+    "soil_profile": {
+      "III_Klasa": 0.25,
+      "II_Klasa": 0.1,
+      "IV_Klasa": 0.3,
+      "I_Klasa": 0.05,
+      "VI_Klasa": 0.1,
+      "V_Klasa": 0.2
+    },
+    "arable_land_max": 2856280,
+    "arable_land_used": 0,
+    "extraction_limits": {
+      "Kopalnia Boksytu": 245,
+      "Kopalnia Węgla": 439,
+      "Kopalnia Żelaza": 656,
+      "Kopalnie Gazu Ziemnego": 26,
+      "Kopalnie Metali Kolorowych": 213,
+      "Szyby Naftowe": 40
+    },
+    "extraction_used": {
+      "Kopalnia Boksytu": 0,
+      "Kopalnia Węgla": 0,
+      "Kopalnia Żelaza": 0,
+      "Kopalnie Gazu Ziemnego": 0,
+      "Kopalnie Metali Kolorowych": 0,
+      "Szyby Naftowe": 0
+    },
+    "resources": {
+      "boksyt": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1480807258975421,
+        "wydobycie_roczne": 0
+      },
+      "cynk": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1480807258975421,
+        "wydobycie_roczne": 0
+      },
+      "diamenty": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1480807258975421,
+        "wydobycie_roczne": 0
+      },
+      "gaz_ziemny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2468012098292369,
+        "wydobycie_roczne": 0
+      },
+      "kamień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 4936024196584739,
+        "wydobycie_roczne": 0
+      },
+      "lasy": {
+        "wyeksploatowanie": 0.2793731477561463
+      },
+      "miedź": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1480807258975421,
+        "wydobycie_roczne": 0
+      },
+      "piasek": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 4936024196584739,
+        "wydobycie_roczne": 0
+      },
+      "ropa": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2468012098292369,
+        "wydobycie_roczne": 0
+      },
+      "srebro": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1480807258975421,
+        "wydobycie_roczne": 0
+      },
+      "sól": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 4936024196584739,
+        "wydobycie_roczne": 0
+      },
+      "torf": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2468012098292369,
+        "wydobycie_roczne": 0
+      },
+      "uran": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2468012098292369,
+        "wydobycie_roczne": 0
+      },
+      "wapień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 4936024196584739,
+        "wydobycie_roczne": 0
+      },
+      "woda_slodka": {
+        "dostepnosc": 0.6699702032295771
+      },
+      "węgiel": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2468012098292369,
+        "wydobycie_roczne": 0
+      },
+      "węgiel_brunatny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2468012098292369,
+        "wydobycie_roczne": 0
+      },
+      "złoto": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1480807258975421,
+        "wydobycie_roczne": 0
+      },
+      "żelazo": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1480807258975421,
+        "wydobycie_roczne": 0
+      }
+    },
+    "state_hectares": {
+      "III_Klasa": 357035,
+      "II_Klasa": 142814,
+      "IV_Klasa": 428442,
+      "I_Klasa": 71407,
+      "VI_Klasa": 142814,
+      "V_Klasa": 285628
+    },
+    "citizen_hectares": {
+      "III_Klasa": 285628,
+      "II_Klasa": 114251,
+      "IV_Klasa": 342753,
+      "I_Klasa": 57125,
+      "VI_Klasa": 114251,
+      "V_Klasa": 228502
+    },
+    "corporate_hectares": {
+      "III_Klasa": 71407,
+      "II_Klasa": 28563,
+      "IV_Klasa": 85689,
+      "I_Klasa": 14282,
+      "VI_Klasa": 28563,
+      "V_Klasa": 57126
+    },
+    "strategic_reserves": {
+      "boksyt": 246,
+      "cynk": 246,
+      "diamenty": 246,
+      "gaz_ziemny": 493,
+      "kamień": 98,
+      "miedź": 246,
+      "piasek": 98,
+      "ropa": 493,
+      "srebro": 246,
+      "sól": 98,
+      "torf": 493,
+      "uran": 493,
+      "wapień": 98,
+      "węgiel": 493,
+      "węgiel_brunatny": 493,
+      "złoto": 246,
+      "żelazo": 246
+    },
+    "built_land": 0
+  },
+  "Helwecja": {
+    "climate": "Górzysty",
+    "soil_profile": {
+      "III_Klasa": 0.25,
+      "II_Klasa": 0.1,
+      "IV_Klasa": 0.3,
+      "I_Klasa": 0.05,
+      "VI_Klasa": 0.1,
+      "V_Klasa": 0.2
+    },
+    "arable_land_max": 3363000,
+    "arable_land_used": 0,
+    "extraction_limits": {
+      "Kopalnia Boksytu": 109,
+      "Kopalnia Węgla": 558,
+      "Kopalnia Żelaza": 477,
+      "Kopalnie Gazu Ziemnego": 23,
+      "Kopalnie Metali Kolorowych": 216,
+      "Szyby Naftowe": 98
+    },
+    "extraction_used": {
+      "Kopalnia Boksytu": 0,
+      "Kopalnia Węgla": 0,
+      "Kopalnia Żelaza": 0,
+      "Kopalnie Gazu Ziemnego": 0,
+      "Kopalnie Metali Kolorowych": 0,
+      "Szyby Naftowe": 0
+    },
+    "resources": {
+      "boksyt": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 499636803406662,
+        "wydobycie_roczne": 0
+      },
+      "cynk": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 499636803406662,
+        "wydobycie_roczne": 0
+      },
+      "diamenty": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 499636803406662,
+        "wydobycie_roczne": 0
+      },
+      "gaz_ziemny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 832728005677771,
+        "wydobycie_roczne": 0
+      },
+      "kamień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1665456011355542,
+        "wydobycie_roczne": 0
+      },
+      "lasy": {
+        "wyeksploatowanie": 0.25229499581220827
+      },
+      "miedź": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 499636803406662,
+        "wydobycie_roczne": 0
+      },
+      "piasek": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1665456011355542,
+        "wydobycie_roczne": 0
+      },
+      "ropa": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 832728005677771,
+        "wydobycie_roczne": 0
+      },
+      "srebro": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 499636803406662,
+        "wydobycie_roczne": 0
+      },
+      "sól": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1665456011355542,
+        "wydobycie_roczne": 0
+      },
+      "torf": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 832728005677771,
+        "wydobycie_roczne": 0
+      },
+      "uran": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 832728005677771,
+        "wydobycie_roczne": 0
+      },
+      "wapień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1665456011355542,
+        "wydobycie_roczne": 0
+      },
+      "woda_slodka": {
+        "dostepnosc": 0.8761019443638636
+      },
+      "węgiel": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 832728005677771,
+        "wydobycie_roczne": 0
+      },
+      "węgiel_brunatny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 832728005677771,
+        "wydobycie_roczne": 0
+      },
+      "złoto": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 499636803406662,
+        "wydobycie_roczne": 0
+      },
+      "żelazo": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 499636803406662,
+        "wydobycie_roczne": 0
+      }
+    },
+    "state_hectares": {
+      "III_Klasa": 420375,
+      "II_Klasa": 168150,
+      "IV_Klasa": 504450,
+      "I_Klasa": 84075,
+      "VI_Klasa": 168150,
+      "V_Klasa": 336300
+    },
+    "citizen_hectares": {
+      "III_Klasa": 336300,
+      "II_Klasa": 134520,
+      "IV_Klasa": 403560,
+      "I_Klasa": 67260,
+      "VI_Klasa": 134520,
+      "V_Klasa": 269040
+    },
+    "corporate_hectares": {
+      "III_Klasa": 84075,
+      "II_Klasa": 33630,
+      "IV_Klasa": 100890,
+      "I_Klasa": 16815,
+      "VI_Klasa": 33630,
+      "V_Klasa": 67260
+    },
+    "strategic_reserves": {
+      "boksyt": 83,
+      "cynk": 83,
+      "diamenty": 83,
+      "gaz_ziemny": 166,
+      "kamień": 33,
+      "miedź": 83,
+      "piasek": 33,
+      "ropa": 166,
+      "srebro": 83,
+      "sól": 33,
+      "torf": 166,
+      "uran": 166,
+      "wapień": 33,
+      "węgiel": 166,
+      "węgiel_brunatny": 166,
+      "złoto": 83,
+      "żelazo": 83
+    },
+    "built_land": 0
+  },
+  "Oksytania": {
+    "climate": "Pustynny",
+    "soil_profile": {
+      "III_Klasa": 0.1,
+      "II_Klasa": 0.04,
+      "IV_Klasa": 0.2,
+      "I_Klasa": 0.01,
+      "VI_Klasa": 0.35,
+      "V_Klasa": 0.3
+    },
+    "arable_land_max": 4342286,
+    "arable_land_used": 0,
+    "extraction_limits": {
+      "Kopalnia Boksytu": 189,
+      "Kopalnia Węgla": 63,
+      "Kopalnia Żelaza": 394,
+      "Kopalnie Gazu Ziemnego": 1434,
+      "Kopalnie Metali Kolorowych": 296,
+      "Szyby Naftowe": 1824
+    },
+    "extraction_used": {
+      "Kopalnia Boksytu": 0,
+      "Kopalnia Węgla": 0,
+      "Kopalnia Żelaza": 0,
+      "Kopalnie Gazu Ziemnego": 0,
+      "Kopalnie Metali Kolorowych": 0,
+      "Szyby Naftowe": 0
+    },
+    "resources": {
+      "boksyt": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 466998471828676,
+        "wydobycie_roczne": 0
+      },
+      "cynk": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 466998471828676,
+        "wydobycie_roczne": 0
+      },
+      "diamenty": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 466998471828676,
+        "wydobycie_roczne": 0
+      },
+      "gaz_ziemny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 778330786381126,
+        "wydobycie_roczne": 0
+      },
+      "kamień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1556661572762253,
+        "wydobycie_roczne": 0
+      },
+      "lasy": {
+        "wyeksploatowanie": 0.16683094630963596
+      },
+      "miedź": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 466998471828676,
+        "wydobycie_roczne": 0
+      },
+      "piasek": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1556661572762253,
+        "wydobycie_roczne": 0
+      },
+      "ropa": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 778330786381126,
+        "wydobycie_roczne": 0
+      },
+      "srebro": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 466998471828676,
+        "wydobycie_roczne": 0
+      },
+      "sól": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1556661572762253,
+        "wydobycie_roczne": 0
+      },
+      "torf": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 778330786381126,
+        "wydobycie_roczne": 0
+      },
+      "uran": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 778330786381126,
+        "wydobycie_roczne": 0
+      },
+      "wapień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1556661572762253,
+        "wydobycie_roczne": 0
+      },
+      "woda_slodka": {
+        "dostepnosc": 0.5947734585011296
+      },
+      "węgiel": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 778330786381126,
+        "wydobycie_roczne": 0
+      },
+      "węgiel_brunatny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 778330786381126,
+        "wydobycie_roczne": 0
+      },
+      "złoto": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 466998471828676,
+        "wydobycie_roczne": 0
+      },
+      "żelazo": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 466998471828676,
+        "wydobycie_roczne": 0
+      }
+    },
+    "state_hectares": {
+      "III_Klasa": 217114,
+      "II_Klasa": 86845,
+      "IV_Klasa": 434228,
+      "I_Klasa": 21711,
+      "VI_Klasa": 759900,
+      "V_Klasa": 651342
+    },
+    "citizen_hectares": {
+      "III_Klasa": 173691,
+      "II_Klasa": 69476,
+      "IV_Klasa": 347382,
+      "I_Klasa": 17368,
+      "VI_Klasa": 607920,
+      "V_Klasa": 521074
+    },
+    "corporate_hectares": {
+      "III_Klasa": 43423,
+      "II_Klasa": 17370,
+      "IV_Klasa": 86847,
+      "I_Klasa": 4343,
+      "VI_Klasa": 151980,
+      "V_Klasa": 130269
+    },
+    "strategic_reserves": {
+      "boksyt": 77,
+      "cynk": 77,
+      "diamenty": 77,
+      "gaz_ziemny": 155,
+      "kamień": 31,
+      "miedź": 77,
+      "piasek": 31,
+      "ropa": 155,
+      "srebro": 77,
+      "sól": 31,
+      "torf": 155,
+      "uran": 155,
+      "wapień": 31,
+      "węgiel": 155,
+      "węgiel_brunatny": 155,
+      "złoto": 77,
+      "żelazo": 77
+    },
+    "built_land": 0
+  },
+  "Anatolia": {
+    "climate": "Pustynny",
+    "soil_profile": {
+      "III_Klasa": 0.1,
+      "II_Klasa": 0.04,
+      "IV_Klasa": 0.2,
+      "I_Klasa": 0.01,
+      "VI_Klasa": 0.35,
+      "V_Klasa": 0.3
+    },
+    "arable_land_max": 2964957,
+    "arable_land_used": 0,
+    "extraction_limits": {
+      "Kopalnia Boksytu": 76,
+      "Kopalnia Węgla": 219,
+      "Kopalnia Żelaza": 157,
+      "Kopalnie Gazu Ziemnego": 448,
+      "Kopalnie Metali Kolorowych": 160,
+      "Szyby Naftowe": 1113
+    },
+    "extraction_used": {
+      "Kopalnia Boksytu": 0,
+      "Kopalnia Węgla": 0,
+      "Kopalnia Żelaza": 0,
+      "Kopalnie Gazu Ziemnego": 0,
+      "Kopalnie Metali Kolorowych": 0,
+      "Szyby Naftowe": 0
+    },
+    "resources": {
+      "boksyt": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 916615009850797,
+        "wydobycie_roczne": 0
+      },
+      "cynk": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 916615009850797,
+        "wydobycie_roczne": 0
+      },
+      "diamenty": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 916615009850797,
+        "wydobycie_roczne": 0
+      },
+      "gaz_ziemny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1527691683084662,
+        "wydobycie_roczne": 0
+      },
+      "kamień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 3055383366169324,
+        "wydobycie_roczne": 0
+      },
+      "lasy": {
+        "wyeksploatowanie": 0.1788883480916738
+      },
+      "miedź": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 916615009850797,
+        "wydobycie_roczne": 0
+      },
+      "piasek": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 3055383366169324,
+        "wydobycie_roczne": 0
+      },
+      "ropa": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1527691683084662,
+        "wydobycie_roczne": 0
+      },
+      "srebro": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 916615009850797,
+        "wydobycie_roczne": 0
+      },
+      "sól": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 3055383366169324,
+        "wydobycie_roczne": 0
+      },
+      "torf": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1527691683084662,
+        "wydobycie_roczne": 0
+      },
+      "uran": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1527691683084662,
+        "wydobycie_roczne": 0
+      },
+      "wapień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 3055383366169324,
+        "wydobycie_roczne": 0
+      },
+      "woda_slodka": {
+        "dostepnosc": 0.6634695944784026
+      },
+      "węgiel": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1527691683084662,
+        "wydobycie_roczne": 0
+      },
+      "węgiel_brunatny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1527691683084662,
+        "wydobycie_roczne": 0
+      },
+      "złoto": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 916615009850797,
+        "wydobycie_roczne": 0
+      },
+      "żelazo": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 916615009850797,
+        "wydobycie_roczne": 0
+      }
+    },
+    "state_hectares": {
+      "III_Klasa": 148247,
+      "II_Klasa": 59299,
+      "IV_Klasa": 296495,
+      "I_Klasa": 14824,
+      "VI_Klasa": 518867,
+      "V_Klasa": 444743
+    },
+    "citizen_hectares": {
+      "III_Klasa": 118598,
+      "II_Klasa": 47439,
+      "IV_Klasa": 237196,
+      "I_Klasa": 11859,
+      "VI_Klasa": 415093,
+      "V_Klasa": 355794
+    },
+    "corporate_hectares": {
+      "III_Klasa": 29650,
+      "II_Klasa": 11860,
+      "IV_Klasa": 59300,
+      "I_Klasa": 2966,
+      "VI_Klasa": 103774,
+      "V_Klasa": 88950
+    },
+    "strategic_reserves": {
+      "boksyt": 152,
+      "cynk": 152,
+      "diamenty": 152,
+      "gaz_ziemny": 305,
+      "kamień": 61,
+      "miedź": 152,
+      "piasek": 61,
+      "ropa": 305,
+      "srebro": 152,
+      "sól": 61,
+      "torf": 305,
+      "uran": 305,
+      "wapień": 61,
+      "węgiel": 305,
+      "węgiel_brunatny": 305,
+      "złoto": 152,
+      "żelazo": 152
+    },
+    "built_land": 0
+  },
+  "Nordia": {
+    "climate": "Zrównoważony",
+    "soil_profile": {
+      "III_Klasa": 0.2,
+      "II_Klasa": 0.2,
+      "IV_Klasa": 0.25,
+      "I_Klasa": 0.1,
+      "VI_Klasa": 0.1,
+      "V_Klasa": 0.15
+    },
+    "arable_land_max": 4355847,
+    "arable_land_used": 0,
+    "extraction_limits": {
+      "Kopalnia Boksytu": 353,
+      "Kopalnia Węgla": 260,
+      "Kopalnia Żelaza": 416,
+      "Kopalnie Gazu Ziemnego": 360,
+      "Kopalnie Metali Kolorowych": 517,
+      "Szyby Naftowe": 446
+    },
+    "extraction_used": {
+      "Kopalnia Boksytu": 0,
+      "Kopalnia Węgla": 0,
+      "Kopalnia Żelaza": 0,
+      "Kopalnie Gazu Ziemnego": 0,
+      "Kopalnie Metali Kolorowych": 0,
+      "Szyby Naftowe": 0
+    },
+    "resources": {
+      "boksyt": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2700794609420756,
+        "wydobycie_roczne": 0
+      },
+      "cynk": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2700794609420756,
+        "wydobycie_roczne": 0
+      },
+      "diamenty": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2700794609420756,
+        "wydobycie_roczne": 0
+      },
+      "gaz_ziemny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 4501324349034594,
+        "wydobycie_roczne": 0
+      },
+      "kamień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 9002648698069188,
+        "wydobycie_roczne": 0
+      },
+      "lasy": {
+        "wyeksploatowanie": 0.2215770793320257
+      },
+      "miedź": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2700794609420756,
+        "wydobycie_roczne": 0
+      },
+      "piasek": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 9002648698069188,
+        "wydobycie_roczne": 0
+      },
+      "ropa": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 4501324349034594,
+        "wydobycie_roczne": 0
+      },
+      "srebro": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2700794609420756,
+        "wydobycie_roczne": 0
+      },
+      "sól": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 9002648698069188,
+        "wydobycie_roczne": 0
+      },
+      "torf": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 4501324349034594,
+        "wydobycie_roczne": 0
+      },
+      "uran": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 4501324349034594,
+        "wydobycie_roczne": 0
+      },
+      "wapień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 9002648698069188,
+        "wydobycie_roczne": 0
+      },
+      "woda_slodka": {
+        "dostepnosc": 0.9619423510951127
+      },
+      "węgiel": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 4501324349034594,
+        "wydobycie_roczne": 0
+      },
+      "węgiel_brunatny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 4501324349034594,
+        "wydobycie_roczne": 0
+      },
+      "złoto": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2700794609420756,
+        "wydobycie_roczne": 0
+      },
+      "żelazo": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2700794609420756,
+        "wydobycie_roczne": 0
+      }
+    },
+    "state_hectares": {
+      "III_Klasa": 435584,
+      "II_Klasa": 435584,
+      "IV_Klasa": 544480,
+      "I_Klasa": 217792,
+      "VI_Klasa": 217792,
+      "V_Klasa": 326688
+    },
+    "citizen_hectares": {
+      "III_Klasa": 348467,
+      "II_Klasa": 348467,
+      "IV_Klasa": 435584,
+      "I_Klasa": 174233,
+      "VI_Klasa": 174233,
+      "V_Klasa": 261350
+    },
+    "corporate_hectares": {
+      "III_Klasa": 87118,
+      "II_Klasa": 87118,
+      "IV_Klasa": 108897,
+      "I_Klasa": 43559,
+      "VI_Klasa": 43559,
+      "V_Klasa": 65339
+    },
+    "strategic_reserves": {
+      "boksyt": 450,
+      "cynk": 450,
+      "diamenty": 450,
+      "gaz_ziemny": 900,
+      "kamień": 180,
+      "miedź": 450,
+      "piasek": 180,
+      "ropa": 900,
+      "srebro": 450,
+      "sól": 180,
+      "torf": 900,
+      "uran": 900,
+      "wapień": 180,
+      "węgiel": 900,
+      "węgiel_brunatny": 900,
+      "złoto": 450,
+      "żelazo": 450
+    },
+    "built_land": 0
+  },
+  "Eldoria": {
+    "climate": "Pustynny",
+    "soil_profile": {
+      "III_Klasa": 0.1,
+      "II_Klasa": 0.04,
+      "IV_Klasa": 0.2,
+      "I_Klasa": 0.01,
+      "VI_Klasa": 0.35,
+      "V_Klasa": 0.3
+    },
+    "arable_land_max": 7247670,
+    "arable_land_used": 0,
+    "extraction_limits": {
+      "Kopalnia Boksytu": 427,
+      "Kopalnia Węgla": 123,
+      "Kopalnia Żelaza": 496,
+      "Kopalnie Gazu Ziemnego": 1673,
+      "Kopalnie Metali Kolorowych": 329,
+      "Szyby Naftowe": 1936
+    },
+    "extraction_used": {
+      "Kopalnia Boksytu": 0,
+      "Kopalnia Węgla": 0,
+      "Kopalnia Żelaza": 0,
+      "Kopalnie Gazu Ziemnego": 0,
+      "Kopalnie Metali Kolorowych": 0,
+      "Szyby Naftowe": 0
+    },
+    "resources": {
+      "boksyt": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1682517842754166,
+        "wydobycie_roczne": 0
+      },
+      "cynk": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1682517842754166,
+        "wydobycie_roczne": 0
+      },
+      "diamenty": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1682517842754166,
+        "wydobycie_roczne": 0
+      },
+      "gaz_ziemny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2804196404590277,
+        "wydobycie_roczne": 0
+      },
+      "kamień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 5608392809180555,
+        "wydobycie_roczne": 0
+      },
+      "lasy": {
+        "wyeksploatowanie": 0.24637491220946472
+      },
+      "miedź": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1682517842754166,
+        "wydobycie_roczne": 0
+      },
+      "piasek": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 5608392809180555,
+        "wydobycie_roczne": 0
+      },
+      "ropa": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2804196404590277,
+        "wydobycie_roczne": 0
+      },
+      "srebro": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1682517842754166,
+        "wydobycie_roczne": 0
+      },
+      "sól": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 5608392809180555,
+        "wydobycie_roczne": 0
+      },
+      "torf": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2804196404590277,
+        "wydobycie_roczne": 0
+      },
+      "uran": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2804196404590277,
+        "wydobycie_roczne": 0
+      },
+      "wapień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 5608392809180555,
+        "wydobycie_roczne": 0
+      },
+      "woda_slodka": {
+        "dostepnosc": 0.7637926040755448
+      },
+      "węgiel": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2804196404590277,
+        "wydobycie_roczne": 0
+      },
+      "węgiel_brunatny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2804196404590277,
+        "wydobycie_roczne": 0
+      },
+      "złoto": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1682517842754166,
+        "wydobycie_roczne": 0
+      },
+      "żelazo": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1682517842754166,
+        "wydobycie_roczne": 0
+      }
+    },
+    "state_hectares": {
+      "III_Klasa": 362383,
+      "II_Klasa": 144953,
+      "IV_Klasa": 724767,
+      "I_Klasa": 36238,
+      "VI_Klasa": 1268342,
+      "V_Klasa": 1087150
+    },
+    "citizen_hectares": {
+      "III_Klasa": 289906,
+      "II_Klasa": 115962,
+      "IV_Klasa": 579813,
+      "I_Klasa": 28990,
+      "VI_Klasa": 1014673,
+      "V_Klasa": 869720
+    },
+    "corporate_hectares": {
+      "III_Klasa": 72478,
+      "II_Klasa": 28991,
+      "IV_Klasa": 144954,
+      "I_Klasa": 7248,
+      "VI_Klasa": 253669,
+      "V_Klasa": 217431
+    },
+    "strategic_reserves": {
+      "boksyt": 280,
+      "cynk": 280,
+      "diamenty": 280,
+      "gaz_ziemny": 560,
+      "kamień": 112,
+      "miedź": 280,
+      "piasek": 112,
+      "ropa": 560,
+      "srebro": 280,
+      "sól": 112,
+      "torf": 560,
+      "uran": 560,
+      "wapień": 112,
+      "węgiel": 560,
+      "węgiel_brunatny": 560,
+      "złoto": 280,
+      "żelazo": 280
+    },
+    "built_land": 0
+  },
+  "Galia": {
+    "climate": "Urodzajny",
+    "soil_profile": {
+      "III_Klasa": 0.3,
+      "II_Klasa": 0.3,
+      "IV_Klasa": 0.15,
+      "I_Klasa": 0.2,
+      "VI_Klasa": 0.0,
+      "V_Klasa": 0.05
+    },
+    "arable_land_max": 14069612,
+    "arable_land_used": 0,
+    "extraction_limits": {
+      "Kopalnia Boksytu": 79,
+      "Kopalnia Węgla": 373,
+      "Kopalnia Żelaza": 230,
+      "Kopalnie Gazu Ziemnego": 310,
+      "Kopalnie Metali Kolorowych": 245,
+      "Szyby Naftowe": 107
+    },
+    "extraction_used": {
+      "Kopalnia Boksytu": 0,
+      "Kopalnia Węgla": 0,
+      "Kopalnia Żelaza": 0,
+      "Kopalnie Gazu Ziemnego": 0,
+      "Kopalnie Metali Kolorowych": 0,
+      "Szyby Naftowe": 0
+    },
+    "resources": {
+      "boksyt": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 869789312698296,
+        "wydobycie_roczne": 0
+      },
+      "cynk": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 869789312698296,
+        "wydobycie_roczne": 0
+      },
+      "diamenty": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 869789312698296,
+        "wydobycie_roczne": 0
+      },
+      "gaz_ziemny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1449648854497160,
+        "wydobycie_roczne": 0
+      },
+      "kamień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2899297708994321,
+        "wydobycie_roczne": 0
+      },
+      "lasy": {
+        "wyeksploatowanie": 0.12874030706896922
+      },
+      "miedź": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 869789312698296,
+        "wydobycie_roczne": 0
+      },
+      "piasek": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2899297708994321,
+        "wydobycie_roczne": 0
+      },
+      "ropa": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1449648854497160,
+        "wydobycie_roczne": 0
+      },
+      "srebro": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 869789312698296,
+        "wydobycie_roczne": 0
+      },
+      "sól": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2899297708994321,
+        "wydobycie_roczne": 0
+      },
+      "torf": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1449648854497160,
+        "wydobycie_roczne": 0
+      },
+      "uran": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1449648854497160,
+        "wydobycie_roczne": 0
+      },
+      "wapień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2899297708994321,
+        "wydobycie_roczne": 0
+      },
+      "woda_slodka": {
+        "dostepnosc": 0.7973973897467012
+      },
+      "węgiel": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1449648854497160,
+        "wydobycie_roczne": 0
+      },
+      "węgiel_brunatny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1449648854497160,
+        "wydobycie_roczne": 0
+      },
+      "złoto": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 869789312698296,
+        "wydobycie_roczne": 0
+      },
+      "żelazo": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 869789312698296,
+        "wydobycie_roczne": 0
+      }
+    },
+    "state_hectares": {
+      "III_Klasa": 2110441,
+      "II_Klasa": 2110441,
+      "IV_Klasa": 1055220,
+      "I_Klasa": 1406961,
+      "V_Klasa": 351740
+    },
+    "citizen_hectares": {
+      "III_Klasa": 1688353,
+      "II_Klasa": 1688353,
+      "IV_Klasa": 844176,
+      "I_Klasa": 1125568,
+      "V_Klasa": 281392
+    },
+    "corporate_hectares": {
+      "III_Klasa": 422089,
+      "II_Klasa": 422089,
+      "IV_Klasa": 211045,
+      "I_Klasa": 281393,
+      "V_Klasa": 70348
+    },
+    "strategic_reserves": {
+      "boksyt": 144,
+      "cynk": 144,
+      "diamenty": 144,
+      "gaz_ziemny": 289,
+      "kamień": 57,
+      "miedź": 144,
+      "piasek": 57,
+      "ropa": 289,
+      "srebro": 144,
+      "sól": 57,
+      "torf": 289,
+      "uran": 289,
+      "wapień": 57,
+      "węgiel": 289,
+      "węgiel_brunatny": 289,
+      "złoto": 144,
+      "żelazo": 144
+    },
+    "built_land": 0
+  },
+  "Lechia": {
+    "climate": "Pustynny",
+    "soil_profile": {
+      "III_Klasa": 0.1,
+      "II_Klasa": 0.04,
+      "IV_Klasa": 0.2,
+      "I_Klasa": 0.01,
+      "VI_Klasa": 0.35,
+      "V_Klasa": 0.3
+    },
+    "arable_land_max": 4291918,
+    "arable_land_used": 0,
+    "extraction_limits": {
+      "Kopalnia Boksytu": 280,
+      "Kopalnia Węgla": 72,
+      "Kopalnia Żelaza": 325,
+      "Kopalnie Gazu Ziemnego": 1256,
+      "Kopalnie Metali Kolorowych": 456,
+      "Szyby Naftowe": 847
+    },
+    "extraction_used": {
+      "Kopalnia Boksytu": 0,
+      "Kopalnia Węgla": 0,
+      "Kopalnia Żelaza": 0,
+      "Kopalnie Gazu Ziemnego": 0,
+      "Kopalnie Metali Kolorowych": 0,
+      "Szyby Naftowe": 0
+    },
+    "resources": {
+      "boksyt": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 929850029606777,
+        "wydobycie_roczne": 0
+      },
+      "cynk": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 929850029606777,
+        "wydobycie_roczne": 0
+      },
+      "diamenty": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 929850029606777,
+        "wydobycie_roczne": 0
+      },
+      "gaz_ziemny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1549750049344629,
+        "wydobycie_roczne": 0
+      },
+      "kamień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 3099500098689259,
+        "wydobycie_roczne": 0
+      },
+      "lasy": {
+        "wyeksploatowanie": 0.16290015259747959
+      },
+      "miedź": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 929850029606777,
+        "wydobycie_roczne": 0
+      },
+      "piasek": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 3099500098689259,
+        "wydobycie_roczne": 0
+      },
+      "ropa": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1549750049344629,
+        "wydobycie_roczne": 0
+      },
+      "srebro": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 929850029606777,
+        "wydobycie_roczne": 0
+      },
+      "sól": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 3099500098689259,
+        "wydobycie_roczne": 0
+      },
+      "torf": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1549750049344629,
+        "wydobycie_roczne": 0
+      },
+      "uran": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1549750049344629,
+        "wydobycie_roczne": 0
+      },
+      "wapień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 3099500098689259,
+        "wydobycie_roczne": 0
+      },
+      "woda_slodka": {
+        "dostepnosc": 0.8213467051461396
+      },
+      "węgiel": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1549750049344629,
+        "wydobycie_roczne": 0
+      },
+      "węgiel_brunatny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1549750049344629,
+        "wydobycie_roczne": 0
+      },
+      "złoto": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 929850029606777,
+        "wydobycie_roczne": 0
+      },
+      "żelazo": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 929850029606777,
+        "wydobycie_roczne": 0
+      }
+    },
+    "state_hectares": {
+      "III_Klasa": 214595,
+      "II_Klasa": 85838,
+      "IV_Klasa": 429191,
+      "I_Klasa": 21459,
+      "VI_Klasa": 751085,
+      "V_Klasa": 643787
+    },
+    "citizen_hectares": {
+      "III_Klasa": 171676,
+      "II_Klasa": 68670,
+      "IV_Klasa": 343353,
+      "I_Klasa": 17167,
+      "VI_Klasa": 600868,
+      "V_Klasa": 515030
+    },
+    "corporate_hectares": {
+      "III_Klasa": 42920,
+      "II_Klasa": 17168,
+      "IV_Klasa": 85839,
+      "I_Klasa": 4293,
+      "VI_Klasa": 150218,
+      "V_Klasa": 128758
+    },
+    "strategic_reserves": {
+      "boksyt": 154,
+      "cynk": 154,
+      "diamenty": 154,
+      "gaz_ziemny": 309,
+      "kamień": 61,
+      "miedź": 154,
+      "piasek": 61,
+      "ropa": 309,
+      "srebro": 154,
+      "sól": 61,
+      "torf": 309,
+      "uran": 309,
+      "wapień": 61,
+      "węgiel": 309,
+      "węgiel_brunatny": 309,
+      "złoto": 154,
+      "żelazo": 154
+    },
+    "built_land": 0
+  },
+  "Anglia": {
+    "climate": "Górzysty",
+    "soil_profile": {
+      "III_Klasa": 0.25,
+      "II_Klasa": 0.1,
+      "IV_Klasa": 0.3,
+      "I_Klasa": 0.05,
+      "VI_Klasa": 0.1,
+      "V_Klasa": 0.2
+    },
+    "arable_land_max": 1585448,
+    "arable_land_used": 0,
+    "extraction_limits": {
+      "Kopalnia Boksytu": 122,
+      "Kopalnia Węgla": 207,
+      "Kopalnia Żelaza": 255,
+      "Kopalnie Gazu Ziemnego": 2,
+      "Kopalnie Metali Kolorowych": 91,
+      "Szyby Naftowe": 17
+    },
+    "extraction_used": {
+      "Kopalnia Boksytu": 0,
+      "Kopalnia Węgla": 0,
+      "Kopalnia Żelaza": 0,
+      "Kopalnie Gazu Ziemnego": 0,
+      "Kopalnie Metali Kolorowych": 0,
+      "Szyby Naftowe": 0
+    },
+    "resources": {
+      "boksyt": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 463127156990665,
+        "wydobycie_roczne": 0
+      },
+      "cynk": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 463127156990665,
+        "wydobycie_roczne": 0
+      },
+      "diamenty": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 463127156990665,
+        "wydobycie_roczne": 0
+      },
+      "gaz_ziemny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 771878594984441,
+        "wydobycie_roczne": 0
+      },
+      "kamień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1543757189968883,
+        "wydobycie_roczne": 0
+      },
+      "lasy": {
+        "wyeksploatowanie": 0.1772021360580399
+      },
+      "miedź": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 463127156990665,
+        "wydobycie_roczne": 0
+      },
+      "piasek": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1543757189968883,
+        "wydobycie_roczne": 0
+      },
+      "ropa": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 771878594984441,
+        "wydobycie_roczne": 0
+      },
+      "srebro": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 463127156990665,
+        "wydobycie_roczne": 0
+      },
+      "sól": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1543757189968883,
+        "wydobycie_roczne": 0
+      },
+      "torf": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 771878594984441,
+        "wydobycie_roczne": 0
+      },
+      "uran": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 771878594984441,
+        "wydobycie_roczne": 0
+      },
+      "wapień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1543757189968883,
+        "wydobycie_roczne": 0
+      },
+      "woda_slodka": {
+        "dostepnosc": 0.8186232953200323
+      },
+      "węgiel": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 771878594984441,
+        "wydobycie_roczne": 0
+      },
+      "węgiel_brunatny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 771878594984441,
+        "wydobycie_roczne": 0
+      },
+      "złoto": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 463127156990665,
+        "wydobycie_roczne": 0
+      },
+      "żelazo": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 463127156990665,
+        "wydobycie_roczne": 0
+      }
+    },
+    "state_hectares": {
+      "III_Klasa": 198181,
+      "II_Klasa": 79272,
+      "IV_Klasa": 237817,
+      "I_Klasa": 39636,
+      "VI_Klasa": 79272,
+      "V_Klasa": 158544
+    },
+    "citizen_hectares": {
+      "III_Klasa": 158544,
+      "II_Klasa": 63417,
+      "IV_Klasa": 190253,
+      "I_Klasa": 31708,
+      "VI_Klasa": 63417,
+      "V_Klasa": 126835
+    },
+    "corporate_hectares": {
+      "III_Klasa": 39637,
+      "II_Klasa": 15855,
+      "IV_Klasa": 47564,
+      "I_Klasa": 7928,
+      "VI_Klasa": 15855,
+      "V_Klasa": 31710
+    },
+    "strategic_reserves": {
+      "boksyt": 77,
+      "cynk": 77,
+      "diamenty": 77,
+      "gaz_ziemny": 154,
+      "kamień": 30,
+      "miedź": 77,
+      "piasek": 30,
+      "ropa": 154,
+      "srebro": 77,
+      "sól": 30,
+      "torf": 154,
+      "uran": 154,
+      "wapień": 30,
+      "węgiel": 154,
+      "węgiel_brunatny": 154,
+      "złoto": 77,
+      "żelazo": 77
+    },
+    "built_land": 0
+  },
+  "Iliria": {
+    "climate": "Urodzajny",
+    "soil_profile": {
+      "III_Klasa": 0.3,
+      "II_Klasa": 0.3,
+      "IV_Klasa": 0.15,
+      "I_Klasa": 0.2,
+      "VI_Klasa": 0.0,
+      "V_Klasa": 0.05
+    },
+    "arable_land_max": 7745039,
+    "arable_land_used": 0,
+    "extraction_limits": {
+      "Kopalnia Boksytu": 65,
+      "Kopalnia Węgla": 231,
+      "Kopalnia Żelaza": 98,
+      "Kopalnie Gazu Ziemnego": 109,
+      "Kopalnie Metali Kolorowych": 139,
+      "Szyby Naftowe": 76
+    },
+    "extraction_used": {
+      "Kopalnia Boksytu": 0,
+      "Kopalnia Węgla": 0,
+      "Kopalnia Żelaza": 0,
+      "Kopalnie Gazu Ziemnego": 0,
+      "Kopalnie Metali Kolorowych": 0,
+      "Szyby Naftowe": 0
+    },
+    "resources": {
+      "boksyt": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1323022173246678,
+        "wydobycie_roczne": 0
+      },
+      "cynk": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1323022173246678,
+        "wydobycie_roczne": 0
+      },
+      "diamenty": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1323022173246678,
+        "wydobycie_roczne": 0
+      },
+      "gaz_ziemny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2205036955411131,
+        "wydobycie_roczne": 0
+      },
+      "kamień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 4410073910822262,
+        "wydobycie_roczne": 0
+      },
+      "lasy": {
+        "wyeksploatowanie": 0.12309989565404833
+      },
+      "miedź": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1323022173246678,
+        "wydobycie_roczne": 0
+      },
+      "piasek": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 4410073910822262,
+        "wydobycie_roczne": 0
+      },
+      "ropa": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2205036955411131,
+        "wydobycie_roczne": 0
+      },
+      "srebro": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1323022173246678,
+        "wydobycie_roczne": 0
+      },
+      "sól": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 4410073910822262,
+        "wydobycie_roczne": 0
+      },
+      "torf": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2205036955411131,
+        "wydobycie_roczne": 0
+      },
+      "uran": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2205036955411131,
+        "wydobycie_roczne": 0
+      },
+      "wapień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 4410073910822262,
+        "wydobycie_roczne": 0
+      },
+      "woda_slodka": {
+        "dostepnosc": 0.5900390456063269
+      },
+      "węgiel": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2205036955411131,
+        "wydobycie_roczne": 0
+      },
+      "węgiel_brunatny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2205036955411131,
+        "wydobycie_roczne": 0
+      },
+      "złoto": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1323022173246678,
+        "wydobycie_roczne": 0
+      },
+      "żelazo": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1323022173246678,
+        "wydobycie_roczne": 0
+      }
+    },
+    "state_hectares": {
+      "III_Klasa": 1161755,
+      "II_Klasa": 1161755,
+      "IV_Klasa": 580877,
+      "I_Klasa": 774503,
+      "V_Klasa": 193625
+    },
+    "citizen_hectares": {
+      "III_Klasa": 929404,
+      "II_Klasa": 929404,
+      "IV_Klasa": 464702,
+      "I_Klasa": 619602,
+      "V_Klasa": 154900
+    },
+    "corporate_hectares": {
+      "III_Klasa": 232352,
+      "II_Klasa": 232352,
+      "IV_Klasa": 116176,
+      "I_Klasa": 154902,
+      "V_Klasa": 38726
+    },
+    "strategic_reserves": {
+      "boksyt": 220,
+      "cynk": 220,
+      "diamenty": 220,
+      "gaz_ziemny": 441,
+      "kamień": 88,
+      "miedź": 220,
+      "piasek": 88,
+      "ropa": 441,
+      "srebro": 220,
+      "sól": 88,
+      "torf": 441,
+      "uran": 441,
+      "wapień": 88,
+      "węgiel": 441,
+      "węgiel_brunatny": 441,
+      "złoto": 220,
+      "żelazo": 220
+    },
+    "built_land": 0
+  },
+  "Iberia": {
+    "climate": "Urodzajny",
+    "soil_profile": {
+      "III_Klasa": 0.3,
+      "II_Klasa": 0.3,
+      "IV_Klasa": 0.15,
+      "I_Klasa": 0.2,
+      "VI_Klasa": 0.0,
+      "V_Klasa": 0.05
+    },
+    "arable_land_max": 12726230,
+    "arable_land_used": 0,
+    "extraction_limits": {
+      "Kopalnia Boksytu": 120,
+      "Kopalnia Węgla": 313,
+      "Kopalnia Żelaza": 268,
+      "Kopalnie Gazu Ziemnego": 417,
+      "Kopalnie Metali Kolorowych": 156,
+      "Szyby Naftowe": 182
+    },
+    "extraction_used": {
+      "Kopalnia Boksytu": 0,
+      "Kopalnia Węgla": 0,
+      "Kopalnia Żelaza": 0,
+      "Kopalnie Gazu Ziemnego": 0,
+      "Kopalnie Metali Kolorowych": 0,
+      "Szyby Naftowe": 0
+    },
+    "resources": {
+      "boksyt": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1247205585017644,
+        "wydobycie_roczne": 0
+      },
+      "cynk": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1247205585017644,
+        "wydobycie_roczne": 0
+      },
+      "diamenty": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1247205585017644,
+        "wydobycie_roczne": 0
+      },
+      "gaz_ziemny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2078675975029407,
+        "wydobycie_roczne": 0
+      },
+      "kamień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 4157351950058815,
+        "wydobycie_roczne": 0
+      },
+      "lasy": {
+        "wyeksploatowanie": 0.19511607189172275
+      },
+      "miedź": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1247205585017644,
+        "wydobycie_roczne": 0
+      },
+      "piasek": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 4157351950058815,
+        "wydobycie_roczne": 0
+      },
+      "ropa": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2078675975029407,
+        "wydobycie_roczne": 0
+      },
+      "srebro": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1247205585017644,
+        "wydobycie_roczne": 0
+      },
+      "sól": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 4157351950058815,
+        "wydobycie_roczne": 0
+      },
+      "torf": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2078675975029407,
+        "wydobycie_roczne": 0
+      },
+      "uran": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2078675975029407,
+        "wydobycie_roczne": 0
+      },
+      "wapień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 4157351950058815,
+        "wydobycie_roczne": 0
+      },
+      "woda_slodka": {
+        "dostepnosc": 0.9441390007170181
+      },
+      "węgiel": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2078675975029407,
+        "wydobycie_roczne": 0
+      },
+      "węgiel_brunatny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2078675975029407,
+        "wydobycie_roczne": 0
+      },
+      "złoto": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1247205585017644,
+        "wydobycie_roczne": 0
+      },
+      "żelazo": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1247205585017644,
+        "wydobycie_roczne": 0
+      }
+    },
+    "state_hectares": {
+      "III_Klasa": 1908934,
+      "II_Klasa": 1908934,
+      "IV_Klasa": 954467,
+      "I_Klasa": 1272623,
+      "V_Klasa": 318155
+    },
+    "citizen_hectares": {
+      "III_Klasa": 1527147,
+      "II_Klasa": 1527147,
+      "IV_Klasa": 763573,
+      "I_Klasa": 1018098,
+      "V_Klasa": 254524
+    },
+    "corporate_hectares": {
+      "III_Klasa": 381788,
+      "II_Klasa": 381788,
+      "IV_Klasa": 190894,
+      "I_Klasa": 254525,
+      "V_Klasa": 63632
+    },
+    "strategic_reserves": {
+      "boksyt": 207,
+      "cynk": 207,
+      "diamenty": 207,
+      "gaz_ziemny": 415,
+      "kamień": 83,
+      "miedź": 207,
+      "piasek": 83,
+      "ropa": 415,
+      "srebro": 207,
+      "sól": 83,
+      "torf": 415,
+      "uran": 415,
+      "wapień": 83,
+      "węgiel": 415,
+      "węgiel_brunatny": 415,
+      "złoto": 207,
+      "żelazo": 207
+    },
+    "built_land": 0
+  },
+  "Dacja": {
+    "climate": "Zrównoważony",
+    "soil_profile": {
+      "III_Klasa": 0.2,
+      "II_Klasa": 0.2,
+      "IV_Klasa": 0.25,
+      "I_Klasa": 0.1,
+      "VI_Klasa": 0.1,
+      "V_Klasa": 0.15
+    },
+    "arable_land_max": 1311146,
+    "arable_land_used": 0,
+    "extraction_limits": {
+      "Kopalnia Boksytu": 67,
+      "Kopalnia Węgla": 200,
+      "Kopalnia Żelaza": 172,
+      "Kopalnie Gazu Ziemnego": 51,
+      "Kopalnie Metali Kolorowych": 68,
+      "Szyby Naftowe": 129
+    },
+    "extraction_used": {
+      "Kopalnia Boksytu": 0,
+      "Kopalnia Węgla": 0,
+      "Kopalnia Żelaza": 0,
+      "Kopalnie Gazu Ziemnego": 0,
+      "Kopalnie Metali Kolorowych": 0,
+      "Szyby Naftowe": 0
+    },
+    "resources": {
+      "boksyt": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 392786688442564,
+        "wydobycie_roczne": 0
+      },
+      "cynk": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 392786688442564,
+        "wydobycie_roczne": 0
+      },
+      "diamenty": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 392786688442564,
+        "wydobycie_roczne": 0
+      },
+      "gaz_ziemny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 654644480737607,
+        "wydobycie_roczne": 0
+      },
+      "kamień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1309288961475215,
+        "wydobycie_roczne": 0
+      },
+      "lasy": {
+        "wyeksploatowanie": 0.10283075761722849
+      },
+      "miedź": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 392786688442564,
+        "wydobycie_roczne": 0
+      },
+      "piasek": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1309288961475215,
+        "wydobycie_roczne": 0
+      },
+      "ropa": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 654644480737607,
+        "wydobycie_roczne": 0
+      },
+      "srebro": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 392786688442564,
+        "wydobycie_roczne": 0
+      },
+      "sól": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1309288961475215,
+        "wydobycie_roczne": 0
+      },
+      "torf": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 654644480737607,
+        "wydobycie_roczne": 0
+      },
+      "uran": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 654644480737607,
+        "wydobycie_roczne": 0
+      },
+      "wapień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 1309288961475215,
+        "wydobycie_roczne": 0
+      },
+      "woda_slodka": {
+        "dostepnosc": 0.9858040261919653
+      },
+      "węgiel": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 654644480737607,
+        "wydobycie_roczne": 0
+      },
+      "węgiel_brunatny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 654644480737607,
+        "wydobycie_roczne": 0
+      },
+      "złoto": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 392786688442564,
+        "wydobycie_roczne": 0
+      },
+      "żelazo": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 392786688442564,
+        "wydobycie_roczne": 0
+      }
+    },
+    "state_hectares": {
+      "III_Klasa": 131114,
+      "II_Klasa": 131114,
+      "IV_Klasa": 163893,
+      "I_Klasa": 65557,
+      "VI_Klasa": 65557,
+      "V_Klasa": 98335
+    },
+    "citizen_hectares": {
+      "III_Klasa": 104891,
+      "II_Klasa": 104891,
+      "IV_Klasa": 131114,
+      "I_Klasa": 52445,
+      "VI_Klasa": 52445,
+      "V_Klasa": 78668
+    },
+    "corporate_hectares": {
+      "III_Klasa": 26224,
+      "II_Klasa": 26224,
+      "IV_Klasa": 32779,
+      "I_Klasa": 13112,
+      "VI_Klasa": 13112,
+      "V_Klasa": 19668
+    },
+    "strategic_reserves": {
+      "boksyt": 65,
+      "cynk": 65,
+      "diamenty": 65,
+      "gaz_ziemny": 130,
+      "kamień": 26,
+      "miedź": 65,
+      "piasek": 26,
+      "ropa": 130,
+      "srebro": 65,
+      "sól": 26,
+      "torf": 130,
+      "uran": 130,
+      "wapień": 26,
+      "węgiel": 130,
+      "węgiel_brunatny": 130,
+      "złoto": 65,
+      "żelazo": 65
+    },
+    "built_land": 0
+  },
+  "Krasnowia": {
+    "climate": "Urodzajny",
+    "soil_profile": {
+      "III_Klasa": 0.3,
+      "II_Klasa": 0.3,
+      "IV_Klasa": 0.15,
+      "I_Klasa": 0.2,
+      "VI_Klasa": 0.0,
+      "V_Klasa": 0.05
+    },
+    "arable_land_max": 11277417,
+    "arable_land_used": 0,
+    "extraction_limits": {
+      "Kopalnia Boksytu": 101,
+      "Kopalnia Węgla": 448,
+      "Kopalnia Żelaza": 221,
+      "Kopalnie Gazu Ziemnego": 262,
+      "Kopalnie Metali Kolorowych": 71,
+      "Szyby Naftowe": 212
+    },
+    "extraction_used": {
+      "Kopalnia Boksytu": 0,
+      "Kopalnia Węgla": 0,
+      "Kopalnia Żelaza": 0,
+      "Kopalnie Gazu Ziemnego": 0,
+      "Kopalnie Metali Kolorowych": 0,
+      "Szyby Naftowe": 0
+    },
+    "resources": {
+      "boksyt": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2783056572470222,
+        "wydobycie_roczne": 0
+      },
+      "cynk": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2783056572470222,
+        "wydobycie_roczne": 0
+      },
+      "diamenty": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2783056572470222,
+        "wydobycie_roczne": 0
+      },
+      "gaz_ziemny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 4638427620783704,
+        "wydobycie_roczne": 0
+      },
+      "kamień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 9276855241567408,
+        "wydobycie_roczne": 0
+      },
+      "lasy": {
+        "wyeksploatowanie": 0.27646032310490176
+      },
+      "miedź": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2783056572470222,
+        "wydobycie_roczne": 0
+      },
+      "piasek": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 9276855241567408,
+        "wydobycie_roczne": 0
+      },
+      "ropa": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 4638427620783704,
+        "wydobycie_roczne": 0
+      },
+      "srebro": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2783056572470222,
+        "wydobycie_roczne": 0
+      },
+      "sól": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 9276855241567408,
+        "wydobycie_roczne": 0
+      },
+      "torf": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 4638427620783704,
+        "wydobycie_roczne": 0
+      },
+      "uran": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 4638427620783704,
+        "wydobycie_roczne": 0
+      },
+      "wapień": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 9276855241567408,
+        "wydobycie_roczne": 0
+      },
+      "woda_slodka": {
+        "dostepnosc": 0.9161357211733189
+      },
+      "węgiel": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 4638427620783704,
+        "wydobycie_roczne": 0
+      },
+      "węgiel_brunatny": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 4638427620783704,
+        "wydobycie_roczne": 0
+      },
+      "złoto": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2783056572470222,
+        "wydobycie_roczne": 0
+      },
+      "żelazo": {
+        "efektywność": 1.0,
+        "krajowe_zuzycie": 0,
+        "rezerwy": 0,
+        "rezerwy_geologiczne": 2783056572470222,
+        "wydobycie_roczne": 0
+      }
+    },
+    "state_hectares": {
+      "III_Klasa": 1691612,
+      "II_Klasa": 1691612,
+      "IV_Klasa": 845806,
+      "I_Klasa": 1127741,
+      "V_Klasa": 281935
+    },
+    "citizen_hectares": {
+      "III_Klasa": 1353290,
+      "II_Klasa": 1353290,
+      "IV_Klasa": 676644,
+      "I_Klasa": 902193,
+      "V_Klasa": 225548
+    },
+    "corporate_hectares": {
+      "III_Klasa": 338323,
+      "II_Klasa": 338323,
+      "IV_Klasa": 169162,
+      "I_Klasa": 225549,
+      "V_Klasa": 56387
+    },
+    "strategic_reserves": {
+      "boksyt": 463,
+      "cynk": 463,
+      "diamenty": 463,
+      "gaz_ziemny": 927,
+      "kamień": 185,
+      "miedź": 463,
+      "piasek": 185,
+      "ropa": 927,
+      "srebro": 463,
+      "sól": 185,
+      "torf": 927,
+      "uran": 927,
+      "wapień": 185,
+      "węgiel": 927,
+      "węgiel_brunatny": 927,
+      "złoto": 463,
+      "żelazo": 463
+    },
+    "built_land": 0
+  }
+}

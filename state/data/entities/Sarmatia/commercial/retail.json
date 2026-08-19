@@ -1,0 +1,1162 @@
+[
+  {
+    "id_budynku": "B-SAR-1600",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Sarmatia-Region9",
+    "właściciel": "KRS-SAR-1555",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 2602.585,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 26025.85,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1555",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1600",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1555",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1600",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1555",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1600",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1555",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1600",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1555",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1600",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1555",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1600",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1555",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1600",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1555",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1600",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 90.0,
+        "fruit": 72.0,
+        "cereal": 248.39999999999998,
+        "vegetable": 120.60000000000002,
+        "protein": 121.5
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 4738.409999999997,
+        "fruit": 1487.780000000001,
+        "cereal": 90626.45615711165,
+        "vegetable": 65052.288579999986,
+        "protein": 39543.523302575006
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 0.08830888485502623,
+        "fruit": 0.08830888485502625,
+        "cereal": 0.10669031410171717,
+        "vegetable": 0.32419231087881334,
+        "protein": 0.11334307333600792
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-SAR-1602",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Sarmatia-Region4",
+    "właściciel": "KRS-SAR-1557",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 4781.465,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 47814.65,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1557",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1602",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1557",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1602",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1557",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1602",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1557",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1602",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1557",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1602",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1557",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1602",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1557",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1602",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1557",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1602",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 90.0,
+        "fruit": 72.0,
+        "cereal": 248.39999999999998,
+        "vegetable": 120.60000000000002,
+        "protein": 121.5
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 4738.409999999997,
+        "fruit": 1487.780000000001,
+        "cereal": 90626.45615711165,
+        "vegetable": 65052.288579999986,
+        "protein": 39543.523302575006
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 0.08830888485502623,
+        "fruit": 0.08830888485502625,
+        "cereal": 0.10669031410171717,
+        "vegetable": 0.32419231087881334,
+        "protein": 0.11334307333600792
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-SAR-1603",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Sarmatia-Region6",
+    "właściciel": "KRS-SAR-1558",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 2485.39,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 24853.9,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1558",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1603",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1558",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1603",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1558",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1603",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1558",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1603",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1558",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1603",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1558",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1603",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1558",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1603",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1558",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1603",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 90.0,
+        "fruit": 72.0,
+        "cereal": 248.39999999999998,
+        "vegetable": 120.60000000000002,
+        "protein": 121.5
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 4738.409999999997,
+        "fruit": 1487.780000000001,
+        "cereal": 90626.45615711165,
+        "vegetable": 65052.288579999986,
+        "protein": 39543.523302575006
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 0.08830888485502623,
+        "fruit": 0.08830888485502625,
+        "cereal": 0.10669031410171717,
+        "vegetable": 0.32419231087881334,
+        "protein": 0.11334307333600792
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-SAR-1604",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Sarmatia-Region3",
+    "właściciel": "KRS-SAR-1559",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 3991.115,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 39911.15,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1559",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1604",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1559",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1604",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1559",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1604",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1559",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1604",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1559",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1604",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1559",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1604",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1559",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1604",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1559",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1604",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 90.0,
+        "fruit": 72.0,
+        "cereal": 248.39999999999998,
+        "vegetable": 120.60000000000002,
+        "protein": 121.5
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 4738.409999999997,
+        "fruit": 1487.780000000001,
+        "cereal": 90626.45615711165,
+        "vegetable": 65052.288579999986,
+        "protein": 39543.523302575006
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 0.08830888485502623,
+        "fruit": 0.08830888485502625,
+        "cereal": 0.10669031410171717,
+        "vegetable": 0.32419231087881334,
+        "protein": 0.11334307333600792
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-SAR-1605",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Sarmatia-Region2",
+    "właściciel": "KRS-SAR-1560",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 6766.035,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 67660.35,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1560",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1605",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1560",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1605",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1560",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1605",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1560",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1605",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1560",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1605",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1560",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1605",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1560",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1605",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1560",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1605",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 90.0,
+        "fruit": 72.0,
+        "cereal": 248.39999999999998,
+        "vegetable": 120.60000000000002,
+        "protein": 121.5
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 4738.409999999997,
+        "fruit": 1487.780000000001,
+        "cereal": 90626.45615711165,
+        "vegetable": 65052.288579999986,
+        "protein": 39543.523302575006
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 0.08830888485502623,
+        "fruit": 0.08830888485502625,
+        "cereal": 0.10669031410171717,
+        "vegetable": 0.32419231087881334,
+        "protein": 0.11334307333600792
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-SAR-1606",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Sarmatia-Region8",
+    "właściciel": "KRS-SAR-1561",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 3709.95,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 37099.5,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1561",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1606",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1561",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1606",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1561",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1606",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1561",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1606",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1561",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1606",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1561",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1606",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1561",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1606",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1561",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1606",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 90.0,
+        "fruit": 72.0,
+        "cereal": 248.39999999999998,
+        "vegetable": 120.60000000000002,
+        "protein": 121.5
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 4738.409999999997,
+        "fruit": 1487.780000000001,
+        "cereal": 90626.45615711165,
+        "vegetable": 65052.288579999986,
+        "protein": 39543.523302575006
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 0.08830888485502623,
+        "fruit": 0.08830888485502625,
+        "cereal": 0.10669031410171717,
+        "vegetable": 0.32419231087881334,
+        "protein": 0.11334307333600792
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-SAR-1607",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Sarmatia-Region7",
+    "właściciel": "KRS-SAR-1562",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 2411.62,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 24116.199999999997,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1562",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1607",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1562",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1607",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1562",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1607",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1562",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1607",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1562",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1607",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1562",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1607",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1562",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1607",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1562",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1607",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 90.0,
+        "fruit": 72.0,
+        "cereal": 248.39999999999998,
+        "vegetable": 120.60000000000002,
+        "protein": 121.5
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 4738.409999999997,
+        "fruit": 1487.780000000001,
+        "cereal": 90626.45615711165,
+        "vegetable": 65052.288579999986,
+        "protein": 39543.523302575006
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 0.08830888485502623,
+        "fruit": 0.08830888485502625,
+        "cereal": 0.10669031410171717,
+        "vegetable": 0.32419231087881334,
+        "protein": 0.11334307333600792
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  },
+  {
+    "id_budynku": "B-SAR-1608",
+    "typ_budynku": "marketplace",
+    "mikroregion_id": "Sarmatia-Region5",
+    "właściciel": "KRS-SAR-1563",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 1679.905,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 16799.05,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 27.6,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1563",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1608",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1563",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1608",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 20.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1563",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1608",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 8.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1563",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1608",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 5.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1563",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1608",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 10.0,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1563",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1608",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 13.5,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1563",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1608",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 13.399999999999999,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-SAR-1563",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-SAR-1608",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.5,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.5,
+      "marża": 1.2,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 90.0,
+        "fruit": 72.0,
+        "cereal": 248.39999999999998,
+        "vegetable": 120.60000000000002,
+        "protein": 121.5
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 4738.409999999997,
+        "fruit": 1487.780000000001,
+        "cereal": 90626.45615711165,
+        "vegetable": 65052.288579999986,
+        "protein": 39543.523302575006
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 0.08830888485502623,
+        "fruit": 0.08830888485502625,
+        "cereal": 0.10669031410171717,
+        "vegetable": 0.32419231087881334,
+        "protein": 0.11334307333600792
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  }
+]

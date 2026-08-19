@@ -1,0 +1,70 @@
+[
+  {
+    "id": "B-ANG-0128",
+    "name": "Transport Depot",
+    "wlasciciel_id": "KRS-ANG-0128",
+    "rok_budowy": 1873,
+    "sektor_pkb": "transport_logistics",
+    "pojemnosc_pracownikow": 95,
+    "zatrudnienie_aktualne": 95,
+    "rezerwa_zakladowa": 31440.0,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 15.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "passenger_transport": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 144,
+    "region_id": "Anglia-Region10",
+    "cluster_info": {
+      "region_id": "Anglia-Region10",
+      "scale_factor": 2,
+      "sector": "transport_logistics",
+      "owner_id": "KRS-ANG-0128"
+    },
+    "ostatnia_produkcja": {
+      "passenger_transport": 6.359999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.982,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trains",
+        "count": 4.0,
+        "condition": 0.6587030004971582,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.655
+    },
+    "pojemność_magazynu": 1440.0
+  }
+]

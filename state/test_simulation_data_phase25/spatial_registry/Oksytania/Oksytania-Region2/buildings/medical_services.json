@@ -1,0 +1,75 @@
+[
+  {
+    "id": "B-OKS-0033",
+    "name": "Medical Facility",
+    "wlasciciel_id": "KRS-OKS-0033",
+    "rok_budowy": 1949,
+    "sektor_pkb": "medical_services",
+    "pojemnosc_pracownikow": 44,
+    "zatrudnienie_aktualne": 44,
+    "rezerwa_zakladowa": 140250.0,
+    "aktywna_metoda": {
+      "rok": 1960,
+      "eksperci": 0.4,
+      "sredni": 0.4,
+      "szeregowi": 0.2,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "pharmaceuticals": 12.0,
+        "medical_equipment": 8.0
+      },
+      "outputs": {
+        "health_capacity": 90.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Oksytania-Region2",
+    "cluster_info": {
+      "region_id": "Oksytania-Region2",
+      "scale_factor": 3,
+      "sector": "medical_services",
+      "owner_id": "KRS-OKS-0033"
+    },
+    "ostatnia_produkcja": {
+      "health_capacity": 2.0917085420250725e-20
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 3.0,
+        "condition": 0.8127910285104937,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 3.5199999999999987,
+      "food": 0.5,
+      "health_capacity": 0.0,
+      "pharmaceuticals": 1.1102484356135742e-16,
+      "medical_equipment": 1.6940658945086007e-21
+    },
+    "pojemność_magazynu": 1000.0
+  }
+]

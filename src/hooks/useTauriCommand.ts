@@ -15,6 +15,7 @@ import type {
   BankingAggregates,
   RegionRow,
   RegionDetail,
+  MegaregionDetail,
   ParliamentResponse,
   GovernmentSnapshot,
 } from "../types/api";
@@ -113,6 +114,10 @@ export async function getRegions(country: string): Promise<RegionRow[]> {
 
 export async function getRegionDetail(country: string, regionId: string): Promise<RegionDetail | null> {
   return invoke<RegionDetail | null>("get_region_detail", { country, regionId });
+}
+
+export async function getMegaregionDetail(country: string, megaregionId: string): Promise<MegaregionDetail | null> {
+  return invoke<MegaregionDetail | null>("get_megaregion_detail", { country, megaregionId });
 }
 
 export async function getParliament(country: string): Promise<ParliamentResponse> {

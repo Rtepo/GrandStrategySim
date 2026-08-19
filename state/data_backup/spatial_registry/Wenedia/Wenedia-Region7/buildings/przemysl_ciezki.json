@@ -1,0 +1,1821 @@
+[
+    {
+        "id": "[ID-9XX-1231]",
+        "nazwa": "Cementownia",
+        "wlasciciel_id": "[KRS-2HV-9917]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Wapień": 10,
+                "Węgiel Kamienny": 5
+            },
+            "outputs": {
+                "Cement": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Rotacyjne Ręczne",
+                "produkcja": "Tradycyjna Cementownia",
+                "organizacja": "Lokalne Cementownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-9917]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9361]",
+        "nazwa": "Fabryka Pociągów",
+        "wlasciciel_id": "[ID-9HV-8898]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4500,
+        "zatrudnienie_aktualne": 3600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1111,
+            "sredni": 0.5,
+            "szeregowi": 0.3889,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 20,
+                "Żelazo": 10,
+                "Drewno": 15
+            },
+            "outputs": {
+                "Pociągi": 5
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Kowalskie",
+                "produkcja": "Pociągi Parowe",
+                "organizacja": "Krajowe Zakłady Kolejowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-8898]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9796]",
+        "nazwa": "Cegielnia (Przemysłowa)",
+        "wlasciciel_id": "[REG-4HV-8438]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Glina": 8,
+                "Węgiel Kamienny": 3
+            },
+            "outputs": {
+                "Cegły": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Cegielniane Ręczne",
+                "produkcja": "Tradycyjna Cegielnia",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-8438]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5468]",
+        "nazwa": "Fabryka Maszyn Rolnych",
+        "wlasciciel_id": "[KRS-2HV-7244]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0889,
+            "sredni": 0.4444,
+            "szeregowi": 0.4667,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 8,
+                "Żelazo": 5,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Maszyny Rolne": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kowalstwo Ręczne",
+                "produkcja": "Proste Narzędzia Rolne",
+                "organizacja": "Lokalne Warsztaty"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-7244]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3387]",
+        "nazwa": "Fabryka Pociągów",
+        "wlasciciel_id": "[ID-9HV-1157]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4500,
+        "zatrudnienie_aktualne": 3600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1111,
+            "sredni": 0.5,
+            "szeregowi": 0.3889,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 20,
+                "Żelazo": 10,
+                "Drewno": 15
+            },
+            "outputs": {
+                "Pociągi": 5
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Kowalskie",
+                "produkcja": "Pociągi Parowe",
+                "organizacja": "Krajowe Zakłady Kolejowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-1157]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4355]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[REG-4HV-6213]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0909,
+            "sredni": 0.5114,
+            "szeregowi": 0.3977,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2,
+                "Części Mechaniczne": 2
+            },
+            "outputs": {
+                "Samochody": 20,
+                "Ciężarówki": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Karoseryjne",
+                "produkcja": "Warsztaty Karoseryjne",
+                "organizacja": "Rzemiosło Indywidualne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-6213]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3888]",
+        "nazwa": "Rafineria",
+        "wlasciciel_id": "[KRS-2HV-2158]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1087,
+            "sredni": 0.4565,
+            "szeregowi": 0.4348,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Ropa Naftowa": 20
+            },
+            "outputs": {
+                "Paliwa": 1500,
+                "Bitumin": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Destylacja Prosta",
+                "produkcja": "Prosta Destylacja",
+                "organizacja": "Małe Rafinerie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-2158]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9699]",
+        "nazwa": "Zakłady Chemiczne",
+        "wlasciciel_id": "[ID-9HV-7235]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1930,
+            "eksperci": 0.2353,
+            "sredni": 0.5882,
+            "szeregowi": 0.1765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Siarka": 5,
+                "Gaz Ziemny": 5
+            },
+            "outputs": {
+                "Nawozy": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece i Zbiorniki Ręczne",
+                "produkcja": "Proces Habera-Boscha",
+                "organizacja": "Laboratoria Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-7235]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6830]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[REG-4HV-8950]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0792,
+            "sredni": 0.396,
+            "szeregowi": 0.5248,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Stolarskie",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-8950]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7432]",
+        "nazwa": "Huta Stali",
+        "wlasciciel_id": "[KRS-2HV-2854]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1778,
+            "sredni": 0.7111,
+            "szeregowi": 0.1111,
+            "wydajnosc": 1.4,
+            "inputs": {
+                "Żelazo": 20,
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Stal": 3500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dmuchawy i Mechaniczne Mieszadła",
+                "produkcja": "Piec Martenowski",
+                "organizacja": "Zarządzanie Tradycyjne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-2854]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9499]",
+        "nazwa": "Huta Stali",
+        "wlasciciel_id": "[ID-9HV-4499]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1778,
+            "sredni": 0.7111,
+            "szeregowi": 0.1111,
+            "wydajnosc": 1.4,
+            "inputs": {
+                "Żelazo": 20,
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Stal": 3500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dmuchawy i Mechaniczne Mieszadła",
+                "produkcja": "Piec Martenowski",
+                "organizacja": "Zarządzanie Tradycyjne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-4499]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1840]",
+        "nazwa": "Fabryka Maszyn Rolnych",
+        "wlasciciel_id": "[REG-4HV-7260]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0889,
+            "sredni": 0.4444,
+            "szeregowi": 0.4667,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 8,
+                "Żelazo": 5,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Maszyny Rolne": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kowalstwo Ręczne",
+                "produkcja": "Proste Narzędzia Rolne",
+                "organizacja": "Lokalne Warsztaty"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-7260]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1982]",
+        "nazwa": "Cegielnia (Przemysłowa)",
+        "wlasciciel_id": "[KRS-2HV-1810]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Glina": 8,
+                "Węgiel Kamienny": 3
+            },
+            "outputs": {
+                "Cegły": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Cegielniane Ręczne",
+                "produkcja": "Tradycyjna Cegielnia",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-1810]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7499]",
+        "nazwa": "Koksownia",
+        "wlasciciel_id": "[ID-9HV-5441]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1800,
+        "zatrudnienie_aktualne": 1440,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 15
+            },
+            "outputs": {
+                "Koks": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Koksownicze Ręczne",
+                "produkcja": "Tradycyjna Koksownia",
+                "organizacja": "Lokalne Koksownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-5441]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5084]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[REG-4HV-5692]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0792,
+            "sredni": 0.396,
+            "szeregowi": 0.5248,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Stolarskie",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-5692]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7199]",
+        "nazwa": "Tartak",
+        "wlasciciel_id": "[KRS-2HV-4331]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Drewno": 8,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Deski": 10000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piły Tarczowe i Traki",
+                "produkcja": "Mechaniczne Przeróbka",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-4331]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1545]",
+        "nazwa": "Koksownia",
+        "wlasciciel_id": "[ID-9HV-4819]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1800,
+        "zatrudnienie_aktualne": 1440,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 15
+            },
+            "outputs": {
+                "Koks": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Koksownicze Ręczne",
+                "produkcja": "Tradycyjna Koksownia",
+                "organizacja": "Lokalne Koksownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-4819]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2754]",
+        "nazwa": "Fabryka Maszyn",
+        "wlasciciel_id": "[REG-4HV-5043]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.6023,
+            "szeregowi": 0.25,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 200,
+                "Części Mechaniczne": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne i Tokarki",
+                "produkcja": "Narzędzia Ręczne i Odlewnia",
+                "organizacja": "Manufaktura Warsztatowa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-5043]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3128]",
+        "nazwa": "Tartak",
+        "wlasciciel_id": "[KRS-2HV-2496]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Drewno": 8,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Deski": 10000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piły Tarczowe i Traki",
+                "produkcja": "Mechaniczne Przeróbka",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-2496]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4260]",
+        "nazwa": "Huta Stali",
+        "wlasciciel_id": "[ID-9HV-1016]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1778,
+            "sredni": 0.7111,
+            "szeregowi": 0.1111,
+            "wydajnosc": 1.4,
+            "inputs": {
+                "Żelazo": 20,
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Stal": 3500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dmuchawy i Mechaniczne Mieszadła",
+                "produkcja": "Piec Martenowski",
+                "organizacja": "Zarządzanie Tradycyjne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-1016]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1479]",
+        "nazwa": "Koksownia",
+        "wlasciciel_id": "[REG-4HV-3812]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1800,
+        "zatrudnienie_aktualne": 1440,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 15
+            },
+            "outputs": {
+                "Koks": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Koksownicze Ręczne",
+                "produkcja": "Tradycyjna Koksownia",
+                "organizacja": "Lokalne Koksownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-3812]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2470]",
+        "nazwa": "Huta Aluminium",
+        "wlasciciel_id": "[KRS-2HV-9431]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1529,
+            "sredni": 0.4706,
+            "szeregowi": 0.3765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Boksyt": 15,
+                "Paliwa": 10
+            },
+            "outputs": {
+                "Aluminium": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Elektryczne Proste",
+                "produkcja": "Proces Halla-Héroulta",
+                "organizacja": "Laboratoria Badawcze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-9431]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5964]",
+        "nazwa": "Huta Szkła",
+        "wlasciciel_id": "[ID-9HV-5718]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1800,
+        "zatrudnienie_aktualne": 1440,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Piasek": 15,
+                "Wapień": 5,
+                "Węgiel Kamienny": 8
+            },
+            "outputs": {
+                "Szkło": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Szkliste Ręczne",
+                "produkcja": "Tradycyjna Huta Szkła",
+                "organizacja": "Lokalne Huty Szkła"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-5718]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2164]",
+        "nazwa": "Fabryka Pociągów",
+        "wlasciciel_id": "[REG-4HV-9074]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4500,
+        "zatrudnienie_aktualne": 3600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1111,
+            "sredni": 0.5,
+            "szeregowi": 0.3889,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 20,
+                "Żelazo": 10,
+                "Drewno": 15
+            },
+            "outputs": {
+                "Pociągi": 5
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Kowalskie",
+                "produkcja": "Pociągi Parowe",
+                "organizacja": "Krajowe Zakłady Kolejowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-9074]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5458]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[KRS-2HV-1071]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0792,
+            "sredni": 0.396,
+            "szeregowi": 0.5248,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Stolarskie",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-1071]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9310]",
+        "nazwa": "Huta Stali",
+        "wlasciciel_id": "[ID-9HV-5901]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1778,
+            "sredni": 0.7111,
+            "szeregowi": 0.1111,
+            "wydajnosc": 1.4,
+            "inputs": {
+                "Żelazo": 20,
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Stal": 3500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dmuchawy i Mechaniczne Mieszadła",
+                "produkcja": "Piec Martenowski",
+                "organizacja": "Zarządzanie Tradycyjne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-5901]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3563]",
+        "nazwa": "Rafineria",
+        "wlasciciel_id": "[REG-4HV-3995]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1087,
+            "sredni": 0.4565,
+            "szeregowi": 0.4348,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Ropa Naftowa": 20
+            },
+            "outputs": {
+                "Paliwa": 1500,
+                "Bitumin": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Destylacja Prosta",
+                "produkcja": "Prosta Destylacja",
+                "organizacja": "Małe Rafinerie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-3995]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6818]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[KRS-2HV-2884]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0792,
+            "sredni": 0.396,
+            "szeregowi": 0.5248,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Stolarskie",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-2884]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2935]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[ID-9HV-5014]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0792,
+            "sredni": 0.396,
+            "szeregowi": 0.5248,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Stolarskie",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-5014]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8167]",
+        "nazwa": "Fabryka Maszyn Ciężkich",
+        "wlasciciel_id": "[REG-4HV-7671]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1616,
+            "sredni": 0.5556,
+            "szeregowi": 0.2828,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 10,
+                "Żelazo": 5
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 300,
+                "Części Mechaniczne": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dźwigi Parowe",
+                "produkcja": "Warsztaty Odlewnicze",
+                "organizacja": "Zakłady Państwowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-7671]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2717]",
+        "nazwa": "Tartak",
+        "wlasciciel_id": "[KRS-2HV-8988]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Drewno": 8,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Deski": 10000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piły Tarczowe i Traki",
+                "produkcja": "Mechaniczne Przeróbka",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-8988]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9031]",
+        "nazwa": "Fabryka Maszyn Ciężkich",
+        "wlasciciel_id": "[ID-9HV-5553]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1616,
+            "sredni": 0.5556,
+            "szeregowi": 0.2828,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 10,
+                "Żelazo": 5
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 300,
+                "Części Mechaniczne": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dźwigi Parowe",
+                "produkcja": "Warsztaty Odlewnicze",
+                "organizacja": "Zakłady Państwowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-5553]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5213]",
+        "nazwa": "Koksownia",
+        "wlasciciel_id": "[REG-4HV-8899]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1800,
+        "zatrudnienie_aktualne": 1440,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 15
+            },
+            "outputs": {
+                "Koks": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Koksownicze Ręczne",
+                "produkcja": "Tradycyjna Koksownia",
+                "organizacja": "Lokalne Koksownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-8899]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3608]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[KRS-2HV-3850]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0909,
+            "sredni": 0.5114,
+            "szeregowi": 0.3977,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2,
+                "Części Mechaniczne": 2
+            },
+            "outputs": {
+                "Samochody": 20,
+                "Ciężarówki": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Karoseryjne",
+                "produkcja": "Warsztaty Karoseryjne",
+                "organizacja": "Rzemiosło Indywidualne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-3850]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6755]",
+        "nazwa": "Huta Szkła",
+        "wlasciciel_id": "[ID-9HV-2317]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1800,
+        "zatrudnienie_aktualne": 1440,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Piasek": 15,
+                "Wapień": 5,
+                "Węgiel Kamienny": 8
+            },
+            "outputs": {
+                "Szkło": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Szkliste Ręczne",
+                "produkcja": "Tradycyjna Huta Szkła",
+                "organizacja": "Lokalne Huty Szkła"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-2317]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6147]",
+        "nazwa": "Huta Stali",
+        "wlasciciel_id": "[REG-4HV-4144]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1778,
+            "sredni": 0.7111,
+            "szeregowi": 0.1111,
+            "wydajnosc": 1.4,
+            "inputs": {
+                "Żelazo": 20,
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Stal": 3500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dmuchawy i Mechaniczne Mieszadła",
+                "produkcja": "Piec Martenowski",
+                "organizacja": "Zarządzanie Tradycyjne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-4144]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2034]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[KRS-2HV-2360]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0909,
+            "sredni": 0.5114,
+            "szeregowi": 0.3977,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2,
+                "Części Mechaniczne": 2
+            },
+            "outputs": {
+                "Samochody": 20,
+                "Ciężarówki": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Karoseryjne",
+                "produkcja": "Warsztaty Karoseryjne",
+                "organizacja": "Rzemiosło Indywidualne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-2360]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3320]",
+        "nazwa": "Cegielnia (Przemysłowa)",
+        "wlasciciel_id": "[ID-9HV-3669]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Glina": 8,
+                "Węgiel Kamienny": 3
+            },
+            "outputs": {
+                "Cegły": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Cegielniane Ręczne",
+                "produkcja": "Tradycyjna Cegielnia",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-3669]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3177]",
+        "nazwa": "Fabryka Maszyn",
+        "wlasciciel_id": "[REG-4HV-4154]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.6023,
+            "szeregowi": 0.25,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 200,
+                "Części Mechaniczne": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne i Tokarki",
+                "produkcja": "Narzędzia Ręczne i Odlewnia",
+                "organizacja": "Manufaktura Warsztatowa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-4154]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7487]",
+        "nazwa": "Huta Stali",
+        "wlasciciel_id": "[KRS-2HV-3707]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1778,
+            "sredni": 0.7111,
+            "szeregowi": 0.1111,
+            "wydajnosc": 1.4,
+            "inputs": {
+                "Żelazo": 20,
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Stal": 3500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dmuchawy i Mechaniczne Mieszadła",
+                "produkcja": "Piec Martenowski",
+                "organizacja": "Zarządzanie Tradycyjne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-3707]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9269]",
+        "nazwa": "Fabryka Maszyn",
+        "wlasciciel_id": "[ID-9HV-3664]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.6023,
+            "szeregowi": 0.25,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 200,
+                "Części Mechaniczne": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne i Tokarki",
+                "produkcja": "Narzędzia Ręczne i Odlewnia",
+                "organizacja": "Manufaktura Warsztatowa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-3664]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8435]",
+        "nazwa": "Cegielnia (Przemysłowa)",
+        "wlasciciel_id": "[REG-4HV-5919]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Glina": 8,
+                "Węgiel Kamienny": 3
+            },
+            "outputs": {
+                "Cegły": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Cegielniane Ręczne",
+                "produkcja": "Tradycyjna Cegielnia",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-5919]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6064]",
+        "nazwa": "Koksownia",
+        "wlasciciel_id": "[KRS-2HV-2031]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1800,
+        "zatrudnienie_aktualne": 1440,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 15
+            },
+            "outputs": {
+                "Koks": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Koksownicze Ręczne",
+                "produkcja": "Tradycyjna Koksownia",
+                "organizacja": "Lokalne Koksownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-2031]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9299]",
+        "nazwa": "Fabryka Maszyn Rolnych",
+        "wlasciciel_id": "[ID-9HV-9057]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0889,
+            "sredni": 0.4444,
+            "szeregowi": 0.4667,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 8,
+                "Żelazo": 5,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Maszyny Rolne": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kowalstwo Ręczne",
+                "produkcja": "Proste Narzędzia Rolne",
+                "organizacja": "Lokalne Warsztaty"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-9057]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3303]",
+        "nazwa": "Cegielnia (Przemysłowa)",
+        "wlasciciel_id": "[REG-4HV-2649]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Glina": 8,
+                "Węgiel Kamienny": 3
+            },
+            "outputs": {
+                "Cegły": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Cegielniane Ręczne",
+                "produkcja": "Tradycyjna Cegielnia",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Wenedia-Region7",
+        "cluster_info": {
+            "region_id": "Wenedia-Region7",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-2649]"
+        }
+    }
+]

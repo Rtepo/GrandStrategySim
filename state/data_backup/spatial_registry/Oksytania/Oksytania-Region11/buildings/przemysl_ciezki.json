@@ -1,0 +1,1822 @@
+[
+    {
+        "id": "[ID-9XX-7876]",
+        "nazwa": "Rafineria",
+        "wlasciciel_id": "[KRS-2HV-3527]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 7500,
+        "zatrudnienie_aktualne": 6000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1087,
+            "sredni": 0.4565,
+            "szeregowi": 0.4348,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Ropa Naftowa": 20
+            },
+            "outputs": {
+                "Paliwa": 1500,
+                "Bitumin": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Destylacja Prosta",
+                "produkcja": "Prosta Destylacja",
+                "organizacja": "Małe Rafinerie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-3527]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2622]",
+        "nazwa": "Rafineria",
+        "wlasciciel_id": "[ID-9HV-9230]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1087,
+            "sredni": 0.4565,
+            "szeregowi": 0.4348,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Ropa Naftowa": 20
+            },
+            "outputs": {
+                "Paliwa": 1500,
+                "Bitumin": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Destylacja Prosta",
+                "produkcja": "Prosta Destylacja",
+                "organizacja": "Małe Rafinerie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-9230]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1166]",
+        "nazwa": "Huta Szkła",
+        "wlasciciel_id": "[REG-4HV-7627]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1800,
+        "zatrudnienie_aktualne": 1440,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Piasek": 15,
+                "Wapień": 5,
+                "Węgiel Kamienny": 8
+            },
+            "outputs": {
+                "Szkło": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Szkliste Ręczne",
+                "produkcja": "Tradycyjna Huta Szkła",
+                "organizacja": "Lokalne Huty Szkła"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-7627]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2167]",
+        "nazwa": "Zakłady Chemiczne",
+        "wlasciciel_id": "[KRS-2HV-7450]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 10000,
+        "zatrudnienie_aktualne": 8000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1930,
+            "eksperci": 0.2353,
+            "sredni": 0.5882,
+            "szeregowi": 0.1765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Siarka": 5,
+                "Gaz Ziemny": 5
+            },
+            "outputs": {
+                "Nawozy": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece i Zbiorniki Ręczne",
+                "produkcja": "Proces Habera-Boscha",
+                "organizacja": "Laboratoria Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-7450]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1241]",
+        "nazwa": "Fabryka Maszyn",
+        "wlasciciel_id": "[ID-9HV-2809]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.6023,
+            "szeregowi": 0.25,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 200,
+                "Części Mechaniczne": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne i Tokarki",
+                "produkcja": "Narzędzia Ręczne i Odlewnia",
+                "organizacja": "Manufaktura Warsztatowa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-2809]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7253]",
+        "nazwa": "Fabryka Maszyn Ciężkich",
+        "wlasciciel_id": "[REG-4HV-8854]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1616,
+            "sredni": 0.5556,
+            "szeregowi": 0.2828,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 10,
+                "Żelazo": 5
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 300,
+                "Części Mechaniczne": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dźwigi Parowe",
+                "produkcja": "Warsztaty Odlewnicze",
+                "organizacja": "Zakłady Państwowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-8854]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5826]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[KRS-2HV-8966]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 30000,
+        "zatrudnienie_aktualne": 24000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0792,
+            "sredni": 0.396,
+            "szeregowi": 0.5248,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Stolarskie",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-8966]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7923]",
+        "nazwa": "Zakłady Chemiczne",
+        "wlasciciel_id": "[ID-9HV-1261]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1930,
+            "eksperci": 0.2353,
+            "sredni": 0.5882,
+            "szeregowi": 0.1765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Siarka": 5,
+                "Gaz Ziemny": 5
+            },
+            "outputs": {
+                "Nawozy": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece i Zbiorniki Ręczne",
+                "produkcja": "Proces Habera-Boscha",
+                "organizacja": "Laboratoria Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-1261]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5085]",
+        "nazwa": "Fabryka Pociągów",
+        "wlasciciel_id": "[REG-4HV-3333]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4500,
+        "zatrudnienie_aktualne": 3600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1111,
+            "sredni": 0.5,
+            "szeregowi": 0.3889,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 20,
+                "Żelazo": 10,
+                "Drewno": 15
+            },
+            "outputs": {
+                "Pociągi": 5
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Kowalskie",
+                "produkcja": "Pociągi Parowe",
+                "organizacja": "Krajowe Zakłady Kolejowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-3333]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3814]",
+        "nazwa": "Tartak",
+        "wlasciciel_id": "[KRS-2HV-3008]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 15000,
+        "zatrudnienie_aktualne": 12000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Drewno": 8,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Deski": 10000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piły Tarczowe i Traki",
+                "produkcja": "Mechaniczne Przeróbka",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-3008]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6593]",
+        "nazwa": "Cementownia",
+        "wlasciciel_id": "[ID-9HV-6984]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Wapień": 10,
+                "Węgiel Kamienny": 5
+            },
+            "outputs": {
+                "Cement": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Rotacyjne Ręczne",
+                "produkcja": "Tradycyjna Cementownia",
+                "organizacja": "Lokalne Cementownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-6984]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5413]",
+        "nazwa": "Huta Aluminium",
+        "wlasciciel_id": "[REG-4HV-4510]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1529,
+            "sredni": 0.4706,
+            "szeregowi": 0.3765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Boksyt": 15,
+                "Paliwa": 10
+            },
+            "outputs": {
+                "Aluminium": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Elektryczne Proste",
+                "produkcja": "Proces Halla-Héroulta",
+                "organizacja": "Laboratoria Badawcze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-4510]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1025]",
+        "nazwa": "Rafineria",
+        "wlasciciel_id": "[KRS-2HV-1180]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 7500,
+        "zatrudnienie_aktualne": 6000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1087,
+            "sredni": 0.4565,
+            "szeregowi": 0.4348,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Ropa Naftowa": 20
+            },
+            "outputs": {
+                "Paliwa": 1500,
+                "Bitumin": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Destylacja Prosta",
+                "produkcja": "Prosta Destylacja",
+                "organizacja": "Małe Rafinerie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-1180]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1526]",
+        "nazwa": "Tartak",
+        "wlasciciel_id": "[ID-9HV-3675]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Drewno": 8,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Deski": 10000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piły Tarczowe i Traki",
+                "produkcja": "Mechaniczne Przeróbka",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-3675]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1848]",
+        "nazwa": "Huta Aluminium",
+        "wlasciciel_id": "[REG-4HV-3490]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1529,
+            "sredni": 0.4706,
+            "szeregowi": 0.3765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Boksyt": 15,
+                "Paliwa": 10
+            },
+            "outputs": {
+                "Aluminium": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Elektryczne Proste",
+                "produkcja": "Proces Halla-Héroulta",
+                "organizacja": "Laboratoria Badawcze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-3490]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8517]",
+        "nazwa": "Cementownia",
+        "wlasciciel_id": "[KRS-2HV-8127]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 10000,
+        "zatrudnienie_aktualne": 8000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Wapień": 10,
+                "Węgiel Kamienny": 5
+            },
+            "outputs": {
+                "Cement": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Rotacyjne Ręczne",
+                "produkcja": "Tradycyjna Cementownia",
+                "organizacja": "Lokalne Cementownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-8127]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8550]",
+        "nazwa": "Huta Aluminium",
+        "wlasciciel_id": "[ID-9HV-3568]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1529,
+            "sredni": 0.4706,
+            "szeregowi": 0.3765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Boksyt": 15,
+                "Paliwa": 10
+            },
+            "outputs": {
+                "Aluminium": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Elektryczne Proste",
+                "produkcja": "Proces Halla-Héroulta",
+                "organizacja": "Laboratoria Badawcze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-3568]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3996]",
+        "nazwa": "Fabryka Maszyn",
+        "wlasciciel_id": "[REG-4HV-7752]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.6023,
+            "szeregowi": 0.25,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 200,
+                "Części Mechaniczne": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne i Tokarki",
+                "produkcja": "Narzędzia Ręczne i Odlewnia",
+                "organizacja": "Manufaktura Warsztatowa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-7752]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2722]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[KRS-2HV-7830]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 25000,
+        "zatrudnienie_aktualne": 20000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0909,
+            "sredni": 0.5114,
+            "szeregowi": 0.3977,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2,
+                "Części Mechaniczne": 2
+            },
+            "outputs": {
+                "Samochody": 20,
+                "Ciężarówki": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Karoseryjne",
+                "produkcja": "Warsztaty Karoseryjne",
+                "organizacja": "Rzemiosło Indywidualne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-7830]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1308]",
+        "nazwa": "Koksownia",
+        "wlasciciel_id": "[ID-9HV-1927]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1800,
+        "zatrudnienie_aktualne": 1440,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 15
+            },
+            "outputs": {
+                "Koks": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Koksownicze Ręczne",
+                "produkcja": "Tradycyjna Koksownia",
+                "organizacja": "Lokalne Koksownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-1927]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7879]",
+        "nazwa": "Fabryka Pociągów",
+        "wlasciciel_id": "[REG-4HV-1993]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4500,
+        "zatrudnienie_aktualne": 3600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1111,
+            "sredni": 0.5,
+            "szeregowi": 0.3889,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 20,
+                "Żelazo": 10,
+                "Drewno": 15
+            },
+            "outputs": {
+                "Pociągi": 5
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Kowalskie",
+                "produkcja": "Pociągi Parowe",
+                "organizacja": "Krajowe Zakłady Kolejowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-1993]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9422]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[KRS-2HV-2340]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 30000,
+        "zatrudnienie_aktualne": 24000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0792,
+            "sredni": 0.396,
+            "szeregowi": 0.5248,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Stolarskie",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-2340]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3605]",
+        "nazwa": "Tartak",
+        "wlasciciel_id": "[ID-9HV-3401]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Drewno": 8,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Deski": 10000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piły Tarczowe i Traki",
+                "produkcja": "Mechaniczne Przeróbka",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-3401]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8767]",
+        "nazwa": "Huta Szkła",
+        "wlasciciel_id": "[REG-4HV-1499]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1800,
+        "zatrudnienie_aktualne": 1440,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Piasek": 15,
+                "Wapień": 5,
+                "Węgiel Kamienny": 8
+            },
+            "outputs": {
+                "Szkło": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Szkliste Ręczne",
+                "produkcja": "Tradycyjna Huta Szkła",
+                "organizacja": "Lokalne Huty Szkła"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-1499]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8262]",
+        "nazwa": "Fabryka Maszyn Rolnych",
+        "wlasciciel_id": "[KRS-2HV-4112]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 15000,
+        "zatrudnienie_aktualne": 12000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0889,
+            "sredni": 0.4444,
+            "szeregowi": 0.4667,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 8,
+                "Żelazo": 5,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Maszyny Rolne": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kowalstwo Ręczne",
+                "produkcja": "Proste Narzędzia Rolne",
+                "organizacja": "Lokalne Warsztaty"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-4112]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3659]",
+        "nazwa": "Cementownia",
+        "wlasciciel_id": "[ID-9HV-5486]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Wapień": 10,
+                "Węgiel Kamienny": 5
+            },
+            "outputs": {
+                "Cement": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Rotacyjne Ręczne",
+                "produkcja": "Tradycyjna Cementownia",
+                "organizacja": "Lokalne Cementownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-5486]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1749]",
+        "nazwa": "Cegielnia (Przemysłowa)",
+        "wlasciciel_id": "[REG-4HV-7825]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Glina": 8,
+                "Węgiel Kamienny": 3
+            },
+            "outputs": {
+                "Cegły": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Cegielniane Ręczne",
+                "produkcja": "Tradycyjna Cegielnia",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-7825]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6964]",
+        "nazwa": "Fabryka Maszyn Ciężkich",
+        "wlasciciel_id": "[KRS-2HV-2019]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 15000,
+        "zatrudnienie_aktualne": 12000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1616,
+            "sredni": 0.5556,
+            "szeregowi": 0.2828,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 10,
+                "Żelazo": 5
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 300,
+                "Części Mechaniczne": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dźwigi Parowe",
+                "produkcja": "Warsztaty Odlewnicze",
+                "organizacja": "Zakłady Państwowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-2019]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5223]",
+        "nazwa": "Fabryka Maszyn Rolnych",
+        "wlasciciel_id": "[ID-9HV-6318]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0889,
+            "sredni": 0.4444,
+            "szeregowi": 0.4667,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 8,
+                "Żelazo": 5,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Maszyny Rolne": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kowalstwo Ręczne",
+                "produkcja": "Proste Narzędzia Rolne",
+                "organizacja": "Lokalne Warsztaty"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-6318]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7005]",
+        "nazwa": "Tartak",
+        "wlasciciel_id": "[REG-4HV-4988]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Drewno": 8,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Deski": 10000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piły Tarczowe i Traki",
+                "produkcja": "Mechaniczne Przeróbka",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-4988]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8601]",
+        "nazwa": "Tartak",
+        "wlasciciel_id": "[KRS-2HV-7562]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 15000,
+        "zatrudnienie_aktualne": 12000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Drewno": 8,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Deski": 10000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piły Tarczowe i Traki",
+                "produkcja": "Mechaniczne Przeróbka",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-7562]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3007]",
+        "nazwa": "Fabryka Maszyn Rolnych",
+        "wlasciciel_id": "[ID-9HV-4245]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0889,
+            "sredni": 0.4444,
+            "szeregowi": 0.4667,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 8,
+                "Żelazo": 5,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Maszyny Rolne": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kowalstwo Ręczne",
+                "produkcja": "Proste Narzędzia Rolne",
+                "organizacja": "Lokalne Warsztaty"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-4245]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7069]",
+        "nazwa": "Huta Aluminium",
+        "wlasciciel_id": "[REG-4HV-2668]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1529,
+            "sredni": 0.4706,
+            "szeregowi": 0.3765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Boksyt": 15,
+                "Paliwa": 10
+            },
+            "outputs": {
+                "Aluminium": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Elektryczne Proste",
+                "produkcja": "Proces Halla-Héroulta",
+                "organizacja": "Laboratoria Badawcze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-2668]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7137]",
+        "nazwa": "Rafineria",
+        "wlasciciel_id": "[KRS-2HV-3627]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 7500,
+        "zatrudnienie_aktualne": 6000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1087,
+            "sredni": 0.4565,
+            "szeregowi": 0.4348,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Ropa Naftowa": 20
+            },
+            "outputs": {
+                "Paliwa": 1500,
+                "Bitumin": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Destylacja Prosta",
+                "produkcja": "Prosta Destylacja",
+                "organizacja": "Małe Rafinerie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-3627]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7912]",
+        "nazwa": "Rafineria",
+        "wlasciciel_id": "[ID-9HV-8051]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1087,
+            "sredni": 0.4565,
+            "szeregowi": 0.4348,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Ropa Naftowa": 20
+            },
+            "outputs": {
+                "Paliwa": 1500,
+                "Bitumin": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Destylacja Prosta",
+                "produkcja": "Prosta Destylacja",
+                "organizacja": "Małe Rafinerie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-8051]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6503]",
+        "nazwa": "Huta Szkła",
+        "wlasciciel_id": "[REG-4HV-1502]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1800,
+        "zatrudnienie_aktualne": 1440,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Piasek": 15,
+                "Wapień": 5,
+                "Węgiel Kamienny": 8
+            },
+            "outputs": {
+                "Szkło": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Szkliste Ręczne",
+                "produkcja": "Tradycyjna Huta Szkła",
+                "organizacja": "Lokalne Huty Szkła"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-1502]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7632]",
+        "nazwa": "Tartak",
+        "wlasciciel_id": "[KRS-2HV-9425]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 15000,
+        "zatrudnienie_aktualne": 12000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Drewno": 8,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Deski": 10000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piły Tarczowe i Traki",
+                "produkcja": "Mechaniczne Przeróbka",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-9425]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7574]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[ID-9HV-1142]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0792,
+            "sredni": 0.396,
+            "szeregowi": 0.5248,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Stolarskie",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-1142]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7550]",
+        "nazwa": "Tartak",
+        "wlasciciel_id": "[REG-4HV-2293]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Drewno": 8,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Deski": 10000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piły Tarczowe i Traki",
+                "produkcja": "Mechaniczne Przeróbka",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-2293]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8644]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[KRS-2HV-3485]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 25000,
+        "zatrudnienie_aktualne": 20000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0909,
+            "sredni": 0.5114,
+            "szeregowi": 0.3977,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2,
+                "Części Mechaniczne": 2
+            },
+            "outputs": {
+                "Samochody": 20,
+                "Ciężarówki": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Karoseryjne",
+                "produkcja": "Warsztaty Karoseryjne",
+                "organizacja": "Rzemiosło Indywidualne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-3485]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6212]",
+        "nazwa": "Cementownia",
+        "wlasciciel_id": "[ID-9HV-2575]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Wapień": 10,
+                "Węgiel Kamienny": 5
+            },
+            "outputs": {
+                "Cement": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Rotacyjne Ręczne",
+                "produkcja": "Tradycyjna Cementownia",
+                "organizacja": "Lokalne Cementownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-2575]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8946]",
+        "nazwa": "Huta Aluminium",
+        "wlasciciel_id": "[REG-4HV-5892]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1529,
+            "sredni": 0.4706,
+            "szeregowi": 0.3765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Boksyt": 15,
+                "Paliwa": 10
+            },
+            "outputs": {
+                "Aluminium": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Elektryczne Proste",
+                "produkcja": "Proces Halla-Héroulta",
+                "organizacja": "Laboratoria Badawcze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-5892]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7865]",
+        "nazwa": "Huta Szkła",
+        "wlasciciel_id": "[KRS-2HV-2584]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 9000,
+        "zatrudnienie_aktualne": 7200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Piasek": 15,
+                "Wapień": 5,
+                "Węgiel Kamienny": 8
+            },
+            "outputs": {
+                "Szkło": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Szkliste Ręczne",
+                "produkcja": "Tradycyjna Huta Szkła",
+                "organizacja": "Lokalne Huty Szkła"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-2584]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2448]",
+        "nazwa": "Koksownia",
+        "wlasciciel_id": "[ID-9HV-8257]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1800,
+        "zatrudnienie_aktualne": 1440,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 15
+            },
+            "outputs": {
+                "Koks": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Koksownicze Ręczne",
+                "produkcja": "Tradycyjna Koksownia",
+                "organizacja": "Lokalne Koksownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-8257]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4598]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[REG-4HV-5147]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0909,
+            "sredni": 0.5114,
+            "szeregowi": 0.3977,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2,
+                "Części Mechaniczne": 2
+            },
+            "outputs": {
+                "Samochody": 20,
+                "Ciężarówki": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Karoseryjne",
+                "produkcja": "Warsztaty Karoseryjne",
+                "organizacja": "Rzemiosło Indywidualne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region11",
+        "cluster_info": {
+            "region_id": "Oksytania-Region11",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-5147]"
+        }
+    }
+]

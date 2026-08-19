@@ -1,0 +1,1696 @@
+[
+    {
+        "id": "[ID-9XX-7854]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-9858]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-9858]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4850]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-6680]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-6680]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1551]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-4117]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-4117]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9480]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-2177]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-2177]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2721]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-2845]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-2845]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8668]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-1350]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-1350]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9421]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-9677]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-9677]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6598]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-8162]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-8162]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6943]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[REG-4LT-1480]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-1480]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7337]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-2453]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-2453]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6854]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-8723]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-8723]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9176]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-4275]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-4275]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2414]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-4252]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-4252]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3731]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-3016]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-3016]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6172]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[REG-4LT-4796]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-4796]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7955]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-8367]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-8367]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7903]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-2943]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-2943]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2602]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-9516]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-9516]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8674]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-8810]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-8810]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6320]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-4198]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-4198]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3329]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-8400]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-8400]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2096]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-8234]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-8234]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4811]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-1835]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-1835]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8463]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[REG-4LT-1948]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-1948]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8812]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-1163]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-1163]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1407]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-7860]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-7860]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6208]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[REG-4LT-8667]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-8667]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6718]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-4941]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-4941]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9224]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-2896]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-2896]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9887]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[REG-4LT-6757]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-6757]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4539]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-1486]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-1486]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2594]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-4077]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-4077]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5170]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-7995]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-7995]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3516]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-1486]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-1486]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7826]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-1099]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-1099]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6403]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[REG-4LT-1386]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-1386]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2150]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-6873]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-6873]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5164]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-3359]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-3359]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1357]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-4906]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-4906]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9595]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-9474]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-9474]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1194]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-4162]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-4162]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1463]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-4026]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region12",
+        "cluster_info": {
+            "region_id": "Lechia-Region12",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-4026]"
+        }
+    }
+]

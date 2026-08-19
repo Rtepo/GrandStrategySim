@@ -1,0 +1,75 @@
+[
+  {
+    "id": "B-HEL-0024",
+    "name": "Transport Depot",
+    "wlasciciel_id": "KRS-HEL-0024",
+    "rok_budowy": 1875,
+    "sektor_pkb": "transport_logistics",
+    "pojemnosc_pracownikow": 126,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 91300.0,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.1,
+      "sredni": 0.25,
+      "szeregowi": 0.65,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 15.0,
+        "trains": 2.0,
+        "steel": 5.0
+      },
+      "outputs": {
+        "freight_capacity": 40.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region12",
+    "cluster_info": {
+      "region_id": "Helwecja-Region12",
+      "scale_factor": 4,
+      "sector": "transport_logistics",
+      "owner_id": "KRS-HEL-0024"
+    },
+    "ostatnia_produkcja": {
+      "freight_capacity": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.978,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "trains",
+        "count": 4.0,
+        "condition": 0.7940847226250164,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "coke": 0.42,
+      "fuels": 0.504,
+      "food": 0.52,
+      "steel": 1.7031309324075303,
+      "iron": 1.05
+    },
+    "pojemność_magazynu": 1000.0
+  }
+]

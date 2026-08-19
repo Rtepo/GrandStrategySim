@@ -1,0 +1,73 @@
+[
+  {
+    "id": "B-ILI-0113",
+    "name": "Public Office",
+    "wlasciciel_id": "KRS-ILI-0113",
+    "rok_budowy": 1877,
+    "sektor_pkb": "public_services",
+    "pojemnosc_pracownikow": 70,
+    "zatrudnienie_aktualne": 70,
+    "rezerwa_zakladowa": 23800.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 5.0,
+        "food": 4.0,
+        "clothing": 2.0
+      },
+      "outputs": {
+        "local_services": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 172,
+    "region_id": "Iliria-Region7",
+    "cluster_info": {
+      "region_id": "Iliria-Region7",
+      "scale_factor": 1,
+      "sector": "public_services",
+      "owner_id": "KRS-ILI-0113"
+    },
+    "ostatnia_produkcja": {
+      "local_services": 1.54
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "office_machinery",
+        "count": 3.0,
+        "condition": 0.8806733043979462,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 0.8599999999999999,
+      "food": 0.688,
+      "local_services": 3.4399999999999995
+    },
+    "pojemność_magazynu": 1720.0
+  }
+]

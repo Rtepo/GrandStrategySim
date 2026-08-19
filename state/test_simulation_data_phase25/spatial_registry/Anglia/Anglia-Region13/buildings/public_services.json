@@ -1,0 +1,74 @@
+[
+  {
+    "id": "B-ANG-0226",
+    "name": "Public Office",
+    "wlasciciel_id": "KRS-ANG-0226",
+    "rok_budowy": 1963,
+    "sektor_pkb": "public_services",
+    "pojemnosc_pracownikow": 77,
+    "zatrudnienie_aktualne": 77,
+    "rezerwa_zakladowa": 137670.0,
+    "aktywna_metoda": {
+      "rok": 1970,
+      "eksperci": 0.3,
+      "sredni": 0.4,
+      "szeregowi": 0.3,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "electronic_components": 5.0,
+        "software": 3.0,
+        "paper": 3.0
+      },
+      "outputs": {
+        "administrative_services": 50.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 173,
+    "region_id": "Anglia-Region13",
+    "cluster_info": {
+      "region_id": "Anglia-Region13",
+      "scale_factor": 1,
+      "sector": "public_services",
+      "owner_id": "KRS-ANG-0226"
+    },
+    "ostatnia_produkcja": {
+      "administrative_services": 3.85
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "office_machinery",
+        "count": 3.0,
+        "condition": 0.9080249999999993,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "electronic_components": 5.551115123125783e-17,
+      "food": 0.865,
+      "administrative_services": 18.25599114249062,
+      "maintenance_services": 0.01252500000000012
+    },
+    "pojemność_magazynu": 1730.0
+  }
+]

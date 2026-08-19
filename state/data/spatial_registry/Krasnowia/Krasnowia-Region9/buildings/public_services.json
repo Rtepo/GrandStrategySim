@@ -1,0 +1,72 @@
+[
+  {
+    "id": "B-KRA-0032",
+    "name": "Public Office",
+    "wlasciciel_id": "KRS-KRA-0032",
+    "rok_budowy": 1893,
+    "sektor_pkb": "public_services",
+    "pojemnosc_pracownikow": 182,
+    "zatrudnienie_aktualne": 109,
+    "rezerwa_zakladowa": 5460.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.3,
+      "sredni": 0.4,
+      "szeregowi": 0.3,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "office_machinery": 2.0,
+        "paper": 5.0
+      },
+      "outputs": {
+        "banking_services": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 182,
+    "region_id": "Krasnowia-Region9",
+    "cluster_info": {
+      "region_id": "Krasnowia-Region9",
+      "scale_factor": 1,
+      "sector": "public_services",
+      "owner_id": "KRS-KRA-0032"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "office_machinery",
+        "count": 3.0,
+        "condition": 0.8984229935572431,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.546,
+      "paper": 0.9099999999999999,
+      "food": 0.9099999999999999,
+      "banking_services": 2.73
+    },
+    "pojemność_magazynu": 1820.0
+  }
+]

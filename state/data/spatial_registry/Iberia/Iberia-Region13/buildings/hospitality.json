@@ -1,0 +1,66 @@
+[
+  {
+    "id": "B-IBE-0166",
+    "name": "Hospitality Venue",
+    "wlasciciel_id": "KRS-IBE-0166",
+    "rok_budowy": 1897,
+    "sektor_pkb": "hospitality",
+    "pojemnosc_pracownikow": 125,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 7500.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 125,
+    "region_id": "Iberia-Region13",
+    "cluster_info": {
+      "region_id": "Iberia-Region13",
+      "scale_factor": 2,
+      "sector": "hospitality",
+      "owner_id": "KRS-IBE-0166"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.994,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 3.0,
+        "condition": 0.8459066476481295,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "cement": 1.77,
+      "food": 0.59,
+      "construction_services": 3.54,
+      "renovation_services": 1.18
+    },
+    "pojemność_magazynu": 1250.0
+  }
+]

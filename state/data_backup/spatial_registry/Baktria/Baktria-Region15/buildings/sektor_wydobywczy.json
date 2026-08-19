@@ -1,0 +1,2692 @@
+[
+  {
+    "id": "[ID-9XX-2316]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1MN-3997]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Glina": 10000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Mieszalniki",
+        "produkcja": "Mechaniczne Wydobywanie",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-1MN-3997]"
+    },
+    "ostatnia_produkcja": {
+      "Glina": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Cegielnia (Glina)"
+  },
+  {
+    "id": "[ID-9XX-5900]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-3678]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 2500,
+    "zatrudnienie_aktualne": 2000,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.0642,
+      "sredni": 0.2477,
+      "szeregowi": 0.6881,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Miedź": 1500.0,
+        "Złoto": 100.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Narzędzia Ręczne",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-3678]"
+    },
+    "ostatnia_produkcja": {
+      "Miedź": 3000.0,
+      "Złoto": 200.0
+    },
+    "rentownosc_ost_rok": 31916.306319360796,
+    "nazwa": "Kopalnie Metali Kolorowych"
+  },
+  {
+    "id": "[ID-9XX-5786]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-2799]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 2400,
+    "zatrudnienie_aktualne": 1920,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.2131,
+      "sredni": 0.7705,
+      "szeregowi": 0.0164,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 2.0,
+        "Paliwa": 3.0
+      },
+      "outputs": {
+        "Ołów": 3200.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Materiały Wybuchowe",
+        "produkcja": "Odkrywka Maszynowa",
+        "organizacja": "Państwowe Zasoby"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-2799]"
+    },
+    "ostatnia_produkcja": {
+      "Ołów": 6144.0
+    },
+    "rentownosc_ost_rok": 172573.36304634134,
+    "nazwa": "Kopalnia Ołowiu"
+  },
+  {
+    "id": "[ID-9XX-9853]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-4643]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 3000,
+    "zatrudnienie_aktualne": 2400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Żwir": 15000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Przesiewacze",
+        "produkcja": "Mechaniczne Przesiewanie",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-4643]"
+    },
+    "ostatnia_produkcja": {
+      "Żwir": 36000.0
+    },
+    "rentownosc_ost_rok": 3055722.7651206967,
+    "nazwa": "Żwirownia"
+  },
+  {
+    "id": "[ID-9XX-8236]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1MN-9585]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 2200,
+    "zatrudnienie_aktualne": 1760,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.6,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Cyna": 1200.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Przesiewacze",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-1MN-9585]"
+    },
+    "ostatnia_produkcja": {
+      "Cyna": 2112.0
+    },
+    "rentownosc_ost_rok": -83504.62023278832,
+    "nazwa": "Kopalnia Cyny"
+  },
+  {
+    "id": "[ID-9XX-1153]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-9366]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 2300,
+    "zatrudnienie_aktualne": 1840,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Cynk": 1000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-9366]"
+    },
+    "ostatnia_produkcja": {
+      "Cynk": 1840.0
+    },
+    "rentownosc_ost_rok": -69035.43907942387,
+    "nazwa": "Kopalnia Cynku"
+  },
+  {
+    "id": "[ID-9XX-6815]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-6947]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Siarka": 2.0
+      },
+      "outputs": {
+        "Żelazo": 5000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Materiały Wybuchowe",
+        "produkcja": "Materiały Wybuchowe",
+        "organizacja": "Koncern Wydobywczy"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-6947]"
+    },
+    "ostatnia_produkcja": {
+      "Żelazo": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Żelaza"
+  },
+  {
+    "id": "[ID-9XX-2748]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-2637]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 3000,
+    "zatrudnienie_aktualne": 2400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0909,
+      "sredni": 0.5682,
+      "szeregowi": 0.3409,
+      "wydajnosc": 1.82,
+      "inputs": {
+        "Drewno": 2.0,
+        "Maszyny Przemysłowe": 0.5
+      },
+      "outputs": {
+        "Surowce Mineralne": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Proste Maszyny Parowe",
+        "produkcja": "Wydobycie Maszynowe",
+        "organizacja": "Prywatna Kopalnia"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-2637]"
+    },
+    "ostatnia_produkcja": {
+      "Surowce Mineralne": 6000.0
+    },
+    "rentownosc_ost_rok": 160379.75675507425,
+    "nazwa": "Kopalnia Odkrywkowa"
+  },
+  {
+    "id": "[ID-9XX-1863]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1MN-7309]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 3500,
+    "zatrudnienie_aktualne": 2800,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Kamień": 12000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Piły Tarczowe",
+        "produkcja": "Mechaniczne Obróbka",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-1MN-7309]"
+    },
+    "ostatnia_produkcja": {
+      "Kamień": 33600.0
+    },
+    "rentownosc_ost_rok": 2725009.892640813,
+    "nazwa": "Kamieniolom"
+  },
+  {
+    "id": "[ID-9XX-8193]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-4313]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 2000,
+    "zatrudnienie_aktualne": 1600,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.2131,
+      "sredni": 0.7705,
+      "szeregowi": 0.0164,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 2.0,
+        "Paliwa": 3.0
+      },
+      "outputs": {
+        "Srebro": 2000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Materiały Wybuchowe",
+        "produkcja": "Odkrywka Maszynowa",
+        "organizacja": "Państwowe Zasoby"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-4313]"
+    },
+    "ostatnia_produkcja": {
+      "Srebro": 3200.0
+    },
+    "rentownosc_ost_rok": -48188.86412804888,
+    "nazwa": "Kopalnia Srebra"
+  },
+  {
+    "id": "[ID-9XX-6025]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-2744]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 2500,
+    "zatrudnienie_aktualne": 2000,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Sól": 8000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Pompy",
+        "produkcja": "Odkrywka Solna",
+        "organizacja": "Państwowe Monopole"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-2744]"
+    },
+    "ostatnia_produkcja": {
+      "Sól": 16000.0
+    },
+    "rentownosc_ost_rok": 1146435.6376005807,
+    "nazwa": "Kopalnia Soli"
+  },
+  {
+    "id": "[ID-9XX-9319]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-4880]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 2800,
+    "zatrudnienie_aktualne": 2240,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Piasek": 18000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Przesiewacze",
+        "produkcja": "Mechaniczne Przesiewanie",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-4880]"
+    },
+    "ostatnia_produkcja": {
+      "Piasek": 40320.00000000001
+    },
+    "rentownosc_ost_rok": 3524007.9141126513,
+    "nazwa": "Piaskownia"
+  },
+  {
+    "id": "[ID-9XX-2857]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1MN-1627]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 3500,
+    "zatrudnienie_aktualne": 2800,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Kamień": 12000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Piły Tarczowe",
+        "produkcja": "Mechaniczne Obróbka",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-1MN-1627]"
+    },
+    "ostatnia_produkcja": {
+      "Kamień": 33600.0
+    },
+    "rentownosc_ost_rok": 2725009.892640813,
+    "nazwa": "Kamieniolom"
+  },
+  {
+    "id": "[ID-9XX-7957]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-8628]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 2800,
+    "zatrudnienie_aktualne": 2240,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Piasek": 18000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Przesiewacze",
+        "produkcja": "Mechaniczne Przesiewanie",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-8628]"
+    },
+    "ostatnia_produkcja": {
+      "Piasek": 40320.00000000001
+    },
+    "rentownosc_ost_rok": 3524007.9141126513,
+    "nazwa": "Piaskownia"
+  },
+  {
+    "id": "[ID-9XX-4876]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-4229]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 3500,
+    "zatrudnienie_aktualne": 2800,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Siarka": 2.0
+      },
+      "outputs": {
+        "Żelazo": 5000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Materiały Wybuchowe",
+        "produkcja": "Materiały Wybuchowe",
+        "organizacja": "Koncern Wydobywczy"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-4229]"
+    },
+    "ostatnia_produkcja": {
+      "Żelazo": 14000.0
+    },
+    "rentownosc_ost_rok": 765009.8926408129,
+    "nazwa": "Kopalnia Żelaza"
+  },
+  {
+    "id": "[ID-9XX-5783]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-9026]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.6,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Siarka": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Materiały Wybuchowe",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-9026]"
+    },
+    "ostatnia_produkcja": {
+      "Siarka": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Siarki"
+  },
+  {
+    "id": "[ID-9XX-7535]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1MN-3531]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 2200,
+    "zatrudnienie_aktualne": 1760,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.6,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Cyna": 1200.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Przesiewacze",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-1MN-3531]"
+    },
+    "ostatnia_produkcja": {
+      "Cyna": 2112.0
+    },
+    "rentownosc_ost_rok": -83504.62023278832,
+    "nazwa": "Kopalnia Cyny"
+  },
+  {
+    "id": "[ID-9XX-8974]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-8110]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 3300,
+    "zatrudnienie_aktualne": 2640,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Wapień": 11000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Kruszarki",
+        "produkcja": "Mechaniczne Obróbka",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-8110]"
+    },
+    "ostatnia_produkcja": {
+      "Wapień": 29040.0
+    },
+    "rentownosc_ost_rok": 2305295.0416327664,
+    "nazwa": "Kamieniolom Wapienia"
+  },
+  {
+    "id": "[ID-9XX-9233]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-4941]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 3300,
+    "zatrudnienie_aktualne": 2640,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Wapień": 11000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Kruszarki",
+        "produkcja": "Mechaniczne Obróbka",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-4941]"
+    },
+    "ostatnia_produkcja": {
+      "Wapień": 29040.0
+    },
+    "rentownosc_ost_rok": 2305295.0416327664,
+    "nazwa": "Kamieniolom Wapienia"
+  },
+  {
+    "id": "[ID-9XX-3371]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-4383]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 3000,
+    "zatrudnienie_aktualne": 2400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Boksyt": 1800.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-4383]"
+    },
+    "ostatnia_produkcja": {
+      "Boksyt": 4320.0
+    },
+    "rentownosc_ost_rok": 101953.77511379495,
+    "nazwa": "Kopalnia Boksytu"
+  },
+  {
+    "id": "[ID-9XX-6543]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1MN-4006]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 3200,
+    "zatrudnienie_aktualne": 2560,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Glina": 10000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Mieszalniki",
+        "produkcja": "Mechaniczne Wydobywanie",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-1MN-4006]"
+    },
+    "ostatnia_produkcja": {
+      "Glina": 25600.0
+    },
+    "rentownosc_ost_rok": 1979437.6161287432,
+    "nazwa": "Cegielnia (Glina)"
+  },
+  {
+    "id": "[ID-9XX-7647]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-8266]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.6,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Cyna": 1200.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Przesiewacze",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-8266]"
+    },
+    "ostatnia_produkcja": {
+      "Cyna": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Cyny"
+  },
+  {
+    "id": "[ID-9XX-3887]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-3346]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Wapień": 11000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Kruszarki",
+        "produkcja": "Mechaniczne Obróbka",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-3346]"
+    },
+    "ostatnia_produkcja": {
+      "Wapień": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kamieniolom Wapienia"
+  },
+  {
+    "id": "[ID-9XX-5622]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-2178]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 2100,
+    "zatrudnienie_aktualne": 1680,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.0642,
+      "sredni": 0.2477,
+      "szeregowi": 0.6881,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Magnez": 900.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Narzędzia Ręczne",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-2178]"
+    },
+    "ostatnia_produkcja": {
+      "Magnez": 1512.0
+    },
+    "rentownosc_ost_rok": -90790.30269173693,
+    "nazwa": "Kopalnia Magnezu"
+  },
+  {
+    "id": "[ID-9XX-3937]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1MN-6946]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 1000,
+    "zatrudnienie_aktualne": 800,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1205,
+      "sredni": 0.4578,
+      "szeregowi": 0.4217,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Stal": 3.0
+      },
+      "outputs": {
+        "Gaz Ziemny": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Odwierty Proste",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Lokalne Koncesje"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-1MN-6946]"
+    },
+    "ostatnia_produkcja": {
+      "Gaz Ziemny": 2000.0
+    },
+    "rentownosc_ost_rok": 57621.41157628957,
+    "nazwa": "Kopalnie Gazu Ziemnego"
+  },
+  {
+    "id": "[ID-9XX-6056]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-3554]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 2500,
+    "zatrudnienie_aktualne": 2000,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Sól": 8000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Pompy",
+        "produkcja": "Odkrywka Solna",
+        "organizacja": "Państwowe Monopole"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-3554]"
+    },
+    "ostatnia_produkcja": {
+      "Sól": 16000.0
+    },
+    "rentownosc_ost_rok": 1146435.6376005807,
+    "nazwa": "Kopalnia Soli"
+  },
+  {
+    "id": "[ID-9XX-1652]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-3162]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 2200,
+    "zatrudnienie_aktualne": 1760,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.6,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Siarka": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Materiały Wybuchowe",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-3162]"
+    },
+    "ostatnia_produkcja": {
+      "Siarka": 2640.0
+    },
+    "rentownosc_ost_rok": -30704.620232788322,
+    "nazwa": "Kopalnia Siarki"
+  },
+  {
+    "id": "[ID-9XX-1608]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-4536]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.0642,
+      "sredni": 0.2477,
+      "szeregowi": 0.6881,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Miedź": 1500.0,
+        "Złoto": 100.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Narzędzia Ręczne",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-4536]"
+    },
+    "ostatnia_produkcja": {
+      "Miedź": 0.0,
+      "Złoto": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnie Metali Kolorowych"
+  },
+  {
+    "id": "[ID-9XX-3988]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1MN-5144]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 2500,
+    "zatrudnienie_aktualne": 2000,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.0642,
+      "sredni": 0.2477,
+      "szeregowi": 0.6881,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Miedź": 1500.0,
+        "Złoto": 100.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Narzędzia Ręczne",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-1MN-5144]"
+    },
+    "ostatnia_produkcja": {
+      "Miedź": 3000.0,
+      "Złoto": 200.0
+    },
+    "rentownosc_ost_rok": 31916.306319360796,
+    "nazwa": "Kopalnie Metali Kolorowych"
+  },
+  {
+    "id": "[ID-9XX-9417]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-1993]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 2200,
+    "zatrudnienie_aktualne": 1760,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.6,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Siarka": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Materiały Wybuchowe",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-1993]"
+    },
+    "ostatnia_produkcja": {
+      "Siarka": 2640.0
+    },
+    "rentownosc_ost_rok": -30704.620232788322,
+    "nazwa": "Kopalnia Siarki"
+  },
+  {
+    "id": "[ID-9XX-2188]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-4571]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 3200,
+    "zatrudnienie_aktualne": 2560,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Glina": 10000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Mieszalniki",
+        "produkcja": "Mechaniczne Wydobywanie",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-4571]"
+    },
+    "ostatnia_produkcja": {
+      "Glina": 25600.0
+    },
+    "rentownosc_ost_rok": 1979437.6161287432,
+    "nazwa": "Cegielnia (Glina)"
+  },
+  {
+    "id": "[ID-9XX-4977]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-5665]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 2000,
+    "zatrudnienie_aktualne": 1600,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.2131,
+      "sredni": 0.7705,
+      "szeregowi": 0.0164,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 2.0,
+        "Paliwa": 3.0
+      },
+      "outputs": {
+        "Srebro": 2000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Materiały Wybuchowe",
+        "produkcja": "Odkrywka Maszynowa",
+        "organizacja": "Państwowe Zasoby"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-5665]"
+    },
+    "ostatnia_produkcja": {
+      "Srebro": 3200.0
+    },
+    "rentownosc_ost_rok": -48188.86412804888,
+    "nazwa": "Kopalnia Srebra"
+  },
+  {
+    "id": "[ID-9XX-9943]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1MN-9072]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 3300,
+    "zatrudnienie_aktualne": 2640,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Wapień": 11000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Kruszarki",
+        "produkcja": "Mechaniczne Obróbka",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-1MN-9072]"
+    },
+    "ostatnia_produkcja": {
+      "Wapień": 29040.0
+    },
+    "rentownosc_ost_rok": 2305295.0416327664,
+    "nazwa": "Kamieniolom Wapienia"
+  },
+  {
+    "id": "[ID-9XX-2652]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-4865]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 1000,
+    "zatrudnienie_aktualne": 800,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1205,
+      "sredni": 0.4578,
+      "szeregowi": 0.4217,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Stal": 3.0
+      },
+      "outputs": {
+        "Gaz Ziemny": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Odwierty Proste",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Lokalne Koncesje"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-4865]"
+    },
+    "ostatnia_produkcja": {
+      "Gaz Ziemny": 2000.0
+    },
+    "rentownosc_ost_rok": 57621.41157628957,
+    "nazwa": "Kopalnie Gazu Ziemnego"
+  },
+  {
+    "id": "[ID-9XX-7305]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-2085]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 2500,
+    "zatrudnienie_aktualne": 2000,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.0642,
+      "sredni": 0.2477,
+      "szeregowi": 0.6881,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Miedź": 1500.0,
+        "Złoto": 100.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Narzędzia Ręczne",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-2085]"
+    },
+    "ostatnia_produkcja": {
+      "Miedź": 3000.0,
+      "Złoto": 200.0
+    },
+    "rentownosc_ost_rok": 31916.306319360796,
+    "nazwa": "Kopalnie Metali Kolorowych"
+  },
+  {
+    "id": "[ID-9XX-3030]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-6519]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 2300,
+    "zatrudnienie_aktualne": 1840,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Cynk": 1000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-6519]"
+    },
+    "ostatnia_produkcja": {
+      "Cynk": 1840.0
+    },
+    "rentownosc_ost_rok": -69035.43907942387,
+    "nazwa": "Kopalnia Cynku"
+  },
+  {
+    "id": "[ID-9XX-8351]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1MN-7309]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 2200,
+    "zatrudnienie_aktualne": 1760,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.6,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Cyna": 1200.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Przesiewacze",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-1MN-7309]"
+    },
+    "ostatnia_produkcja": {
+      "Cyna": 2112.0
+    },
+    "rentownosc_ost_rok": -83504.62023278832,
+    "nazwa": "Kopalnia Cyny"
+  },
+  {
+    "id": "[ID-9XX-1537]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-4584]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 4000,
+    "zatrudnienie_aktualne": 3200,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Drewno": 4.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Węgiel Kamienny": 6000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kombajny Chodnikowe",
+        "produkcja": "Wydobycie Maszynowe",
+        "organizacja": "Narodowe Kopalnictwo"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-4584]"
+    },
+    "ostatnia_produkcja": {
+      "Węgiel Kamienny": 19200.0
+    },
+    "rentownosc_ost_rok": 1193657.020160929,
+    "nazwa": "Kopalnia Węgla"
+  },
+  {
+    "id": "[ID-9XX-3097]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-9342]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 2100,
+    "zatrudnienie_aktualne": 1680,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.0642,
+      "sredni": 0.2477,
+      "szeregowi": 0.6881,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Magnez": 900.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Narzędzia Ręczne",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-9342]"
+    },
+    "ostatnia_produkcja": {
+      "Magnez": 1512.0
+    },
+    "rentownosc_ost_rok": -90790.30269173693,
+    "nazwa": "Kopalnia Magnezu"
+  },
+  {
+    "id": "[ID-9XX-1653]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-8482]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Żwir": 15000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Przesiewacze",
+        "produkcja": "Mechaniczne Przesiewanie",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-8482]"
+    },
+    "ostatnia_produkcja": {
+      "Żwir": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Żwirownia"
+  },
+  {
+    "id": "[ID-9XX-2383]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1MN-1811]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 2200,
+    "zatrudnienie_aktualne": 1760,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.6,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Cyna": 1200.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Przesiewacze",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-1MN-1811]"
+    },
+    "ostatnia_produkcja": {
+      "Cyna": 2112.0
+    },
+    "rentownosc_ost_rok": -83504.62023278832,
+    "nazwa": "Kopalnia Cyny"
+  },
+  {
+    "id": "[ID-9XX-4164]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-7290]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 2000,
+    "zatrudnienie_aktualne": 1600,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.2131,
+      "sredni": 0.7705,
+      "szeregowi": 0.0164,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 2.0,
+        "Paliwa": 3.0
+      },
+      "outputs": {
+        "Srebro": 2000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Materiały Wybuchowe",
+        "produkcja": "Odkrywka Maszynowa",
+        "organizacja": "Państwowe Zasoby"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-7290]"
+    },
+    "ostatnia_produkcja": {
+      "Srebro": 3200.0
+    },
+    "rentownosc_ost_rok": -48188.86412804888,
+    "nazwa": "Kopalnia Srebra"
+  },
+  {
+    "id": "[ID-9XX-9164]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-1866]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 1142,
+    "zatrudnienie_aktualne": 1142,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.0642,
+      "sredni": 0.2477,
+      "szeregowi": 0.6881,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Miedź": 1500.0,
+        "Złoto": 100.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Narzędzia Ręczne",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-1866]"
+    },
+    "ostatnia_produkcja": {
+      "Miedź": 1712.9999999999998,
+      "Złoto": 114.19999999999999
+    },
+    "rentownosc_ost_rok": 18224.210908354988,
+    "nazwa": "Kopalnie Metali Kolorowych"
+  },
+  {
+    "id": "[ID-9XX-5377]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-2884]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 3500,
+    "zatrudnienie_aktualne": 2800,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Siarka": 2.0
+      },
+      "outputs": {
+        "Żelazo": 5000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Materiały Wybuchowe",
+        "produkcja": "Materiały Wybuchowe",
+        "organizacja": "Koncern Wydobywczy"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-2884]"
+    },
+    "ostatnia_produkcja": {
+      "Żelazo": 14000.0
+    },
+    "rentownosc_ost_rok": 765009.8926408129,
+    "nazwa": "Kopalnia Żelaza"
+  },
+  {
+    "id": "[ID-9XX-5147]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1MN-5369]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.2462,
+      "sredni": 0.6769,
+      "szeregowi": 0.0769,
+      "wydajnosc": 1.5,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Stal": 5.0
+      },
+      "outputs": {
+        "Ropa Naftowa": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Odwierty Rotacyjne",
+        "produkcja": "Wieże Wiertnicze",
+        "organizacja": "Prywatne Koncesje"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-1MN-5369]"
+    },
+    "ostatnia_produkcja": {
+      "Ropa Naftowa": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Szyby Naftowe"
+  },
+  {
+    "id": "[ID-9XX-5192]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-4218]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Piasek": 18000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Przesiewacze",
+        "produkcja": "Mechaniczne Przesiewanie",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-4218]"
+    },
+    "ostatnia_produkcja": {
+      "Piasek": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Piaskownia"
+  },
+  {
+    "id": "[ID-9XX-2538]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-8931]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 2400,
+    "zatrudnienie_aktualne": 1920,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.2131,
+      "sredni": 0.7705,
+      "szeregowi": 0.0164,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 2.0,
+        "Paliwa": 3.0
+      },
+      "outputs": {
+        "Ołów": 3200.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Materiały Wybuchowe",
+        "produkcja": "Odkrywka Maszynowa",
+        "organizacja": "Państwowe Zasoby"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-8931]"
+    },
+    "ostatnia_produkcja": {
+      "Ołów": 6144.0
+    },
+    "rentownosc_ost_rok": 172573.36304634134,
+    "nazwa": "Kopalnia Ołowiu"
+  },
+  {
+    "id": "[ID-9XX-5631]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-4958]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 3200,
+    "zatrudnienie_aktualne": 2560,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Glina": 10000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Mieszalniki",
+        "produkcja": "Mechaniczne Wydobywanie",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-4958]"
+    },
+    "ostatnia_produkcja": {
+      "Glina": 25600.0
+    },
+    "rentownosc_ost_rok": 1979437.6161287432,
+    "nazwa": "Cegielnia (Glina)"
+  },
+  {
+    "id": "[ID-9XX-3374]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1MN-4002]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 1022,
+    "zatrudnienie_aktualne": 1022,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0909,
+      "sredni": 0.5682,
+      "szeregowi": 0.3409,
+      "wydajnosc": 1.82,
+      "inputs": {
+        "Drewno": 2.0,
+        "Maszyny Przemysłowe": 0.5
+      },
+      "outputs": {
+        "Surowce Mineralne": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Proste Maszyny Parowe",
+        "produkcja": "Wydobycie Maszynowe",
+        "organizacja": "Prywatna Kopalnia"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-1MN-4002]"
+    },
+    "ostatnia_produkcja": {
+      "Surowce Mineralne": 2555.0
+    },
+    "rentownosc_ost_rok": 68295.04641820246,
+    "nazwa": "Kopalnia Odkrywkowa"
+  },
+  {
+    "id": "[ID-9XX-7597]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-5689]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 3000,
+    "zatrudnienie_aktualne": 2400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Żwir": 15000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Przesiewacze",
+        "produkcja": "Mechaniczne Przesiewanie",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-5689]"
+    },
+    "ostatnia_produkcja": {
+      "Żwir": 36000.0
+    },
+    "rentownosc_ost_rok": 3055722.7651206967,
+    "nazwa": "Żwirownia"
+  },
+  {
+    "id": "[ID-9XX-1092]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-9984]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 4000,
+    "zatrudnienie_aktualne": 3200,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Drewno": 4.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Węgiel Kamienny": 6000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kombajny Chodnikowe",
+        "produkcja": "Wydobycie Maszynowe",
+        "organizacja": "Narodowe Kopalnictwo"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-9984]"
+    },
+    "ostatnia_produkcja": {
+      "Węgiel Kamienny": 19200.0
+    },
+    "rentownosc_ost_rok": 1193657.020160929,
+    "nazwa": "Kopalnia Węgla"
+  },
+  {
+    "id": "[ID-9XX-6205]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-3847]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 2400,
+    "zatrudnienie_aktualne": 1920,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.2131,
+      "sredni": 0.7705,
+      "szeregowi": 0.0164,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 2.0,
+        "Paliwa": 3.0
+      },
+      "outputs": {
+        "Ołów": 3200.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Materiały Wybuchowe",
+        "produkcja": "Odkrywka Maszynowa",
+        "organizacja": "Państwowe Zasoby"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-3847]"
+    },
+    "ostatnia_produkcja": {
+      "Ołów": 6144.0
+    },
+    "rentownosc_ost_rok": 172573.36304634134,
+    "nazwa": "Kopalnia Ołowiu"
+  },
+  {
+    "id": "[ID-9XX-1606]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1MN-6337]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 3000,
+    "zatrudnienie_aktualne": 2400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Boksyt": 1800.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-1MN-6337]"
+    },
+    "ostatnia_produkcja": {
+      "Boksyt": 4320.0
+    },
+    "rentownosc_ost_rok": 101953.77511379495,
+    "nazwa": "Kopalnia Boksytu"
+  },
+  {
+    "id": "[ID-9XX-9934]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-3445]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Siarka": 2.0
+      },
+      "outputs": {
+        "Żelazo": 5000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Materiały Wybuchowe",
+        "produkcja": "Materiały Wybuchowe",
+        "organizacja": "Koncern Wydobywczy"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-3445]"
+    },
+    "ostatnia_produkcja": {
+      "Żelazo": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Żelaza"
+  },
+  {
+    "id": "[ID-9XX-4833]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-7329]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 3500,
+    "zatrudnienie_aktualne": 2800,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Siarka": 2.0
+      },
+      "outputs": {
+        "Żelazo": 5000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Materiały Wybuchowe",
+        "produkcja": "Materiały Wybuchowe",
+        "organizacja": "Koncern Wydobywczy"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-7329]"
+    },
+    "ostatnia_produkcja": {
+      "Żelazo": 14000.0
+    },
+    "rentownosc_ost_rok": 765009.8926408129,
+    "nazwa": "Kopalnia Żelaza"
+  },
+  {
+    "id": "[ID-9XX-1042]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-2138]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Boksyt": 1800.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-2138]"
+    },
+    "ostatnia_produkcja": {
+      "Boksyt": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Boksytu"
+  },
+  {
+    "id": "[ID-9XX-2647]",
+    "name": "",
+    "wlasciciel_id": "[KRS-1MN-4345]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 3500,
+    "zatrudnienie_aktualne": 2800,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Siarka": 2.0
+      },
+      "outputs": {
+        "Żelazo": 5000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Materiały Wybuchowe",
+        "produkcja": "Materiały Wybuchowe",
+        "organizacja": "Koncern Wydobywczy"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-1MN-4345]"
+    },
+    "ostatnia_produkcja": {
+      "Żelazo": 14000.0
+    },
+    "rentownosc_ost_rok": 765009.8926408129,
+    "nazwa": "Kopalnia Żelaza"
+  },
+  {
+    "id": "[ID-9XX-2527]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-8718]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 3200,
+    "zatrudnienie_aktualne": 2560,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1920,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Glina": 10000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Koparki i Mieszalniki",
+        "produkcja": "Mechaniczne Wydobywanie",
+        "organizacja": "Regionalne Przedsiębiorstwa"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-8718]"
+    },
+    "ostatnia_produkcja": {
+      "Glina": 25600.0
+    },
+    "rentownosc_ost_rok": 1979437.6161287432,
+    "nazwa": "Cegielnia (Glina)"
+  },
+  {
+    "id": "[ID-9XX-8071]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-5707]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 2300,
+    "zatrudnienie_aktualne": 1840,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Cynk": 1000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-5707]"
+    },
+    "ostatnia_produkcja": {
+      "Cynk": 1840.0
+    },
+    "rentownosc_ost_rok": -69035.43907942387,
+    "nazwa": "Kopalnia Cynku"
+  },
+  {
+    "id": "[ID-9XX-7340]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-7723]",
+    "rok_budowy": 1925,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 2500,
+    "zatrudnienie_aktualne": 2000,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.0642,
+      "sredni": 0.2477,
+      "szeregowi": 0.6881,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Miedź": 1500.0,
+        "Złoto": 100.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Narzędzia Ręczne",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Baktria-Region15",
+    "cluster_info": {
+      "region_id": "Baktria-Region15",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-7723]"
+    },
+    "ostatnia_produkcja": {
+      "Miedź": 3000.0,
+      "Złoto": 200.0
+    },
+    "rentownosc_ost_rok": 31916.306319360796,
+    "nazwa": "Kopalnie Metali Kolorowych"
+  }
+]

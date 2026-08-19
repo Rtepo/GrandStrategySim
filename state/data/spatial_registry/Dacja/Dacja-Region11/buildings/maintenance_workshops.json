@@ -1,0 +1,72 @@
+[
+  {
+    "id": "B-DAC-0023",
+    "name": "Maintenance Workshop",
+    "wlasciciel_id": "KRS-DAC-0023",
+    "rok_budowy": 1881,
+    "sektor_pkb": "maintenance_workshops",
+    "pojemnosc_pracownikow": 337,
+    "zatrudnienie_aktualne": 337,
+    "rezerwa_zakladowa": 78750.0,
+    "aktywna_metoda": {
+      "rok": 1850,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 2.0,
+        "fuels": 1.0,
+        "steel": 3.0
+      },
+      "outputs": {
+        "maintenance_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 125,
+    "region_id": "Dacja-Region11",
+    "cluster_info": {
+      "region_id": "Dacja-Region11",
+      "scale_factor": 2,
+      "sector": "maintenance_workshops",
+      "owner_id": "KRS-DAC-0023"
+    },
+    "ostatnia_produkcja": {
+      "maintenance_services": 7.5
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.988,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 3.0,
+        "condition": 0.9550370563614173,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "food": 0.5,
+      "cereal": 8.629368311261272
+    },
+    "pojemność_magazynu": 1250.0
+  }
+]

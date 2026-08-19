@@ -1,0 +1,74 @@
+[
+  {
+    "id": "B-DAC-0096",
+    "name": "Public Office",
+    "wlasciciel_id": "KRS-DAC-0096",
+    "rok_budowy": 1876,
+    "sektor_pkb": "public_services",
+    "pojemnosc_pracownikow": 1767,
+    "zatrudnienie_aktualne": 1767,
+    "rezerwa_zakladowa": 451760.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.15,
+      "sredni": 0.35,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 5.0,
+        "food": 4.0,
+        "clothing": 2.0
+      },
+      "outputs": {
+        "local_services": 20.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region10",
+    "cluster_info": {
+      "region_id": "Dacja-Region10",
+      "scale_factor": 2,
+      "sector": "public_services",
+      "owner_id": "KRS-DAC-0096"
+    },
+    "ostatnia_produkcja": {
+      "local_services": 70.67999999999999
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.988,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "office_machinery",
+        "count": 3.0,
+        "condition": 0.6742729470118635,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "fuels": 1.01,
+      "food": 0.505,
+      "construction_services": 2.02,
+      "renovation_services": 0.808
+    },
+    "pojemność_magazynu": 1000.0
+  }
+]

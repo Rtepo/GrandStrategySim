@@ -1,0 +1,1826 @@
+[
+    {
+        "id": "[ID-9XX-4915]",
+        "nazwa": "Koksownia",
+        "wlasciciel_id": "[KRS-2HV-6490]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3600,
+        "zatrudnienie_aktualne": 2880,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 15
+            },
+            "outputs": {
+                "Koks": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Koksownicze Ręczne",
+                "produkcja": "Tradycyjna Koksownia",
+                "organizacja": "Lokalne Koksownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-6490]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5767]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[ID-9HV-1277]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0909,
+            "sredni": 0.5114,
+            "szeregowi": 0.3977,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2,
+                "Części Mechaniczne": 2
+            },
+            "outputs": {
+                "Samochody": 20,
+                "Ciężarówki": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Karoseryjne",
+                "produkcja": "Warsztaty Karoseryjne",
+                "organizacja": "Rzemiosło Indywidualne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-1277]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2985]",
+        "nazwa": "Zakłady Chemiczne",
+        "wlasciciel_id": "[REG-4HV-8048]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1930,
+            "eksperci": 0.2353,
+            "sredni": 0.5882,
+            "szeregowi": 0.1765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Siarka": 5,
+                "Gaz Ziemny": 5
+            },
+            "outputs": {
+                "Nawozy": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece i Zbiorniki Ręczne",
+                "produkcja": "Proces Habera-Boscha",
+                "organizacja": "Laboratoria Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-8048]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5994]",
+        "nazwa": "Cementownia",
+        "wlasciciel_id": "[KRS-2HV-3178]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Wapień": 10,
+                "Węgiel Kamienny": 5
+            },
+            "outputs": {
+                "Cement": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Rotacyjne Ręczne",
+                "produkcja": "Tradycyjna Cementownia",
+                "organizacja": "Lokalne Cementownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-3178]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6323]",
+        "nazwa": "Tartak",
+        "wlasciciel_id": "[ID-9HV-6783]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Drewno": 8,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Deski": 10000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piły Tarczowe i Traki",
+                "produkcja": "Mechaniczne Przeróbka",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-6783]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4527]",
+        "nazwa": "Cegielnia (Przemysłowa)",
+        "wlasciciel_id": "[REG-4HV-2376]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Glina": 8,
+                "Węgiel Kamienny": 3
+            },
+            "outputs": {
+                "Cegły": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Cegielniane Ręczne",
+                "produkcja": "Tradycyjna Cegielnia",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-2376]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5771]",
+        "nazwa": "Huta Szkła",
+        "wlasciciel_id": "[KRS-2HV-5350]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3600,
+        "zatrudnienie_aktualne": 2880,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Piasek": 15,
+                "Wapień": 5,
+                "Węgiel Kamienny": 8
+            },
+            "outputs": {
+                "Szkło": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Szkliste Ręczne",
+                "produkcja": "Tradycyjna Huta Szkła",
+                "organizacja": "Lokalne Huty Szkła"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-5350]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3727]",
+        "nazwa": "Fabryka Maszyn Rolnych",
+        "wlasciciel_id": "[ID-9HV-7541]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0889,
+            "sredni": 0.4444,
+            "szeregowi": 0.4667,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 8,
+                "Żelazo": 5,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Maszyny Rolne": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kowalstwo Ręczne",
+                "produkcja": "Proste Narzędzia Rolne",
+                "organizacja": "Lokalne Warsztaty"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-7541]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9987]",
+        "nazwa": "Huta Aluminium",
+        "wlasciciel_id": "[REG-4HV-8137]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1529,
+            "sredni": 0.4706,
+            "szeregowi": 0.3765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Boksyt": 15,
+                "Paliwa": 10
+            },
+            "outputs": {
+                "Aluminium": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Elektryczne Proste",
+                "produkcja": "Proces Halla-Héroulta",
+                "organizacja": "Laboratoria Badawcze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-8137]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1386]",
+        "nazwa": "Cegielnia (Przemysłowa)",
+        "wlasciciel_id": "[KRS-2HV-1431]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Glina": 8,
+                "Węgiel Kamienny": 3
+            },
+            "outputs": {
+                "Cegły": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Cegielniane Ręczne",
+                "produkcja": "Tradycyjna Cegielnia",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-1431]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7458]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[ID-9HV-5981]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0909,
+            "sredni": 0.5114,
+            "szeregowi": 0.3977,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2,
+                "Części Mechaniczne": 2
+            },
+            "outputs": {
+                "Samochody": 20,
+                "Ciężarówki": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Karoseryjne",
+                "produkcja": "Warsztaty Karoseryjne",
+                "organizacja": "Rzemiosło Indywidualne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-5981]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5871]",
+        "nazwa": "Cegielnia (Przemysłowa)",
+        "wlasciciel_id": "[REG-4HV-7868]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Glina": 8,
+                "Węgiel Kamienny": 3
+            },
+            "outputs": {
+                "Cegły": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Cegielniane Ręczne",
+                "produkcja": "Tradycyjna Cegielnia",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-7868]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5810]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[KRS-2HV-1124]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 12000,
+        "zatrudnienie_aktualne": 9600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0792,
+            "sredni": 0.396,
+            "szeregowi": 0.5248,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Stolarskie",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-1124]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9315]",
+        "nazwa": "Cegielnia (Przemysłowa)",
+        "wlasciciel_id": "[ID-9HV-4528]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Glina": 8,
+                "Węgiel Kamienny": 3
+            },
+            "outputs": {
+                "Cegły": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Cegielniane Ręczne",
+                "produkcja": "Tradycyjna Cegielnia",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-4528]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2553]",
+        "nazwa": "Huta Aluminium",
+        "wlasciciel_id": "[REG-4HV-8166]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1529,
+            "sredni": 0.4706,
+            "szeregowi": 0.3765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Boksyt": 15,
+                "Paliwa": 10
+            },
+            "outputs": {
+                "Aluminium": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Elektryczne Proste",
+                "produkcja": "Proces Halla-Héroulta",
+                "organizacja": "Laboratoria Badawcze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-8166]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7716]",
+        "nazwa": "Cegielnia (Przemysłowa)",
+        "wlasciciel_id": "[KRS-2HV-5038]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Glina": 8,
+                "Węgiel Kamienny": 3
+            },
+            "outputs": {
+                "Cegły": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Cegielniane Ręczne",
+                "produkcja": "Tradycyjna Cegielnia",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-5038]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1316]",
+        "nazwa": "Fabryka Maszyn",
+        "wlasciciel_id": "[ID-9HV-6589]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.6023,
+            "szeregowi": 0.25,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 200,
+                "Części Mechaniczne": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne i Tokarki",
+                "produkcja": "Narzędzia Ręczne i Odlewnia",
+                "organizacja": "Manufaktura Warsztatowa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-6589]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9498]",
+        "nazwa": "Fabryka Maszyn",
+        "wlasciciel_id": "[REG-4HV-2764]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.6023,
+            "szeregowi": 0.25,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 200,
+                "Części Mechaniczne": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne i Tokarki",
+                "produkcja": "Narzędzia Ręczne i Odlewnia",
+                "organizacja": "Manufaktura Warsztatowa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-2764]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5835]",
+        "nazwa": "Fabryka Maszyn",
+        "wlasciciel_id": "[KRS-2HV-2194]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.6023,
+            "szeregowi": 0.25,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 200,
+                "Części Mechaniczne": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne i Tokarki",
+                "produkcja": "Narzędzia Ręczne i Odlewnia",
+                "organizacja": "Manufaktura Warsztatowa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-2194]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7353]",
+        "nazwa": "Cegielnia (Przemysłowa)",
+        "wlasciciel_id": "[ID-9HV-6442]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Glina": 8,
+                "Węgiel Kamienny": 3
+            },
+            "outputs": {
+                "Cegły": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Cegielniane Ręczne",
+                "produkcja": "Tradycyjna Cegielnia",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-6442]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3557]",
+        "nazwa": "Huta Stali",
+        "wlasciciel_id": "[REG-4HV-1842]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1778,
+            "sredni": 0.7111,
+            "szeregowi": 0.1111,
+            "wydajnosc": 1.4,
+            "inputs": {
+                "Żelazo": 20,
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Stal": 3500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dmuchawy i Mechaniczne Mieszadła",
+                "produkcja": "Piec Martenowski",
+                "organizacja": "Zarządzanie Tradycyjne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-1842]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9840]",
+        "nazwa": "Zakłady Chemiczne",
+        "wlasciciel_id": "[KRS-2HV-2678]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1930,
+            "eksperci": 0.2353,
+            "sredni": 0.5882,
+            "szeregowi": 0.1765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Siarka": 5,
+                "Gaz Ziemny": 5
+            },
+            "outputs": {
+                "Nawozy": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece i Zbiorniki Ręczne",
+                "produkcja": "Proces Habera-Boscha",
+                "organizacja": "Laboratoria Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-2678]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3197]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[ID-9HV-3175]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0909,
+            "sredni": 0.5114,
+            "szeregowi": 0.3977,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2,
+                "Części Mechaniczne": 2
+            },
+            "outputs": {
+                "Samochody": 20,
+                "Ciężarówki": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Karoseryjne",
+                "produkcja": "Warsztaty Karoseryjne",
+                "organizacja": "Rzemiosło Indywidualne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-3175]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7907]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[REG-4HV-1744]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0792,
+            "sredni": 0.396,
+            "szeregowi": 0.5248,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Stolarskie",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-1744]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1430]",
+        "nazwa": "Fabryka Maszyn",
+        "wlasciciel_id": "[KRS-2HV-3391]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.6023,
+            "szeregowi": 0.25,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 200,
+                "Części Mechaniczne": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne i Tokarki",
+                "produkcja": "Narzędzia Ręczne i Odlewnia",
+                "organizacja": "Manufaktura Warsztatowa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-3391]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6094]",
+        "nazwa": "Fabryka Maszyn",
+        "wlasciciel_id": "[ID-9HV-3392]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.6023,
+            "szeregowi": 0.25,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 200,
+                "Części Mechaniczne": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne i Tokarki",
+                "produkcja": "Narzędzia Ręczne i Odlewnia",
+                "organizacja": "Manufaktura Warsztatowa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-3392]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5968]",
+        "nazwa": "Fabryka Maszyn Ciężkich",
+        "wlasciciel_id": "[REG-4HV-1808]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1616,
+            "sredni": 0.5556,
+            "szeregowi": 0.2828,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 10,
+                "Żelazo": 5
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 300,
+                "Części Mechaniczne": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dźwigi Parowe",
+                "produkcja": "Warsztaty Odlewnicze",
+                "organizacja": "Zakłady Państwowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-1808]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1653]",
+        "nazwa": "Huta Aluminium",
+        "wlasciciel_id": "[KRS-2HV-4002]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 7000,
+        "zatrudnienie_aktualne": 5600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1529,
+            "sredni": 0.4706,
+            "szeregowi": 0.3765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Boksyt": 15,
+                "Paliwa": 10
+            },
+            "outputs": {
+                "Aluminium": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Elektryczne Proste",
+                "produkcja": "Proces Halla-Héroulta",
+                "organizacja": "Laboratoria Badawcze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-4002]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3042]",
+        "nazwa": "Huta Stali",
+        "wlasciciel_id": "[ID-9HV-3187]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1778,
+            "sredni": 0.7111,
+            "szeregowi": 0.1111,
+            "wydajnosc": 1.4,
+            "inputs": {
+                "Żelazo": 20,
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Stal": 3500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dmuchawy i Mechaniczne Mieszadła",
+                "produkcja": "Piec Martenowski",
+                "organizacja": "Zarządzanie Tradycyjne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-3187]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4669]",
+        "nazwa": "Koksownia",
+        "wlasciciel_id": "[REG-4HV-4208]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1800,
+        "zatrudnienie_aktualne": 1440,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 15
+            },
+            "outputs": {
+                "Koks": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Koksownicze Ręczne",
+                "produkcja": "Tradycyjna Koksownia",
+                "organizacja": "Lokalne Koksownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-4208]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1447]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[KRS-2HV-2367]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 10000,
+        "zatrudnienie_aktualne": 8000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0909,
+            "sredni": 0.5114,
+            "szeregowi": 0.3977,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2,
+                "Części Mechaniczne": 2
+            },
+            "outputs": {
+                "Samochody": 20,
+                "Ciężarówki": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Karoseryjne",
+                "produkcja": "Warsztaty Karoseryjne",
+                "organizacja": "Rzemiosło Indywidualne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-2367]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5204]",
+        "nazwa": "Huta Aluminium",
+        "wlasciciel_id": "[ID-9HV-7961]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1529,
+            "sredni": 0.4706,
+            "szeregowi": 0.3765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Boksyt": 15,
+                "Paliwa": 10
+            },
+            "outputs": {
+                "Aluminium": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Elektryczne Proste",
+                "produkcja": "Proces Halla-Héroulta",
+                "organizacja": "Laboratoria Badawcze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-7961]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7866]",
+        "nazwa": "Fabryka Maszyn",
+        "wlasciciel_id": "[REG-4HV-9701]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.6023,
+            "szeregowi": 0.25,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 200,
+                "Części Mechaniczne": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne i Tokarki",
+                "produkcja": "Narzędzia Ręczne i Odlewnia",
+                "organizacja": "Manufaktura Warsztatowa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-9701]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1157]",
+        "nazwa": "Fabryka Pociągów",
+        "wlasciciel_id": "[KRS-2HV-8062]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 9000,
+        "zatrudnienie_aktualne": 7200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1111,
+            "sredni": 0.5,
+            "szeregowi": 0.3889,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 20,
+                "Żelazo": 10,
+                "Drewno": 15
+            },
+            "outputs": {
+                "Pociągi": 5
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Kowalskie",
+                "produkcja": "Pociągi Parowe",
+                "organizacja": "Krajowe Zakłady Kolejowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-8062]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6874]",
+        "nazwa": "Fabryka Maszyn Ciężkich",
+        "wlasciciel_id": "[ID-9HV-1418]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1616,
+            "sredni": 0.5556,
+            "szeregowi": 0.2828,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 10,
+                "Żelazo": 5
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 300,
+                "Części Mechaniczne": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dźwigi Parowe",
+                "produkcja": "Warsztaty Odlewnicze",
+                "organizacja": "Zakłady Państwowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-1418]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6203]",
+        "nazwa": "Koksownia",
+        "wlasciciel_id": "[REG-4HV-8847]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1800,
+        "zatrudnienie_aktualne": 1440,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Węgiel Kamienny": 15
+            },
+            "outputs": {
+                "Koks": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Koksownicze Ręczne",
+                "produkcja": "Tradycyjna Koksownia",
+                "organizacja": "Lokalne Koksownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-8847]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1024]",
+        "nazwa": "Fabryka Pociągów",
+        "wlasciciel_id": "[KRS-2HV-6111]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 9000,
+        "zatrudnienie_aktualne": 7200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1111,
+            "sredni": 0.5,
+            "szeregowi": 0.3889,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 20,
+                "Żelazo": 10,
+                "Drewno": 15
+            },
+            "outputs": {
+                "Pociągi": 5
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Kowalskie",
+                "produkcja": "Pociągi Parowe",
+                "organizacja": "Krajowe Zakłady Kolejowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-6111]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2450]",
+        "nazwa": "Fabryka Pociągów",
+        "wlasciciel_id": "[ID-9HV-2682]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4500,
+        "zatrudnienie_aktualne": 3600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1111,
+            "sredni": 0.5,
+            "szeregowi": 0.3889,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 20,
+                "Żelazo": 10,
+                "Drewno": 15
+            },
+            "outputs": {
+                "Pociągi": 5
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Kowalskie",
+                "produkcja": "Pociągi Parowe",
+                "organizacja": "Krajowe Zakłady Kolejowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-2682]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5568]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[REG-4HV-9806]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0792,
+            "sredni": 0.396,
+            "szeregowi": 0.5248,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Stolarskie",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-9806]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1742]",
+        "nazwa": "Huta Stali",
+        "wlasciciel_id": "[KRS-2HV-3785]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 8000,
+        "zatrudnienie_aktualne": 6400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1778,
+            "sredni": 0.7111,
+            "szeregowi": 0.1111,
+            "wydajnosc": 1.4,
+            "inputs": {
+                "Żelazo": 20,
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Stal": 3500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dmuchawy i Mechaniczne Mieszadła",
+                "produkcja": "Piec Martenowski",
+                "organizacja": "Zarządzanie Tradycyjne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-3785]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8933]",
+        "nazwa": "Huta Stali",
+        "wlasciciel_id": "[ID-9HV-2379]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1778,
+            "sredni": 0.7111,
+            "szeregowi": 0.1111,
+            "wydajnosc": 1.4,
+            "inputs": {
+                "Żelazo": 20,
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Stal": 3500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dmuchawy i Mechaniczne Mieszadła",
+                "produkcja": "Piec Martenowski",
+                "organizacja": "Zarządzanie Tradycyjne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-2379]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9412]",
+        "nazwa": "Fabryka Maszyn Ciężkich",
+        "wlasciciel_id": "[REG-4HV-8553]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1616,
+            "sredni": 0.5556,
+            "szeregowi": 0.2828,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 10,
+                "Żelazo": 5
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 300,
+                "Części Mechaniczne": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dźwigi Parowe",
+                "produkcja": "Warsztaty Odlewnicze",
+                "organizacja": "Zakłady Państwowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-8553]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6194]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[KRS-2HV-9436]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 12000,
+        "zatrudnienie_aktualne": 9600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0792,
+            "sredni": 0.396,
+            "szeregowi": 0.5248,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Stolarskie",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 2,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-9436]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7253]",
+        "nazwa": "Fabryka Pociągów",
+        "wlasciciel_id": "[ID-9HV-3269]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4500,
+        "zatrudnienie_aktualne": 3600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1111,
+            "sredni": 0.5,
+            "szeregowi": 0.3889,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 20,
+                "Żelazo": 10,
+                "Drewno": 15
+            },
+            "outputs": {
+                "Pociągi": 5
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Kowalskie",
+                "produkcja": "Pociągi Parowe",
+                "organizacja": "Krajowe Zakłady Kolejowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-3269]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1817]",
+        "nazwa": "Tartak",
+        "wlasciciel_id": "[REG-4HV-5607]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Drewno": 8,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Deski": 10000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piły Tarczowe i Traki",
+                "produkcja": "Mechaniczne Przeróbka",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Eldoria-Region15",
+        "cluster_info": {
+            "region_id": "Eldoria-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-5607]"
+        }
+    }
+]

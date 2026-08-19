@@ -1,0 +1,1989 @@
+[
+  {
+    "id": "[ID-9XX-2011]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-4528]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 36300,
+    "zatrudnienie_aktualne": 29040,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1860,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 1.0
+      },
+      "outputs": {
+        "Wapień": 4500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Dłuta",
+        "produkcja": "Ręczne Łupanie",
+        "organizacja": "Lokalne Kamieniołomy"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 1100,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 11,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-4528]"
+    },
+    "ostatnia_produkcja": {
+      "Wapień": 130680.0
+    },
+    "rentownosc_ost_rok": 67202.78087655455,
+    "nazwa": "Kamieniolom Wapienia"
+  },
+  {
+    "id": "[ID-9XX-4283]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-8413]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 9000,
+    "zatrudnienie_aktualne": 7200,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Boksyt": 1800.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-8413]"
+    },
+    "ostatnia_produkcja": {
+      "Boksyt": 12960.0
+    },
+    "rentownosc_ost_rok": -2126216.8812662875,
+    "nazwa": "Kopalnia Boksytu"
+  },
+  {
+    "id": "[ID-9XX-3077]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-2728]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 8400,
+    "zatrudnienie_aktualne": 6720,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1850,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Piasek": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Łopaty i Sieciaki",
+        "produkcja": "Ręczne Wydobywanie",
+        "organizacja": "Lokalne Piaskownie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-2728]"
+    },
+    "ostatnia_produkcja": {
+      "Piasek": 47040.0
+    },
+    "rentownosc_ost_rok": 1696223.0567317647,
+    "nazwa": "Piaskownia"
+  },
+  {
+    "id": "[ID-9XX-7071]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-5277]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 33000,
+    "zatrudnienie_aktualne": 26400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Boksyt": 1800.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 1100,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 11,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-5277]"
+    },
+    "ostatnia_produkcja": {
+      "Boksyt": 47520.0
+    },
+    "rentownosc_ost_rok": -7796128.5646430515,
+    "nazwa": "Kopalnia Boksytu"
+  },
+  {
+    "id": "[ID-9XX-3332]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-7272]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 9000,
+    "zatrudnienie_aktualne": 7200,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0909,
+      "sredni": 0.5682,
+      "szeregowi": 0.3409,
+      "wydajnosc": 1.82,
+      "inputs": {
+        "Drewno": 2.0,
+        "Maszyny Przemysłowe": 0.5
+      },
+      "outputs": {
+        "Surowce Mineralne": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Proste Maszyny Parowe",
+        "produkcja": "Wydobycie Maszynowe",
+        "organizacja": "Prywatna Kopalnia"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-7272]"
+    },
+    "ostatnia_produkcja": {
+      "Surowce Mineralne": 18000.0
+    },
+    "rentownosc_ost_rok": -2758669.560946946,
+    "nazwa": "Kopalnia Odkrywkowa"
+  },
+  {
+    "id": "[ID-9XX-2434]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-1561]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 9900,
+    "zatrudnienie_aktualne": 7920,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1860,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 1.0
+      },
+      "outputs": {
+        "Wapień": 4500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Dłuta",
+        "produkcja": "Ręczne Łupanie",
+        "organizacja": "Lokalne Kamieniołomy"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-1561]"
+    },
+    "ostatnia_produkcja": {
+      "Wapień": 35640.0
+    },
+    "rentownosc_ost_rok": 18328.03114815196,
+    "nazwa": "Kamieniolom Wapienia"
+  },
+  {
+    "id": "[ID-9XX-1200]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-4988]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 25300,
+    "zatrudnienie_aktualne": 20240,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Cynk": 1000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 1100,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 11,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-4988]"
+    },
+    "ostatnia_produkcja": {
+      "Cynk": 20240.0
+    },
+    "rentownosc_ost_rok": -7596231.899559675,
+    "nazwa": "Kopalnia Cynku"
+  },
+  {
+    "id": "[ID-9XX-6759]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-6629]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 9600,
+    "zatrudnienie_aktualne": 7680,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1850,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 1.0
+      },
+      "outputs": {
+        "Glina": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobywanie",
+        "organizacja": "Lokalne Cegielnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-6629]"
+    },
+    "ostatnia_produkcja": {
+      "Glina": 30720.0
+    },
+    "rentownosc_ost_rok": -366227.36373512587,
+    "nazwa": "Cegielnia (Glina)"
+  },
+  {
+    "id": "[ID-9XX-2062]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-8414]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 12000,
+    "zatrudnienie_aktualne": 9600,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.18,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Węgiel Kamienny": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki Konne",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatna Kopalnia"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-8414]"
+    },
+    "ostatnia_produkcja": {
+      "Węgiel Kamienny": 24000.0
+    },
+    "rentownosc_ost_rok": -1837638.753794495,
+    "nazwa": "Kopalnia Węgla"
+  },
+  {
+    "id": "[ID-9XX-5591]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-2070]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 25300,
+    "zatrudnienie_aktualne": 20240,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Cynk": 1000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 1100,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 11,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-2070]"
+    },
+    "ostatnia_produkcja": {
+      "Cynk": 20240.0
+    },
+    "rentownosc_ost_rok": -7596231.899559675,
+    "nazwa": "Kopalnia Cynku"
+  },
+  {
+    "id": "[ID-9XX-1586]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-2564]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 9000,
+    "zatrudnienie_aktualne": 7200,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Boksyt": 1800.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-2564]"
+    },
+    "ostatnia_produkcja": {
+      "Boksyt": 12960.0
+    },
+    "rentownosc_ost_rok": -2126216.8812662875,
+    "nazwa": "Kopalnia Boksytu"
+  },
+  {
+    "id": "[ID-9XX-4972]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-7462]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 3000,
+    "zatrudnienie_aktualne": 2400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1205,
+      "sredni": 0.4578,
+      "szeregowi": 0.4217,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Stal": 3.0
+      },
+      "outputs": {
+        "Gaz Ziemny": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Odwierty Proste",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Lokalne Koncesje"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-7462]"
+    },
+    "ostatnia_produkcja": {
+      "Gaz Ziemny": 6000.0
+    },
+    "rentownosc_ost_rok": -875476.1924069852,
+    "nazwa": "Kopalnie Gazu Ziemnego"
+  },
+  {
+    "id": "[ID-9XX-8998]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-4407]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 26400,
+    "zatrudnienie_aktualne": 21120,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1870,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Ołów": 1300.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 1100,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 11,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-4407]"
+    },
+    "ostatnia_produkcja": {
+      "Ołów": 27456.0
+    },
+    "rentownosc_ost_rok": -7292902.851714443,
+    "nazwa": "Kopalnia Ołowiu"
+  },
+  {
+    "id": "[ID-9XX-4210]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-8062]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 4500,
+    "zatrudnienie_aktualne": 3600,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.1625,
+      "sredni": 0.525,
+      "szeregowi": 0.3125,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Stal": 5.0
+      },
+      "outputs": {
+        "Ropa Naftowa": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wieże Wiertnicze (Kablowe)",
+        "produkcja": "Wieże Wiertnicze",
+        "organizacja": "Prywatne Koncesje"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-8062]"
+    },
+    "ostatnia_produkcja": {
+      "Ropa Naftowa": 10800.0
+    },
+    "rentownosc_ost_rok": -1330791.0536433859,
+    "nazwa": "Szyby Naftowe"
+  },
+  {
+    "id": "[ID-9XX-2228]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-9168]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 9900,
+    "zatrudnienie_aktualne": 7920,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1860,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 1.0
+      },
+      "outputs": {
+        "Wapień": 4500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Dłuta",
+        "produkcja": "Ręczne Łupanie",
+        "organizacja": "Lokalne Kamieniołomy"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-9168]"
+    },
+    "ostatnia_produkcja": {
+      "Wapień": 35640.0
+    },
+    "rentownosc_ost_rok": 18328.03114815196,
+    "nazwa": "Kamieniolom Wapienia"
+  },
+  {
+    "id": "[ID-9XX-6340]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-8441]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 24200,
+    "zatrudnienie_aktualne": 19360,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Cyna": 1200.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Narzędzia Ręczne",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 1100,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 11,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-8441]"
+    },
+    "ostatnia_produkcja": {
+      "Cyna": 23232.0
+    },
+    "rentownosc_ost_rok": -6878760.947404906,
+    "nazwa": "Kopalnia Cyny"
+  },
+  {
+    "id": "[ID-9XX-8559]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-4071]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 9900,
+    "zatrudnienie_aktualne": 7920,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1860,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 1.0
+      },
+      "outputs": {
+        "Wapień": 4500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Dłuta",
+        "produkcja": "Ręczne Łupanie",
+        "organizacja": "Lokalne Kamieniołomy"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-4071]"
+    },
+    "ostatnia_produkcja": {
+      "Wapień": 35640.0
+    },
+    "rentownosc_ost_rok": 18328.03114815196,
+    "nazwa": "Kamieniolom Wapienia"
+  },
+  {
+    "id": "[ID-9XX-4661]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-3852]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 12000,
+    "zatrudnienie_aktualne": 9600,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.18,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Węgiel Kamienny": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki Konne",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatna Kopalnia"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-3852]"
+    },
+    "ostatnia_produkcja": {
+      "Węgiel Kamienny": 24000.0
+    },
+    "rentownosc_ost_rok": -1837638.753794495,
+    "nazwa": "Kopalnia Węgla"
+  },
+  {
+    "id": "[ID-9XX-4609]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-1285]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 11000,
+    "zatrudnienie_aktualne": 8800,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1205,
+      "sredni": 0.4578,
+      "szeregowi": 0.4217,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Stal": 3.0
+      },
+      "outputs": {
+        "Gaz Ziemny": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Odwierty Proste",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Lokalne Koncesje"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 1100,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 11,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-1285]"
+    },
+    "ostatnia_produkcja": {
+      "Gaz Ziemny": 22000.0
+    },
+    "rentownosc_ost_rok": -3210079.3721589455,
+    "nazwa": "Kopalnie Gazu Ziemnego"
+  },
+  {
+    "id": "[ID-9XX-5580]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-2984]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 8400,
+    "zatrudnienie_aktualne": 6720,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1850,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Piasek": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Łopaty i Sieciaki",
+        "produkcja": "Ręczne Wydobywanie",
+        "organizacja": "Lokalne Piaskownie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-2984]"
+    },
+    "ostatnia_produkcja": {
+      "Piasek": 47040.0
+    },
+    "rentownosc_ost_rok": 1696223.0567317647,
+    "nazwa": "Piaskownia"
+  },
+  {
+    "id": "[ID-9XX-8674]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-5194]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 7200,
+    "zatrudnienie_aktualne": 5760,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1870,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Ołów": 1300.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-5194]"
+    },
+    "ostatnia_produkcja": {
+      "Ołów": 7488.0
+    },
+    "rentownosc_ost_rok": -1988973.50501303,
+    "nazwa": "Kopalnia Ołowiu"
+  },
+  {
+    "id": "[ID-9XX-5788]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-8189]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 44000,
+    "zatrudnienie_aktualne": 35200,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.18,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Węgiel Kamienny": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki Konne",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatna Kopalnia"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 1100,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 11,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-8189]"
+    },
+    "ostatnia_produkcja": {
+      "Węgiel Kamienny": 88000.0
+    },
+    "rentownosc_ost_rok": -6738008.763913147,
+    "nazwa": "Kopalnia Węgla"
+  },
+  {
+    "id": "[ID-9XX-1792]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-2250]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 12000,
+    "zatrudnienie_aktualne": 9600,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.18,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Węgiel Kamienny": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki Konne",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatna Kopalnia"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-2250]"
+    },
+    "ostatnia_produkcja": {
+      "Węgiel Kamienny": 24000.0
+    },
+    "rentownosc_ost_rok": -1837638.753794495,
+    "nazwa": "Kopalnia Węgla"
+  },
+  {
+    "id": "[ID-9XX-2732]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-5683]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 6600,
+    "zatrudnienie_aktualne": 5280,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Cyna": 1200.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Narzędzia Ręczne",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-5683]"
+    },
+    "ostatnia_produkcja": {
+      "Cyna": 6336.0
+    },
+    "rentownosc_ost_rok": -1876025.7129286109,
+    "nazwa": "Kopalnia Cyny"
+  },
+  {
+    "id": "[ID-9XX-5368]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-6151]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 27500,
+    "zatrudnienie_aktualne": 22000,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.0642,
+      "sredni": 0.2477,
+      "szeregowi": 0.6881,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Miedź": 1500.0,
+        "Złoto": 100.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Narzędzia Ręczne",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 1100,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 11,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-6151]"
+    },
+    "ostatnia_produkcja": {
+      "Miedź": 33000.0,
+      "Złoto": 2200.0
+    },
+    "rentownosc_ost_rok": -7433255.592223814,
+    "nazwa": "Kopalnie Metali Kolorowych"
+  },
+  {
+    "id": "[ID-9XX-9917]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-6639]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 4500,
+    "zatrudnienie_aktualne": 3600,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.1625,
+      "sredni": 0.525,
+      "szeregowi": 0.3125,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Stal": 5.0
+      },
+      "outputs": {
+        "Ropa Naftowa": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wieże Wiertnicze (Kablowe)",
+        "produkcja": "Wieże Wiertnicze",
+        "organizacja": "Prywatne Koncesje"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-6639]"
+    },
+    "ostatnia_produkcja": {
+      "Ropa Naftowa": 10800.0
+    },
+    "rentownosc_ost_rok": -1330791.0536433859,
+    "nazwa": "Szyby Naftowe"
+  },
+  {
+    "id": "[ID-9XX-3562]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-1085]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 6600,
+    "zatrudnienie_aktualne": 5280,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Siarka": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-1085]"
+    },
+    "ostatnia_produkcja": {
+      "Siarka": 7920.0
+    },
+    "rentownosc_ost_rok": -1717625.7129286109,
+    "nazwa": "Kopalnia Siarki"
+  },
+  {
+    "id": "[ID-9XX-5022]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-2173]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 38500,
+    "zatrudnienie_aktualne": 30800,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1850,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 1.0
+      },
+      "outputs": {
+        "Kamień": 5000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Dłuta",
+        "produkcja": "Ręczne Łupanie",
+        "organizacja": "Lokalne Kamieniołomy"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 1100,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 11,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-2173]"
+    },
+    "ostatnia_produkcja": {
+      "Kamień": 154000.0
+    },
+    "rentownosc_ost_rok": 1611275.6766872555,
+    "nazwa": "Kamieniolom"
+  },
+  {
+    "id": "[ID-9XX-2862]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-1659]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 9000,
+    "zatrudnienie_aktualne": 7200,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0909,
+      "sredni": 0.5682,
+      "szeregowi": 0.3409,
+      "wydajnosc": 1.82,
+      "inputs": {
+        "Drewno": 2.0,
+        "Maszyny Przemysłowe": 0.5
+      },
+      "outputs": {
+        "Surowce Mineralne": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Proste Maszyny Parowe",
+        "produkcja": "Wydobycie Maszynowe",
+        "organizacja": "Prywatna Kopalnia"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-1659]"
+    },
+    "ostatnia_produkcja": {
+      "Surowce Mineralne": 18000.0
+    },
+    "rentownosc_ost_rok": -2758669.560946946,
+    "nazwa": "Kopalnia Odkrywkowa"
+  },
+  {
+    "id": "[ID-9XX-9151]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-9240]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 9000,
+    "zatrudnienie_aktualne": 7200,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1850,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Żwir": 6000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Łopaty i Sieciaki",
+        "produkcja": "Ręczne Wydobywanie",
+        "organizacja": "Lokalne Żwirownie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-9240]"
+    },
+    "ostatnia_produkcja": {
+      "Żwir": 43200.0
+    },
+    "rentownosc_ost_rok": 1097381.8464983199,
+    "nazwa": "Żwirownia"
+  },
+  {
+    "id": "[ID-9XX-3257]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-8410]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 27500,
+    "zatrudnienie_aktualne": 22000,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.0642,
+      "sredni": 0.2477,
+      "szeregowi": 0.6881,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Miedź": 1500.0,
+        "Złoto": 100.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Narzędzia Ręczne",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 1100,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 11,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-8410]"
+    },
+    "ostatnia_produkcja": {
+      "Miedź": 33000.0,
+      "Złoto": 2200.0
+    },
+    "rentownosc_ost_rok": -7433255.592223814,
+    "nazwa": "Kopalnie Metali Kolorowych"
+  },
+  {
+    "id": "[ID-9XX-4635]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-5493]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 9000,
+    "zatrudnienie_aktualne": 7200,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1850,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Żwir": 6000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Łopaty i Sieciaki",
+        "produkcja": "Ręczne Wydobywanie",
+        "organizacja": "Lokalne Żwirownie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-5493]"
+    },
+    "ostatnia_produkcja": {
+      "Żwir": 43200.0
+    },
+    "rentownosc_ost_rok": 1097381.8464983199,
+    "nazwa": "Żwirownia"
+  },
+  {
+    "id": "[ID-9XX-7855]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-1373]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 9600,
+    "zatrudnienie_aktualne": 7680,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1850,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 1.0
+      },
+      "outputs": {
+        "Glina": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobywanie",
+        "organizacja": "Lokalne Cegielnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-1373]"
+    },
+    "ostatnia_produkcja": {
+      "Glina": 30720.0
+    },
+    "rentownosc_ost_rok": -366227.36373512587,
+    "nazwa": "Cegielnia (Glina)"
+  },
+  {
+    "id": "[ID-9XX-9321]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-5210]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 24200,
+    "zatrudnienie_aktualne": 19360,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Cyna": 1200.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Narzędzia Ręczne",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 1100,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 11,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-5210]"
+    },
+    "ostatnia_produkcja": {
+      "Cyna": 23232.0
+    },
+    "rentownosc_ost_rok": -6878760.947404906,
+    "nazwa": "Kopalnia Cyny"
+  },
+  {
+    "id": "[ID-9XX-4057]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-4853]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 9900,
+    "zatrudnienie_aktualne": 7920,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1860,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 1.0
+      },
+      "outputs": {
+        "Wapień": 4500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Dłuta",
+        "produkcja": "Ręczne Łupanie",
+        "organizacja": "Lokalne Kamieniołomy"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-4853]"
+    },
+    "ostatnia_produkcja": {
+      "Wapień": 35640.0
+    },
+    "rentownosc_ost_rok": 18328.03114815196,
+    "nazwa": "Kamieniolom Wapienia"
+  },
+  {
+    "id": "[ID-9XX-6518]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-4719]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 9600,
+    "zatrudnienie_aktualne": 7680,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1850,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 1.0
+      },
+      "outputs": {
+        "Glina": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobywanie",
+        "organizacja": "Lokalne Cegielnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-4719]"
+    },
+    "ostatnia_produkcja": {
+      "Glina": 30720.0
+    },
+    "rentownosc_ost_rok": -366227.36373512587,
+    "nazwa": "Cegielnia (Glina)"
+  },
+  {
+    "id": "[ID-9XX-9411]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-1303]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 38500,
+    "zatrudnienie_aktualne": 30800,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.18,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Żelazo": 2000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilkofy i Wagoniki",
+        "produkcja": "Kilkofy i Wagoniki",
+        "organizacja": "Prywatna Kopalnia"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 1100,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 11,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-1303]"
+    },
+    "ostatnia_produkcja": {
+      "Żelazo": 61600.0
+    },
+    "rentownosc_ost_rok": -7435757.668424005,
+    "nazwa": "Kopalnia Żelaza"
+  },
+  {
+    "id": "[ID-9XX-9606]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-5269]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 6900,
+    "zatrudnienie_aktualne": 5520,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Cynk": 1000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-5269]"
+    },
+    "ostatnia_produkcja": {
+      "Cynk": 5520.0
+    },
+    "rentownosc_ost_rok": -2071699.60897082,
+    "nazwa": "Kopalnia Cynku"
+  },
+  {
+    "id": "[ID-9XX-1560]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-8331]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 7500,
+    "zatrudnienie_aktualne": 6000,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.0642,
+      "sredni": 0.2477,
+      "szeregowi": 0.6881,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Miedź": 1500.0,
+        "Złoto": 100.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Narzędzia Ręczne",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-8331]"
+    },
+    "ostatnia_produkcja": {
+      "Miedź": 9000.0,
+      "Złoto": 600.0
+    },
+    "rentownosc_ost_rok": -2027251.525151949,
+    "nazwa": "Kopalnie Metali Kolorowych"
+  },
+  {
+    "id": "[ID-9XX-6102]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-3707]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 27500,
+    "zatrudnienie_aktualne": 22000,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Sól": 8000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Pompy",
+        "produkcja": "Odkrywka Solna",
+        "organizacja": "Państwowe Monopole"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 1100,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 11,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-3707]"
+    },
+    "ostatnia_produkcja": {
+      "Sól": 176000.0
+    },
+    "rentownosc_ost_rok": 354183.8008347228,
+    "nazwa": "Kopalnia Soli"
+  },
+  {
+    "id": "[ID-9XX-3546]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-9814]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 3000,
+    "zatrudnienie_aktualne": 2400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1205,
+      "sredni": 0.4578,
+      "szeregowi": 0.4217,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Stal": 3.0
+      },
+      "outputs": {
+        "Gaz Ziemny": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Odwierty Proste",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Lokalne Koncesje"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-9814]"
+    },
+    "ostatnia_produkcja": {
+      "Gaz Ziemny": 6000.0
+    },
+    "rentownosc_ost_rok": -875476.1924069852,
+    "nazwa": "Kopalnie Gazu Ziemnego"
+  },
+  {
+    "id": "[ID-9XX-8502]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-9899]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 6000,
+    "zatrudnienie_aktualne": 4800,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1870,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Srebro": 800.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-9899]"
+    },
+    "ostatnia_produkcja": {
+      "Srebro": 3840.0
+    },
+    "rentownosc_ost_rok": -1897477.9208441917,
+    "nazwa": "Kopalnia Srebra"
+  },
+  {
+    "id": "[ID-9XX-2120]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-3846]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 38500,
+    "zatrudnienie_aktualne": 30800,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.18,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Żelazo": 2000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilkofy i Wagoniki",
+        "produkcja": "Kilkofy i Wagoniki",
+        "organizacja": "Prywatna Kopalnia"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 11,
+    "pojemnosc_budowlana": 1100,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 11,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-3846]"
+    },
+    "ostatnia_produkcja": {
+      "Żelazo": 61600.0
+    },
+    "rentownosc_ost_rok": -7435757.668424005,
+    "nazwa": "Kopalnia Żelaza"
+  },
+  {
+    "id": "[ID-9XX-2859]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-3785]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 10500,
+    "zatrudnienie_aktualne": 8400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1850,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 1.0
+      },
+      "outputs": {
+        "Kamień": 5000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Dłuta",
+        "produkcja": "Ręczne Łupanie",
+        "organizacja": "Lokalne Kamieniołomy"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-3785]"
+    },
+    "ostatnia_produkcja": {
+      "Kamień": 42000.0
+    },
+    "rentownosc_ost_rok": 439438.8209147062,
+    "nazwa": "Kamieniolom"
+  },
+  {
+    "id": "[ID-9XX-2203]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-1624]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 3000,
+    "zatrudnienie_aktualne": 2400,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1205,
+      "sredni": 0.4578,
+      "szeregowi": 0.4217,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Stal": 3.0
+      },
+      "outputs": {
+        "Gaz Ziemny": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Odwierty Proste",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Lokalne Koncesje"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 3,
+    "pojemnosc_budowlana": 300,
+    "region_id": "Eldoria-Region6",
+    "cluster_info": {
+      "region_id": "Eldoria-Region6",
+      "scale_factor": 3,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-1624]"
+    },
+    "ostatnia_produkcja": {
+      "Gaz Ziemny": 6000.0
+    },
+    "rentownosc_ost_rok": -875476.1924069852,
+    "nazwa": "Kopalnie Gazu Ziemnego"
+  }
+]

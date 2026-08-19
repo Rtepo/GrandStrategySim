@@ -1,0 +1,78 @@
+[
+  {
+    "id": "B-HEL-0119",
+    "name": "Armaments Factory",
+    "wlasciciel_id": "KRS-HEL-0119",
+    "rok_budowy": 1957,
+    "sektor_pkb": "armaments_industry",
+    "pojemnosc_pracownikow": 43,
+    "zatrudnienie_aktualne": 43,
+    "rezerwa_zakladowa": 57950.0,
+    "aktywna_metoda": {
+      "rok": 1965,
+      "eksperci": 0.3,
+      "sredni": 0.45,
+      "szeregowi": 0.25,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "electronic_components": 10.0,
+        "steel": 20.0,
+        "chemicals": 15.0
+      },
+      "outputs": {
+        "ammunition": 40.0,
+        "support_equipment": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Helwecja-Region6",
+    "cluster_info": {
+      "region_id": "Helwecja-Region6",
+      "scale_factor": 5,
+      "sector": "armaments_industry",
+      "owner_id": "KRS-HEL-0119"
+    },
+    "ostatnia_produkcja": {
+      "ammunition": 0.08778546266820669,
+      "support_equipment": 0.021946365667051673
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7761204047979607,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "ammunition": 5.183936904055283,
+      "electronic_components": 0.7443163880358958,
+      "food": 0.5,
+      "support_equipment": 1.2959842260138208,
+      "steel": 0.037994993402183624,
+      "chemicals": 1.116474582053844
+    },
+    "pojemność_magazynu": 1000.0
+  }
+]

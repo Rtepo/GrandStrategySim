@@ -1,0 +1,72 @@
+[
+  {
+    "id": "B-BAK-0033",
+    "name": "Maintenance Workshop",
+    "wlasciciel_id": "KRS-BAK-0033",
+    "rok_budowy": 1899,
+    "sektor_pkb": "maintenance_workshops",
+    "pojemnosc_pracownikow": 50,
+    "zatrudnienie_aktualne": 50,
+    "rezerwa_zakladowa": 15900.0,
+    "aktywna_metoda": {
+      "rok": 1850,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 2.0,
+        "fuels": 1.0,
+        "steel": 3.0
+      },
+      "outputs": {
+        "maintenance_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 125,
+    "region_id": "Baktria-Region3",
+    "cluster_info": {
+      "region_id": "Baktria-Region3",
+      "scale_factor": 2,
+      "sector": "maintenance_workshops",
+      "owner_id": "KRS-BAK-0033"
+    },
+    "ostatnia_produkcja": {
+      "maintenance_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 3.0,
+        "condition": 0.8857485878027281,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "paper": 0.4,
+      "food": 0.12000000000000004
+    },
+    "pojemność_magazynu": 1250.0
+  }
+]

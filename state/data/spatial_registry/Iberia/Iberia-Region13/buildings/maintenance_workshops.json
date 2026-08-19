@@ -1,0 +1,74 @@
+[
+  {
+    "id": "B-IBE-0157",
+    "name": "Maintenance Workshop",
+    "wlasciciel_id": "KRS-IBE-0157",
+    "rok_budowy": 1890,
+    "sektor_pkb": "maintenance_workshops",
+    "pojemnosc_pracownikow": 101,
+    "zatrudnienie_aktualne": 101,
+    "rezerwa_zakladowa": 24400.0,
+    "aktywna_metoda": {
+      "rok": 1850,
+      "eksperci": 0.1,
+      "sredni": 0.3,
+      "szeregowi": 0.6,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "mechanical_components": 2.0,
+        "fuels": 1.0,
+        "steel": 3.0
+      },
+      "outputs": {
+        "maintenance_services": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 125,
+    "region_id": "Iberia-Region13",
+    "cluster_info": {
+      "region_id": "Iberia-Region13",
+      "scale_factor": 2,
+      "sector": "maintenance_workshops",
+      "owner_id": "KRS-IBE-0157"
+    },
+    "ostatnia_produkcja": {
+      "maintenance_services": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 3.0,
+        "condition": 0.7762645378222449,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "mechanical_components": 0.25,
+      "fuels": 0.125,
+      "food": 0.625,
+      "maintenance_services": 1.25
+    },
+    "pojemność_magazynu": 1250.0
+  }
+]

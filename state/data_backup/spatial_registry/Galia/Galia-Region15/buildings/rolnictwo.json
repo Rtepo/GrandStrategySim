@@ -1,0 +1,2222 @@
+[
+    {
+        "id": "[ID-9XX-7701]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[KRS-1AG-7663]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-1AG-7663]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2291]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[KRS-2AG-8399]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-8399]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6596]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[ID-9AG-7950]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-7950]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7892]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[REG-4AG-9275]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-9275]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1128]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[KRS-1AG-3478]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-1AG-3478]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6096]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[KRS-2AG-8722]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-8722]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4632]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[ID-9AG-1197]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-1197]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5466]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[REG-4AG-9815]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-9815]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1051]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[KRS-1AG-8781]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-1AG-8781]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3343]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[KRS-2AG-8268]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-8268]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3256]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[ID-9AG-6605]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-6605]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5297]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[REG-4AG-7964]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-7964]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1313]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[KRS-1AG-7476]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-1AG-7476]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4259]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[KRS-2AG-5167]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-5167]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2121]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[ID-9AG-7568]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-7568]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8957]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[REG-4AG-1034]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-1034]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8509]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[KRS-1AG-1425]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-1AG-1425]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3196]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[KRS-2AG-6762]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-6762]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7387]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[ID-9AG-6414]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-6414]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9885]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[REG-4AG-4296]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-4296]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6314]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[KRS-1AG-6462]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-1AG-6462]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6545]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[KRS-2AG-8842]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-8842]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1597]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[ID-9AG-4992]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-4992]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8036]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[REG-4AG-1268]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-1268]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9842]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[KRS-1AG-7783]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-1AG-7783]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8514]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[KRS-2AG-8540]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-8540]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4308]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[ID-9AG-8122]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-8122]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9993]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[REG-4AG-3600]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-3600]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7921]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[KRS-1AG-1391]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-1AG-1391]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6903]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[KRS-2AG-7290]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-7290]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2336]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[ID-9AG-2705]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-2705]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9905]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[REG-4AG-9108]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-9108]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5767]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[KRS-1AG-3677]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-1AG-3677]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4386]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[KRS-2AG-2914]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-2914]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6751]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[ID-9AG-7389]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-7389]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9183]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[REG-4AG-7374]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-7374]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6277]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[KRS-1AG-1560]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-1AG-1560]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3155]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[KRS-2AG-9717]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-9717]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5899]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[ID-9AG-3691]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-3691]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2440]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[REG-4AG-8516]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-8516]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1126]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[KRS-1AG-7614]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-1AG-7614]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1675]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[KRS-2AG-5756]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-5756]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7695]",
+        "nazwa": "Sady Owocowe",
+        "wlasciciel_id": "[ID-9AG-4063]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.09,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Owoce": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Zbiory Ręczne",
+                "produkcja": "Naturalna Uprawa",
+                "organizacja": "Rodzinne Sady"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-4063]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6038]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[REG-4AG-6022]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-6022]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8642]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[KRS-1AG-5138]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-1AG-5138]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7911]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[KRS-2AG-7970]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-7970]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2317]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[ID-9AG-6129]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-6129]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3108]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[REG-4AG-8059]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-8059]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5448]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[KRS-1AG-2277]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-1AG-2277]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1784]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[KRS-2AG-4580]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-4580]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7822]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[ID-9AG-1156]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-1156]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3638]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[REG-4AG-7233]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-7233]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1446]",
+        "nazwa": "Lasy (Wyrąb)",
+        "wlasciciel_id": "[KRS-1AG-2870]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.08,
+            "szeregowi": 0.9,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Drewno": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Siekiery i Konie",
+                "produkcja": "Wyrąb Zrębowy",
+                "organizacja": "Lokalna Koncesja Wyrębu"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-1AG-2870]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5078]",
+        "nazwa": "Ranczo Żywca",
+        "wlasciciel_id": "[KRS-2AG-7512]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.1,
+            "szeregowi": 0.89,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żywiec": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wypas Otwarty",
+                "produkcja": "Hodowla Tradycyjna",
+                "organizacja": "Rancho Rodzinne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-7512]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6707]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[ID-9AG-4390]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-4390]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6148]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[REG-4AG-4717]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-4717]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6184]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[KRS-1AG-4063]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-1AG-4063]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4558]",
+        "nazwa": "Farma Zbożowa",
+        "wlasciciel_id": "[KRS-2AG-7482]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.15,
+            "szeregowi": 0.83,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Zboża": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pługi Konne",
+                "produkcja": "Trójpolówka",
+                "organizacja": "Gospodarstwo Chłopskie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[KRS-2AG-7482]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7756]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[ID-9AG-7090]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[ID-9AG-7090]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3055]",
+        "nazwa": "Plantacja Włókien",
+        "wlasciciel_id": "[REG-4AG-1112]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "rolnictwo",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.01,
+            "sredni": 0.05,
+            "szeregowi": 0.94,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Włókna": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Zbiór",
+                "produkcja": "Włókna Naturalne (Bawełna/Len)",
+                "organizacja": "Plantacja Kolonialna / Rodzinna"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Galia-Region15",
+        "cluster_info": {
+            "region_id": "Galia-Region15",
+            "scale_factor": 1,
+            "sector": "rolnictwo",
+            "owner_id": "[REG-4AG-1112]"
+        }
+    }
+]

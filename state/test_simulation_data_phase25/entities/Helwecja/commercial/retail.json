@@ -1,0 +1,122 @@
+[
+  {
+    "id_budynku": "B-HEL-2515",
+    "typ_budynku": "supermarket",
+    "mikroregion_id": "Helwecja-Region1",
+    "właściciel": "KRS-HEL-2440",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 260389.45,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 2603894.5,
+    "aktualny_inwentarz": {
+      "clothing": [
+        {
+          "ilość": 260.38,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-HEL-2440",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-HEL-2515",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 520.76,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-HEL-2440",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-HEL-2515",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 208.304,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-HEL-2440",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-HEL-2515",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 130.19,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-HEL-2440",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-HEL-2515",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 260.38,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-HEL-2440",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-HEL-2515",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "butcher",
+        "bakery",
+        "household"
+      ],
+      "atrakcyjność_podstawowa": 1.15,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 1.15,
+      "marża": 1.25,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "furniture": 44915.550000000076,
+        "meat": 93736.80000000022,
+        "fruit": 74989.43999999962,
+        "clothing": 89831.10000000015,
+        "cereal": 92613.95211511216,
+        "vegetable": 16551.575459999993,
+        "protein": 38157.99924752144
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "furniture": 1918.5769999999998,
+        "meat": 15077.84,
+        "fruit": 4756.466,
+        "clothing": 1314.6130000000003,
+        "cereal": 111738.93955992625,
+        "vegetable": 78441.76883599996,
+        "protein": 53579.75687692122
+      },
+      "udział_rynku_ostatni_turn": {
+        "furniture": 224.36460362655515,
+        "meat": 234.1195863929273,
+        "fruit": 234.11958639292556,
+        "clothing": 224.36460362655515,
+        "cereal": 192.9375176209092,
+        "vegetable": 46.045517896336605,
+        "protein": 163.9983112042118
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  }
+]

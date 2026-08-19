@@ -1,0 +1,1545 @@
+﻿cargo : warning: unused import: `SeasonalModifiers`
+At line:1 char:56
++ ... tate\state; cargo test --test golden_year_24_turns -- --nocapture 2>& ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: unused...sonalModifiers`:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  --> src\agriculture.rs:12:44
+   |
+12 | use crate::state::climate::{ClimateConfig, SeasonalModifiers};
+   |                                            ^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `super::strategy::CorporateDecisionCtx`
+ --> src\corporate\development.rs:9:5
+  |
+9 | use super::strategy::CorporateDecisionCtx;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `Commodity` and `Sector`
+ --> src\corporate\bounded_rationality.rs:6:32
+  |
+6 | use crate::registries::enums::{Commodity, Sector};
+  |                                ^^^^^^^^^  ^^^^^^
+
+warning: unused import: `std::collections::BTreeMap`
+ --> src\corporate\bounded_rationality.rs:8:5
+  |
+8 | use std::collections::BTreeMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `HashMap`
+ --> src\data\consumption_registry.rs:8:34
+  |
+8 | use std::collections::{BTreeMap, HashMap};
+  |                                  ^^^^^^^
+
+warning: unused import: `std::collections::HashMap`
+  --> src\economy\finance\debt_market.rs:13:5
+   |
+13 | use std::collections::HashMap;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `HashMap`
+  --> src\economy\finance\payment_in_kind.rs:11:34
+   |
+11 | use std::collections::{BTreeMap, HashMap};
+   |                                  ^^^^^^^
+
+warning: unused import: `crate::entities::legal_form::LegalForm`
+  --> src\economy\justice\inspectorates.rs:17:5
+   |
+17 | use crate::entities::legal_form::LegalForm;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::economy::justice_system::FineCollectionResult`
+  --> src\economy\justice\inspectorates.rs:18:5
+   |
+18 | use crate::economy::justice_system::FineCollectionResult;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `ShadowEmployment`
+  --> src\economy\justice\inspectorates.rs:19:49
+   |
+19 | use crate::economy::legal_status::{LegalStatus, ShadowEmployment};
+   |                                                 ^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::economy::fixed_assets::FixedAssetCohort`
+ --> src\economy\justice\inspectorate_fleet.rs:8:5
+  |
+8 | use crate::economy::fixed_assets::FixedAssetCohort;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `JusticeLaw`
+  --> src\economy\justice\justice_system.rs:11:44
+   |
+11 | use crate::politics::laws::{CourtWaitTime, JusticeLaw, PardonAuthority};
+   |                                            ^^^^^^^^^^
+
+warning: unused import: `crate::economy::legal_status::LegalStatus`
+  --> src\economy\justice\prison_labor.rs:19:5
+   |
+19 | use crate::economy::legal_status::LegalStatus;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `SentencingLaw`
+  --> src\economy\justice\prison_labor.rs:20:66
+   |
+20 | use crate::economy::sentencing::{CrimeCategory, SentenceOutcome, SentencingLaw, determine_crime_category, generate
+_sentence, process...
+   |                                                                  ^^^^^^^^^^^^^
+
+warning: unused import: `PrisonLaborLaw`
+  --> src\economy\justice\prison_labor.rs:22:29
+   |
+22 | use crate::politics::laws::{PrisonLaborLaw, PrisonType};
+   |                             ^^^^^^^^^^^^^^
+
+warning: unused import: `PrisonerCohort`
+  --> src\economy\justice\sentencing.rs:15:51
+   |
+15 | use crate::politics::system::{JusticeSystemState, PrisonerCohort};
+   |                                                   ^^^^^^^^^^^^^^
+
+warning: unused import: `CultureDefinition`
+  --> src\economy\labor\assimilation.rs:18:89
+   |
+18 | use crate::society::culture_registry::{cultural_distance, registry as culture_registry, CultureDefinition};
+   |                                                                                         ^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::collections::BTreeMap`
+  --> src\economy\labor\labor.rs:14:5
+   |
+14 | use std::collections::BTreeMap;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `BorderState` and `MigrationLaw`
+  --> src\economy\labor\migration.rs:25:5
+   |
+25 |     BorderState, DeportationPolicy, MigrationFlow, MigrationLaw, MigrationReason,
+   |     ^^^^^^^^^^^                                    ^^^^^^^^^^^^
+
+warning: unused import: `DemographyType`
+  --> src\economy\logistics\commuting.rs:17:33
+   |
+17 | use crate::society::geography::{DemographyType, EdgeType, Region};
+   |                                 ^^^^^^^^^^^^^^
+
+warning: unused import: `GeologicalFormation`
+  --> src\economy\production\geology.rs:10:33
+   |
+10 | use crate::society::geography::{GeologicalFormation, ResourceDeposit};
+   |                                 ^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::society::geography::GeologicalFormation`
+  --> src\economy\production\production.rs:13:5
+   |
+13 | use crate::society::geography::GeologicalFormation;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Region`
+ --> src\economy\production\weather.rs:9:49
+  |
+9 | use crate::society::geography::{ClimateProfile, Region};
+  |                                                 ^^^^^^
+
+warning: unused import: `std::collections::HashMap`
+  --> src\economy\state_sector\smuggling.rs:21:5
+   |
+21 | use std::collections::HashMap;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::entities::legal_form::StateMonopolyData`
+  --> src\economy\state_sector\state_forests.rs:17:5
+   |
+17 | use crate::entities::legal_form::StateMonopolyData;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `TechNode`
+  --> src\economy\trade\blueprints.rs:29:44
+   |
+29 | use crate::registries::tech_tree::{TechId, TechNode};
+   |                                            ^^^^^^^^
+
+warning: unused import: `NeedTier`
+ --> src\economy\trade\retail.rs:6:41
+  |
+6 | use crate::data::{consumption_registry, NeedTier};
+  |                                         ^^^^^^^^
+
+warning: unused imports: `commodity_profile_map` and `is_compatible`
+ --> src\economy\trade\retail.rs:7:39
+  |
+7 | use crate::economy::retail_registry::{commodity_profile_map, is_compatible, retail_config};
+  |                                       ^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^
+
+warning: unused import: `RetailProfile`
+  --> src\economy\trade\retail.rs:13:51
+   |
+13 | use crate::society::housing::{CommercialBuilding, RetailProfile};
+   |                                                   ^^^^^^^^^^^^^
+
+warning: unused import: `HashMap`
+ --> src\economy\trade\retail_registry.rs:9:34
+  |
+9 | use std::collections::{BTreeMap, HashMap};
+  |                                  ^^^^^^^
+
+warning: unused import: `WholesaleProfile`
+ --> src\economy\trade\wholesale.rs:7:51
+  |
+7 | use crate::society::housing::{CommercialBuilding, WholesaleProfile};
+  |                                                   ^^^^^^^^^^^^^^^^
+
+warning: unused import: `RetailProfile`
+  --> src\economy\real_estate.rs:10:64
+   |
+10 | use crate::society::housing::{CommercialBuilding, RetailLease, RetailProfile, StoreProfile};
+   |                                                                ^^^^^^^^^^^^^
+
+warning: unused imports: `Deserialize` and `Serialize`
+  --> src\economy\real_estate.rs:13:13
+   |
+13 | use serde::{Deserialize, Serialize};
+   |             ^^^^^^^^^^^  ^^^^^^^^^
+
+warning: unused imports: `InterestType`, `LoanStatus`, `LoanType`, and `Loan`
+  --> src\engine\generator\mod.rs:21:76
+   |
+21 | use crate::state::banking::{BankBalanceSheet, BankType as BankingBankType, Loan, LoanStatus, LoanType, InterestTyp
+e};
+   |                                                                            ^^^^  ^^^^^^^^^^  ^^^^^^^^  ^^^^^^^^^^^
+^
+
+warning: unused import: `update_anchor_tenant`
+  --> src\engine\turn.rs:13:5
+   |
+13 |     update_anchor_tenant, reset_procurement_commitment, apply_clearance_discount,
+   |     ^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::economy::market_history::MarketHistory`
+  --> src\engine\turn.rs:30:5
+   |
+30 | use crate::economy::market_history::MarketHistory;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::state::tax::TaxExemptionRegistry`
+  --> src\entities\mod.rs:13:5
+   |
+13 | use crate::state::tax::TaxExemptionRegistry;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::collections::BTreeMap`
+ --> src\infrastructure\mod.rs:8:5
+  |
+8 | use std::collections::BTreeMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `RuralClass`
+  --> src\infrastructure\cultural.rs:10:41
+   |
+10 | use crate::society::geography::{Region, RuralClass};
+   |                                         ^^^^^^^^^^
+
+warning: unused imports: `Deserialize` and `Serialize`
+ --> src\infrastructure\effects.rs:8:13
+  |
+8 | use serde::{Deserialize, Serialize};
+  |             ^^^^^^^^^^^  ^^^^^^^^^
+
+warning: unused import: `std::collections::BTreeMap`
+ --> src\infrastructure\effects.rs:9:5
+  |
+9 | use std::collections::BTreeMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `CommercialBuildingType`
+  --> src\io\entity_store.rs:10:51
+   |
+10 | use crate::society::housing::{CommercialBuilding, CommercialBuildingType, HousingBuilding};
+   |                                                   ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::collections::BTreeMap`
+ --> src\military\fleet.rs:4:5
+  |
+4 | use std::collections::BTreeMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `LegislativeSession`
+ --> src\politics\bill_lifecycle.rs:6:32
+  |
+6 | use super::legislation::{Bill, LegislativeSession, LegislativeStage};
+  |                                ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `CouncilorTrait`
+ --> src\politics\bill_lifecycle.rs:9:39
+  |
+9 | use super::local_council::{Councilor, CouncilorTrait, calculate_vote_probability};
+  |                                       ^^^^^^^^^^^^^^
+
+warning: unnecessary parentheses around assigned value
+    --> src\politics\campaign.rs:1013:31
+     |
+1013 |         class_data.savings *= (1.0 - deduction_ratio);
+     |                               ^                     ^
+     |
+     = note: `#[warn(unused_parens)]` (part of `#[warn(unused)]`) on by default
+help: remove these parentheses
+     |
+1013 -         class_data.savings *= (1.0 - deduction_ratio);
+1013 +         class_data.savings *= 1.0 - deduction_ratio ;
+     |
+
+warning: unused import: `crate::state::Treasury`
+  --> src\politics\lobbying.rs:11:5
+   |
+11 | use crate::state::Treasury;
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `ClassDemographics`
+ --> src\politics\fiscal_transfers.rs:6:53
+  |
+6 | use crate::society::geography::{Region, RuralClass, ClassDemographics, EconomicStatus};
+  |                                                     ^^^^^^^^^^^^^^^^^
+
+warning: unused import: `rand::seq::SliceRandom`
+ --> src\politics\generator.rs:9:5
+  |
+9 | use rand::seq::SliceRandom;
+  |     ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unnecessary parentheses around assigned value
+   --> src\politics\interest_groups.rs:307:27
+    |
+307 |             let w_total = (beta * financial);
+    |                           ^                ^
+    |
+help: remove these parentheses
+    |
+307 -             let w_total = (beta * financial);
+307 +             let w_total = beta * financial ;
+    |
+
+warning: unused import: `StudentLoanConfig`
+ --> src\politics\laws.rs:7:54
+  |
+7 | use crate::politics::funding::{ServiceFundingConfig, StudentLoanConfig};
+  |                                                      ^^^^^^^^^^^^^^^^^
+
+warning: unnecessary parentheses around assigned value
+   --> src\politics\local_council.rs:308:23
+    |
+308 |     defection_rate *= (1.0 - council.faction_distribution.faction_stability);
+    |                       ^                                                    ^
+    |
+help: remove these parentheses
+    |
+308 -     defection_rate *= (1.0 - council.faction_distribution.faction_stability);
+308 +     defection_rate *= 1.0 - council.faction_distribution.faction_stability;
+    |
+
+warning: unused import: `HashMap`
+ --> src\politics\rebellions.rs:4:34
+  |
+4 | use std::collections::{BTreeMap, HashMap};
+  |                                  ^^^^^^^
+
+warning: unused import: `RuralClass`
+ --> src\politics\rebellions.rs:6:41
+  |
+6 | use crate::society::geography::{Region, RuralClass};
+  |                                         ^^^^^^^^^^
+
+warning: unused import: `std::collections::BTreeMap`
+ --> src\politics\conservation.rs:5:5
+  |
+5 | use std::collections::BTreeMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::collections::HashMap`
+ --> src\politics\mass_movements.rs:9:5
+  |
+9 | use std::collections::HashMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `GovernmentForm`
+  --> src\politics\ministries.rs:12:31
+   |
+12 | use crate::politics::system::{GovernmentForm, Party};
+   |                               ^^^^^^^^^^^^^^
+
+warning: unused imports: `BudgetPriorities`, `GovernmentCompetency`, `MinistryConfig`, `Ministry`, and `form_government
+`
+  --> src\politics\budget_lifecycle.rs:10:5
+   |
+10 |     BudgetPriorities, IdeologyBudgetPriorities, GovernmentCompetency, MinistryAllocation,
+   |     ^^^^^^^^^^^^^^^^                            ^^^^^^^^^^^^^^^^^^^^
+11 |     MinistryConfig, Ministry, form_government,
+   |     ^^^^^^^^^^^^^^  ^^^^^^^^  ^^^^^^^^^^^^^^^
+
+warning: unused import: `serde_json::Value`
+ --> src\registries\crops.rs:9:5
+  |
+9 | use serde_json::Value;
+  |     ^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::securities::derivatives::FuturesContract`
+  --> src\securities\brokerage.rs:11:5
+   |
+11 | use crate::securities::derivatives::FuturesContract;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `HashMap`
+ --> src\securities\funds.rs:7:34
+  |
+7 | use std::collections::{BTreeMap, HashMap};
+  |                                  ^^^^^^^
+
+warning: unused import: `serde_json::Value`
+ --> src\securities\funds.rs:8:5
+  |
+8 | use serde_json::Value;
+  |     ^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::collections::BTreeMap`
+ --> src\society\housing.rs:7:5
+  |
+7 | use std::collections::BTreeMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `NonProfitData`
+  --> src\society\charities.rs:14:46
+   |
+14 | use crate::entities::legal_form::{LegalForm, NonProfitData};
+   |                                              ^^^^^^^^^^^^^
+
+warning: unused import: `std::collections::BTreeMap`
+ --> src\utilities\demand.rs:7:5
+  |
+7 | use std::collections::BTreeMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::utilities::waste::LandfillData`
+  --> src\utilities\waste_collection.rs:13:5
+   |
+13 | use crate::utilities::waste::LandfillData;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::MobileArtillery`: Phase 20: no producer or consu
+mer ÔÇö use is_active() filter
+   --> src\registries\enums.rs:603:24
+    |
+603 |             Commodity::MobileArtillery
+    |                        ^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated unit variant `registries::enums::Commodity::AntiAircraftArtillery`: Phase 20: no producer or
+ consumer ÔÇö use is_active() filter
+   --> src\registries\enums.rs:604:30
+    |
+604 |                 | Commodity::AntiAircraftArtillery
+    |                              ^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::InfantryFightingVehicles`: Phase 20: no producer
+ or consumer ÔÇö use is_active() filter
+   --> src\registries\enums.rs:605:30
+    |
+605 |                 | Commodity::InfantryFightingVehicles
+    |                              ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::MilitaryTrucks`: Phase 20: no producer or consum
+er ÔÇö use is_active() filter
+   --> src\registries\enums.rs:606:30
+    |
+606 |                 | Commodity::MilitaryTrucks
+    |                              ^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::Frigates`: Phase 20: no producer or consumer ÔÇö
+ use is_active() filter
+   --> src\registries\enums.rs:607:30
+    |
+607 |                 | Commodity::Frigates
+    |                              ^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::Cruisers`: Phase 20: no producer or consumer ÔÇö
+ use is_active() filter
+   --> src\registries\enums.rs:608:30
+    |
+608 |                 | Commodity::Cruisers
+    |                              ^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::AircraftCarriers`: Phase 20: no producer or cons
+umer ÔÇö use is_active() filter
+   --> src\registries\enums.rs:609:30
+    |
+609 |                 | Commodity::AircraftCarriers
+    |                              ^^^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::Destroyers`: Phase 20: no producer or consumer Ô
+Çö use is_active() filter
+   --> src\registries\enums.rs:610:30
+    |
+610 |                 | Commodity::Destroyers
+    |                              ^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::Battleships`: Phase 20: no producer or consumer 
+ÔÇö use is_active() filter
+   --> src\registries\enums.rs:611:30
+    |
+611 |                 | Commodity::Battleships
+    |                              ^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::NavalVessels`: Phase 20: no producer or consumer
+ ÔÇö use is_active() filter
+   --> src\registries\enums.rs:612:30
+    |
+612 |                 | Commodity::NavalVessels
+    |                              ^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::Pistols`: Phase 20: no producer or consumer ÔÇö 
+use is_active() filter
+   --> src\registries\enums.rs:613:30
+    |
+613 |                 | Commodity::Pistols
+    |                              ^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::Gunpowder`: Phase 20: no producer or consumer ÔÇ
+ö use is_active() filter
+   --> src\registries\enums.rs:614:30
+    |
+614 |                 | Commodity::Gunpowder
+    |                              ^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::Airplanes`: Phase 20: no producer or consumer ÔÇ
+ö use is_active() filter
+   --> src\registries\enums.rs:615:30
+    |
+615 |                 | Commodity::Airplanes
+    |                              ^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::PassengerShips`: Phase 20: no producer or consum
+er ÔÇö use is_active() filter
+   --> src\registries\enums.rs:616:30
+    |
+616 |                 | Commodity::PassengerShips
+    |                              ^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::CargoShips`: Phase 20: no producer or consumer Ô
+Çö use is_active() filter
+   --> src\registries\enums.rs:617:30
+    |
+617 |                 | Commodity::CargoShips
+    |                              ^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::RollingStock`: Phase 20: no producer or consumer
+ ÔÇö use is_active() filter
+   --> src\registries\enums.rs:618:30
+    |
+618 |                 | Commodity::RollingStock
+    |                              ^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::InsuranceServices`: Phase 20: no producer or con
+sumer ÔÇö use is_active() filter
+   --> src\registries\enums.rs:619:30
+    |
+619 |                 | Commodity::InsuranceServices
+    |                              ^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::MineralResources`: Phase 20: no producer or cons
+umer ÔÇö use is_active() filter
+   --> src\registries\enums.rs:620:30
+    |
+620 |                 | Commodity::MineralResources
+    |                              ^^^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::MarketResearch`: Phase 20: no producer or consum
+er ÔÇö use is_active() filter
+   --> src\registries\enums.rs:621:30
+    |
+621 |                 | Commodity::MarketResearch
+    |                              ^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::MobileArtillery`: Phase 20: no producer or consu
+mer ÔÇö use is_active() filter
+   --> src\registries\enums.rs:632:24
+    |
+632 |             Commodity::MobileArtillery,
+    |                        ^^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::AntiAircraftArtillery`: Phase 20: no producer or
+ consumer ÔÇö use is_active() filter
+   --> src\registries\enums.rs:633:24
+    |
+633 |             Commodity::AntiAircraftArtillery,
+    |                        ^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::InfantryFightingVehicles`: Phase 20: no producer
+ or consumer ÔÇö use is_active() filter
+   --> src\registries\enums.rs:636:24
+    |
+636 |             Commodity::InfantryFightingVehicles,
+    |                        ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::MilitaryTrucks`: Phase 20: no producer or consum
+er ÔÇö use is_active() filter
+   --> src\registries\enums.rs:643:24
+    |
+643 |             Commodity::MilitaryTrucks,
+    |                        ^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::Frigates`: Phase 20: no producer or consumer ÔÇö
+ use is_active() filter
+   --> src\registries\enums.rs:655:24
+    |
+655 |             Commodity::Frigates,
+    |                        ^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::Cruisers`: Phase 20: no producer or consumer ÔÇö
+ use is_active() filter
+   --> src\registries\enums.rs:664:24
+    |
+664 |             Commodity::Cruisers,
+    |                        ^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::AircraftCarriers`: Phase 20: no producer or cons
+umer ÔÇö use is_active() filter
+   --> src\registries\enums.rs:665:24
+    |
+665 |             Commodity::AircraftCarriers,
+    |                        ^^^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::Destroyers`: Phase 20: no producer or consumer Ô
+Çö use is_active() filter
+   --> src\registries\enums.rs:677:24
+    |
+677 |             Commodity::Destroyers,
+    |                        ^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::Battleships`: Phase 20: no producer or consumer 
+ÔÇö use is_active() filter
+   --> src\registries\enums.rs:682:24
+    |
+682 |             Commodity::Battleships,
+    |                        ^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::Pistols`: Phase 20: no producer or consumer ÔÇö 
+use is_active() filter
+   --> src\registries\enums.rs:685:24
+    |
+685 |             Commodity::Pistols,
+    |                        ^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::Gunpowder`: Phase 20: no producer or consumer ÔÇ
+ö use is_active() filter
+   --> src\registries\enums.rs:689:24
+    |
+689 |             Commodity::Gunpowder,
+    |                        ^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::Airplanes`: Phase 20: no producer or consumer ÔÇ
+ö use is_active() filter
+   --> src\registries\enums.rs:696:24
+    |
+696 |             Commodity::Airplanes,
+    |                        ^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::PassengerShips`: Phase 20: no producer or consum
+er ÔÇö use is_active() filter
+   --> src\registries\enums.rs:701:24
+    |
+701 |             Commodity::PassengerShips,
+    |                        ^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::CargoShips`: Phase 20: no producer or consumer Ô
+Çö use is_active() filter
+   --> src\registries\enums.rs:702:24
+    |
+702 |             Commodity::CargoShips,
+    |                        ^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::NavalVessels`: Phase 20: no producer or consumer
+ ÔÇö use is_active() filter
+   --> src\registries\enums.rs:703:24
+    |
+703 |             Commodity::NavalVessels,
+    |                        ^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::MineralResources`: Phase 20: no producer or cons
+umer ÔÇö use is_active() filter
+   --> src\registries\enums.rs:704:24
+    |
+704 |             Commodity::MineralResources,
+    |                        ^^^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::RollingStock`: Phase 20: no producer or consumer
+ ÔÇö use is_active() filter
+   --> src\registries\enums.rs:707:24
+    |
+707 |             Commodity::RollingStock,
+    |                        ^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::InsuranceServices`: Phase 20: no producer or con
+sumer ÔÇö use is_active() filter
+   --> src\registries\enums.rs:718:24
+    |
+718 |             Commodity::InsuranceServices,
+    |                        ^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::MarketResearch`: Phase 20: no producer or consum
+er ÔÇö use is_active() filter
+   --> src\registries\enums.rs:736:24
+    |
+736 |             Commodity::MarketResearch,
+    |                        ^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::MobileArtillery`: Phase 20: no producer or consu
+mer ÔÇö use is_active() filter
+   --> src\registries\enums.rs:781:49
+    |
+781 |             "mobile_artillery" => Ok(Commodity::MobileArtillery),
+    |                                                 ^^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::AntiAircraftArtillery`: Phase 20: no producer or
+ consumer ÔÇö use is_active() filter
+   --> src\registries\enums.rs:782:56
+    |
+782 |             "anti_aircraft_artillery" => Ok(Commodity::AntiAircraftArtillery),
+    |                                                        ^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::InfantryFightingVehicles`: Phase 20: no producer
+ or consumer ÔÇö use is_active() filter
+   --> src\registries\enums.rs:785:59
+    |
+785 |             "infantry_fighting_vehicles" => Ok(Commodity::InfantryFightingVehicles),
+    |                                                           ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::MilitaryTrucks`: Phase 20: no producer or consum
+er ÔÇö use is_active() filter
+   --> src\registries\enums.rs:792:48
+    |
+792 |             "military_trucks" => Ok(Commodity::MilitaryTrucks),
+    |                                                ^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::Frigates`: Phase 20: no producer or consumer ÔÇö
+ use is_active() filter
+   --> src\registries\enums.rs:804:41
+    |
+804 |             "frigates" => Ok(Commodity::Frigates),
+    |                                         ^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::Cruisers`: Phase 20: no producer or consumer ÔÇö
+ use is_active() filter
+   --> src\registries\enums.rs:813:41
+    |
+813 |             "cruisers" => Ok(Commodity::Cruisers),
+    |                                         ^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::AircraftCarriers`: Phase 20: no producer or cons
+umer ÔÇö use is_active() filter
+   --> src\registries\enums.rs:814:50
+    |
+814 |             "aircraft_carriers" => Ok(Commodity::AircraftCarriers),
+    |                                                  ^^^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::Destroyers`: Phase 20: no producer or consumer Ô
+Çö use is_active() filter
+   --> src\registries\enums.rs:826:43
+    |
+826 |             "destroyers" => Ok(Commodity::Destroyers),
+    |                                           ^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::Battleships`: Phase 20: no producer or consumer 
+ÔÇö use is_active() filter
+   --> src\registries\enums.rs:831:44
+    |
+831 |             "battleships" => Ok(Commodity::Battleships),
+    |                                            ^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::Pistols`: Phase 20: no producer or consumer ÔÇö 
+use is_active() filter
+   --> src\registries\enums.rs:834:40
+    |
+834 |             "pistols" => Ok(Commodity::Pistols),
+    |                                        ^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::Gunpowder`: Phase 20: no producer or consumer ÔÇ
+ö use is_active() filter
+   --> src\registries\enums.rs:838:42
+    |
+838 |             "gunpowder" => Ok(Commodity::Gunpowder),
+    |                                          ^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::Airplanes`: Phase 20: no producer or consumer ÔÇ
+ö use is_active() filter
+   --> src\registries\enums.rs:845:42
+    |
+845 |             "airplanes" => Ok(Commodity::Airplanes),
+    |                                          ^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::PassengerShips`: Phase 20: no producer or consum
+er ÔÇö use is_active() filter
+   --> src\registries\enums.rs:850:48
+    |
+850 |             "passenger_ships" => Ok(Commodity::PassengerShips),
+    |                                                ^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::CargoShips`: Phase 20: no producer or consumer Ô
+Çö use is_active() filter
+   --> src\registries\enums.rs:851:44
+    |
+851 |             "cargo_ships" => Ok(Commodity::CargoShips),
+    |                                            ^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::NavalVessels`: Phase 20: no producer or consumer
+ ÔÇö use is_active() filter
+   --> src\registries\enums.rs:852:46
+    |
+852 |             "naval_vessels" => Ok(Commodity::NavalVessels),
+    |                                              ^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::MineralResources`: Phase 20: no producer or cons
+umer ÔÇö use is_active() filter
+   --> src\registries\enums.rs:853:50
+    |
+853 |             "mineral_resources" => Ok(Commodity::MineralResources),
+    |                                                  ^^^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::RollingStock`: Phase 20: no producer or consumer
+ ÔÇö use is_active() filter
+   --> src\registries\enums.rs:856:46
+    |
+856 |             "rolling_stock" => Ok(Commodity::RollingStock),
+    |                                              ^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::InsuranceServices`: Phase 20: no producer or con
+sumer ÔÇö use is_active() filter
+   --> src\registries\enums.rs:867:51
+    |
+867 |             "insurance_services" => Ok(Commodity::InsuranceServices),
+    |                                                   ^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated unit variant `registries::enums::Commodity::MarketResearch`: Phase 20: no producer or consum
+er ÔÇö use is_active() filter
+   --> src\registries\enums.rs:892:48
+    |
+892 |             "market_research" => Ok(Commodity::MarketResearch),
+    |                                                ^^^^^^^^^^^^^^
+
+warning: variable does not need to be mutable
+   --> src\corporate\strategy.rs:257:9
+    |
+257 |     let mut disposal_orders = Vec::new();
+    |         ----^^^^^^^^^^^^^^^
+    |         |
+    |         help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `ctx`
+   --> src\corporate\strategy.rs:256:32
+    |
+256 | fn evaluate_inventory_disposal(ctx: &CorporateDecisionCtx) -> Vec<DisposalOrder> {
+    |                                ^^^ help: if this is intentional, prefix it with an underscore: `_ctx`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: value assigned to `remaining_cash` is never read
+   --> src\corporate\bankruptcy.rs:361:17
+    |
+361 |                 remaining_cash = 0.0;
+    |                 ^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: maybe it is overwritten before being read?
+    = note: `#[warn(unused_assignments)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `current_turn`
+  --> src\economy\finance\payment_in_kind.rs:60:5
+   |
+60 |     current_turn: u32,
+   |     ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_current_turn`
+
+warning: unused variable: `demography_type`
+  --> src\economy\finance\payment_in_kind.rs:93:15
+   |
+93 |         for ((demography_type, class_id), fte) in &company_fte {
+   |               ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_demography_type`
+
+warning: unused variable: `turn`
+   --> src\economy\justice\inspectorates.rs:115:5
+    |
+115 |     turn: u32,
+    |     ^^^^ help: if this is intentional, prefix it with an underscore: `_turn`
+
+warning: unused variable: `buildings`
+  --> src\economy\labor\migration.rs:80:5
+   |
+80 |     buildings: &[Building],
+   |     ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_buildings`
+
+warning: unused variable: `border_state`
+   --> src\economy\labor\migration.rs:404:25
+    |
+404 |             if let Some(border_state) = &mut country.politics.border_state {
+    |                         ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_border_state`
+
+warning: unused variable: `current_turn`
+   --> src\economy\market\clearing.rs:340:5
+    |
+340 |     current_turn: u32,
+    |     ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_current_turn`
+
+warning: variable does not need to be mutable
+   --> src\economy\society\ethnic_violence.rs:176:9
+    |
+176 |     let mut result = PogromResult::default();
+    |         ----^^^^^^
+    |         |
+    |         help: remove this `mut`
+
+warning: unused variable: `reg`
+   --> src\economy\society\ethnic_violence.rs:177:9
+    |
+177 |     let reg = culture_registry();
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_reg`
+
+warning: unused variable: `current_turn`
+  --> src\economy\state_sector\state_research.rs:28:5
+   |
+28 |     current_turn: u32,
+   |     ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_current_turn`
+
+warning: unused variable: `diplomacy`
+   --> src\economy\trade\b2b_orders.rs:607:5
+    |
+607 |     diplomacy: &HashMap<String, HashMap<String, crate::international::DiplomaticRelation>>,
+    |     ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_diplomacy`
+
+warning: unused variable: `commodity`
+    --> src\economy\trade\b2b_orders.rs:1011:21
+     |
+1011 |             .map(|(&commodity, &qty)| {
+     |                     ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_commodity`
+
+warning: unused variable: `ratio`
+   --> src\economy\trade\b2b_orders.rs:938:21
+    |
+938 |                 let ratio = storable / overflow;
+    |                     ^^^^^ help: if this is intentional, prefix it with an underscore: `_ratio`
+
+warning: variable does not need to be mutable
+    --> src\economy\trade\b2b_orders.rs:1163:9
+     |
+1163 |     let mut messages = Vec::new();
+     |         ----^^^^^^^^
+     |         |
+     |         help: remove this `mut`
+
+warning: variable does not need to be mutable
+    --> src\economy\trade\b2b_orders.rs:1252:9
+     |
+1252 |     let mut messages = Vec::new();
+     |         ----^^^^^^^^
+     |         |
+     |         help: remove this `mut`
+
+warning: unused variable: `current_turn`
+   --> src\economy\trade\retail.rs:220:5
+    |
+220 |     current_turn: u32,
+    |     ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_current_turn`
+
+warning: unused variable: `tier`
+   --> src\economy\trade\retail.rs:234:18
+    |
+234 |             for (tier, tier_commodities) in &basket.tiers {
+    |                  ^^^^ help: if this is intentional, prefix it with an underscore: `_tier`
+
+warning: unused variable: `tier`
+   --> src\economy\trade\retail.rs:250:18
+    |
+250 |             for (tier, tier_commodities) in &basket.tiers {
+    |                  ^^^^ help: if this is intentional, prefix it with an underscore: `_tier`
+
+warning: variable does not need to be mutable
+   --> src\economy\trade\retail.rs:288:17
+    |
+288 |             let mut effective_attractiveness = profile.base_attractiveness;
+    |                 ----^^^^^^^^^^^^^^^^^^^^^^^^
+    |                 |
+    |                 help: remove this `mut`
+
+warning: unused variable: `current_turn`
+   --> src\economy\trade\retail.rs:280:5
+    |
+280 |     current_turn: u32,
+    |     ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_current_turn`
+
+warning: unused variable: `config`
+   --> src\economy\trade\retail.rs:283:9
+    |
+283 |     let config = retail_config();
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_config`
+
+warning: unused variable: `utility`
+   --> src\economy\trade\retail.rs:433:14
+    |
+433 |         for (utility, offer) in utilities {
+    |              ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_utility`
+
+warning: unused variable: `actual_quantity`
+   --> src\economy\trade\royalties.rs:190:21
+    |
+190 |                 let actual_quantity = royalty_amount / (royalty_vwap_ratio * last_turn_vwap);
+    |                     ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_actual_quantity
+`
+
+warning: unused variable: `wholesalers`
+   --> src\economy\trade\wholesale.rs:102:5
+    |
+102 |     wholesalers: &[CommercialBuilding],
+    |     ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_wholesalers`
+
+warning: unused variable: `commodity`
+   --> src\economy\trade\wholesale.rs:160:5
+    |
+160 |     commodity: Commodity,
+    |     ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_commodity`
+
+warning: unused variable: `current_turn`
+   --> src\economy\trade\wholesale.rs:190:5
+    |
+190 |     current_turn: u32,
+    |     ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_current_turn`
+
+warning: unused variable: `market_price`
+   --> src\economy\trade\wholesale.rs:191:5
+    |
+191 |     market_price: f64,
+    |     ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_market_price`
+
+warning: unused variable: `tech_node`
+   --> src\economy\corporate_rd.rs:267:27
+    |
+267 | fn estimate_new_unit_cost(tech_node: &TechNode) -> f64 {
+    |                           ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_tech_node`
+
+warning: variable does not need to be mutable
+   --> src\engine\generator\corporate.rs:863:18
+    |
+863 |             let (mut company, mut building) = create_seed_company(
+    |                  ----^^^^^^^
+    |                  |
+    |                  help: remove this `mut`
+
+warning: unused variable: `start_year`
+    --> src\engine\generator\corporate.rs:1121:55
+     |
+1121 | fn create_strategic_reserve_agency(country: &Country, start_year: u32) -> Company {
+     |                                                       ^^^^^^^^^^ help: if this is intentional, prefix it with an
+ underscore: `_start_year`
+
+warning: unused variable: `start_year`
+    --> src\engine\generator\corporate.rs:1330:5
+     |
+1330 |     start_year: u32,
+     |     ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_start_year`
+
+warning: unused variable: `start_year`
+    --> src\engine\generator\corporate.rs:1648:5
+     |
+1648 |     start_year: u32,
+     |     ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_start_year`
+
+warning: unused variable: `treasury`
+   --> src\engine\generator\mod.rs:723:31
+    |
+723 | fn build_currency(name: &str, treasury: &Treasury) -> Currency {
+    |                               ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_treasury`
+
+warning: unused variable: `gdp_per_capita`
+    --> src\engine\turn.rs:2869:17
+     |
+2869 |             let gdp_per_capita: std::collections::BTreeMap<String, f64> = tasks.iter()
+     |                 ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_gdp_per_capita`
+
+warning: unused variable: `country_name`
+    --> src\engine\turn.rs:3027:10
+     |
+3027 |     for (country_name, country) in &mut state.countries {
+     |          ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_country_name`
+
+warning: value assigned to `all_trades` is never read
+   --> src\engine\turn.rs:396:42
+    |
+396 |         let mut all_trades: Vec<Trade> = Vec::new();
+    |                                          ^^^^^^^^^^ this value is reassigned later and never used
+...
+678 |         all_trades = global_order_book.trades.clone();
+    |         ---------- `all_trades` is overwritten here before the previous value is read
+
+warning: value assigned to `task_penalties` is never read
+    --> src\engine\turn.rs:1208:79
+     |
+1208 |         let mut task_penalties: Vec<std::collections::HashMap<String, f64>> = Vec::new();
+     |                                                                               ^^^^^^^^^^ this value is reassigne
+d later and never used
+...
+1225 |             task_penalties = penalties_per_task;
+     |             -------------- `task_penalties` is overwritten here before the previous value is read
+
+warning: variable does not need to be mutable
+  --> src\io\save_manager.rs:94:9
+   |
+94 |     let mut budget = budgets
+   |         ----^^^^^^
+   |         |
+   |         help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> src\io\save_manager.rs:216:16
+    |
+216 |     for (name, mut budget) in budgets {
+    |                ----^^^^^^
+    |                |
+    |                help: remove this `mut`
+
+warning: unused variable: `treated`
+   --> src\military\turn.rs:320:14
+    |
+320 |         let (treated, untreated_dead, wounded_messages) = process_wounded(
+    |              ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_treated`
+
+warning: unused variable: `current_turn`
+   --> src\politics\campaign.rs:422:5
+    |
+422 |     current_turn: u32,
+    |     ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_current_turn`
+
+warning: unused variable: `initiator_party`
+   --> src\politics\committees.rs:209:9
+    |
+209 |         initiator_party: &str,
+    |         ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_initiator_party`
+
+warning: unused variable: `secondary_edu_pop`
+   --> src\politics\interest_groups.rs:173:9
+    |
+173 |     let secondary_edu_pop = total_population * education.secondary_share();
+    |         ^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_secondary_edu_pop`
+
+warning: unused variable: `edu_level`
+   --> src\politics\interest_groups.rs:174:10
+    |
+174 |     for (edu_level, share) in &education.srednie {
+    |          ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_edu_level`
+
+warning: unused variable: `mobilization`
+   --> src\politics\interest_groups.rs:306:17
+    |
+306 |             let mobilization = mobilization_factors.get(group_name).copied().unwrap_or(0.5);
+    |                 ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_mobilization`
+
+warning: unused variable: `current_turn`
+   --> src\politics\legislation.rs:224:37
+    |
+224 |     pub fn advance_stage(&mut self, current_turn: u32) -> bool {
+    |                                     ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_cu
+rrent_turn`
+
+warning: unused variable: `source_category`
+  --> src\politics\conservation.rs:98:42
+   |
+98 |     pub fn is_land_change_allowed(&self, source_category: LandCategory, target_category: LandCategory) -> bool {
+   |                                          ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscor
+e: `_source_category`
+
+warning: unused variable: `current_turn`
+   --> src\politics\mass_movements.rs:278:5
+    |
+278 |     current_turn: u32,
+    |     ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_current_turn`
+
+warning: unused variable: `current_turn`
+   --> src\politics\budget_lifecycle.rs:306:5
+    |
+306 |     current_turn: u32,
+    |     ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_current_turn`
+
+warning: unused variable: `ruling_party`
+   --> src\politics\budget_lifecycle.rs:434:26
+    |
+434 | fn country_is_autocratic(ruling_party: &str, _active_parties: &HashMap<String, Party>) -> bool {
+    |                          ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_ruling_party`
+
+warning: unused variable: `benefit_amount`
+   --> src\politics\social_programs.rs:150:5
+    |
+150 |     benefit_amount: f64,
+    |     ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_benefit_amount`
+
+warning: unused variable: `reason`
+   --> src\securities\knf.rs:217:9
+    |
+217 |         reason: FreezeReason,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_reason`
+
+warning: unused variable: `current_turn`
+   --> src\securities\funds.rs:134:5
+    |
+134 |     current_turn: u32,
+    |     ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_current_turn`
+
+warning: unused variable: `ledger`
+   --> src\securities\funds.rs:589:13
+    |
+589 |         let ledger = fund.fund_ledger.as_ref().unwrap();
+    |             ^^^^^^ help: if this is intentional, prefix it with an underscore: `_ledger`
+
+warning: unused variable: `current_turn`
+   --> src\securities\mbs.rs:342:5
+    |
+342 |     current_turn: u32,
+    |     ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_current_turn`
+
+warning: unused variable: `current_turn`
+   --> src\securities\derivatives.rs:230:5
+    |
+230 |     current_turn: u32,
+    |     ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_current_turn`
+
+warning: unused variable: `current_turn`
+   --> src\securities\ccp.rs:125:5
+    |
+125 |     current_turn: u32,
+    |     ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_current_turn`
+
+warning: unused variable: `companies`
+   --> src\securities\ccp.rs:195:5
+    |
+195 |     companies: &mut [crate::entities::Company],
+    |     ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_companies`
+
+warning: unused variable: `current_turn`
+   --> src\securities\ccp.rs:197:5
+    |
+197 |     current_turn: u32,
+    |     ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_current_turn`
+
+warning: unused variable: `cost_per_turn`
+    --> src\society\geography.rs:1940:36
+     |
+1940 |     pub fn process_turn(&mut self, cost_per_turn: f64) -> bool {
+     |                                    ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_c
+ost_per_turn`
+
+warning: variable `service_capacity` is assigned to, but never used
+   --> src\society\tourism.rs:454:13
+    |
+454 |         let mut service_capacity = 0.0_f64;
+    |             ^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: consider using `_service_capacity` instead
+
+warning: value assigned to `service_capacity` is never read
+   --> src\society\tourism.rs:480:21
+    |
+480 |                     service_capacity += b.retail_capacity;
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: maybe it is overwritten before being read?
+
+warning: unused variable: `bank_id`
+   --> src\state\banking.rs:561:5
+    |
+561 |     bank_id: &str,
+    |     ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_bank_id`
+
+warning: unused variable: `hurdle_rate`
+   --> src\state\banking.rs:644:13
+    |
+644 |         let hurdle_rate = central_bank.interest_rates.reference_rate + 0.05;
+    |             ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_hurdle_rate`
+
+warning: value assigned to `max_loan_amount` is never read
+   --> src\state\banking.rs:565:31
+    |
+565 |     let mut max_loan_amount = 0.0;
+    |                               ^^^ this value is reassigned later and never used
+...
+587 |     max_loan_amount = collateral_value * ltv_ratio;
+    |     ---------------------------------------------- `max_loan_amount` is overwritten here before the previous valu
+e is read
+
+warning: variable does not need to be mutable
+    --> src\state\banking.rs:1398:13
+     |
+1398 |         let mut failed_bank = all_banks.swap_remove(failed_bank_index);
+     |             ----^^^^^^^^^^^
+     |             |
+     |             help: remove this `mut`
+
+warning: unused variable: `max_insured`
+    --> src\state\banking.rs:1403:13
+     |
+1403 |         let max_insured = bfg_fund.calculate_max_insured_amount(average_wage);
+     |             ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_max_insured`
+
+warning: unused variable: `bridge_bank_assets`
+    --> src\state\banking.rs:1419:13
+     |
+1419 |         let bridge_bank_assets = bs.loans_issued.clone();
+     |             ^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_bridge_bank_assets`
+
+warning: unused variable: `bridge_bank_real_estate`
+    --> src\state\banking.rs:1420:13
+     |
+1420 |         let bridge_bank_real_estate = bs.real_estate;
+     |             ^^^^^^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_bridge_bank_re
+al_estate`
+
+warning: unused variable: `currencies`
+   --> src\state\forex.rs:272:9
+    |
+272 |         currencies: &HashMap<String, crate::state::Currency>,
+    |         ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_currencies`
+
+warning: unused variable: `current_turn`
+   --> src\state\gold.rs:128:41
+    |
+128 |     pub fn update_gold_price(&mut self, current_turn: u32) {
+    |                                         ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: 
+`_current_turn`
+
+warning: unused variable: `capital`
+   --> src\state\tax.rs:832:5
+    |
+832 |     capital: f64,
+    |     ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_capital`
+
+warning: unused variable: `holding_period_years`
+    --> src\state\tax.rs:1037:5
+     |
+1037 |     holding_period_years: f64,
+     |     ^^^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_holding_period_years`
+
+warning: unused variable: `elec_deficit`
+  --> src\utilities\consumption.rs:80:17
+   |
+80 |             let elec_deficit = 1.0 - (elec_supply / elec_demand).min(1.0);
+   |                 ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_elec_deficit`
+
+warning: value assigned to `waste_destroyed` is never read
+  --> src\utilities\waste.rs:79:35
+   |
+79 |         let mut waste_destroyed = 0.0;
+   |                                   ^^^ this value is reassigned later and never used
+...
+85 |         waste_destroyed = base_processed * 0.3; // 30% volume reduction via compaction
+   |         -------------------------------------- `waste_destroyed` is overwritten here before the previous value is 
+read
+
+warning: value assigned to `pollution` is never read
+  --> src\utilities\waste.rs:81:29
+   |
+81 |         let mut pollution = 0.0;
+   |                             ^^^ this value is reassigned later and never used
+...
+86 |         pollution = base_processed * 0.05; // Low pollution from compaction
+   |         --------------------------------- `pollution` is overwritten here before the previous value is read
+
+warning: value assigned to `waste_destroyed` is never read
+   --> src\utilities\waste.rs:185:35
+    |
+185 |         let mut waste_destroyed = 0.0;
+    |                                   ^^^ this value is reassigned later and never used
+...
+190 |         waste_destroyed = base_processed * 0.3;
+    |         -------------------------------------- `waste_destroyed` is overwritten here before the previous value is
+ read
+
+warning: value assigned to `pollution` is never read
+   --> src\utilities\waste.rs:187:29
+    |
+187 |         let mut pollution = 0.0;
+    |                             ^^^ this value is reassigned later and never used
+...
+191 |         pollution = base_processed * 0.05;
+    |         --------------------------------- `pollution` is overwritten here before the previous value is read
+
+warning: variable `total_recyclable` is assigned to, but never used
+  --> src\utilities\waste_collection.rs:58:13
+   |
+58 |         let mut total_recyclable: f64 = 0.0;
+   |             ^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: consider using `_total_recyclable` instead
+
+warning: value assigned to `total_recyclable` is never read
+  --> src\utilities\waste_collection.rs:77:13
+   |
+67 |             total_recyclable += demand.waste_generation * demand.recyclable_fraction;
+   |             ------------------------------------------------------------------------ `total_recyclable` is overwri
+tten here before the previous value is read
+...
+77 |             total_recyclable += demand.waste_generation * demand.recyclable_fraction;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ this value is reassigned late
+r and never used
+
+warning: value assigned to `total_recyclable` is never read
+  --> src\utilities\waste_collection.rs:67:13
+   |
+67 |             total_recyclable += demand.waste_generation * demand.recyclable_fraction;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: maybe it is overwritten before being read?
+
+warning: method `estimate_labor_requirement` is never used
+   --> src\corporate\development.rs:390:8
+    |
+ 66 | impl PropertyDeveloper {
+    | ---------------------- method in this implementation
+...
+390 |     fn estimate_labor_requirement(&self, project_type: ConstructionProjectType) -> u32 {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: field `freight_cost` is never read
+   --> src\economy\logistics\logistics.rs:375:5
+    |
+367 | struct FreightProcurementResult {
+    |        ------------------------ field in this struct
+...
+375 |     freight_cost: f64,
+    |     ^^^^^^^^^^^^
+    |
+    = note: `FreightProcurementResult` has derived impls for the traits `Clone` and `Debug`, but these are intentionall
+y ignored during dead code analysis
+
+warning: function `default_reputation_score` is never used
+    --> src\entities\mod.rs:1076:4
+     |
+1076 | fn default_reputation_score() -> f64 {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: field `total` is never read
+   --> src\infrastructure\effects.rs:516:5
+    |
+512 | struct InfrastructureFunding {
+    |        --------------------- field in this struct
+...
+516 |     total: f64,
+    |     ^^^^^
+    |
+    = note: `InfrastructureFunding` has derived impls for the traits `Clone` and `Debug`, but these are intentionally i
+gnored during dead code analysis
+
+warning: method `calculate_slippage` is never used
+   --> src\securities\exchange.rs:559:8
+    |
+314 | impl StockExchange {
+    | ------------------ method in this implementation
+...
+559 |     fn calculate_slippage(&self, pool: &LiquidityPool, quantity: u64) -> f64 {
+    |        ^^^^^^^^^^^^^^^^^^
+
+warning: `sim_engine` (lib) generated 211 warnings (run `cargo fix --lib -p sim_engine` to apply 136 suggestions)
+warning: unused import: `Treasury`
+  --> src\ui\snapshot.rs:11:45
+   |
+11 | use sim_engine::state::{Country, GameState, Treasury};
+   |                                             ^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `sim_engine::economy::market::market_history`
+   --> src\ui\tui\app.rs:205:9
+    |
+205 |     use sim_engine::economy::market::market_history;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: fields `link_id`, `condition`, and `capacity` are never read
+  --> src\ui\snapshot.rs:35:9
+   |
+34 | pub struct InfrastructureRow {
+   |            ----------------- fields in this struct
+35 |     pub link_id: String,
+   |         ^^^^^^^
+36 |     pub condition: f64,
+   |         ^^^^^^^^^
+37 |     pub capacity: f64,
+   |         ^^^^^^^^
+   |
+   = note: `InfrastructureRow` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignore
+d during dead code analysis
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: field `name` is never read
+   --> src\ui\snapshot.rs:150:9
+    |
+148 | pub struct CountrySnapshot {
+    |            --------------- field in this struct
+149 |     // Identity
+150 |     pub name: String,
+    |         ^^^^
+    |
+    = note: `CountrySnapshot` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored
+ during dead code analysis
+
+warning: fields `gdp` and `population` are never read
+   --> src\ui\snapshot.rs:188:9
+    |
+187 | pub struct TreasurySummary {
+    |            --------------- fields in this struct
+188 |     pub gdp: f64,
+    |         ^^^
+189 |     pub population: u64,
+    |         ^^^^^^^^^^
+    |
+    = note: `TreasurySummary` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored
+ during dead code analysis
+
+warning: `sim_engine` (bin "sim_engine") generated 5 warnings (run `cargo fix --bin "sim_engine" -p sim_engine` to appl
+y 2 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.82s
+     Running tests\golden_year_24_turns.rs (target\debug\deps\golden_year_24_turns-41a329b509da43b1.exe)
+
+running 1 test
+=== PHASE 25: GOLDEN YEAR 24-TURN AUDIT ===
+Countries: 6
+Initial M3: 0.00
+Initial population: 87943938
+  Turn  1 | M3: 577788506207.34 (577788506207.344x) | Pop:   88892710 | Countries: 6 | Errors: 0
+  Turn  4 | M3: 763376082817.92 (763376082817.924x) | Pop:   91800424 | Countries: 6 | Errors: 0
+test golden_year_24_turn_audit has been running for over 60 seconds
+  Turn  8 | M3: 994018461583.86 (994018461583.865x) | Pop:   95824331 | Countries: 6 | Errors: 0
+  Turn 12 | M3: 1266194898754.69 (1266194898754.694x) | Pop:  100022999 | Countries: 6 | Errors: 0
+  Turn 16 | M3: 1576731270047.45 (1576731270047.446x) | Pop:  104405312 | Countries: 6 | Errors: 0
+  Turn 20 | M3: 1902948868078.63 (1902948868078.633x) | Pop:  108981483 | Countries: 6 | Errors: 0
+  Turn 24 | M3: 2249731491158.44 (2249731491158.443x) | Pop:  113760076 | Countries: 6 | Errors: 0
+
+=== PER-COUNTRY FINAL STATE (turn 24) ===
+   Oksytania | GDP:        0.00 | Shadow:      0.00 | CPI:100.00 PPI:100.00 | Unemp:100.00% | Wage:95.78 | Reserves:122
+113688.05 | Banks:1
+      Persja | GDP:        0.00 | Shadow:      0.00 | CPI:100.00 PPI:100.00 | Unemp:100.00% | Wage:95.78 | Reserves:781
+049802.59 | Banks:1
+       Dacja | GDP:        0.00 | Shadow:      0.00 | CPI:100.00 PPI:100.00 | Unemp:100.00% | Wage:95.78 | Reserves:549
+963251.31 | Banks:1
+     Wenedia | GDP:        0.00 | Shadow:      0.00 | CPI:100.00 PPI:100.00 | Unemp:100.00% | Wage:95.78 | Reserves:278
+702719.49 | Banks:1
+       Galia | GDP:        0.00 | Shadow:      0.00 | CPI:100.00 PPI:100.00 | Unemp:100.00% | Wage:95.78 | Reserves:353
+626810.85 | Banks:1
+      Iliria | GDP:        0.00 | Shadow:      0.00 | CPI:100.00 PPI:100.00 | Unemp:100.00% | Wage:95.78 | Reserves:476
+342394.54 | Banks:1
+
+Audit artefacts written to: C:/Users/netse/Downloads/SillyElaborateState/state/test_simulation_data_phase25
+  - phase25_treasury_audit.csv (per-country per-turn extended telemetry)
+  - telemetry/<country>_macro.csv (Phase 24F auto-generated)
+  - market_surplus_turn0.csv / market_surplus_turn24.csv
+test golden_year_24_turn_audit ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1050.76s
+

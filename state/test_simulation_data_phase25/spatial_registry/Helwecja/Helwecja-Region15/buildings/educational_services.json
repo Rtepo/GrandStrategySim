@@ -1,0 +1,77 @@
+[
+  {
+    "id": "B-HEL-0066",
+    "name": "School",
+    "wlasciciel_id": "KRS-HEL-0066",
+    "rok_budowy": 1970,
+    "sektor_pkb": "educational_services",
+    "pojemnosc_pracownikow": 51,
+    "zatrudnienie_aktualne": 51,
+    "rezerwa_zakladowa": 108464.23864994965,
+    "aktywna_metoda": {
+      "rok": 1910,
+      "eksperci": 0.45,
+      "sredni": 0.4,
+      "szeregowi": 0.15,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "paper": 10.0,
+        "chemicals": 8.0
+      },
+      "outputs": {
+        "innovation_points": 15.0,
+        "education_slots": 30.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 115,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 2,
+      "sector": "educational_services",
+      "owner_id": "KRS-HEL-0066"
+    },
+    "ostatnia_produkcja": {
+      "innovation_points": 1.5299999999999998,
+      "education_slots": 3.0599999999999996
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 3.0,
+        "condition": 0.8349233792101692,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 1.0250000000000001,
+      "food": 0.5750000000000001,
+      "chemicals": 0.8160000000000001,
+      "innovation_points": 0.0,
+      "education_slots": 0.0
+    },
+    "pojemność_magazynu": 1150.0
+  }
+]

@@ -1,0 +1,1761 @@
+[
+    {
+        "id": "[ID-9XX-7302]",
+        "nazwa": "Kopalnia Cynku",
+        "wlasciciel_id": "[KRS-2MN-1360]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2300,
+        "zatrudnienie_aktualne": 1840,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Cynk": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-1360]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6053]",
+        "nazwa": "Kamieniolom",
+        "wlasciciel_id": "[ID-9MN-9115]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Kamień": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-9115]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7000]",
+        "nazwa": "Kopalnia Boksytu",
+        "wlasciciel_id": "[REG-4MN-4719]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Boksyt": 1800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-4719]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6412]",
+        "nazwa": "Kopalnia Węgla",
+        "wlasciciel_id": "[KRS-2MN-3921]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Węgiel Kamienny": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki Konne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-3921]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2532]",
+        "nazwa": "Kopalnia Soli",
+        "wlasciciel_id": "[ID-9MN-9850]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Maszyny Przemysłowe": 1,
+                "Paliwa": 2
+            },
+            "outputs": {
+                "Sól": 8000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wiertnice i Pompy",
+                "produkcja": "Odkrywka Solna",
+                "organizacja": "Państwowe Monopole"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-9850]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7383]",
+        "nazwa": "Piaskownia",
+        "wlasciciel_id": "[REG-4MN-8026]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2800,
+        "zatrudnienie_aktualne": 2240,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Piasek": 7000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Łopaty i Sieciaki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Piaskownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-8026]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8435]",
+        "nazwa": "Kopalnia Ołowiu",
+        "wlasciciel_id": "[KRS-2MN-1359]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2400,
+        "zatrudnienie_aktualne": 1920,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Ołów": 1300
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-1359]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9037]",
+        "nazwa": "Kopalnia Soli",
+        "wlasciciel_id": "[ID-9MN-2704]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Maszyny Przemysłowe": 1,
+                "Paliwa": 2
+            },
+            "outputs": {
+                "Sól": 8000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wiertnice i Pompy",
+                "produkcja": "Odkrywka Solna",
+                "organizacja": "Państwowe Monopole"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-2704]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8608]",
+        "nazwa": "Kopalnia Siarki",
+        "wlasciciel_id": "[REG-4MN-9495]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2200,
+        "zatrudnienie_aktualne": 1760,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Siarka": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-9495]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8155]",
+        "nazwa": "Szyby Naftowe",
+        "wlasciciel_id": "[KRS-2MN-7828]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1885,
+            "eksperci": 0.1625,
+            "sredni": 0.525,
+            "szeregowi": 0.3125,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ropa Naftowa": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wieże Wiertnicze (Kablowe)",
+                "produkcja": "Wieże Wiertnicze",
+                "organizacja": "Prywatne Koncesje"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-7828]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1320]",
+        "nazwa": "Kopalnia Cyny",
+        "wlasciciel_id": "[ID-9MN-1554]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2200,
+        "zatrudnienie_aktualne": 1760,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Cyna": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Małe Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-1554]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5458]",
+        "nazwa": "Kopalnia Cyny",
+        "wlasciciel_id": "[REG-4MN-2841]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2200,
+        "zatrudnienie_aktualne": 1760,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Cyna": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Małe Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-2841]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5373]",
+        "nazwa": "Piaskownia",
+        "wlasciciel_id": "[KRS-2MN-5982]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2800,
+        "zatrudnienie_aktualne": 2240,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Piasek": 7000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Łopaty i Sieciaki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Piaskownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-5982]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9457]",
+        "nazwa": "Kopalnia Soli",
+        "wlasciciel_id": "[ID-9MN-9617]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Maszyny Przemysłowe": 1,
+                "Paliwa": 2
+            },
+            "outputs": {
+                "Sól": 8000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wiertnice i Pompy",
+                "produkcja": "Odkrywka Solna",
+                "organizacja": "Państwowe Monopole"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-9617]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8878]",
+        "nazwa": "Cegielnia (Glina)",
+        "wlasciciel_id": "[REG-4MN-3206]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3200,
+        "zatrudnienie_aktualne": 2560,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Glina": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-3206]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2836]",
+        "nazwa": "Kopalnia Siarki",
+        "wlasciciel_id": "[KRS-2MN-3614]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2200,
+        "zatrudnienie_aktualne": 1760,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Siarka": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-3614]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6623]",
+        "nazwa": "Kamieniolom",
+        "wlasciciel_id": "[ID-9MN-5456]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Kamień": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-5456]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2372]",
+        "nazwa": "Kamieniolom",
+        "wlasciciel_id": "[REG-4MN-3340]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Kamień": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-3340]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2298]",
+        "nazwa": "Kopalnia Żelaza",
+        "wlasciciel_id": "[KRS-2MN-3482]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Żelazo": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilkofy i Wagoniki",
+                "produkcja": "Kilkofy i Wagoniki",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-3482]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1184]",
+        "nazwa": "Kopalnia Siarki",
+        "wlasciciel_id": "[ID-9MN-7804]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2200,
+        "zatrudnienie_aktualne": 1760,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Siarka": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-7804]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2291]",
+        "nazwa": "Kopalnia Cynku",
+        "wlasciciel_id": "[REG-4MN-2524]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2300,
+        "zatrudnienie_aktualne": 1840,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Cynk": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-2524]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7351]",
+        "nazwa": "Kopalnia Srebra",
+        "wlasciciel_id": "[KRS-2MN-6929]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Srebro": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-6929]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5299]",
+        "nazwa": "Cegielnia (Glina)",
+        "wlasciciel_id": "[ID-9MN-4771]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3200,
+        "zatrudnienie_aktualne": 2560,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Glina": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-4771]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6921]",
+        "nazwa": "Piaskownia",
+        "wlasciciel_id": "[REG-4MN-7867]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2800,
+        "zatrudnienie_aktualne": 2240,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Piasek": 7000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Łopaty i Sieciaki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Piaskownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-7867]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8453]",
+        "nazwa": "Kopalnia Boksytu",
+        "wlasciciel_id": "[KRS-2MN-6777]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Boksyt": 1800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-6777]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9324]",
+        "nazwa": "Szyby Naftowe",
+        "wlasciciel_id": "[ID-9MN-3910]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1885,
+            "eksperci": 0.1625,
+            "sredni": 0.525,
+            "szeregowi": 0.3125,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ropa Naftowa": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wieże Wiertnicze (Kablowe)",
+                "produkcja": "Wieże Wiertnicze",
+                "organizacja": "Prywatne Koncesje"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-3910]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1541]",
+        "nazwa": "Kopalnia Żelaza",
+        "wlasciciel_id": "[REG-4MN-4143]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Żelazo": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilkofy i Wagoniki",
+                "produkcja": "Kilkofy i Wagoniki",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-4143]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2011]",
+        "nazwa": "Kopalnia Srebra",
+        "wlasciciel_id": "[KRS-2MN-4355]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Srebro": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-4355]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1864]",
+        "nazwa": "Kopalnia Węgla",
+        "wlasciciel_id": "[ID-9MN-3653]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Węgiel Kamienny": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki Konne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-3653]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7361]",
+        "nazwa": "Kopalnia Cyny",
+        "wlasciciel_id": "[REG-4MN-6841]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2200,
+        "zatrudnienie_aktualne": 1760,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Cyna": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Małe Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-6841]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3336]",
+        "nazwa": "Kopalnia Srebra",
+        "wlasciciel_id": "[KRS-2MN-7710]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Srebro": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-7710]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2871]",
+        "nazwa": "Kopalnia Srebra",
+        "wlasciciel_id": "[ID-9MN-8765]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Srebro": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-8765]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8919]",
+        "nazwa": "Kopalnia Srebra",
+        "wlasciciel_id": "[REG-4MN-3043]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Srebro": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-3043]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5867]",
+        "nazwa": "Kopalnia Soli",
+        "wlasciciel_id": "[KRS-2MN-6305]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Maszyny Przemysłowe": 1,
+                "Paliwa": 2
+            },
+            "outputs": {
+                "Sól": 8000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wiertnice i Pompy",
+                "produkcja": "Odkrywka Solna",
+                "organizacja": "Państwowe Monopole"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-6305]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1891]",
+        "nazwa": "Kopalnia Cyny",
+        "wlasciciel_id": "[ID-9MN-7312]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2200,
+        "zatrudnienie_aktualne": 1760,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Cyna": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Małe Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-7312]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7287]",
+        "nazwa": "Kopalnia Cynku",
+        "wlasciciel_id": "[REG-4MN-7481]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2300,
+        "zatrudnienie_aktualne": 1840,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Cynk": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-7481]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7535]",
+        "nazwa": "Kopalnia Cyny",
+        "wlasciciel_id": "[KRS-2MN-8159]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2200,
+        "zatrudnienie_aktualne": 1760,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Cyna": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Małe Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-8159]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7403]",
+        "nazwa": "Szyby Naftowe",
+        "wlasciciel_id": "[ID-9MN-3233]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1885,
+            "eksperci": 0.1625,
+            "sredni": 0.525,
+            "szeregowi": 0.3125,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ropa Naftowa": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wieże Wiertnicze (Kablowe)",
+                "produkcja": "Wieże Wiertnicze",
+                "organizacja": "Prywatne Koncesje"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-3233]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3151]",
+        "nazwa": "Kopalnia Soli",
+        "wlasciciel_id": "[REG-4MN-8299]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Maszyny Przemysłowe": 1,
+                "Paliwa": 2
+            },
+            "outputs": {
+                "Sól": 8000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wiertnice i Pompy",
+                "produkcja": "Odkrywka Solna",
+                "organizacja": "Państwowe Monopole"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-8299]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9148]",
+        "nazwa": "Kopalnia Boksytu",
+        "wlasciciel_id": "[KRS-2MN-7987]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Boksyt": 1800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-7987]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4857]",
+        "nazwa": "Kamieniolom",
+        "wlasciciel_id": "[ID-9MN-5018]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Kamień": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-5018]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7151]",
+        "nazwa": "Kopalnie Metali Kolorowych",
+        "wlasciciel_id": "[REG-4MN-9821]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0642,
+            "sredni": 0.2477,
+            "szeregowi": 0.6881,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Miedź": 1500,
+                "Złoto": 100
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne",
+                "produkcja": "Tradycyjne Wydobycie",
+                "organizacja": "Małe Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-9821]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9105]",
+        "nazwa": "Kopalnia Węgla",
+        "wlasciciel_id": "[KRS-2MN-4941]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Węgiel Kamienny": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki Konne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-4941]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4585]",
+        "nazwa": "Kopalnia Odkrywkowa",
+        "wlasciciel_id": "[ID-9MN-9945]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0909,
+            "sredni": 0.5682,
+            "szeregowi": 0.3409,
+            "wydajnosc": 1.82,
+            "inputs": {
+                "Drewno": 2,
+                "Maszyny Przemysłowe": 0.5
+            },
+            "outputs": {
+                "Surowce Mineralne": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Proste Maszyny Parowe",
+                "produkcja": "Wydobycie Maszynowe",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-9945]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6439]",
+        "nazwa": "Kamieniolom Wapienia",
+        "wlasciciel_id": "[REG-4MN-2820]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3300,
+        "zatrudnienie_aktualne": 2640,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Wapień": 4500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Nordia-Region14",
+        "cluster_info": {
+            "region_id": "Nordia-Region14",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-2820]"
+        }
+    }
+]

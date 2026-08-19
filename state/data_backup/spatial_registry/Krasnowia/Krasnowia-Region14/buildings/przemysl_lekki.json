@@ -1,0 +1,1821 @@
+[
+    {
+        "id": "[ID-9XX-5251]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-1661]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 20000,
+        "zatrudnienie_aktualne": 16000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-1661]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1801]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-4749]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-4749]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8138]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-8929]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-8929]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2592]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-8111]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 17500,
+        "zatrudnienie_aktualne": 14000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-8111]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1863]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-9377]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-9377]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1341]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[REG-4LT-9285]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-9285]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6259]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-2942]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 17500,
+        "zatrudnienie_aktualne": 14000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-2942]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7214]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-5119]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-5119]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9801]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-9144]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-9144]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5073]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-5663]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 17500,
+        "zatrudnienie_aktualne": 14000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-5663]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8783]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-8889]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-8889]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2464]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-6617]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-6617]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3004]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-5433]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 20000,
+        "zatrudnienie_aktualne": 16000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-5433]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2861]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-1614]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-1614]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4834]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[REG-4LT-2084]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-2084]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3015]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-7000]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 17500,
+        "zatrudnienie_aktualne": 14000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-7000]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5566]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-9666]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-9666]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2960]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-3883]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-3883]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6173]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-8503]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 15000,
+        "zatrudnienie_aktualne": 12000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-8503]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6485]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-4466]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-4466]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1239]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-5592]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-5592]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7910]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-3232]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 20000,
+        "zatrudnienie_aktualne": 16000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-3232]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3798]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-4356]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-4356]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4193]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[REG-4LT-1217]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-1217]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8831]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-7311]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 15000,
+        "zatrudnienie_aktualne": 12000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-7311]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2055]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-9507]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-9507]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1445]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-4978]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-4978]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2131]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-5756]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 15000,
+        "zatrudnienie_aktualne": 12000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-5756]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5261]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-5223]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-5223]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7896]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[REG-4LT-2547]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-2547]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1579]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-8278]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 17500,
+        "zatrudnienie_aktualne": 14000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-8278]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5243]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-2215]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-2215]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8807]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-4659]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-4659]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3633]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-4137]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 17500,
+        "zatrudnienie_aktualne": 14000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-4137]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1196]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-1670]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-1670]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8517]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-7394]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-7394]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3187]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-7239]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 17500,
+        "zatrudnienie_aktualne": 14000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-7239]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4478]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-9342]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-9342]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7216]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-4803]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-4803]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9065]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-1252]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 17500,
+        "zatrudnienie_aktualne": 14000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-1252]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6323]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-8241]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-8241]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7696]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-6908]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-6908]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9626]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-1566]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 20000,
+        "zatrudnienie_aktualne": 16000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-1566]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6363]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-7813]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-7813]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2941]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-4656]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-4656]"
+        }
+    }
+]

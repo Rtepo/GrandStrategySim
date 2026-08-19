@@ -1,0 +1,2059 @@
+[
+  {
+    "id": "[ID-9XX-4773]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2LT-2012]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.0893,
+      "sredni": 0.8929,
+      "szeregowi": 0.0179,
+      "wydajnosc": 2.56,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Włókna": 20.0
+      },
+      "outputs": {
+        "Ubrania": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+        "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+        "organizacja": "Warsztaty Krawieckie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 2,
+      "sector": "przemysł_lekki",
+      "owner_id": "[KRS-2LT-2012]"
+    },
+    "ostatnia_produkcja": {
+      "Ubrania": 25600.0
+    },
+    "rentownosc_ost_rok": -1238978.7409421848,
+    "nazwa": "Fabryka Ubrań"
+  },
+  {
+    "id": "[ID-9XX-2483]",
+    "name": "",
+    "wlasciciel_id": "[ID-9LT-7997]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0556,
+      "sredni": 0.3889,
+      "szeregowi": 0.5556,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Zboża": 10.0,
+        "Żywiec": 5.0
+      },
+      "outputs": {
+        "Mięso": 500.0,
+        "Produkty Spożywcze": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczny Przemiał i Peklowanie",
+        "produkcja": "Tradycyjny Przemiał",
+        "organizacja": "Lokalne Przetwórnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[ID-9LT-7997]"
+    },
+    "ostatnia_produkcja": {
+      "Mięso": 1400.0,
+      "Produkty Spożywcze": 4200.0
+    },
+    "rentownosc_ost_rok": -518073.0661243198,
+    "nazwa": "Zakłady Spożywcze"
+  },
+  {
+    "id": "[ID-9XX-6358]",
+    "name": "",
+    "wlasciciel_id": "[REG-4LT-3367]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.8333,
+      "szeregowi": 0.0167,
+      "wydajnosc": 2.25,
+      "inputs": {
+        "Drewno": 20.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Meble": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+        "produkcja": "Narzędzia Mechaniczne i Forniry",
+        "organizacja": "Cechy Rzemieślnicze"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[REG-4LT-3367]"
+    },
+    "ostatnia_produkcja": {
+      "Meble": 9600.0
+    },
+    "rentownosc_ost_rok": -492736.2467269193,
+    "nazwa": "Fabryka Mebli"
+  },
+  {
+    "id": "[ID-9XX-3874]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2LT-8852]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0556,
+      "sredni": 0.3889,
+      "szeregowi": 0.5556,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Zboża": 10.0,
+        "Żywiec": 5.0
+      },
+      "outputs": {
+        "Mięso": 500.0,
+        "Produkty Spożywcze": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczny Przemiał i Peklowanie",
+        "produkcja": "Tradycyjny Przemiał",
+        "organizacja": "Lokalne Przetwórnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 2,
+      "sector": "przemysł_lekki",
+      "owner_id": "[KRS-2LT-8852]"
+    },
+    "ostatnia_produkcja": {
+      "Mięso": 2800.0,
+      "Produkty Spożywcze": 8400.0
+    },
+    "rentownosc_ost_rok": -1036146.1322486396,
+    "nazwa": "Zakłady Spożywcze"
+  },
+  {
+    "id": "[ID-9XX-9962]",
+    "name": "",
+    "wlasciciel_id": "[ID-9LT-9195]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.0893,
+      "sredni": 0.8929,
+      "szeregowi": 0.0179,
+      "wydajnosc": 2.56,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Włókna": 20.0
+      },
+      "outputs": {
+        "Ubrania": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+        "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+        "organizacja": "Warsztaty Krawieckie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[ID-9LT-9195]"
+    },
+    "ostatnia_produkcja": {
+      "Ubrania": 12800.0
+    },
+    "rentownosc_ost_rok": -619489.3704710924,
+    "nazwa": "Fabryka Ubrań"
+  },
+  {
+    "id": "[ID-9XX-2435]",
+    "name": "",
+    "wlasciciel_id": "[REG-4LT-6724]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.8333,
+      "szeregowi": 0.0167,
+      "wydajnosc": 2.25,
+      "inputs": {
+        "Drewno": 20.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Meble": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+        "produkcja": "Narzędzia Mechaniczne i Forniry",
+        "organizacja": "Cechy Rzemieślnicze"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[REG-4LT-6724]"
+    },
+    "ostatnia_produkcja": {
+      "Meble": 9600.0
+    },
+    "rentownosc_ost_rok": -492736.2467269193,
+    "nazwa": "Fabryka Mebli"
+  },
+  {
+    "id": "[ID-9XX-3795]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2LT-9542]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0556,
+      "sredni": 0.3889,
+      "szeregowi": 0.5556,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Zboża": 10.0,
+        "Żywiec": 5.0
+      },
+      "outputs": {
+        "Mięso": 500.0,
+        "Produkty Spożywcze": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczny Przemiał i Peklowanie",
+        "produkcja": "Tradycyjny Przemiał",
+        "organizacja": "Lokalne Przetwórnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 2,
+      "sector": "przemysł_lekki",
+      "owner_id": "[KRS-2LT-9542]"
+    },
+    "ostatnia_produkcja": {
+      "Mięso": 2800.0,
+      "Produkty Spożywcze": 8400.0
+    },
+    "rentownosc_ost_rok": -1036146.1322486396,
+    "nazwa": "Zakłady Spożywcze"
+  },
+  {
+    "id": "[ID-9XX-9953]",
+    "name": "",
+    "wlasciciel_id": "[ID-9LT-1679]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.8333,
+      "szeregowi": 0.0167,
+      "wydajnosc": 2.25,
+      "inputs": {
+        "Drewno": 20.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Meble": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+        "produkcja": "Narzędzia Mechaniczne i Forniry",
+        "organizacja": "Cechy Rzemieślnicze"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[ID-9LT-1679]"
+    },
+    "ostatnia_produkcja": {
+      "Meble": 9600.0
+    },
+    "rentownosc_ost_rok": -492736.2467269193,
+    "nazwa": "Fabryka Mebli"
+  },
+  {
+    "id": "[ID-9XX-2895]",
+    "name": "",
+    "wlasciciel_id": "[REG-4LT-5111]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.0893,
+      "sredni": 0.8929,
+      "szeregowi": 0.0179,
+      "wydajnosc": 2.56,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Włókna": 20.0
+      },
+      "outputs": {
+        "Ubrania": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+        "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+        "organizacja": "Warsztaty Krawieckie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[REG-4LT-5111]"
+    },
+    "ostatnia_produkcja": {
+      "Ubrania": 12800.0
+    },
+    "rentownosc_ost_rok": -619489.3704710924,
+    "nazwa": "Fabryka Ubrań"
+  },
+  {
+    "id": "[ID-9XX-5257]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2LT-4313]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.0893,
+      "sredni": 0.8929,
+      "szeregowi": 0.0179,
+      "wydajnosc": 2.56,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Włókna": 20.0
+      },
+      "outputs": {
+        "Ubrania": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+        "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+        "organizacja": "Warsztaty Krawieckie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 2,
+      "sector": "przemysł_lekki",
+      "owner_id": "[KRS-2LT-4313]"
+    },
+    "ostatnia_produkcja": {
+      "Ubrania": 25600.0
+    },
+    "rentownosc_ost_rok": -1238978.7409421848,
+    "nazwa": "Fabryka Ubrań"
+  },
+  {
+    "id": "[ID-9XX-1404]",
+    "name": "",
+    "wlasciciel_id": "[ID-9LT-5581]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.8333,
+      "szeregowi": 0.0167,
+      "wydajnosc": 2.25,
+      "inputs": {
+        "Drewno": 20.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Meble": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+        "produkcja": "Narzędzia Mechaniczne i Forniry",
+        "organizacja": "Cechy Rzemieślnicze"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[ID-9LT-5581]"
+    },
+    "ostatnia_produkcja": {
+      "Meble": 9600.0
+    },
+    "rentownosc_ost_rok": -492736.2467269193,
+    "nazwa": "Fabryka Mebli"
+  },
+  {
+    "id": "[ID-9XX-3060]",
+    "name": "",
+    "wlasciciel_id": "[REG-4LT-8293]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0556,
+      "sredni": 0.3889,
+      "szeregowi": 0.5556,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Zboża": 10.0,
+        "Żywiec": 5.0
+      },
+      "outputs": {
+        "Mięso": 500.0,
+        "Produkty Spożywcze": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczny Przemiał i Peklowanie",
+        "produkcja": "Tradycyjny Przemiał",
+        "organizacja": "Lokalne Przetwórnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[REG-4LT-8293]"
+    },
+    "ostatnia_produkcja": {
+      "Mięso": 1400.0,
+      "Produkty Spożywcze": 4200.0
+    },
+    "rentownosc_ost_rok": -518073.0661243198,
+    "nazwa": "Zakłady Spożywcze"
+  },
+  {
+    "id": "[ID-9XX-4432]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2LT-2670]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.0893,
+      "sredni": 0.8929,
+      "szeregowi": 0.0179,
+      "wydajnosc": 2.56,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Włókna": 20.0
+      },
+      "outputs": {
+        "Ubrania": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+        "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+        "organizacja": "Warsztaty Krawieckie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 2,
+      "sector": "przemysł_lekki",
+      "owner_id": "[KRS-2LT-2670]"
+    },
+    "ostatnia_produkcja": {
+      "Ubrania": 25600.0
+    },
+    "rentownosc_ost_rok": -1238978.7409421848,
+    "nazwa": "Fabryka Ubrań"
+  },
+  {
+    "id": "[ID-9XX-6938]",
+    "name": "",
+    "wlasciciel_id": "[ID-9LT-5320]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0556,
+      "sredni": 0.3889,
+      "szeregowi": 0.5556,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Zboża": 10.0,
+        "Żywiec": 5.0
+      },
+      "outputs": {
+        "Mięso": 500.0,
+        "Produkty Spożywcze": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczny Przemiał i Peklowanie",
+        "produkcja": "Tradycyjny Przemiał",
+        "organizacja": "Lokalne Przetwórnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[ID-9LT-5320]"
+    },
+    "ostatnia_produkcja": {
+      "Mięso": 1400.0,
+      "Produkty Spożywcze": 4200.0
+    },
+    "rentownosc_ost_rok": -518073.0661243198,
+    "nazwa": "Zakłady Spożywcze"
+  },
+  {
+    "id": "[ID-9XX-3068]",
+    "name": "",
+    "wlasciciel_id": "[REG-4LT-7858]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.0893,
+      "sredni": 0.8929,
+      "szeregowi": 0.0179,
+      "wydajnosc": 2.56,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Włókna": 20.0
+      },
+      "outputs": {
+        "Ubrania": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+        "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+        "organizacja": "Warsztaty Krawieckie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[REG-4LT-7858]"
+    },
+    "ostatnia_produkcja": {
+      "Ubrania": 12800.0
+    },
+    "rentownosc_ost_rok": -619489.3704710924,
+    "nazwa": "Fabryka Ubrań"
+  },
+  {
+    "id": "[ID-9XX-7033]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2LT-2442]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0556,
+      "sredni": 0.3889,
+      "szeregowi": 0.5556,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Zboża": 10.0,
+        "Żywiec": 5.0
+      },
+      "outputs": {
+        "Mięso": 500.0,
+        "Produkty Spożywcze": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczny Przemiał i Peklowanie",
+        "produkcja": "Tradycyjny Przemiał",
+        "organizacja": "Lokalne Przetwórnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 2,
+      "sector": "przemysł_lekki",
+      "owner_id": "[KRS-2LT-2442]"
+    },
+    "ostatnia_produkcja": {
+      "Mięso": 2800.0,
+      "Produkty Spożywcze": 8400.0
+    },
+    "rentownosc_ost_rok": -1036146.1322486396,
+    "nazwa": "Zakłady Spożywcze"
+  },
+  {
+    "id": "[ID-9XX-7635]",
+    "name": "",
+    "wlasciciel_id": "[ID-9LT-7424]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0556,
+      "sredni": 0.3889,
+      "szeregowi": 0.5556,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Zboża": 10.0,
+        "Żywiec": 5.0
+      },
+      "outputs": {
+        "Mięso": 500.0,
+        "Produkty Spożywcze": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczny Przemiał i Peklowanie",
+        "produkcja": "Tradycyjny Przemiał",
+        "organizacja": "Lokalne Przetwórnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[ID-9LT-7424]"
+    },
+    "ostatnia_produkcja": {
+      "Mięso": 1400.0,
+      "Produkty Spożywcze": 4200.0
+    },
+    "rentownosc_ost_rok": -518073.0661243198,
+    "nazwa": "Zakłady Spożywcze"
+  },
+  {
+    "id": "[ID-9XX-3830]",
+    "name": "",
+    "wlasciciel_id": "[REG-4LT-7814]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.0893,
+      "sredni": 0.8929,
+      "szeregowi": 0.0179,
+      "wydajnosc": 2.56,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Włókna": 20.0
+      },
+      "outputs": {
+        "Ubrania": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+        "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+        "organizacja": "Warsztaty Krawieckie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[REG-4LT-7814]"
+    },
+    "ostatnia_produkcja": {
+      "Ubrania": 12800.0
+    },
+    "rentownosc_ost_rok": -619489.3704710924,
+    "nazwa": "Fabryka Ubrań"
+  },
+  {
+    "id": "[ID-9XX-6389]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2LT-1904]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.8333,
+      "szeregowi": 0.0167,
+      "wydajnosc": 2.25,
+      "inputs": {
+        "Drewno": 20.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Meble": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+        "produkcja": "Narzędzia Mechaniczne i Forniry",
+        "organizacja": "Cechy Rzemieślnicze"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 2,
+      "sector": "przemysł_lekki",
+      "owner_id": "[KRS-2LT-1904]"
+    },
+    "ostatnia_produkcja": {
+      "Meble": 19200.0
+    },
+    "rentownosc_ost_rok": -985472.4934538386,
+    "nazwa": "Fabryka Mebli"
+  },
+  {
+    "id": "[ID-9XX-2357]",
+    "name": "",
+    "wlasciciel_id": "[ID-9LT-5793]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.8333,
+      "szeregowi": 0.0167,
+      "wydajnosc": 2.25,
+      "inputs": {
+        "Drewno": 20.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Meble": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+        "produkcja": "Narzędzia Mechaniczne i Forniry",
+        "organizacja": "Cechy Rzemieślnicze"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[ID-9LT-5793]"
+    },
+    "ostatnia_produkcja": {
+      "Meble": 9600.0
+    },
+    "rentownosc_ost_rok": -492736.2467269193,
+    "nazwa": "Fabryka Mebli"
+  },
+  {
+    "id": "[ID-9XX-3674]",
+    "name": "",
+    "wlasciciel_id": "[REG-4LT-5630]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.0893,
+      "sredni": 0.8929,
+      "szeregowi": 0.0179,
+      "wydajnosc": 2.56,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Włókna": 20.0
+      },
+      "outputs": {
+        "Ubrania": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+        "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+        "organizacja": "Warsztaty Krawieckie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[REG-4LT-5630]"
+    },
+    "ostatnia_produkcja": {
+      "Ubrania": 12800.0
+    },
+    "rentownosc_ost_rok": -619489.3704710924,
+    "nazwa": "Fabryka Ubrań"
+  },
+  {
+    "id": "[ID-9XX-4403]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2LT-9128]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.8333,
+      "szeregowi": 0.0167,
+      "wydajnosc": 2.25,
+      "inputs": {
+        "Drewno": 20.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Meble": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+        "produkcja": "Narzędzia Mechaniczne i Forniry",
+        "organizacja": "Cechy Rzemieślnicze"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 2,
+      "sector": "przemysł_lekki",
+      "owner_id": "[KRS-2LT-9128]"
+    },
+    "ostatnia_produkcja": {
+      "Meble": 19200.0
+    },
+    "rentownosc_ost_rok": -985472.4934538386,
+    "nazwa": "Fabryka Mebli"
+  },
+  {
+    "id": "[ID-9XX-7328]",
+    "name": "",
+    "wlasciciel_id": "[ID-9LT-3487]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0556,
+      "sredni": 0.3889,
+      "szeregowi": 0.5556,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Zboża": 10.0,
+        "Żywiec": 5.0
+      },
+      "outputs": {
+        "Mięso": 500.0,
+        "Produkty Spożywcze": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczny Przemiał i Peklowanie",
+        "produkcja": "Tradycyjny Przemiał",
+        "organizacja": "Lokalne Przetwórnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[ID-9LT-3487]"
+    },
+    "ostatnia_produkcja": {
+      "Mięso": 1400.0,
+      "Produkty Spożywcze": 4200.0
+    },
+    "rentownosc_ost_rok": -518073.0661243198,
+    "nazwa": "Zakłady Spożywcze"
+  },
+  {
+    "id": "[ID-9XX-7276]",
+    "name": "",
+    "wlasciciel_id": "[REG-4LT-4662]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0556,
+      "sredni": 0.3889,
+      "szeregowi": 0.5556,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Zboża": 10.0,
+        "Żywiec": 5.0
+      },
+      "outputs": {
+        "Mięso": 500.0,
+        "Produkty Spożywcze": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczny Przemiał i Peklowanie",
+        "produkcja": "Tradycyjny Przemiał",
+        "organizacja": "Lokalne Przetwórnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[REG-4LT-4662]"
+    },
+    "ostatnia_produkcja": {
+      "Mięso": 1400.0,
+      "Produkty Spożywcze": 4200.0
+    },
+    "rentownosc_ost_rok": -518073.0661243198,
+    "nazwa": "Zakłady Spożywcze"
+  },
+  {
+    "id": "[ID-9XX-5405]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2LT-6982]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.8333,
+      "szeregowi": 0.0167,
+      "wydajnosc": 2.25,
+      "inputs": {
+        "Drewno": 20.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Meble": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+        "produkcja": "Narzędzia Mechaniczne i Forniry",
+        "organizacja": "Cechy Rzemieślnicze"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 2,
+      "sector": "przemysł_lekki",
+      "owner_id": "[KRS-2LT-6982]"
+    },
+    "ostatnia_produkcja": {
+      "Meble": 19200.0
+    },
+    "rentownosc_ost_rok": -985472.4934538386,
+    "nazwa": "Fabryka Mebli"
+  },
+  {
+    "id": "[ID-9XX-2873]",
+    "name": "",
+    "wlasciciel_id": "[ID-9LT-1918]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0556,
+      "sredni": 0.3889,
+      "szeregowi": 0.5556,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Zboża": 10.0,
+        "Żywiec": 5.0
+      },
+      "outputs": {
+        "Mięso": 500.0,
+        "Produkty Spożywcze": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczny Przemiał i Peklowanie",
+        "produkcja": "Tradycyjny Przemiał",
+        "organizacja": "Lokalne Przetwórnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[ID-9LT-1918]"
+    },
+    "ostatnia_produkcja": {
+      "Mięso": 1400.0,
+      "Produkty Spożywcze": 4200.0
+    },
+    "rentownosc_ost_rok": -518073.0661243198,
+    "nazwa": "Zakłady Spożywcze"
+  },
+  {
+    "id": "[ID-9XX-2909]",
+    "name": "",
+    "wlasciciel_id": "[REG-4LT-9479]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0556,
+      "sredni": 0.3889,
+      "szeregowi": 0.5556,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Zboża": 10.0,
+        "Żywiec": 5.0
+      },
+      "outputs": {
+        "Mięso": 500.0,
+        "Produkty Spożywcze": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczny Przemiał i Peklowanie",
+        "produkcja": "Tradycyjny Przemiał",
+        "organizacja": "Lokalne Przetwórnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[REG-4LT-9479]"
+    },
+    "ostatnia_produkcja": {
+      "Mięso": 1400.0,
+      "Produkty Spożywcze": 4200.0
+    },
+    "rentownosc_ost_rok": -518073.0661243198,
+    "nazwa": "Zakłady Spożywcze"
+  },
+  {
+    "id": "[ID-9XX-2121]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2LT-2148]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.8333,
+      "szeregowi": 0.0167,
+      "wydajnosc": 2.25,
+      "inputs": {
+        "Drewno": 20.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Meble": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+        "produkcja": "Narzędzia Mechaniczne i Forniry",
+        "organizacja": "Cechy Rzemieślnicze"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 2,
+      "sector": "przemysł_lekki",
+      "owner_id": "[KRS-2LT-2148]"
+    },
+    "ostatnia_produkcja": {
+      "Meble": 19200.0
+    },
+    "rentownosc_ost_rok": -985472.4934538386,
+    "nazwa": "Fabryka Mebli"
+  },
+  {
+    "id": "[ID-9XX-2754]",
+    "name": "",
+    "wlasciciel_id": "[ID-9LT-8139]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.8333,
+      "szeregowi": 0.0167,
+      "wydajnosc": 2.25,
+      "inputs": {
+        "Drewno": 20.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Meble": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+        "produkcja": "Narzędzia Mechaniczne i Forniry",
+        "organizacja": "Cechy Rzemieślnicze"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[ID-9LT-8139]"
+    },
+    "ostatnia_produkcja": {
+      "Meble": 9600.0
+    },
+    "rentownosc_ost_rok": -492736.2467269193,
+    "nazwa": "Fabryka Mebli"
+  },
+  {
+    "id": "[ID-9XX-3379]",
+    "name": "",
+    "wlasciciel_id": "[REG-4LT-1697]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.8333,
+      "szeregowi": 0.0167,
+      "wydajnosc": 2.25,
+      "inputs": {
+        "Drewno": 20.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Meble": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+        "produkcja": "Narzędzia Mechaniczne i Forniry",
+        "organizacja": "Cechy Rzemieślnicze"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[REG-4LT-1697]"
+    },
+    "ostatnia_produkcja": {
+      "Meble": 9600.0
+    },
+    "rentownosc_ost_rok": -492736.2467269193,
+    "nazwa": "Fabryka Mebli"
+  },
+  {
+    "id": "[ID-9XX-6866]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2LT-3194]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.8333,
+      "szeregowi": 0.0167,
+      "wydajnosc": 2.25,
+      "inputs": {
+        "Drewno": 20.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Meble": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+        "produkcja": "Narzędzia Mechaniczne i Forniry",
+        "organizacja": "Cechy Rzemieślnicze"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 2,
+      "sector": "przemysł_lekki",
+      "owner_id": "[KRS-2LT-3194]"
+    },
+    "ostatnia_produkcja": {
+      "Meble": 19200.0
+    },
+    "rentownosc_ost_rok": -985472.4934538386,
+    "nazwa": "Fabryka Mebli"
+  },
+  {
+    "id": "[ID-9XX-5026]",
+    "name": "",
+    "wlasciciel_id": "[ID-9LT-3508]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.0893,
+      "sredni": 0.8929,
+      "szeregowi": 0.0179,
+      "wydajnosc": 2.56,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Włókna": 20.0
+      },
+      "outputs": {
+        "Ubrania": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+        "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+        "organizacja": "Warsztaty Krawieckie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[ID-9LT-3508]"
+    },
+    "ostatnia_produkcja": {
+      "Ubrania": 12800.0
+    },
+    "rentownosc_ost_rok": -619489.3704710924,
+    "nazwa": "Fabryka Ubrań"
+  },
+  {
+    "id": "[ID-9XX-5583]",
+    "name": "",
+    "wlasciciel_id": "[REG-4LT-6381]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.8333,
+      "szeregowi": 0.0167,
+      "wydajnosc": 2.25,
+      "inputs": {
+        "Drewno": 20.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Meble": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+        "produkcja": "Narzędzia Mechaniczne i Forniry",
+        "organizacja": "Cechy Rzemieślnicze"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[REG-4LT-6381]"
+    },
+    "ostatnia_produkcja": {
+      "Meble": 9600.0
+    },
+    "rentownosc_ost_rok": -492736.2467269193,
+    "nazwa": "Fabryka Mebli"
+  },
+  {
+    "id": "[ID-9XX-3775]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2LT-8346]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0556,
+      "sredni": 0.3889,
+      "szeregowi": 0.5556,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Zboża": 10.0,
+        "Żywiec": 5.0
+      },
+      "outputs": {
+        "Mięso": 500.0,
+        "Produkty Spożywcze": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczny Przemiał i Peklowanie",
+        "produkcja": "Tradycyjny Przemiał",
+        "organizacja": "Lokalne Przetwórnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 2,
+      "sector": "przemysł_lekki",
+      "owner_id": "[KRS-2LT-8346]"
+    },
+    "ostatnia_produkcja": {
+      "Mięso": 2800.0,
+      "Produkty Spożywcze": 8400.0
+    },
+    "rentownosc_ost_rok": -1036146.1322486396,
+    "nazwa": "Zakłady Spożywcze"
+  },
+  {
+    "id": "[ID-9XX-1067]",
+    "name": "",
+    "wlasciciel_id": "[ID-9LT-9955]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0556,
+      "sredni": 0.3889,
+      "szeregowi": 0.5556,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Zboża": 10.0,
+        "Żywiec": 5.0
+      },
+      "outputs": {
+        "Mięso": 500.0,
+        "Produkty Spożywcze": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczny Przemiał i Peklowanie",
+        "produkcja": "Tradycyjny Przemiał",
+        "organizacja": "Lokalne Przetwórnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[ID-9LT-9955]"
+    },
+    "ostatnia_produkcja": {
+      "Mięso": 1400.0,
+      "Produkty Spożywcze": 4200.0
+    },
+    "rentownosc_ost_rok": -518073.0661243198,
+    "nazwa": "Zakłady Spożywcze"
+  },
+  {
+    "id": "[ID-9XX-9861]",
+    "name": "",
+    "wlasciciel_id": "[REG-4LT-6542]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.8333,
+      "szeregowi": 0.0167,
+      "wydajnosc": 2.25,
+      "inputs": {
+        "Drewno": 20.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Meble": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+        "produkcja": "Narzędzia Mechaniczne i Forniry",
+        "organizacja": "Cechy Rzemieślnicze"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[REG-4LT-6542]"
+    },
+    "ostatnia_produkcja": {
+      "Meble": 9600.0
+    },
+    "rentownosc_ost_rok": -492736.2467269193,
+    "nazwa": "Fabryka Mebli"
+  },
+  {
+    "id": "[ID-9XX-1593]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2LT-6459]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.0893,
+      "sredni": 0.8929,
+      "szeregowi": 0.0179,
+      "wydajnosc": 2.56,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Włókna": 20.0
+      },
+      "outputs": {
+        "Ubrania": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+        "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+        "organizacja": "Warsztaty Krawieckie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 2,
+      "sector": "przemysł_lekki",
+      "owner_id": "[KRS-2LT-6459]"
+    },
+    "ostatnia_produkcja": {
+      "Ubrania": 25600.0
+    },
+    "rentownosc_ost_rok": -1238978.7409421848,
+    "nazwa": "Fabryka Ubrań"
+  },
+  {
+    "id": "[ID-9XX-1687]",
+    "name": "",
+    "wlasciciel_id": "[ID-9LT-6584]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.0893,
+      "sredni": 0.8929,
+      "szeregowi": 0.0179,
+      "wydajnosc": 2.56,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Włókna": 20.0
+      },
+      "outputs": {
+        "Ubrania": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+        "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+        "organizacja": "Warsztaty Krawieckie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[ID-9LT-6584]"
+    },
+    "ostatnia_produkcja": {
+      "Ubrania": 12800.0
+    },
+    "rentownosc_ost_rok": -619489.3704710924,
+    "nazwa": "Fabryka Ubrań"
+  },
+  {
+    "id": "[ID-9XX-5182]",
+    "name": "",
+    "wlasciciel_id": "[REG-4LT-9347]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.8333,
+      "szeregowi": 0.0167,
+      "wydajnosc": 2.25,
+      "inputs": {
+        "Drewno": 20.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Meble": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+        "produkcja": "Narzędzia Mechaniczne i Forniry",
+        "organizacja": "Cechy Rzemieślnicze"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[REG-4LT-9347]"
+    },
+    "ostatnia_produkcja": {
+      "Meble": 9600.0
+    },
+    "rentownosc_ost_rok": -492736.2467269193,
+    "nazwa": "Fabryka Mebli"
+  },
+  {
+    "id": "[ID-9XX-7866]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2LT-3420]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.8333,
+      "szeregowi": 0.0167,
+      "wydajnosc": 2.25,
+      "inputs": {
+        "Drewno": 20.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Meble": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+        "produkcja": "Narzędzia Mechaniczne i Forniry",
+        "organizacja": "Cechy Rzemieślnicze"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 2,
+      "sector": "przemysł_lekki",
+      "owner_id": "[KRS-2LT-3420]"
+    },
+    "ostatnia_produkcja": {
+      "Meble": 19200.0
+    },
+    "rentownosc_ost_rok": -985472.4934538386,
+    "nazwa": "Fabryka Mebli"
+  },
+  {
+    "id": "[ID-9XX-4674]",
+    "name": "",
+    "wlasciciel_id": "[ID-9LT-8020]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.8333,
+      "szeregowi": 0.0167,
+      "wydajnosc": 2.25,
+      "inputs": {
+        "Drewno": 20.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Meble": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+        "produkcja": "Narzędzia Mechaniczne i Forniry",
+        "organizacja": "Cechy Rzemieślnicze"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[ID-9LT-8020]"
+    },
+    "ostatnia_produkcja": {
+      "Meble": 9600.0
+    },
+    "rentownosc_ost_rok": -492736.2467269193,
+    "nazwa": "Fabryka Mebli"
+  },
+  {
+    "id": "[ID-9XX-4995]",
+    "name": "",
+    "wlasciciel_id": "[REG-4LT-7920]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0556,
+      "sredni": 0.3889,
+      "szeregowi": 0.5556,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Zboża": 10.0,
+        "Żywiec": 5.0
+      },
+      "outputs": {
+        "Mięso": 500.0,
+        "Produkty Spożywcze": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczny Przemiał i Peklowanie",
+        "produkcja": "Tradycyjny Przemiał",
+        "organizacja": "Lokalne Przetwórnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[REG-4LT-7920]"
+    },
+    "ostatnia_produkcja": {
+      "Mięso": 1400.0,
+      "Produkty Spożywcze": 4200.0
+    },
+    "rentownosc_ost_rok": -518073.0661243198,
+    "nazwa": "Zakłady Spożywcze"
+  },
+  {
+    "id": "[ID-9XX-5928]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2LT-9129]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0556,
+      "sredni": 0.3889,
+      "szeregowi": 0.5556,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Zboża": 10.0,
+        "Żywiec": 5.0
+      },
+      "outputs": {
+        "Mięso": 500.0,
+        "Produkty Spożywcze": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczny Przemiał i Peklowanie",
+        "produkcja": "Tradycyjny Przemiał",
+        "organizacja": "Lokalne Przetwórnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 200,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 2,
+      "sector": "przemysł_lekki",
+      "owner_id": "[KRS-2LT-9129]"
+    },
+    "ostatnia_produkcja": {
+      "Mięso": 2800.0,
+      "Produkty Spożywcze": 8400.0
+    },
+    "rentownosc_ost_rok": -1036146.1322486396,
+    "nazwa": "Zakłady Spożywcze"
+  },
+  {
+    "id": "[ID-9XX-9371]",
+    "name": "",
+    "wlasciciel_id": "[ID-9LT-2508]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0556,
+      "sredni": 0.3889,
+      "szeregowi": 0.5556,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Zboża": 10.0,
+        "Żywiec": 5.0
+      },
+      "outputs": {
+        "Mięso": 500.0,
+        "Produkty Spożywcze": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Ręczny Przemiał i Peklowanie",
+        "produkcja": "Tradycyjny Przemiał",
+        "organizacja": "Lokalne Przetwórnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[ID-9LT-2508]"
+    },
+    "ostatnia_produkcja": {
+      "Mięso": 1400.0,
+      "Produkty Spożywcze": 4200.0
+    },
+    "rentownosc_ost_rok": -518073.0661243198,
+    "nazwa": "Zakłady Spożywcze"
+  },
+  {
+    "id": "[ID-9XX-8502]",
+    "name": "",
+    "wlasciciel_id": "[REG-4LT-9207]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "przemysł_lekki",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.15,
+      "sredni": 0.8333,
+      "szeregowi": 0.0167,
+      "wydajnosc": 2.25,
+      "inputs": {
+        "Drewno": 20.0,
+        "Maszyny Przemysłowe": 1.0
+      },
+      "outputs": {
+        "Meble": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+        "produkcja": "Narzędzia Mechaniczne i Forniry",
+        "organizacja": "Cechy Rzemieślnicze"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Iliria-Region14",
+    "cluster_info": {
+      "region_id": "Iliria-Region14",
+      "scale_factor": 1,
+      "sector": "przemysł_lekki",
+      "owner_id": "[REG-4LT-9207]"
+    },
+    "ostatnia_produkcja": {
+      "Meble": 9600.0
+    },
+    "rentownosc_ost_rok": -492736.2467269193,
+    "nazwa": "Fabryka Mebli"
+  }
+]

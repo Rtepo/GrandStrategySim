@@ -1,0 +1,72 @@
+[
+  {
+    "id": "B-WEN-0045",
+    "name": "Public Office",
+    "wlasciciel_id": "KRS-WEN-0045",
+    "rok_budowy": 1889,
+    "sektor_pkb": "public_services",
+    "pojemnosc_pracownikow": 100,
+    "zatrudnienie_aktualne": 60,
+    "rezerwa_zakladowa": 6000.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.3,
+      "sredni": 0.4,
+      "szeregowi": 0.3,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 3.0,
+        "office_machinery": 2.0,
+        "paper": 5.0
+      },
+      "outputs": {
+        "banking_services": 15.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region1",
+    "cluster_info": {
+      "region_id": "Wenedia-Region1",
+      "scale_factor": 2,
+      "sector": "public_services",
+      "owner_id": "KRS-WEN-0045"
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "office_machinery",
+        "count": 3.0,
+        "condition": 0.9401846415617657,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.30000000000000004,
+      "paper": 0.5,
+      "food": 0.5,
+      "banking_services": 1.5
+    },
+    "pojemność_magazynu": 1000.0
+  }
+]

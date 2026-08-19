@@ -1,0 +1,74 @@
+[
+  {
+    "id": "B-HEL-0065",
+    "name": "Medical Facility",
+    "wlasciciel_id": "KRS-HEL-0065",
+    "rok_budowy": 1965,
+    "sektor_pkb": "medical_services",
+    "pojemnosc_pracownikow": 61,
+    "zatrudnienie_aktualne": 61,
+    "rezerwa_zakladowa": 190080.0,
+    "aktywna_metoda": {
+      "rok": 1960,
+      "eksperci": 0.4,
+      "sredni": 0.4,
+      "szeregowi": 0.2,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "energy": 5.0,
+        "pharmaceuticals": 12.0,
+        "medical_equipment": 8.0
+      },
+      "outputs": {
+        "health_capacity": 90.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 138,
+    "region_id": "Helwecja-Region15",
+    "cluster_info": {
+      "region_id": "Helwecja-Region15",
+      "scale_factor": 2,
+      "sector": "medical_services",
+      "owner_id": "KRS-HEL-0065"
+    },
+    "ostatnia_produkcja": {
+      "health_capacity": 10.98
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 3.0,
+        "condition": 0.669499361197531,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 1.2299999999999998,
+      "food": 0.6900000000000001,
+      "health_capacity": 0.0,
+      "medical_equipment": 1.1102230246251565e-16
+    },
+    "pojemność_magazynu": 1380.0
+  }
+]

@@ -1,0 +1,1836 @@
+[
+    {
+        "id": "[ID-9XX-1279]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-2026]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 28000,
+        "zatrudnienie_aktualne": 22400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 7,
+        "pojemnosc_budowlana": 700,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 7,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-2026]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7040]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-6025]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 8000,
+        "zatrudnienie_aktualne": 6400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-6025]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3019]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-8770]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 7000,
+        "zatrudnienie_aktualne": 5600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-8770]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7135]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-8297]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 24500,
+        "zatrudnienie_aktualne": 19600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 7,
+        "pojemnosc_budowlana": 700,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 7,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-8297]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8270]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-7167]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 8000,
+        "zatrudnienie_aktualne": 6400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-7167]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1230]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[REG-4LT-1145]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 8000,
+        "zatrudnienie_aktualne": 6400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-1145]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5622]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-8239]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 28000,
+        "zatrudnienie_aktualne": 22400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 7,
+        "pojemnosc_budowlana": 700,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 7,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-8239]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7474]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-2907]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 8000,
+        "zatrudnienie_aktualne": 6400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-2907]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1520]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-4048]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 7000,
+        "zatrudnienie_aktualne": 5600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-4048]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8678]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-4866]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 21000,
+        "zatrudnienie_aktualne": 16800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 7,
+        "pojemnosc_budowlana": 700,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 7,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-4866]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4039]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-5298]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-5298]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6700]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-8629]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 7000,
+        "zatrudnienie_aktualne": 5600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-8629]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2251]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-4577]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 21000,
+        "zatrudnienie_aktualne": 16800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 7,
+        "pojemnosc_budowlana": 700,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 7,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-4577]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7319]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-3670]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 7000,
+        "zatrudnienie_aktualne": 5600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-3670]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2635]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-7194]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 7000,
+        "zatrudnienie_aktualne": 5600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-7194]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4121]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-2928]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 24500,
+        "zatrudnienie_aktualne": 19600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 7,
+        "pojemnosc_budowlana": 700,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 7,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-2928]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9315]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-8739]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-8739]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7770]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[REG-4LT-2388]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 8000,
+        "zatrudnienie_aktualne": 6400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-2388]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1408]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-6238]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 21000,
+        "zatrudnienie_aktualne": 16800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 7,
+        "pojemnosc_budowlana": 700,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 7,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-6238]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6595]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-6416]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 7000,
+        "zatrudnienie_aktualne": 5600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-6416]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3429]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-9014]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 7000,
+        "zatrudnienie_aktualne": 5600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-9014]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4458]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-7154]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 24500,
+        "zatrudnienie_aktualne": 19600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 7,
+        "pojemnosc_budowlana": 700,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 7,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-7154]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7842]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-2734]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-2734]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5396]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-2070]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-2070]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7058]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-9492]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 24500,
+        "zatrudnienie_aktualne": 19600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 7,
+        "pojemnosc_budowlana": 700,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 7,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-9492]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2456]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-3287]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 7000,
+        "zatrudnienie_aktualne": 5600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-3287]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1977]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-6599]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-6599]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6394]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-7463]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 28000,
+        "zatrudnienie_aktualne": 22400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 7,
+        "pojemnosc_budowlana": 700,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 7,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-7463]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4480]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-5198]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 8000,
+        "zatrudnienie_aktualne": 6400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-5198]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3486]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-7917]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-7917]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4761]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-3232]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 21000,
+        "zatrudnienie_aktualne": 16800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 7,
+        "pojemnosc_budowlana": 700,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 7,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-3232]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3758]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-5038]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 7000,
+        "zatrudnienie_aktualne": 5600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-5038]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1998]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[REG-4LT-4996]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 8000,
+        "zatrudnienie_aktualne": 6400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-4996]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2471]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-9049]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 28000,
+        "zatrudnienie_aktualne": 22400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 7,
+        "pojemnosc_budowlana": 700,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 7,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-9049]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4185]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-3467]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-3467]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4391]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-5891]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-5891]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5976]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-5106]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 21000,
+        "zatrudnienie_aktualne": 16800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 7,
+        "pojemnosc_budowlana": 700,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 7,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-5106]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9809]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-6016]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-6016]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5355]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-1962]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 7000,
+        "zatrudnienie_aktualne": 5600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-1962]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8969]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-5297]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 21000,
+        "zatrudnienie_aktualne": 16800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 7,
+        "pojemnosc_budowlana": 700,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 7,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-5297]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3995]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-8555]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 7000,
+        "zatrudnienie_aktualne": 5600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-8555]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6437]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[REG-4LT-2091]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 8000,
+        "zatrudnienie_aktualne": 6400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-2091]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1357]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-7625]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 21000,
+        "zatrudnienie_aktualne": 16800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 7,
+        "pojemnosc_budowlana": 700,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 7,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-7625]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2615]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-9233]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 7000,
+        "zatrudnienie_aktualne": 5600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-9233]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7285]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-9857]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 7000,
+        "zatrudnienie_aktualne": 5600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Anatolia-Region14",
+        "cluster_info": {
+            "region_id": "Anatolia-Region14",
+            "scale_factor": 2,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-9857]"
+        }
+    }
+]

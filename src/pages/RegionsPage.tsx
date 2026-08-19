@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import * as echarts from "echarts";
 import { useGameStore } from "../store/gameStore";
-import { getRegions, getRegionDetail } from "../hooks/useTauriCommand";
+import { getRegions, getRegionDetail, getMegaregionDetail } from "../hooks/useTauriCommand";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Button, Tabs } from "../components/ui";
+import { EChart } from "../components/charts/EChart";
 import { fmt, num } from "../lib/format";
-import type { RegionDetail } from "../types/api";
+import type { RegionDetail, MegaregionDetail } from "../types/api";
 
 const safeStr = (v: string | null | undefined): string => v ?? "—";
 const safeNum = (v: number | null | undefined): number => v ?? 0;
@@ -13,6 +15,7 @@ const safeArr = <T,>(v: T[] | null | undefined): T[] => v ?? [];
 export function RegionsPage() {
   const { selectedCountry } = useGameStore();
   const [selectedRegionId, setSelectedRegionId] = useState<string | null>(null);
+  const [selectedMegaregionId, setSelectedMegaregionId] = useState<string | null>(null);
 
   const { data: regions, isLoading } = useQuery({
     queryKey: ["regions", selectedCountry],
@@ -26,7 +29,27 @@ export function RegionsPage() {
     enabled: !!selectedCountry && !!selectedRegionId,
   });
 
+  const { data: megaDetail } = useQuery({
+    queryKey: ["megaregion-detail", selectedCountry, selectedMegaregionId],
+    queryFn: () => getMegaregionDetail(selectedCountry!, selectedMegaregionId!),
+    enabled: !!selectedCountry && !!selectedMegaregionId,
+  });
+
   if (!selectedCountry) return <div className="p-6 text-muted-foreground">Select a country from the sidebar.</div>;
+
+  // Build a lookup from megaregion name to megaregion id for clickable headers.
+  // We derive the megaregion id from the name since RegionRow only stores the name.
+  // The megaregion detail endpoint accepts the megaregion id.
+  const megaNameToId = new Map<string, string>();
+  if (regions) {
+    for (const r of regions) {
+      const mega = r.megaregion || "Ungrouped";
+      // Use the megaregion name as a pseudo-id if we don't have the real id.
+      // The backend build_megaregion_detail looks up by id, so we use the name
+      // as the id (megaregion names are unique per country).
+      if (!megaNameToId.has(mega)) megaNameToId.set(mega, mega);
+    }
+  }
 
   return (
     <div className="p-6 space-y-4">
@@ -62,8 +85,16 @@ export function RegionsPage() {
                       for (const [mega, groupRegions] of groups) {
                         const totalPop = groupRegions.reduce((s, r) => s + Number(r.population ?? 0), 0);
                         const totalGdp = groupRegions.reduce((s, r) => s + (r.regional_gdp ?? 0), 0);
+                        const megaId = megaNameToId.get(mega) ?? mega;
                         rows.push(
-                          <TableRow key={`mega-${mega}`} className="bg-muted/50 font-semibold">
+                          <TableRow
+                            key={`mega-${mega}`}
+                            className="bg-muted/50 font-semibold cursor-pointer hover:bg-accent"
+                            onClick={() => {
+                              setSelectedMegaregionId(megaId);
+                              setSelectedRegionId(null);
+                            }}
+                          >
                             <TableCell colSpan={2} className="font-bold">{mega}</TableCell>
                             <TableCell className="text-right">{num(totalPop)}</TableCell>
                             <TableCell className="text-right">{fmt(totalGdp)}</TableCell>
@@ -74,7 +105,10 @@ export function RegionsPage() {
                           rows.push(
                             <TableRow
                               key={r.id}
-                              onClick={() => setSelectedRegionId(r.id)}
+                              onClick={() => {
+                                setSelectedRegionId(r.id);
+                                setSelectedMegaregionId(null);
+                              }}
                               className={selectedRegionId === r.id ? "bg-accent" : "cursor-pointer"}
                             >
                               <TableCell className="font-medium pl-6">{r.display_name ?? r.id ?? "—"}</TableCell>
@@ -101,10 +135,12 @@ export function RegionsPage() {
         <div>
           {detail ? (
             <RegionDetailPanel detail={detail} />
+          ) : megaDetail ? (
+            <MegaregionDetailPanel detail={megaDetail} />
           ) : (
             <Card>
               <CardContent className="p-6 text-center text-muted-foreground text-sm">
-                Select a region to view details
+                Select a region or megaregion to view details
               </CardContent>
             </Card>
           )}
@@ -143,14 +179,7 @@ function RegionDetailPanel({ detail }: { detail: RegionDetail }) {
               </div>
             )},
             { label: "Council", value: "council", content: (
-              <div className="space-y-2">
-                {safeArr(detail.council_factions).map(([faction, count]) => (
-                  <div key={faction} className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">{faction}</span>
-                    <span className="text-foreground">{count}</span>
-                  </div>
-                ))}
-              </div>
+              <CouncilPieChart factions={safeArr(detail.council_factions)} />
             )},
             { label: "Employment", value: "employment", content: (
               <div className="space-y-2">
@@ -192,5 +221,78 @@ function Field({ label, value }: { label: string; value: string }) {
       <span className="text-muted-foreground">{label}</span>
       <span className="text-foreground font-medium">{value}</span>
     </div>
+  );
+}
+
+/// Phase 53: ECharts pie chart for local council faction distribution.
+function CouncilPieChart({ factions }: { factions: [string, number][] }) {
+  const data = factions
+    .filter(([, count]) => count > 0)
+    .map(([faction, count]) => ({ name: faction, value: count }));
+
+  if (data.length === 0) {
+    return <div className="text-muted-foreground text-sm py-8 text-center">No council data</div>;
+  }
+
+  const option: echarts.EChartsOption = {
+    tooltip: {
+      trigger: "item",
+      formatter: "{b}: {c} ({d}%)",
+    },
+    legend: {
+      bottom: 0,
+      textStyle: { color: "#94a3b8" },
+    },
+    series: [
+      {
+        type: "pie",
+        radius: ["40%", "70%"],
+        avoidLabelOverlap: false,
+        label: {
+          show: true,
+          color: "#94a3b8",
+        },
+        data,
+      },
+    ],
+  };
+
+  return <EChart option={option} style={{ minHeight: 240 }} />;
+}
+
+/// Phase 53: Megaregion detail panel — analogous to RegionDetailPanel.
+function MegaregionDetailPanel({ detail }: { detail: MegaregionDetail }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{safeStr(detail.display_name)}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2 text-sm">
+          <Field label="Country" value={safeStr(detail.country)} />
+          <Field label="Member Regions" value={String(detail.member_region_count)} />
+          <Field label="Total Population" value={num(detail.total_population)} />
+          <Field label="Total GDP" value={fmt(detail.total_gdp)} />
+          <Field label="Governor" value={safeStr(detail.governor_name)} />
+          <Field label="Governor Appointed" value={detail.governor_appointed ? "Yes" : "No"} />
+          <Field label="Competence Level" value={safeStr(detail.competence_level)} />
+          <Field label="Budget Reserves" value={fmt(safeNum(detail.budget_reserves))} />
+          <Field label="Regional Transfers" value={fmt(safeNum(detail.regional_transfers))} />
+          <Field label="Development Expenditures" value={fmt(safeNum(detail.development_expenditures))} />
+          <Field label="Coordination Expenditures" value={fmt(safeNum(detail.coordination_expenditures))} />
+          <Field label="Budget Balance" value={fmt(safeNum(detail.budget_balance))} />
+        </div>
+        {safeArr<string>(detail.member_region_ids).length > 0 && (
+          <div className="mt-4">
+            <div className="text-xs text-muted-foreground mb-1">Member Region IDs</div>
+            <div className="flex flex-wrap gap-1">
+              {safeArr<string>(detail.member_region_ids).map((id: string) => (
+                <Badge key={id} variant="secondary">{id}</Badge>
+              ))}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

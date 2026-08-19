@@ -1,0 +1,1815 @@
+[
+    {
+        "id": "[ID-9XX-4133]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-1723]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 15000,
+        "zatrudnienie_aktualne": 12000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-1723]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8555]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-1279]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-1279]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1000]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[REG-4LT-8120]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-8120]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5319]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-1437]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 20000,
+        "zatrudnienie_aktualne": 16000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-1437]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2114]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-5652]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-5652]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4868]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-1871]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-1871]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6461]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-9379]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 17500,
+        "zatrudnienie_aktualne": 14000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-9379]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2720]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-5466]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-5466]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1314]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-6152]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-6152]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2741]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-3103]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 15000,
+        "zatrudnienie_aktualne": 12000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-3103]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7440]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-8217]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-8217]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4798]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-7184]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-7184]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3397]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-5707]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 17500,
+        "zatrudnienie_aktualne": 14000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-5707]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3850]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-7230]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-7230]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1269]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[REG-4LT-4046]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-4046]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7138]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-9756]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 20000,
+        "zatrudnienie_aktualne": 16000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-9756]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3627]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-5234]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-5234]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5982]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-2760]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-2760]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7671]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-7201]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 20000,
+        "zatrudnienie_aktualne": 16000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-7201]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5722]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-3069]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-3069]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8674]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-8698]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-8698]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6735]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-4265]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 15000,
+        "zatrudnienie_aktualne": 12000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-4265]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4930]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-6261]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-6261]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2105]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-6113]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-6113]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8679]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-2752]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 20000,
+        "zatrudnienie_aktualne": 16000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-2752]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4765]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-6345]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-6345]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4880]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-4079]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-4079]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4116]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-5782]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 15000,
+        "zatrudnienie_aktualne": 12000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-5782]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5591]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-7193]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-7193]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1319]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-3544]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-3544]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7585]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-8672]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 15000,
+        "zatrudnienie_aktualne": 12000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-8672]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9466]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-5069]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-5069]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4566]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-7416]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-7416]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9650]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-3074]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 20000,
+        "zatrudnienie_aktualne": 16000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-3074]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9815]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-3132]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-3132]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2907]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[REG-4LT-4014]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-4014]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7750]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-7265]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 20000,
+        "zatrudnienie_aktualne": 16000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-7265]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3486]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-8964]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-8964]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4990]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[REG-4LT-6012]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-6012]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8832]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-4627]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 15000,
+        "zatrudnienie_aktualne": 12000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-4627]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1341]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-7900]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-7900]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9123]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-5790]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0556,
+            "sredni": 0.3889,
+            "szeregowi": 0.5556,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Zboża": 10,
+                "Żywiec": 5
+            },
+            "outputs": {
+                "Produkty Spożywcze": 1500,
+                "Mięso": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Ręczny Przemiał i Peklowanie",
+                "produkcja": "Tradycyjny Przemiał",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-5790]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7364]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-2659]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 20000,
+        "zatrudnienie_aktualne": 16000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-2659]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1149]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-2854]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0893,
+            "sredni": 0.8929,
+            "szeregowi": 0.0179,
+            "wydajnosc": 2.56,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Warsztaty Krawieckie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-2854]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5781]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-9105]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Oksytania-Region10",
+        "cluster_info": {
+            "region_id": "Oksytania-Region10",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-9105]"
+        }
+    }
+]

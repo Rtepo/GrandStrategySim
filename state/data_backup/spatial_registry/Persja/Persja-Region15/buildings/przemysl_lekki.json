@@ -1,0 +1,1834 @@
+[
+    {
+        "id": "[ID-9XX-1870]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-8940]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 15000,
+        "zatrudnienie_aktualne": 12000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-8940]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5368]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-2131]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-2131]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5423]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-8343]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-8343]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4067]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-1709]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 20000,
+        "zatrudnienie_aktualne": 16000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-1709]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4198]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-2632]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-2632]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8771]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-3203]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-3203]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6135]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-2832]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 15000,
+        "zatrudnienie_aktualne": 12000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-2832]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2377]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-7610]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-7610]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8127]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-1455]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-1455]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5129]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-6319]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 15000,
+        "zatrudnienie_aktualne": 12000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-6319]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9766]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-7091]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-7091]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2304]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-1459]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-1459]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6897]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-8156]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 20000,
+        "zatrudnienie_aktualne": 16000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-8156]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8477]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-6355]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-6355]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9218]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-3964]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-3964]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4806]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-6477]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 20000,
+        "zatrudnienie_aktualne": 16000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-6477]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3346]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-5033]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-5033]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9136]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-1574]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-1574]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8969]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-4945]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 17500,
+        "zatrudnienie_aktualne": 14000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-4945]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3619]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-6328]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-6328]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6055]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-6448]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-6448]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8965]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-1217]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 17500,
+        "zatrudnienie_aktualne": 14000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-1217]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3057]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-3188]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-3188]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1011]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[REG-4LT-8207]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-8207]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4204]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-6346]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 20000,
+        "zatrudnienie_aktualne": 16000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-6346]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2274]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-8901]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-8901]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5514]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[REG-4LT-5046]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-5046]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3149]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-7021]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 17500,
+        "zatrudnienie_aktualne": 14000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-7021]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2218]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-7180]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-7180]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7480]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[REG-4LT-7490]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-7490]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4033]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[KRS-2LT-3009]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 15000,
+        "zatrudnienie_aktualne": 12000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-3009]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4426]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-1778]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-1778]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9387]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[REG-4LT-7516]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-7516]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1495]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-7273]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 20000,
+        "zatrudnienie_aktualne": 16000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-7273]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9588]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[ID-9LT-2900]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-2900]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4431]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[REG-4LT-1595]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-1595]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8915]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-7659]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 20000,
+        "zatrudnienie_aktualne": 16000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-7659]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6489]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[ID-9LT-2822]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-2822]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1751]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-5584]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-5584]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9188]",
+        "nazwa": "Fabryka Ubrań",
+        "wlasciciel_id": "[KRS-2LT-4466]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 20000,
+        "zatrudnienie_aktualne": 16000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1111,
+            "sredni": 0.873,
+            "szeregowi": 0.0159,
+            "wydajnosc": 3.328,
+            "inputs": {
+                "Włókna": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ubrania": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Maszyny Szwalnicze Elektryczne",
+                "produkcja": "Maszyny Szwalnicze i Barwiarnie",
+                "organizacja": "Linia Fordowska i Normy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-4466]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9098]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-8158]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-8158]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7690]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-8810]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-8810]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7587]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[KRS-2LT-8598]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 17500,
+        "zatrudnienie_aktualne": 14000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_lekki",
+            "owner_id": "[KRS-2LT-8598]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4683]",
+        "nazwa": "Fabryka Mebli",
+        "wlasciciel_id": "[ID-9LT-3740]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.15,
+            "sredni": 0.8333,
+            "szeregowi": 0.0167,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Drewno": 20,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Meble": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pilarki Taśmowe i Szlifierki",
+                "produkcja": "Narzędzia Mechaniczne i Forniry",
+                "organizacja": "Cechy Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[ID-9LT-3740]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7952]",
+        "nazwa": "Zakłady Spożywcze",
+        "wlasciciel_id": "[REG-4LT-5623]",
+        "rok_budowy": 1925,
+        "sektor_pkb": "przemysł_lekki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1920,
+            "eksperci": 0.1724,
+            "sredni": 0.8103,
+            "szeregowi": 0.0172,
+            "wydajnosc": 2.25,
+            "inputs": {
+                "Zboża": 25,
+                "Żywiec": 15,
+                "Stal": 2
+            },
+            "outputs": {
+                "Produkty Spożywcze": 4000,
+                "Mięso": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Pasteryzacja i Puszkowanie Mechaniczne",
+                "produkcja": "Przemysłowe Puszkowanie",
+                "organizacja": "Lokalne Przetwórnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Persja-Region15",
+        "cluster_info": {
+            "region_id": "Persja-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_lekki",
+            "owner_id": "[REG-4LT-5623]"
+        }
+    }
+]

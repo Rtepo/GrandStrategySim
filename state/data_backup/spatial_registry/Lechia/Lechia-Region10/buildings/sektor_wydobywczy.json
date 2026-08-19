@@ -1,0 +1,1634 @@
+[
+    {
+        "id": "[ID-9XX-4049]",
+        "nazwa": "Kamieniolom",
+        "wlasciciel_id": "[KRS-2MN-2051]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 7000,
+        "zatrudnienie_aktualne": 5600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Kamień": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 2,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-2051]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9233]",
+        "nazwa": "Szyby Naftowe",
+        "wlasciciel_id": "[ID-9MN-1865]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1885,
+            "eksperci": 0.1625,
+            "sredni": 0.525,
+            "szeregowi": 0.3125,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ropa Naftowa": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wieże Wiertnicze (Kablowe)",
+                "produkcja": "Wieże Wiertnicze",
+                "organizacja": "Prywatne Koncesje"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-1865]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7565]",
+        "nazwa": "Żwirownia",
+        "wlasciciel_id": "[REG-4MN-6193]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żwir": 6000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Łopaty i Sieciaki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Żwirownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-6193]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1637]",
+        "nazwa": "Kamieniolom",
+        "wlasciciel_id": "[KRS-2MN-1470]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 7000,
+        "zatrudnienie_aktualne": 5600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Kamień": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 2,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-1470]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7480]",
+        "nazwa": "Kamieniolom",
+        "wlasciciel_id": "[ID-9MN-2909]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Kamień": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-2909]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5922]",
+        "nazwa": "Kopalnia Żelaza",
+        "wlasciciel_id": "[REG-4MN-5497]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Żelazo": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilkofy i Wagoniki",
+                "produkcja": "Kilkofy i Wagoniki",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-5497]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9812]",
+        "nazwa": "Kopalnia Soli",
+        "wlasciciel_id": "[KRS-2MN-7237]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Maszyny Przemysłowe": 1,
+                "Paliwa": 2
+            },
+            "outputs": {
+                "Sól": 8000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wiertnice i Pompy",
+                "produkcja": "Odkrywka Solna",
+                "organizacja": "Państwowe Monopole"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 2,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-7237]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6354]",
+        "nazwa": "Kopalnie Gazu Ziemnego",
+        "wlasciciel_id": "[ID-9MN-3189]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 1000,
+        "zatrudnienie_aktualne": 800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1205,
+            "sredni": 0.4578,
+            "szeregowi": 0.4217,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 3,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Gaz Ziemny": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Odwierty Proste",
+                "produkcja": "Tradycyjne Wydobycie",
+                "organizacja": "Lokalne Koncesje"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-3189]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7106]",
+        "nazwa": "Żwirownia",
+        "wlasciciel_id": "[REG-4MN-4175]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żwir": 6000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Łopaty i Sieciaki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Żwirownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-4175]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3583]",
+        "nazwa": "Kopalnia Srebra",
+        "wlasciciel_id": "[KRS-2MN-3832]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Srebro": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 2,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-3832]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8664]",
+        "nazwa": "Żwirownia",
+        "wlasciciel_id": "[ID-9MN-6056]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żwir": 6000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Łopaty i Sieciaki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Żwirownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-6056]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2722]",
+        "nazwa": "Piaskownia",
+        "wlasciciel_id": "[REG-4MN-1771]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2800,
+        "zatrudnienie_aktualne": 2240,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Piasek": 7000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Łopaty i Sieciaki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Piaskownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-1771]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6366]",
+        "nazwa": "Piaskownia",
+        "wlasciciel_id": "[KRS-2MN-8924]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 5600,
+        "zatrudnienie_aktualne": 4480,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Piasek": 7000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Łopaty i Sieciaki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Piaskownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 2,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-8924]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7649]",
+        "nazwa": "Kopalnia Boksytu",
+        "wlasciciel_id": "[ID-9MN-5179]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Boksyt": 1800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-5179]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1955]",
+        "nazwa": "Kopalnia Cynku",
+        "wlasciciel_id": "[REG-4MN-6532]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2300,
+        "zatrudnienie_aktualne": 1840,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Cynk": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-6532]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7050]",
+        "nazwa": "Kamieniolom",
+        "wlasciciel_id": "[KRS-2MN-6739]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 7000,
+        "zatrudnienie_aktualne": 5600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Kamień": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 2,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-6739]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6155]",
+        "nazwa": "Kopalnie Gazu Ziemnego",
+        "wlasciciel_id": "[ID-9MN-6193]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 1000,
+        "zatrudnienie_aktualne": 800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1205,
+            "sredni": 0.4578,
+            "szeregowi": 0.4217,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 3,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Gaz Ziemny": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Odwierty Proste",
+                "produkcja": "Tradycyjne Wydobycie",
+                "organizacja": "Lokalne Koncesje"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-6193]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5012]",
+        "nazwa": "Kopalnia Węgla",
+        "wlasciciel_id": "[REG-4MN-1881]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Węgiel Kamienny": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki Konne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-1881]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8848]",
+        "nazwa": "Kopalnia Odkrywkowa",
+        "wlasciciel_id": "[KRS-2MN-2564]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0909,
+            "sredni": 0.5682,
+            "szeregowi": 0.3409,
+            "wydajnosc": 1.82,
+            "inputs": {
+                "Drewno": 2,
+                "Maszyny Przemysłowe": 0.5
+            },
+            "outputs": {
+                "Surowce Mineralne": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Proste Maszyny Parowe",
+                "produkcja": "Wydobycie Maszynowe",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 2,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-2564]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9463]",
+        "nazwa": "Kopalnia Żelaza",
+        "wlasciciel_id": "[ID-9MN-1874]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Żelazo": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilkofy i Wagoniki",
+                "produkcja": "Kilkofy i Wagoniki",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-1874]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9943]",
+        "nazwa": "Kopalnie Metali Kolorowych",
+        "wlasciciel_id": "[REG-4MN-5091]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0642,
+            "sredni": 0.2477,
+            "szeregowi": 0.6881,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Miedź": 1500,
+                "Złoto": 100
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne",
+                "produkcja": "Tradycyjne Wydobycie",
+                "organizacja": "Małe Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-5091]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3985]",
+        "nazwa": "Kopalnia Cynku",
+        "wlasciciel_id": "[KRS-2MN-8821]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 4600,
+        "zatrudnienie_aktualne": 3680,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Cynk": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 2,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-8821]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4015]",
+        "nazwa": "Piaskownia",
+        "wlasciciel_id": "[ID-9MN-6665]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2800,
+        "zatrudnienie_aktualne": 2240,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Piasek": 7000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Łopaty i Sieciaki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Piaskownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-6665]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7768]",
+        "nazwa": "Kopalnia Srebra",
+        "wlasciciel_id": "[REG-4MN-4970]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Srebro": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-4970]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2772]",
+        "nazwa": "Kopalnie Gazu Ziemnego",
+        "wlasciciel_id": "[KRS-2MN-6717]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1205,
+            "sredni": 0.4578,
+            "szeregowi": 0.4217,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 3,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Gaz Ziemny": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Odwierty Proste",
+                "produkcja": "Tradycyjne Wydobycie",
+                "organizacja": "Lokalne Koncesje"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 2,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-6717]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2377]",
+        "nazwa": "Kopalnie Gazu Ziemnego",
+        "wlasciciel_id": "[ID-9MN-3958]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 1000,
+        "zatrudnienie_aktualne": 800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1205,
+            "sredni": 0.4578,
+            "szeregowi": 0.4217,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 3,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Gaz Ziemny": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Odwierty Proste",
+                "produkcja": "Tradycyjne Wydobycie",
+                "organizacja": "Lokalne Koncesje"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-3958]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9827]",
+        "nazwa": "Kamieniolom Wapienia",
+        "wlasciciel_id": "[REG-4MN-2462]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3300,
+        "zatrudnienie_aktualne": 2640,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Wapień": 4500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-2462]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4489]",
+        "nazwa": "Kopalnia Soli",
+        "wlasciciel_id": "[KRS-2MN-8443]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Maszyny Przemysłowe": 1,
+                "Paliwa": 2
+            },
+            "outputs": {
+                "Sól": 8000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wiertnice i Pompy",
+                "produkcja": "Odkrywka Solna",
+                "organizacja": "Państwowe Monopole"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 2,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-8443]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1042]",
+        "nazwa": "Kopalnie Gazu Ziemnego",
+        "wlasciciel_id": "[ID-9MN-8098]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 1000,
+        "zatrudnienie_aktualne": 800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1205,
+            "sredni": 0.4578,
+            "szeregowi": 0.4217,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 3,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Gaz Ziemny": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Odwierty Proste",
+                "produkcja": "Tradycyjne Wydobycie",
+                "organizacja": "Lokalne Koncesje"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-8098]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6939]",
+        "nazwa": "Kamieniolom",
+        "wlasciciel_id": "[REG-4MN-2862]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Kamień": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-2862]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7818]",
+        "nazwa": "Żwirownia",
+        "wlasciciel_id": "[KRS-2MN-2972]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żwir": 6000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Łopaty i Sieciaki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Żwirownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 2,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-2972]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3587]",
+        "nazwa": "Kopalnie Gazu Ziemnego",
+        "wlasciciel_id": "[ID-9MN-1557]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 1000,
+        "zatrudnienie_aktualne": 800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1205,
+            "sredni": 0.4578,
+            "szeregowi": 0.4217,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 3,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Gaz Ziemny": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Odwierty Proste",
+                "produkcja": "Tradycyjne Wydobycie",
+                "organizacja": "Lokalne Koncesje"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-1557]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6964]",
+        "nazwa": "Kopalnia Żelaza",
+        "wlasciciel_id": "[REG-4MN-7585]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Żelazo": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilkofy i Wagoniki",
+                "produkcja": "Kilkofy i Wagoniki",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-7585]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4856]",
+        "nazwa": "Kopalnia Boksytu",
+        "wlasciciel_id": "[KRS-2MN-6323]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Boksyt": 1800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 2,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-6323]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4436]",
+        "nazwa": "Kopalnia Boksytu",
+        "wlasciciel_id": "[ID-9MN-1715]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Boksyt": 1800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-1715]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9811]",
+        "nazwa": "Żwirownia",
+        "wlasciciel_id": "[REG-4MN-2176]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żwir": 6000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Łopaty i Sieciaki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Żwirownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-2176]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5114]",
+        "nazwa": "Kopalnia Cynku",
+        "wlasciciel_id": "[KRS-2MN-9543]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 4600,
+        "zatrudnienie_aktualne": 3680,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Cynk": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 2,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-9543]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8242]",
+        "nazwa": "Kamieniolom Wapienia",
+        "wlasciciel_id": "[ID-9MN-3116]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3300,
+        "zatrudnienie_aktualne": 2640,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Wapień": 4500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-3116]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4079]",
+        "nazwa": "Kopalnie Gazu Ziemnego",
+        "wlasciciel_id": "[REG-4MN-6674]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 1000,
+        "zatrudnienie_aktualne": 800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1205,
+            "sredni": 0.4578,
+            "szeregowi": 0.4217,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 3,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Gaz Ziemny": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Odwierty Proste",
+                "produkcja": "Tradycyjne Wydobycie",
+                "organizacja": "Lokalne Koncesje"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-6674]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5129]",
+        "nazwa": "Kopalnia Cynku",
+        "wlasciciel_id": "[KRS-2MN-7193]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 4600,
+        "zatrudnienie_aktualne": 3680,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Cynk": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 2,
+        "pojemnosc_budowlana": 200,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 2,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-7193]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4688]",
+        "nazwa": "Kamieniolom Wapienia",
+        "wlasciciel_id": "[ID-9MN-6261]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3300,
+        "zatrudnienie_aktualne": 2640,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Wapień": 4500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-6261]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4178]",
+        "nazwa": "Żwirownia",
+        "wlasciciel_id": "[REG-4MN-1046]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żwir": 6000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Łopaty i Sieciaki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Żwirownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Lechia-Region10",
+        "cluster_info": {
+            "region_id": "Lechia-Region10",
+            "scale_factor": 1,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-1046]"
+        }
+    }
+]

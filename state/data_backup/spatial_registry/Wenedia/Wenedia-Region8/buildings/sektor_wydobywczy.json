@@ -1,0 +1,1985 @@
+[
+  {
+    "id": "[ID-9XX-5328]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-6023]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1850,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 1.0
+      },
+      "outputs": {
+        "Kamień": 5000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Dłuta",
+        "produkcja": "Ręczne Łupanie",
+        "organizacja": "Lokalne Kamieniołomy"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-6023]"
+    },
+    "ostatnia_produkcja": {
+      "Kamień": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kamieniolom"
+  },
+  {
+    "id": "[ID-9XX-5233]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-2480]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 16,
+    "zatrudnienie_aktualne": 16,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1850,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Piasek": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Łopaty i Sieciaki",
+        "produkcja": "Ręczne Wydobywanie",
+        "organizacja": "Lokalne Piaskownie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-2480]"
+    },
+    "ostatnia_produkcja": {
+      "Piasek": 112.0
+    },
+    "rentownosc_ost_rok": -4826.419280523745,
+    "nazwa": "Piaskownia"
+  },
+  {
+    "id": "[ID-9XX-1666]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-5901]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Siarka": 1500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-5901]"
+    },
+    "ostatnia_produkcja": {
+      "Siarka": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Siarki"
+  },
+  {
+    "id": "[ID-9XX-8027]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-8521]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1870,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Srebro": 800.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-8521]"
+    },
+    "ostatnia_produkcja": {
+      "Srebro": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Srebra"
+  },
+  {
+    "id": "[ID-9XX-1954]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-4861]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.1625,
+      "sredni": 0.525,
+      "szeregowi": 0.3125,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Stal": 5.0
+      },
+      "outputs": {
+        "Ropa Naftowa": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wieże Wiertnicze (Kablowe)",
+        "produkcja": "Wieże Wiertnicze",
+        "organizacja": "Prywatne Koncesje"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-4861]"
+    },
+    "ostatnia_produkcja": {
+      "Ropa Naftowa": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Szyby Naftowe"
+  },
+  {
+    "id": "[ID-9XX-2759]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-7774]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Cyna": 1200.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Narzędzia Ręczne",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-7774]"
+    },
+    "ostatnia_produkcja": {
+      "Cyna": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Cyny"
+  },
+  {
+    "id": "[ID-9XX-3773]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-4418]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0909,
+      "sredni": 0.5682,
+      "szeregowi": 0.3409,
+      "wydajnosc": 1.82,
+      "inputs": {
+        "Drewno": 2.0,
+        "Maszyny Przemysłowe": 0.5
+      },
+      "outputs": {
+        "Surowce Mineralne": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Proste Maszyny Parowe",
+        "produkcja": "Wydobycie Maszynowe",
+        "organizacja": "Prywatna Kopalnia"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-4418]"
+    },
+    "ostatnia_produkcja": {
+      "Surowce Mineralne": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Odkrywkowa"
+  },
+  {
+    "id": "[ID-9XX-6419]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-6897]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1870,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Srebro": 800.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-6897]"
+    },
+    "ostatnia_produkcja": {
+      "Srebro": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Srebra"
+  },
+  {
+    "id": "[ID-9XX-5257]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-1498]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.18,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Węgiel Kamienny": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki Konne",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatna Kopalnia"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-1498]"
+    },
+    "ostatnia_produkcja": {
+      "Węgiel Kamienny": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Węgla"
+  },
+  {
+    "id": "[ID-9XX-6170]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-5552]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Sól": 8000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Pompy",
+        "produkcja": "Odkrywka Solna",
+        "organizacja": "Państwowe Monopole"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-5552]"
+    },
+    "ostatnia_produkcja": {
+      "Sól": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Soli"
+  },
+  {
+    "id": "[ID-9XX-3922]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-6923]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1860,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 1.0
+      },
+      "outputs": {
+        "Wapień": 4500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Dłuta",
+        "produkcja": "Ręczne Łupanie",
+        "organizacja": "Lokalne Kamieniołomy"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-6923]"
+    },
+    "ostatnia_produkcja": {
+      "Wapień": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kamieniolom Wapienia"
+  },
+  {
+    "id": "[ID-9XX-5234]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-8392]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0909,
+      "sredni": 0.5682,
+      "szeregowi": 0.3409,
+      "wydajnosc": 1.82,
+      "inputs": {
+        "Drewno": 2.0,
+        "Maszyny Przemysłowe": 0.5
+      },
+      "outputs": {
+        "Surowce Mineralne": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Proste Maszyny Parowe",
+        "produkcja": "Wydobycie Maszynowe",
+        "organizacja": "Prywatna Kopalnia"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-8392]"
+    },
+    "ostatnia_produkcja": {
+      "Surowce Mineralne": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Odkrywkowa"
+  },
+  {
+    "id": "[ID-9XX-6658]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-3711]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0909,
+      "sredni": 0.5682,
+      "szeregowi": 0.3409,
+      "wydajnosc": 1.82,
+      "inputs": {
+        "Drewno": 2.0,
+        "Maszyny Przemysłowe": 0.5
+      },
+      "outputs": {
+        "Surowce Mineralne": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Proste Maszyny Parowe",
+        "produkcja": "Wydobycie Maszynowe",
+        "organizacja": "Prywatna Kopalnia"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-3711]"
+    },
+    "ostatnia_produkcja": {
+      "Surowce Mineralne": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Odkrywkowa"
+  },
+  {
+    "id": "[ID-9XX-2382]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-2366]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Cynk": 1000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-2366]"
+    },
+    "ostatnia_produkcja": {
+      "Cynk": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Cynku"
+  },
+  {
+    "id": "[ID-9XX-9671]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-6969]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1205,
+      "sredni": 0.4578,
+      "szeregowi": 0.4217,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Stal": 3.0
+      },
+      "outputs": {
+        "Gaz Ziemny": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Odwierty Proste",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Lokalne Koncesje"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-6969]"
+    },
+    "ostatnia_produkcja": {
+      "Gaz Ziemny": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnie Gazu Ziemnego"
+  },
+  {
+    "id": "[ID-9XX-4653]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-1713]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1205,
+      "sredni": 0.4578,
+      "szeregowi": 0.4217,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Stal": 3.0
+      },
+      "outputs": {
+        "Gaz Ziemny": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Odwierty Proste",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Lokalne Koncesje"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-1713]"
+    },
+    "ostatnia_produkcja": {
+      "Gaz Ziemny": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnie Gazu Ziemnego"
+  },
+  {
+    "id": "[ID-9XX-3090]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-9996]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Boksyt": 1800.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-9996]"
+    },
+    "ostatnia_produkcja": {
+      "Boksyt": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Boksytu"
+  },
+  {
+    "id": "[ID-9XX-3661]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-7393]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1850,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 1.0
+      },
+      "outputs": {
+        "Kamień": 5000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Dłuta",
+        "produkcja": "Ręczne Łupanie",
+        "organizacja": "Lokalne Kamieniołomy"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-7393]"
+    },
+    "ostatnia_produkcja": {
+      "Kamień": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kamieniolom"
+  },
+  {
+    "id": "[ID-9XX-5462]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-9986]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1870,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Srebro": 800.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-9986]"
+    },
+    "ostatnia_produkcja": {
+      "Srebro": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Srebra"
+  },
+  {
+    "id": "[ID-9XX-1471]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-3583]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 36,
+    "zatrudnienie_aktualne": 36,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0909,
+      "sredni": 0.5682,
+      "szeregowi": 0.3409,
+      "wydajnosc": 1.82,
+      "inputs": {
+        "Drewno": 2.0,
+        "Maszyny Przemysłowe": 0.5
+      },
+      "outputs": {
+        "Surowce Mineralne": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Proste Maszyny Parowe",
+        "produkcja": "Wydobycie Maszynowe",
+        "organizacja": "Prywatna Kopalnia"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-3583]"
+    },
+    "ostatnia_produkcja": {
+      "Surowce Mineralne": 90.0
+    },
+    "rentownosc_ost_rok": -30302.311201990873,
+    "nazwa": "Kopalnia Odkrywkowa"
+  },
+  {
+    "id": "[ID-9XX-6311]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-9121]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1850,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Żwir": 6000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Łopaty i Sieciaki",
+        "produkcja": "Ręczne Wydobywanie",
+        "organizacja": "Lokalne Żwirownie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-9121]"
+    },
+    "ostatnia_produkcja": {
+      "Żwir": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Żwirownia"
+  },
+  {
+    "id": "[ID-9XX-2383]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-1677]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1870,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Ołów": 1300.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-1677]"
+    },
+    "ostatnia_produkcja": {
+      "Ołów": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Ołowiu"
+  },
+  {
+    "id": "[ID-9XX-3096]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-2671]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 50,
+    "zatrudnienie_aktualne": 50,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Sól": 8000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Pompy",
+        "produkcja": "Odkrywka Solna",
+        "organizacja": "Państwowe Monopole"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-2671]"
+    },
+    "ostatnia_produkcja": {
+      "Sól": 400.0
+    },
+    "rentownosc_ost_rok": -38347.465550501554,
+    "nazwa": "Kopalnia Soli"
+  },
+  {
+    "id": "[ID-9XX-5626]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-6610]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1852,
+      "sredni": 0.7963,
+      "szeregowi": 0.0185,
+      "wydajnosc": 2.88,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Paliwa": 2.0
+      },
+      "outputs": {
+        "Sól": 8000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wiertnice i Pompy",
+        "produkcja": "Odkrywka Solna",
+        "organizacja": "Państwowe Monopole"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-6610]"
+    },
+    "ostatnia_produkcja": {
+      "Sól": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Soli"
+  },
+  {
+    "id": "[ID-9XX-4771]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-8510]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.18,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Żelazo": 2000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilkofy i Wagoniki",
+        "produkcja": "Kilkofy i Wagoniki",
+        "organizacja": "Prywatna Kopalnia"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-8510]"
+    },
+    "ostatnia_produkcja": {
+      "Żelazo": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Żelaza"
+  },
+  {
+    "id": "[ID-9XX-8722]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-7866]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.18,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Węgiel Kamienny": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki Konne",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatna Kopalnia"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-7866]"
+    },
+    "ostatnia_produkcja": {
+      "Węgiel Kamienny": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Węgla"
+  },
+  {
+    "id": "[ID-9XX-9031]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-7506]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1870,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Srebro": 800.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-7506]"
+    },
+    "ostatnia_produkcja": {
+      "Srebro": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Srebra"
+  },
+  {
+    "id": "[ID-9XX-7879]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-8202]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1850,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Piasek": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Łopaty i Sieciaki",
+        "produkcja": "Ręczne Wydobywanie",
+        "organizacja": "Lokalne Piaskownie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-8202]"
+    },
+    "ostatnia_produkcja": {
+      "Piasek": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Piaskownia"
+  },
+  {
+    "id": "[ID-9XX-8443]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-7013]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0909,
+      "sredni": 0.5682,
+      "szeregowi": 0.3409,
+      "wydajnosc": 1.82,
+      "inputs": {
+        "Drewno": 2.0,
+        "Maszyny Przemysłowe": 0.5
+      },
+      "outputs": {
+        "Surowce Mineralne": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Proste Maszyny Parowe",
+        "produkcja": "Wydobycie Maszynowe",
+        "organizacja": "Prywatna Kopalnia"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-7013]"
+    },
+    "ostatnia_produkcja": {
+      "Surowce Mineralne": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Odkrywkowa"
+  },
+  {
+    "id": "[ID-9XX-4071]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-6644]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1850,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Żwir": 6000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Łopaty i Sieciaki",
+        "produkcja": "Ręczne Wydobywanie",
+        "organizacja": "Lokalne Żwirownie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-6644]"
+    },
+    "ostatnia_produkcja": {
+      "Żwir": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Żwirownia"
+  },
+  {
+    "id": "[ID-9XX-5493]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-4908]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1850,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Żwir": 6000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Łopaty i Sieciaki",
+        "produkcja": "Ręczne Wydobywanie",
+        "organizacja": "Lokalne Żwirownie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-4908]"
+    },
+    "ostatnia_produkcja": {
+      "Żwir": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Żwirownia"
+  },
+  {
+    "id": "[ID-9XX-5853]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-5777]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.1625,
+      "sredni": 0.525,
+      "szeregowi": 0.3125,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Stal": 5.0
+      },
+      "outputs": {
+        "Ropa Naftowa": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wieże Wiertnicze (Kablowe)",
+        "produkcja": "Wieże Wiertnicze",
+        "organizacja": "Prywatne Koncesje"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-5777]"
+    },
+    "ostatnia_produkcja": {
+      "Ropa Naftowa": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Szyby Naftowe"
+  },
+  {
+    "id": "[ID-9XX-5004]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-5329]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1870,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Srebro": 800.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-5329]"
+    },
+    "ostatnia_produkcja": {
+      "Srebro": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Srebra"
+  },
+  {
+    "id": "[ID-9XX-3058]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-8284]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1850,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Żwir": 6000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Łopaty i Sieciaki",
+        "produkcja": "Ręczne Wydobywanie",
+        "organizacja": "Lokalne Żwirownie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-8284]"
+    },
+    "ostatnia_produkcja": {
+      "Żwir": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Żwirownia"
+  },
+  {
+    "id": "[ID-9XX-6549]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-9951]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1885,
+      "eksperci": 0.1625,
+      "sredni": 0.525,
+      "szeregowi": 0.3125,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Stal": 5.0
+      },
+      "outputs": {
+        "Ropa Naftowa": 3000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Wieże Wiertnicze (Kablowe)",
+        "produkcja": "Wieże Wiertnicze",
+        "organizacja": "Prywatne Koncesje"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-9951]"
+    },
+    "ostatnia_produkcja": {
+      "Ropa Naftowa": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Szyby Naftowe"
+  },
+  {
+    "id": "[ID-9XX-8119]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-3684]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.0642,
+      "sredni": 0.2477,
+      "szeregowi": 0.6881,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Miedź": 1500.0,
+        "Złoto": 100.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Narzędzia Ręczne",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Małe Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-3684]"
+    },
+    "ostatnia_produkcja": {
+      "Miedź": 0.0,
+      "Złoto": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnie Metali Kolorowych"
+  },
+  {
+    "id": "[ID-9XX-8922]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-2671]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1890,
+      "eksperci": 0.049,
+      "sredni": 0.2157,
+      "szeregowi": 0.7353,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Cynk": 1000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatne Kopalnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-2671]"
+    },
+    "ostatnia_produkcja": {
+      "Cynk": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Cynku"
+  },
+  {
+    "id": "[ID-9XX-3473]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-7517]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1900,
+      "eksperci": 0.1205,
+      "sredni": 0.4578,
+      "szeregowi": 0.4217,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Maszyny Przemysłowe": 1.0,
+        "Stal": 3.0
+      },
+      "outputs": {
+        "Gaz Ziemny": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Odwierty Proste",
+        "produkcja": "Tradycyjne Wydobycie",
+        "organizacja": "Lokalne Koncesje"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-7517]"
+    },
+    "ostatnia_produkcja": {
+      "Gaz Ziemny": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnie Gazu Ziemnego"
+  },
+  {
+    "id": "[ID-9XX-4564]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-9947]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1860,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 1.0
+      },
+      "outputs": {
+        "Wapień": 4500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Dłuta",
+        "produkcja": "Ręczne Łupanie",
+        "organizacja": "Lokalne Kamieniołomy"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-9947]"
+    },
+    "ostatnia_produkcja": {
+      "Wapień": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kamieniolom Wapienia"
+  },
+  {
+    "id": "[ID-9XX-3553]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-1544]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.18,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Węgiel Kamienny": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki Konne",
+        "produkcja": "Ręczne Wydobycie",
+        "organizacja": "Prywatna Kopalnia"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-1544]"
+    },
+    "ostatnia_produkcja": {
+      "Węgiel Kamienny": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Węgla"
+  },
+  {
+    "id": "[ID-9XX-6939]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-7071]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1850,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {
+        "Piasek": 7000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Łopaty i Sieciaki",
+        "produkcja": "Ręczne Wydobywanie",
+        "organizacja": "Lokalne Piaskownie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-7071]"
+    },
+    "ostatnia_produkcja": {
+      "Piasek": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Piaskownia"
+  },
+  {
+    "id": "[ID-9XX-8345]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-8434]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.0909,
+      "sredni": 0.5682,
+      "szeregowi": 0.3409,
+      "wydajnosc": 1.82,
+      "inputs": {
+        "Drewno": 2.0,
+        "Maszyny Przemysłowe": 0.5
+      },
+      "outputs": {
+        "Surowce Mineralne": 2500.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Proste Maszyny Parowe",
+        "produkcja": "Wydobycie Maszynowe",
+        "organizacja": "Prywatna Kopalnia"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-8434]"
+    },
+    "ostatnia_produkcja": {
+      "Surowce Mineralne": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Odkrywkowa"
+  },
+  {
+    "id": "[ID-9XX-5511]",
+    "name": "",
+    "wlasciciel_id": "[KRS-2MN-4919]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.02,
+      "sredni": 0.18,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 2.0
+      },
+      "outputs": {
+        "Żelazo": 2000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilkofy i Wagoniki",
+        "produkcja": "Kilkofy i Wagoniki",
+        "organizacja": "Prywatna Kopalnia"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[KRS-2MN-4919]"
+    },
+    "ostatnia_produkcja": {
+      "Żelazo": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Kopalnia Żelaza"
+  },
+  {
+    "id": "[ID-9XX-7327]",
+    "name": "",
+    "wlasciciel_id": "[ID-9MN-9498]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1850,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 1.0
+      },
+      "outputs": {
+        "Glina": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobywanie",
+        "organizacja": "Lokalne Cegielnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[ID-9MN-9498]"
+    },
+    "ostatnia_produkcja": {
+      "Glina": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Cegielnia (Glina)"
+  },
+  {
+    "id": "[ID-9XX-5441]",
+    "name": "",
+    "wlasciciel_id": "[REG-4MN-3079]",
+    "rok_budowy": 1900,
+    "sektor_pkb": "sektor_wydobywczy",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1850,
+      "eksperci": 0.0297,
+      "sredni": 0.1782,
+      "szeregowi": 0.7921,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "Drewno": 1.0
+      },
+      "outputs": {
+        "Glina": 4000.0
+      },
+      "aktywne_metody": {
+        "automatyzacja": "Kilofy i Wózki",
+        "produkcja": "Ręczne Wydobywanie",
+        "organizacja": "Lokalne Cegielnie"
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 1,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Wenedia-Region8",
+    "cluster_info": {
+      "region_id": "Wenedia-Region8",
+      "scale_factor": 1,
+      "sector": "sektor_wydobywczy",
+      "owner_id": "[REG-4MN-3079]"
+    },
+    "ostatnia_produkcja": {
+      "Glina": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "nazwa": "Cegielnia (Glina)"
+  }
+]

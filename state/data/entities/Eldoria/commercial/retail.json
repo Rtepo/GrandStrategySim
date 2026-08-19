@@ -1,0 +1,147 @@
+[
+  {
+    "id_budynku": "B-ELD-2706",
+    "typ_budynku": "retail_store",
+    "mikroregion_id": "Eldoria-Region1",
+    "właściciel": "KRS-ELD-2631",
+    "pojemność_biura": 0.0,
+    "pojemność_detaliczna": 158681.34,
+    "najemcy": [],
+    "czynz_za_metr": 0.0,
+    "połączenia_utilitarne": {
+      "woda_powierzchniowa": 0.0,
+      "woda_podziemna": 0.0,
+      "ścieki_przetwarzanie": 0.0,
+      "ciepło_systemowe": 0.0,
+      "energia_elektryczna": 0.0
+    },
+    "pojemność_magazynowa": 1586813.4,
+    "aktualny_inwentarz": {
+      "cereal": [
+        {
+          "ilość": 437.95680000000004,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ELD-2631",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ELD-2706",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "clothing": [
+        {
+          "ilość": 158.68,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ELD-2631",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ELD-2706",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "food": [
+        {
+          "ilość": 317.36,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ELD-2631",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ELD-2706",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "fruit": [
+        {
+          "ilość": 126.944,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ELD-2631",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ELD-2706",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "furniture": [
+        {
+          "ilość": 79.34,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ELD-2631",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ELD-2706",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "meat": [
+        {
+          "ilość": 158.68,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ELD-2631",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ELD-2706",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "protein": [
+        {
+          "ilość": 214.21800000000002,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ELD-2631",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ELD-2706",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ],
+      "vegetable": [
+        {
+          "ilość": 212.6312,
+          "turn_przechowywania": 0,
+          "id_właściciela": "KRS-ELD-2631",
+          "nakładane_opłaty": 0.0,
+          "id_magazynu": "B-ELD-2706",
+          "wyprzedaż": 0.0,
+          "koszt_zakupu_jednostki": 100.0
+        }
+      ]
+    },
+    "typ_magazynowania": "general_warehouse",
+    "wskaźnik_wykorzystania": 0.0,
+    "profil_detaliczny": {
+      "profile_sklepu": [
+        "grocery",
+        "clothing"
+      ],
+      "atrakcyjność_podstawowa": 0.8,
+      "ulepszenia": [],
+      "atrakcyjność_efektywna": 0.8,
+      "marża": 1.3,
+      "wynajęte_metry": 0.0,
+      "sprzedane_jednostki_ostatni_turn": {
+        "meat": 2380.2000000000003,
+        "fruit": 1904.1599999999996,
+        "cereal": 6569.352,
+        "vegetable": 3189.467999999999,
+        "protein": 3213.2699999999995
+      },
+      "niespełniony_popyt_ostatni_turn": {
+        "meat": 12166.809999999998,
+        "fruit": 4571.2660000000005,
+        "cereal": 206470.11776960018,
+        "vegetable": 146001.18480000002,
+        "protein": 90132.44000000024
+      },
+      "udział_rynku_ostatni_turn": {
+        "meat": 3.2222342556993557,
+        "fruit": 3.2222342556993553,
+        "cereal": 3.46822810467177,
+        "vegetable": 4.8947108661676415,
+        "protein": 3.532502226179878
+      },
+      "pierwszy_aktywny_turn": 0
+    },
+    "umowy_najmu": [],
+    "aktywa_trwałe": []
+  }
+]

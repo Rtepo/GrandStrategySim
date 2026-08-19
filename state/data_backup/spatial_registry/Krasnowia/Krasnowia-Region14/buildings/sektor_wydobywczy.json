@@ -1,0 +1,1757 @@
+[
+    {
+        "id": "[ID-9XX-2964]",
+        "nazwa": "Kopalnia Srebra",
+        "wlasciciel_id": "[KRS-2MN-5990]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 22000,
+        "zatrudnienie_aktualne": 17600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Srebro": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 11,
+        "pojemnosc_budowlana": 1100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 11,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-5990]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2314]",
+        "nazwa": "Żwirownia",
+        "wlasciciel_id": "[ID-9MN-3901]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 9000,
+        "zatrudnienie_aktualne": 7200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żwir": 6000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Łopaty i Sieciaki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Żwirownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-3901]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3051]",
+        "nazwa": "Kopalnia Węgla",
+        "wlasciciel_id": "[REG-4MN-1464]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 12000,
+        "zatrudnienie_aktualne": 9600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Węgiel Kamienny": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki Konne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-1464]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5284]",
+        "nazwa": "Cegielnia (Glina)",
+        "wlasciciel_id": "[KRS-2MN-2627]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 35200,
+        "zatrudnienie_aktualne": 28160,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Glina": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 11,
+        "pojemnosc_budowlana": 1100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 11,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-2627]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1582]",
+        "nazwa": "Kopalnia Cynku",
+        "wlasciciel_id": "[ID-9MN-5695]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 6900,
+        "zatrudnienie_aktualne": 5520,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Cynk": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-5695]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2962]",
+        "nazwa": "Kopalnia Ołowiu",
+        "wlasciciel_id": "[REG-4MN-5398]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 7200,
+        "zatrudnienie_aktualne": 5760,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Ołów": 1300
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-5398]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8791]",
+        "nazwa": "Kopalnia Siarki",
+        "wlasciciel_id": "[KRS-2MN-5880]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 24200,
+        "zatrudnienie_aktualne": 19360,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Siarka": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 11,
+        "pojemnosc_budowlana": 1100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 11,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-5880]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2446]",
+        "nazwa": "Kopalnia Siarki",
+        "wlasciciel_id": "[ID-9MN-2910]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 6600,
+        "zatrudnienie_aktualne": 5280,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Siarka": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-2910]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5100]",
+        "nazwa": "Kamieniolom",
+        "wlasciciel_id": "[REG-4MN-1497]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 10500,
+        "zatrudnienie_aktualne": 8400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Kamień": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-1497]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7583]",
+        "nazwa": "Kopalnia Soli",
+        "wlasciciel_id": "[KRS-2MN-1117]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 27500,
+        "zatrudnienie_aktualne": 22000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Maszyny Przemysłowe": 1,
+                "Paliwa": 2
+            },
+            "outputs": {
+                "Sól": 8000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wiertnice i Pompy",
+                "produkcja": "Odkrywka Solna",
+                "organizacja": "Państwowe Monopole"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 11,
+        "pojemnosc_budowlana": 1100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 11,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-1117]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2282]",
+        "nazwa": "Kopalnie Metali Kolorowych",
+        "wlasciciel_id": "[ID-9MN-5668]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 7500,
+        "zatrudnienie_aktualne": 6000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0642,
+            "sredni": 0.2477,
+            "szeregowi": 0.6881,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Miedź": 1500,
+                "Złoto": 100
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne",
+                "produkcja": "Tradycyjne Wydobycie",
+                "organizacja": "Małe Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-5668]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1008]",
+        "nazwa": "Kopalnia Ołowiu",
+        "wlasciciel_id": "[REG-4MN-8767]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 7200,
+        "zatrudnienie_aktualne": 5760,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Ołów": 1300
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-8767]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2789]",
+        "nazwa": "Kopalnie Gazu Ziemnego",
+        "wlasciciel_id": "[KRS-2MN-9425]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 11000,
+        "zatrudnienie_aktualne": 8800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1205,
+            "sredni": 0.4578,
+            "szeregowi": 0.4217,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 3,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Gaz Ziemny": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Odwierty Proste",
+                "produkcja": "Tradycyjne Wydobycie",
+                "organizacja": "Lokalne Koncesje"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 11,
+        "pojemnosc_budowlana": 1100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 11,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-9425]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4476]",
+        "nazwa": "Kamieniolom Wapienia",
+        "wlasciciel_id": "[ID-9MN-3635]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 9900,
+        "zatrudnienie_aktualne": 7920,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Wapień": 4500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-3635]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9052]",
+        "nazwa": "Kopalnia Żelaza",
+        "wlasciciel_id": "[REG-4MN-7246]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 10500,
+        "zatrudnienie_aktualne": 8400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Żelazo": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilkofy i Wagoniki",
+                "produkcja": "Kilkofy i Wagoniki",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-7246]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2471]",
+        "nazwa": "Kopalnia Srebra",
+        "wlasciciel_id": "[KRS-2MN-2337]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 22000,
+        "zatrudnienie_aktualne": 17600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Srebro": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 11,
+        "pojemnosc_budowlana": 1100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 11,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-2337]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2357]",
+        "nazwa": "Kopalnia Cynku",
+        "wlasciciel_id": "[ID-9MN-2341]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 6900,
+        "zatrudnienie_aktualne": 5520,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Cynk": 1000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-2341]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7706]",
+        "nazwa": "Kopalnie Metali Kolorowych",
+        "wlasciciel_id": "[REG-4MN-6253]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 7500,
+        "zatrudnienie_aktualne": 6000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.0642,
+            "sredni": 0.2477,
+            "szeregowi": 0.6881,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Miedź": 1500,
+                "Złoto": 100
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne",
+                "produkcja": "Tradycyjne Wydobycie",
+                "organizacja": "Małe Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-6253]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5978]",
+        "nazwa": "Kopalnia Siarki",
+        "wlasciciel_id": "[KRS-2MN-7633]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 24200,
+        "zatrudnienie_aktualne": 19360,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Siarka": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 11,
+        "pojemnosc_budowlana": 1100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 11,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-7633]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4298]",
+        "nazwa": "Kopalnia Cyny",
+        "wlasciciel_id": "[ID-9MN-9364]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 6600,
+        "zatrudnienie_aktualne": 5280,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Cyna": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Małe Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-9364]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5036]",
+        "nazwa": "Kopalnia Odkrywkowa",
+        "wlasciciel_id": "[REG-4MN-6183]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 9000,
+        "zatrudnienie_aktualne": 7200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0909,
+            "sredni": 0.5682,
+            "szeregowi": 0.3409,
+            "wydajnosc": 1.82,
+            "inputs": {
+                "Drewno": 2,
+                "Maszyny Przemysłowe": 0.5
+            },
+            "outputs": {
+                "Surowce Mineralne": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Proste Maszyny Parowe",
+                "produkcja": "Wydobycie Maszynowe",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-6183]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6238]",
+        "nazwa": "Szyby Naftowe",
+        "wlasciciel_id": "[KRS-2MN-4194]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 16500,
+        "zatrudnienie_aktualne": 13200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1885,
+            "eksperci": 0.1625,
+            "sredni": 0.525,
+            "szeregowi": 0.3125,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ropa Naftowa": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wieże Wiertnicze (Kablowe)",
+                "produkcja": "Wieże Wiertnicze",
+                "organizacja": "Prywatne Koncesje"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 11,
+        "pojemnosc_budowlana": 1100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 11,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-4194]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3902]",
+        "nazwa": "Piaskownia",
+        "wlasciciel_id": "[ID-9MN-4761]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 8400,
+        "zatrudnienie_aktualne": 6720,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Piasek": 7000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Łopaty i Sieciaki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Piaskownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-4761]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4945]",
+        "nazwa": "Kopalnia Cyny",
+        "wlasciciel_id": "[REG-4MN-4615]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 6600,
+        "zatrudnienie_aktualne": 5280,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Cyna": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Małe Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-4615]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6233]",
+        "nazwa": "Kopalnia Żelaza",
+        "wlasciciel_id": "[KRS-2MN-4430]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 38500,
+        "zatrudnienie_aktualne": 30800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Żelazo": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilkofy i Wagoniki",
+                "produkcja": "Kilkofy i Wagoniki",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 11,
+        "pojemnosc_budowlana": 1100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 11,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-4430]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8281]",
+        "nazwa": "Kopalnia Siarki",
+        "wlasciciel_id": "[ID-9MN-9111]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 6600,
+        "zatrudnienie_aktualne": 5280,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Siarka": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-9111]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2844]",
+        "nazwa": "Kopalnia Odkrywkowa",
+        "wlasciciel_id": "[REG-4MN-7784]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 9000,
+        "zatrudnienie_aktualne": 7200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0909,
+            "sredni": 0.5682,
+            "szeregowi": 0.3409,
+            "wydajnosc": 1.82,
+            "inputs": {
+                "Drewno": 2,
+                "Maszyny Przemysłowe": 0.5
+            },
+            "outputs": {
+                "Surowce Mineralne": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Proste Maszyny Parowe",
+                "produkcja": "Wydobycie Maszynowe",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-7784]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4138]",
+        "nazwa": "Kopalnia Srebra",
+        "wlasciciel_id": "[KRS-2MN-4030]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 22000,
+        "zatrudnienie_aktualne": 17600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Srebro": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 11,
+        "pojemnosc_budowlana": 1100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 11,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-4030]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1281]",
+        "nazwa": "Kamieniolom Wapienia",
+        "wlasciciel_id": "[ID-9MN-2311]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 9900,
+        "zatrudnienie_aktualne": 7920,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Wapień": 4500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-2311]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2963]",
+        "nazwa": "Kopalnia Siarki",
+        "wlasciciel_id": "[REG-4MN-5477]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 6600,
+        "zatrudnienie_aktualne": 5280,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Siarka": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-5477]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5968]",
+        "nazwa": "Kamieniolom Wapienia",
+        "wlasciciel_id": "[KRS-2MN-1444]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 36300,
+        "zatrudnienie_aktualne": 29040,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Wapień": 4500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 11,
+        "pojemnosc_budowlana": 1100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 11,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-1444]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6860]",
+        "nazwa": "Kamieniolom Wapienia",
+        "wlasciciel_id": "[ID-9MN-9662]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 9900,
+        "zatrudnienie_aktualne": 7920,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Wapień": 4500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Dłuta",
+                "produkcja": "Ręczne Łupanie",
+                "organizacja": "Lokalne Kamieniołomy"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-9662]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7234]",
+        "nazwa": "Żwirownia",
+        "wlasciciel_id": "[REG-4MN-2889]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 9000,
+        "zatrudnienie_aktualne": 7200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Żwir": 6000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Łopaty i Sieciaki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Żwirownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-2889]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9148]",
+        "nazwa": "Kopalnia Odkrywkowa",
+        "wlasciciel_id": "[KRS-2MN-8020]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 33000,
+        "zatrudnienie_aktualne": 26400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0909,
+            "sredni": 0.5682,
+            "szeregowi": 0.3409,
+            "wydajnosc": 1.82,
+            "inputs": {
+                "Drewno": 2,
+                "Maszyny Przemysłowe": 0.5
+            },
+            "outputs": {
+                "Surowce Mineralne": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Proste Maszyny Parowe",
+                "produkcja": "Wydobycie Maszynowe",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 11,
+        "pojemnosc_budowlana": 1100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 11,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-8020]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1445]",
+        "nazwa": "Kopalnia Węgla",
+        "wlasciciel_id": "[ID-9MN-5504]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 12000,
+        "zatrudnienie_aktualne": 9600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Węgiel Kamienny": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki Konne",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-5504]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3128]",
+        "nazwa": "Piaskownia",
+        "wlasciciel_id": "[REG-4MN-4253]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 8400,
+        "zatrudnienie_aktualne": 6720,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Piasek": 7000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Łopaty i Sieciaki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Piaskownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-4253]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6524]",
+        "nazwa": "Piaskownia",
+        "wlasciciel_id": "[KRS-2MN-9251]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 30800,
+        "zatrudnienie_aktualne": 24640,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {},
+            "outputs": {
+                "Piasek": 7000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Łopaty i Sieciaki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Piaskownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 11,
+        "pojemnosc_budowlana": 1100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 11,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-9251]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8897]",
+        "nazwa": "Kopalnia Ołowiu",
+        "wlasciciel_id": "[ID-9MN-7679]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 7200,
+        "zatrudnienie_aktualne": 5760,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Ołów": 1300
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-7679]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5175]",
+        "nazwa": "Kopalnia Żelaza",
+        "wlasciciel_id": "[REG-4MN-4157]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 10500,
+        "zatrudnienie_aktualne": 8400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Żelazo": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilkofy i Wagoniki",
+                "produkcja": "Kilkofy i Wagoniki",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-4157]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9367]",
+        "nazwa": "Kopalnia Srebra",
+        "wlasciciel_id": "[KRS-2MN-6595]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 22000,
+        "zatrudnienie_aktualne": 17600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1870,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Srebro": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 11,
+        "pojemnosc_budowlana": 1100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 11,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-6595]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7036]",
+        "nazwa": "Kopalnia Siarki",
+        "wlasciciel_id": "[ID-9MN-2535]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 6600,
+        "zatrudnienie_aktualne": 5280,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.049,
+            "sredni": 0.2157,
+            "szeregowi": 0.7353,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Siarka": 1500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobycie",
+                "organizacja": "Prywatne Kopalnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-2535]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3722]",
+        "nazwa": "Cegielnia (Glina)",
+        "wlasciciel_id": "[REG-4MN-4749]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 9600,
+        "zatrudnienie_aktualne": 7680,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1850,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 1
+            },
+            "outputs": {
+                "Glina": 4000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilofy i Wózki",
+                "produkcja": "Ręczne Wydobywanie",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-4749]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3278]",
+        "nazwa": "Kopalnia Odkrywkowa",
+        "wlasciciel_id": "[KRS-2MN-5939]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 33000,
+        "zatrudnienie_aktualne": 26400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0909,
+            "sredni": 0.5682,
+            "szeregowi": 0.3409,
+            "wydajnosc": 1.82,
+            "inputs": {
+                "Drewno": 2,
+                "Maszyny Przemysłowe": 0.5
+            },
+            "outputs": {
+                "Surowce Mineralne": 2500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Proste Maszyny Parowe",
+                "produkcja": "Wydobycie Maszynowe",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 11,
+        "pojemnosc_budowlana": 1100,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 11,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[KRS-2MN-5939]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8434]",
+        "nazwa": "Kopalnia Żelaza",
+        "wlasciciel_id": "[ID-9MN-8366]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 10500,
+        "zatrudnienie_aktualne": 8400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.02,
+            "sredni": 0.18,
+            "szeregowi": 0.8,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Drewno": 2
+            },
+            "outputs": {
+                "Żelazo": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kilkofy i Wagoniki",
+                "produkcja": "Kilkofy i Wagoniki",
+                "organizacja": "Prywatna Kopalnia"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[ID-9MN-8366]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3887]",
+        "nazwa": "Szyby Naftowe",
+        "wlasciciel_id": "[REG-4MN-1983]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "sektor_wydobywczy",
+        "pojemnosc_pracownikow": 4500,
+        "zatrudnienie_aktualne": 3600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1885,
+            "eksperci": 0.1625,
+            "sredni": 0.525,
+            "szeregowi": 0.3125,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Ropa Naftowa": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Wieże Wiertnicze (Kablowe)",
+                "produkcja": "Wieże Wiertnicze",
+                "organizacja": "Prywatne Koncesje"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 3,
+        "pojemnosc_budowlana": 300,
+        "region_id": "Krasnowia-Region14",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region14",
+            "scale_factor": 3,
+            "sector": "sektor_wydobywczy",
+            "owner_id": "[REG-4MN-1983]"
+        }
+    }
+]

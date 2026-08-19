@@ -1,0 +1,77 @@
+[
+  {
+    "id": "B-DAC-0014",
+    "name": "Armaments Factory",
+    "wlasciciel_id": "KRS-DAC-0014",
+    "rok_budowy": 1951,
+    "sektor_pkb": "armaments_industry",
+    "pojemnosc_pracownikow": 43,
+    "zatrudnienie_aktualne": 43,
+    "rezerwa_zakladowa": 89300.0,
+    "aktywna_metoda": {
+      "rok": 1965,
+      "eksperci": 0.3,
+      "sredni": 0.45,
+      "szeregowi": 0.25,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "electronic_components": 10.0,
+        "steel": 20.0,
+        "chemicals": 15.0
+      },
+      "outputs": {
+        "ammunition": 40.0,
+        "support_equipment": 10.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 5,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region1",
+    "cluster_info": {
+      "region_id": "Dacja-Region1",
+      "scale_factor": 5,
+      "sector": "armaments_industry",
+      "owner_id": "KRS-DAC-0014"
+    },
+    "ostatnia_produkcja": {
+      "ammunition": 9.6,
+      "support_equipment": 2.4
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.988,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.8173822579395549,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1955,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "ammunition": 4.0,
+      "electronic_components": 1.0,
+      "food": 0.5,
+      "support_equipment": 1.0,
+      "chemicals": 1.5
+    },
+    "pojemność_magazynu": 1000.0
+  }
+]

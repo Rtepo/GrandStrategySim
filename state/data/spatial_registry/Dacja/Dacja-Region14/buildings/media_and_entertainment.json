@@ -1,0 +1,73 @@
+[
+  {
+    "id": "B-DAC-0251",
+    "name": "Media Studio",
+    "wlasciciel_id": "KRS-DAC-0251",
+    "rok_budowy": 1886,
+    "sektor_pkb": "media_and_entertainment",
+    "pojemnosc_pracownikow": 32,
+    "zatrudnienie_aktualne": 32,
+    "rezerwa_zakladowa": 24850.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.05,
+      "sredni": 0.15,
+      "szeregowi": 0.8,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "paper": 10.0,
+        "food": 3.0
+      },
+      "outputs": {
+        "radio": 0.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 2,
+    "pojemnosc_budowlana": 100,
+    "region_id": "Dacja-Region14",
+    "cluster_info": {
+      "region_id": "Dacja-Region14",
+      "scale_factor": 2,
+      "sector": "media_and_entertainment",
+      "owner_id": "KRS-DAC-0251"
+    },
+    "ostatnia_produkcja": {
+      "radio": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 0.988,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 3.0,
+        "condition": 0.7609870088021861,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "energy": 0.729,
+      "food": 6.096095673793546,
+      "cereal": 2.220446049250313e-16,
+      "vegetable": 1.1102230246251563e-16
+    },
+    "pojemność_magazynu": 1000.0
+  }
+]

@@ -1,0 +1,1829 @@
+[
+    {
+        "id": "[ID-9XX-5967]",
+        "nazwa": "Fabryka Maszyn",
+        "wlasciciel_id": "[KRS-2HV-5835]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 15000,
+        "zatrudnienie_aktualne": 12000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.6023,
+            "szeregowi": 0.25,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 200,
+                "Części Mechaniczne": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne i Tokarki",
+                "produkcja": "Narzędzia Ręczne i Odlewnia",
+                "organizacja": "Manufaktura Warsztatowa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-5835]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1113]",
+        "nazwa": "Fabryka Maszyn Rolnych",
+        "wlasciciel_id": "[ID-9HV-5536]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0889,
+            "sredni": 0.4444,
+            "szeregowi": 0.4667,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 8,
+                "Żelazo": 5,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Maszyny Rolne": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kowalstwo Ręczne",
+                "produkcja": "Proste Narzędzia Rolne",
+                "organizacja": "Lokalne Warsztaty"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-5536]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8230]",
+        "nazwa": "Cegielnia (Przemysłowa)",
+        "wlasciciel_id": "[REG-4HV-2561]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Glina": 8,
+                "Węgiel Kamienny": 3
+            },
+            "outputs": {
+                "Cegły": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Cegielniane Ręczne",
+                "produkcja": "Tradycyjna Cegielnia",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-2561]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5689]",
+        "nazwa": "Fabryka Pociągów",
+        "wlasciciel_id": "[KRS-2HV-3593]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 22500,
+        "zatrudnienie_aktualne": 18000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1111,
+            "sredni": 0.5,
+            "szeregowi": 0.3889,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 20,
+                "Żelazo": 10,
+                "Drewno": 15
+            },
+            "outputs": {
+                "Pociągi": 5
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Kowalskie",
+                "produkcja": "Pociągi Parowe",
+                "organizacja": "Krajowe Zakłady Kolejowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-3593]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2147]",
+        "nazwa": "Zakłady Chemiczne",
+        "wlasciciel_id": "[ID-9HV-3003]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1930,
+            "eksperci": 0.2353,
+            "sredni": 0.5882,
+            "szeregowi": 0.1765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Siarka": 5,
+                "Gaz Ziemny": 5
+            },
+            "outputs": {
+                "Nawozy": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece i Zbiorniki Ręczne",
+                "produkcja": "Proces Habera-Boscha",
+                "organizacja": "Laboratoria Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-3003]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5008]",
+        "nazwa": "Tartak",
+        "wlasciciel_id": "[REG-4HV-8711]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Drewno": 8,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Deski": 10000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piły Tarczowe i Traki",
+                "produkcja": "Mechaniczne Przeróbka",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-8711]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7259]",
+        "nazwa": "Zakłady Chemiczne",
+        "wlasciciel_id": "[KRS-2HV-3539]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 10000,
+        "zatrudnienie_aktualne": 8000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1930,
+            "eksperci": 0.2353,
+            "sredni": 0.5882,
+            "szeregowi": 0.1765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Siarka": 5,
+                "Gaz Ziemny": 5
+            },
+            "outputs": {
+                "Nawozy": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece i Zbiorniki Ręczne",
+                "produkcja": "Proces Habera-Boscha",
+                "organizacja": "Laboratoria Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-3539]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8778]",
+        "nazwa": "Huta Aluminium",
+        "wlasciciel_id": "[ID-9HV-7661]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1529,
+            "sredni": 0.4706,
+            "szeregowi": 0.3765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Boksyt": 15,
+                "Paliwa": 10
+            },
+            "outputs": {
+                "Aluminium": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Elektryczne Proste",
+                "produkcja": "Proces Halla-Héroulta",
+                "organizacja": "Laboratoria Badawcze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-7661]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5565]",
+        "nazwa": "Huta Aluminium",
+        "wlasciciel_id": "[REG-4HV-3393]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1529,
+            "sredni": 0.4706,
+            "szeregowi": 0.3765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Boksyt": 15,
+                "Paliwa": 10
+            },
+            "outputs": {
+                "Aluminium": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Elektryczne Proste",
+                "produkcja": "Proces Halla-Héroulta",
+                "organizacja": "Laboratoria Badawcze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-3393]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1547]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[KRS-2HV-5121]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 25000,
+        "zatrudnienie_aktualne": 20000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0909,
+            "sredni": 0.5114,
+            "szeregowi": 0.3977,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2,
+                "Części Mechaniczne": 2
+            },
+            "outputs": {
+                "Samochody": 20,
+                "Ciężarówki": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Karoseryjne",
+                "produkcja": "Warsztaty Karoseryjne",
+                "organizacja": "Rzemiosło Indywidualne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-5121]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6223]",
+        "nazwa": "Fabryka Maszyn Ciężkich",
+        "wlasciciel_id": "[ID-9HV-5244]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1616,
+            "sredni": 0.5556,
+            "szeregowi": 0.2828,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 10,
+                "Żelazo": 5
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 300,
+                "Części Mechaniczne": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dźwigi Parowe",
+                "produkcja": "Warsztaty Odlewnicze",
+                "organizacja": "Zakłady Państwowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-5244]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5383]",
+        "nazwa": "Zakłady Chemiczne",
+        "wlasciciel_id": "[REG-4HV-3658]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1930,
+            "eksperci": 0.2353,
+            "sredni": 0.5882,
+            "szeregowi": 0.1765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Siarka": 5,
+                "Gaz Ziemny": 5
+            },
+            "outputs": {
+                "Nawozy": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece i Zbiorniki Ręczne",
+                "produkcja": "Proces Habera-Boscha",
+                "organizacja": "Laboratoria Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-3658]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5601]",
+        "nazwa": "Rafineria",
+        "wlasciciel_id": "[KRS-2HV-3830]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 7500,
+        "zatrudnienie_aktualne": 6000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1087,
+            "sredni": 0.4565,
+            "szeregowi": 0.4348,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Ropa Naftowa": 20
+            },
+            "outputs": {
+                "Paliwa": 1500,
+                "Bitumin": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Destylacja Prosta",
+                "produkcja": "Prosta Destylacja",
+                "organizacja": "Małe Rafinerie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-3830]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9716]",
+        "nazwa": "Huta Aluminium",
+        "wlasciciel_id": "[ID-9HV-6463]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1529,
+            "sredni": 0.4706,
+            "szeregowi": 0.3765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Boksyt": 15,
+                "Paliwa": 10
+            },
+            "outputs": {
+                "Aluminium": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Elektryczne Proste",
+                "produkcja": "Proces Halla-Héroulta",
+                "organizacja": "Laboratoria Badawcze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-6463]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1154]",
+        "nazwa": "Fabryka Maszyn Rolnych",
+        "wlasciciel_id": "[REG-4HV-8887]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0889,
+            "sredni": 0.4444,
+            "szeregowi": 0.4667,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 8,
+                "Żelazo": 5,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Maszyny Rolne": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kowalstwo Ręczne",
+                "produkcja": "Proste Narzędzia Rolne",
+                "organizacja": "Lokalne Warsztaty"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-8887]"
+        }
+    },
+    {
+        "id": "[ID-9XX-1245]",
+        "nazwa": "Fabryka Maszyn Ciężkich",
+        "wlasciciel_id": "[KRS-2HV-1267]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 15000,
+        "zatrudnienie_aktualne": 12000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1616,
+            "sredni": 0.5556,
+            "szeregowi": 0.2828,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 10,
+                "Żelazo": 5
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 300,
+                "Części Mechaniczne": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dźwigi Parowe",
+                "produkcja": "Warsztaty Odlewnicze",
+                "organizacja": "Zakłady Państwowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-1267]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4946]",
+        "nazwa": "Huta Szkła",
+        "wlasciciel_id": "[ID-9HV-6744]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1800,
+        "zatrudnienie_aktualne": 1440,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0816,
+            "sredni": 0.3571,
+            "szeregowi": 0.5612,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Piasek": 15,
+                "Wapień": 5,
+                "Węgiel Kamienny": 8
+            },
+            "outputs": {
+                "Szkło": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Szkliste Ręczne",
+                "produkcja": "Tradycyjna Huta Szkła",
+                "organizacja": "Lokalne Huty Szkła"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-6744]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9370]",
+        "nazwa": "Cegielnia (Przemysłowa)",
+        "wlasciciel_id": "[REG-4HV-8530]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Glina": 8,
+                "Węgiel Kamienny": 3
+            },
+            "outputs": {
+                "Cegły": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Cegielniane Ręczne",
+                "produkcja": "Tradycyjna Cegielnia",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-8530]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4943]",
+        "nazwa": "Huta Aluminium",
+        "wlasciciel_id": "[KRS-2HV-1697]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 17500,
+        "zatrudnienie_aktualne": 14000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1529,
+            "sredni": 0.4706,
+            "szeregowi": 0.3765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Boksyt": 15,
+                "Paliwa": 10
+            },
+            "outputs": {
+                "Aluminium": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Elektryczne Proste",
+                "produkcja": "Proces Halla-Héroulta",
+                "organizacja": "Laboratoria Badawcze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-1697]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5780]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[ID-9HV-1629]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0909,
+            "sredni": 0.5114,
+            "szeregowi": 0.3977,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2,
+                "Części Mechaniczne": 2
+            },
+            "outputs": {
+                "Samochody": 20,
+                "Ciężarówki": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Karoseryjne",
+                "produkcja": "Warsztaty Karoseryjne",
+                "organizacja": "Rzemiosło Indywidualne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-1629]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3013]",
+        "nazwa": "Huta Stali",
+        "wlasciciel_id": "[REG-4HV-7627]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 4000,
+        "zatrudnienie_aktualne": 3200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1778,
+            "sredni": 0.7111,
+            "szeregowi": 0.1111,
+            "wydajnosc": 1.4,
+            "inputs": {
+                "Żelazo": 20,
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Stal": 3500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dmuchawy i Mechaniczne Mieszadła",
+                "produkcja": "Piec Martenowski",
+                "organizacja": "Zarządzanie Tradycyjne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-7627]"
+        }
+    },
+    {
+        "id": "[ID-9XX-6413]",
+        "nazwa": "Huta Stali",
+        "wlasciciel_id": "[KRS-2HV-2618]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 20000,
+        "zatrudnienie_aktualne": 16000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1778,
+            "sredni": 0.7111,
+            "szeregowi": 0.1111,
+            "wydajnosc": 1.4,
+            "inputs": {
+                "Żelazo": 20,
+                "Węgiel Kamienny": 10
+            },
+            "outputs": {
+                "Stal": 3500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dmuchawy i Mechaniczne Mieszadła",
+                "produkcja": "Piec Martenowski",
+                "organizacja": "Zarządzanie Tradycyjne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-2618]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7618]",
+        "nazwa": "Cementownia",
+        "wlasciciel_id": "[ID-9HV-2673]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0515,
+            "sredni": 0.2784,
+            "szeregowi": 0.6701,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Wapień": 10,
+                "Węgiel Kamienny": 5
+            },
+            "outputs": {
+                "Cement": 3000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Rotacyjne Ręczne",
+                "produkcja": "Tradycyjna Cementownia",
+                "organizacja": "Lokalne Cementownie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-2673]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3391]",
+        "nazwa": "Huta Aluminium",
+        "wlasciciel_id": "[REG-4HV-2266]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3500,
+        "zatrudnienie_aktualne": 2800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1529,
+            "sredni": 0.4706,
+            "szeregowi": 0.3765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Boksyt": 15,
+                "Paliwa": 10
+            },
+            "outputs": {
+                "Aluminium": 1200
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Elektryczne Proste",
+                "produkcja": "Proces Halla-Héroulta",
+                "organizacja": "Laboratoria Badawcze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-2266]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4446]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[KRS-2HV-7514]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 30000,
+        "zatrudnienie_aktualne": 24000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0792,
+            "sredni": 0.396,
+            "szeregowi": 0.5248,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Stolarskie",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-7514]"
+        }
+    },
+    {
+        "id": "[ID-9XX-2636]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[ID-9HV-8529]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0909,
+            "sredni": 0.5114,
+            "szeregowi": 0.3977,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2,
+                "Części Mechaniczne": 2
+            },
+            "outputs": {
+                "Samochody": 20,
+                "Ciężarówki": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Karoseryjne",
+                "produkcja": "Warsztaty Karoseryjne",
+                "organizacja": "Rzemiosło Indywidualne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-8529]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7281]",
+        "nazwa": "Tartak",
+        "wlasciciel_id": "[REG-4HV-2172]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1900,
+            "eksperci": 0.1852,
+            "sredni": 0.7963,
+            "szeregowi": 0.0185,
+            "wydajnosc": 2.88,
+            "inputs": {
+                "Drewno": 8,
+                "Maszyny Przemysłowe": 1
+            },
+            "outputs": {
+                "Deski": 10000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piły Tarczowe i Traki",
+                "produkcja": "Mechaniczne Przeróbka",
+                "organizacja": "Regionalne Przedsiębiorstwa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-2172]"
+        }
+    },
+    {
+        "id": "[ID-9XX-5334]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[KRS-2HV-9273]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 25000,
+        "zatrudnienie_aktualne": 20000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0909,
+            "sredni": 0.5114,
+            "szeregowi": 0.3977,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2,
+                "Części Mechaniczne": 2
+            },
+            "outputs": {
+                "Samochody": 20,
+                "Ciężarówki": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Karoseryjne",
+                "produkcja": "Warsztaty Karoseryjne",
+                "organizacja": "Rzemiosło Indywidualne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-9273]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9335]",
+        "nazwa": "Cegielnia (Przemysłowa)",
+        "wlasciciel_id": "[ID-9HV-3623]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Glina": 8,
+                "Węgiel Kamienny": 3
+            },
+            "outputs": {
+                "Cegły": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Cegielniane Ręczne",
+                "produkcja": "Tradycyjna Cegielnia",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-3623]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4544]",
+        "nazwa": "Rafineria",
+        "wlasciciel_id": "[REG-4HV-6927]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1087,
+            "sredni": 0.4565,
+            "szeregowi": 0.4348,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Ropa Naftowa": 20
+            },
+            "outputs": {
+                "Paliwa": 1500,
+                "Bitumin": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Destylacja Prosta",
+                "produkcja": "Prosta Destylacja",
+                "organizacja": "Małe Rafinerie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-6927]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7087]",
+        "nazwa": "Fabryka Pociągów",
+        "wlasciciel_id": "[KRS-2HV-9788]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 22500,
+        "zatrudnienie_aktualne": 18000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1111,
+            "sredni": 0.5,
+            "szeregowi": 0.3889,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 20,
+                "Żelazo": 10,
+                "Drewno": 15
+            },
+            "outputs": {
+                "Pociągi": 5
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Kowalskie",
+                "produkcja": "Pociągi Parowe",
+                "organizacja": "Krajowe Zakłady Kolejowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-9788]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9409]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[ID-9HV-2624]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0792,
+            "sredni": 0.396,
+            "szeregowi": 0.5248,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Stolarskie",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-2624]"
+        }
+    },
+    {
+        "id": "[ID-9XX-9925]",
+        "nazwa": "Fabryka Maszyn Ciężkich",
+        "wlasciciel_id": "[REG-4HV-3338]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.1616,
+            "sredni": 0.5556,
+            "szeregowi": 0.2828,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 10,
+                "Żelazo": 5
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 300,
+                "Części Mechaniczne": 800
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Dźwigi Parowe",
+                "produkcja": "Warsztaty Odlewnicze",
+                "organizacja": "Zakłady Państwowe"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-3338]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3457]",
+        "nazwa": "Zakłady Chemiczne",
+        "wlasciciel_id": "[KRS-2HV-4968]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 10000,
+        "zatrudnienie_aktualne": 8000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1930,
+            "eksperci": 0.2353,
+            "sredni": 0.5882,
+            "szeregowi": 0.1765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Siarka": 5,
+                "Gaz Ziemny": 5
+            },
+            "outputs": {
+                "Nawozy": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece i Zbiorniki Ręczne",
+                "produkcja": "Proces Habera-Boscha",
+                "organizacja": "Laboratoria Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-4968]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8170]",
+        "nazwa": "Zakłady Chemiczne",
+        "wlasciciel_id": "[ID-9HV-5704]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1930,
+            "eksperci": 0.2353,
+            "sredni": 0.5882,
+            "szeregowi": 0.1765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Siarka": 5,
+                "Gaz Ziemny": 5
+            },
+            "outputs": {
+                "Nawozy": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece i Zbiorniki Ręczne",
+                "produkcja": "Proces Habera-Boscha",
+                "organizacja": "Laboratoria Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-5704]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4671]",
+        "nazwa": "Fabryka Maszyn",
+        "wlasciciel_id": "[REG-4HV-2500]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1477,
+            "sredni": 0.6023,
+            "szeregowi": 0.25,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2
+            },
+            "outputs": {
+                "Maszyny Przemysłowe": 200,
+                "Części Mechaniczne": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Ręczne i Tokarki",
+                "produkcja": "Narzędzia Ręczne i Odlewnia",
+                "organizacja": "Manufaktura Warsztatowa"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-2500]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8682]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[KRS-2HV-7995]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 25000,
+        "zatrudnienie_aktualne": 20000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0909,
+            "sredni": 0.5114,
+            "szeregowi": 0.3977,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2,
+                "Części Mechaniczne": 2
+            },
+            "outputs": {
+                "Samochody": 20,
+                "Ciężarówki": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Karoseryjne",
+                "produkcja": "Warsztaty Karoseryjne",
+                "organizacja": "Rzemiosło Indywidualne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-7995]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8371]",
+        "nazwa": "Rafineria",
+        "wlasciciel_id": "[ID-9HV-4880]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 1500,
+        "zatrudnienie_aktualne": 1200,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1087,
+            "sredni": 0.4565,
+            "szeregowi": 0.4348,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Ropa Naftowa": 20
+            },
+            "outputs": {
+                "Paliwa": 1500,
+                "Bitumin": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Destylacja Prosta",
+                "produkcja": "Prosta Destylacja",
+                "organizacja": "Małe Rafinerie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-4880]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3182]",
+        "nazwa": "Fabryka Maszyn Rolnych",
+        "wlasciciel_id": "[REG-4HV-5751]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 3000,
+        "zatrudnienie_aktualne": 2400,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0889,
+            "sredni": 0.4444,
+            "szeregowi": 0.4667,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 8,
+                "Żelazo": 5,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Maszyny Rolne": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kowalstwo Ręczne",
+                "produkcja": "Proste Narzędzia Rolne",
+                "organizacja": "Lokalne Warsztaty"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-5751]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7306]",
+        "nazwa": "Rafineria",
+        "wlasciciel_id": "[KRS-2HV-7573]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 7500,
+        "zatrudnienie_aktualne": 6000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.1087,
+            "sredni": 0.4565,
+            "szeregowi": 0.4348,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Ropa Naftowa": 20
+            },
+            "outputs": {
+                "Paliwa": 1500,
+                "Bitumin": 500
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Destylacja Prosta",
+                "produkcja": "Prosta Destylacja",
+                "organizacja": "Małe Rafinerie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-7573]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7114]",
+        "nazwa": "Stocznie Cywilne",
+        "wlasciciel_id": "[ID-9HV-4302]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 6000,
+        "zatrudnienie_aktualne": 4800,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1880,
+            "eksperci": 0.0792,
+            "sredni": 0.396,
+            "szeregowi": 0.5248,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 15,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Statki Towarowe": 20,
+                "Statki Pasażerskie": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Narzędzia Stolarskie",
+                "produkcja": "Tradycyjne Stocznie",
+                "organizacja": "Małe Stocznie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-4302]"
+        }
+    },
+    {
+        "id": "[ID-9XX-3737]",
+        "nazwa": "Zakłady Chemiczne",
+        "wlasciciel_id": "[REG-4HV-4746]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2000,
+        "zatrudnienie_aktualne": 1600,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1930,
+            "eksperci": 0.2353,
+            "sredni": 0.5882,
+            "szeregowi": 0.1765,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Siarka": 5,
+                "Gaz Ziemny": 5
+            },
+            "outputs": {
+                "Nawozy": 2000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece i Zbiorniki Ręczne",
+                "produkcja": "Proces Habera-Boscha",
+                "organizacja": "Laboratoria Rzemieślnicze"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-4746]"
+        }
+    },
+    {
+        "id": "[ID-9XX-4629]",
+        "nazwa": "Fabryka Maszyn Rolnych",
+        "wlasciciel_id": "[KRS-2HV-1003]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 15000,
+        "zatrudnienie_aktualne": 12000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0889,
+            "sredni": 0.4444,
+            "szeregowi": 0.4667,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 8,
+                "Żelazo": 5,
+                "Drewno": 10
+            },
+            "outputs": {
+                "Maszyny Rolne": 50
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Kowalstwo Ręczne",
+                "produkcja": "Proste Narzędzia Rolne",
+                "organizacja": "Lokalne Warsztaty"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 5,
+        "pojemnosc_budowlana": 500,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 5,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[KRS-2HV-1003]"
+        }
+    },
+    {
+        "id": "[ID-9XX-7261]",
+        "nazwa": "Fabryka Pojazdów",
+        "wlasciciel_id": "[ID-9HV-5992]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 5000,
+        "zatrudnienie_aktualne": 4000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1890,
+            "eksperci": 0.0909,
+            "sredni": 0.5114,
+            "szeregowi": 0.3977,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Stal": 5,
+                "Drewno": 2,
+                "Części Mechaniczne": 2
+            },
+            "outputs": {
+                "Samochody": 20,
+                "Ciężarówki": 10
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Warsztaty Karoseryjne",
+                "produkcja": "Warsztaty Karoseryjne",
+                "organizacja": "Rzemiosło Indywidualne"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[ID-9HV-5992]"
+        }
+    },
+    {
+        "id": "[ID-9XX-8391]",
+        "nazwa": "Cegielnia (Przemysłowa)",
+        "wlasciciel_id": "[REG-4HV-7799]",
+        "rok_budowy": 1900,
+        "sektor_pkb": "przemysł_ciężki",
+        "pojemnosc_pracownikow": 2500,
+        "zatrudnienie_aktualne": 2000,
+        "rezerwa_zakladowa": 0.0,
+        "aktywna_metoda": {
+            "rok": 1860,
+            "eksperci": 0.0297,
+            "sredni": 0.1782,
+            "szeregowi": 0.7921,
+            "wydajnosc": 1.0,
+            "inputs": {
+                "Glina": 8,
+                "Węgiel Kamienny": 3
+            },
+            "outputs": {
+                "Cegły": 5000
+            },
+            "aktywne_metody": {
+                "automatyzacja": "Piece Cegielniane Ręczne",
+                "produkcja": "Tradycyjna Cegielnia",
+                "organizacja": "Lokalne Cegielnie"
+            }
+        },
+        "wypadki_ost_rok": 0,
+        "strajk": false,
+        "scale_factor": 1,
+        "pojemnosc_budowlana": 100,
+        "region_id": "Krasnowia-Region15",
+        "cluster_info": {
+            "region_id": "Krasnowia-Region15",
+            "scale_factor": 1,
+            "sector": "przemysł_ciężki",
+            "owner_id": "[REG-4HV-7799]"
+        }
+    }
+]

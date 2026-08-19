@@ -1,0 +1,94 @@
+[
+  {
+    "id": "[ID-9XX-4663]",
+    "name": "",
+    "wlasciciel_id": "Państwo",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 0,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automatyzacja": "",
+        "produkcja": "",
+        "organizacja": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 10,
+    "pojemnosc_budowlana": 0,
+    "region_id": "Baktria-Region12",
+    "cluster_info": {
+      "region_id": "",
+      "scale_factor": 0,
+      "sector": "sektor_wydobywczy",
+      "owner_id": ""
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": 0.0,
+    "moc_zainstalowana_mw": 5000,
+    "nazwa": "Elektrownia Węglowa",
+    "powierzchnia_ha": 500,
+    "rodzaj": "Węglowa",
+    "stan_techniczny": 100.0,
+    "status": "Aktywna",
+    "typ_energii": "Nieodnawialne",
+    "wymagana_ziemia_ha": 50,
+    "zuzycie_paliwa": "węgiel"
+  },
+  {
+    "id": "[ID-9XX-7198]",
+    "name": "",
+    "wlasciciel_id": "Państwo",
+    "rok_budowy": 1925,
+    "sektor_pkb": "energetyka",
+    "pojemnosc_pracownikow": 1350,
+    "zatrudnienie_aktualne": 1080,
+    "rezerwa_zakladowa": 0.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.1,
+      "sredni": 0.4,
+      "szeregowi": 0.5,
+      "wydajnosc": 1.0,
+      "inputs": {},
+      "outputs": {},
+      "aktywne_metody": {
+        "automatyzacja": "",
+        "produkcja": "",
+        "organizacja": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 9,
+    "pojemnosc_budowlana": 0,
+    "region_id": "Baktria-Region12",
+    "cluster_info": {
+      "region_id": "",
+      "scale_factor": 0,
+      "sector": "sektor_wydobywczy",
+      "owner_id": ""
+    },
+    "ostatnia_produkcja": {},
+    "rentownosc_ost_rok": -180625.47150648374,
+    "moc_zainstalowana_mw": 2700,
+    "nazwa": "Elektrownia Wodna",
+    "powierzchnia_ha": 1800,
+    "rodzaj": "Wodna",
+    "stan_techniczny": 100.0,
+    "status": "Aktywna",
+    "typ_energii": "OZE",
+    "wymagana_ziemia_ha": 200,
+    "zuzycie_paliwa": "brak"
+  }
+]

@@ -1,0 +1,73 @@
+[
+  {
+    "id": "B-GAL-0087",
+    "name": "Armaments Factory",
+    "wlasciciel_id": "KRS-GAL-0087",
+    "rok_budowy": 1896,
+    "sektor_pkb": "armaments_industry",
+    "pojemnosc_pracownikow": 80,
+    "zatrudnienie_aktualne": 0,
+    "rezerwa_zakladowa": 26600.0,
+    "aktywna_metoda": {
+      "rok": 1880,
+      "eksperci": 0.2,
+      "sredni": 0.35,
+      "szeregowi": 0.45,
+      "wydajnosc": 1.0,
+      "inputs": {
+        "fuels": 8.0,
+        "food": 5.0,
+        "steel": 15.0
+      },
+      "outputs": {
+        "towed_artillery": 5.0
+      },
+      "aktywne_metody": {
+        "automation": "",
+        "production": "",
+        "organization": ""
+      }
+    },
+    "wypadki_ost_rok": 0,
+    "strajk": false,
+    "scale_factor": 4,
+    "pojemnosc_budowlana": 110,
+    "region_id": "Galia-Region3",
+    "cluster_info": {
+      "region_id": "Galia-Region3",
+      "scale_factor": 4,
+      "sector": "armaments_industry",
+      "owner_id": "KRS-GAL-0087"
+    },
+    "ostatnia_produkcja": {
+      "towed_artillery": 0.0
+    },
+    "rentownosc_ost_rok": 0.0,
+    "stan_techniczny": 1.0,
+    "aktywa_trwałe": [
+      {
+        "blueprint_id": "legacy_seed",
+        "commodity": "industrial_machinery",
+        "count": 5.0,
+        "condition": 0.7817517268758949,
+        "quality": 0.8,
+        "durability": 240.0,
+        "base_tech": "legacy",
+        "base_tech_year": 1880,
+        "acquired_turn": 0
+      }
+    ],
+    "zabytek": false,
+    "aggregated_stats": {
+      "total_employment": 0,
+      "total_production": {},
+      "total_dividends": 0.0
+    },
+    "inwentarz": {
+      "towed_artillery": 0.55,
+      "fuels": 0.88,
+      "food": 0.55
+    },
+    "pojemność_magazynu": 1100.0
+  }
+]
