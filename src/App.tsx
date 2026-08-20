@@ -15,6 +15,7 @@ import {
   RefreshCw,
   CandlestickChart,
   PiggyBank,
+  Trees,
 } from "lucide-react";
 import { useGameStore } from "./store/gameStore";
 import { advanceTurn, newGame } from "./hooks/useTauriCommand";
@@ -29,6 +30,7 @@ import { GovernmentPage } from "./pages/GovernmentPage";
 import { RegionsPage } from "./pages/RegionsPage";
 import { StockExchangePage } from "./pages/StockExchangePage";
 import { FundsPage } from "./pages/FundsPage";
+import { LandPage } from "./pages/LandPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { useUpdater } from "./hooks/useUpdater";
@@ -45,6 +47,7 @@ const NAV_ITEMS = [
   { to: "/parliament", label: "Parliament", icon: Globe },
   { to: "/government", label: "Government", icon: Landmark },
   { to: "/regions", label: "Regions", icon: Map },
+  { to: "/land", label: "Land", icon: Trees },
 ];
 
 interface SidebarProps {
@@ -310,6 +313,7 @@ export default function App() {
             <Route path="/parliament" element={<ParliamentPage />} />
             <Route path="/government" element={<GovernmentPage />} />
             <Route path="/regions" element={<RegionsPage />} />
+            <Route path="/land" element={<LandPage />} />
           </Routes>
         </ErrorBoundary>
       </main>

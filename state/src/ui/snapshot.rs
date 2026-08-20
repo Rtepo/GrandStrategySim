@@ -2757,6 +2757,163 @@ fn compute_deltas(
 ///
 /// # Returns
 /// A `GlobalSnapshot` with per-country snapshots.
+// ============================================================================
+// PHASE 60: CADASTRE / LAND / COURTS DTOs
+// ============================================================================
+
+/// Phase 60: Cadastre summary row per region (public data — visible to all players).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CadastreSummaryRow {
+    pub region_id: String,
+    pub region_name: String,
+    pub total_hectares: f64,
+    pub total_value: f64,
+    pub avg_legal_certainty: f64,
+    pub avg_infrastructure_access: f64,
+    pub zoning_distribution: Vec<CadastreZoningEntry>,
+    pub owner_distribution: Vec<CadastreOwnerEntry>,
+    pub border_conflicts: u32,
+    pub foreign_ownership_pct: f64,
+}
+
+/// Phase 60: Zoning distribution entry (designation + percentage).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CadastreZoningEntry {
+    pub designation: String,
+    pub percentage: f64,
+}
+
+/// Phase 60: Owner distribution entry (owner_type + percentage).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CadastreOwnerEntry {
+    pub owner_type: String,
+    pub percentage: f64,
+}
+
+/// Phase 60: Zoning plan row (public data).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct ZoningPlanRow {
+    pub region_id: String,
+    pub region_name: String,
+    pub plan_id: String,
+    pub enacted_turn: u32,
+    pub implementation_progress: f64,
+    pub target_distribution: Vec<CadastreZoningEntry>,
+    pub governor_name: String,
+    pub governor_trait: String,
+}
+
+/// Phase 60: Court backlog row per region (public data).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CourtBacklogRow {
+    pub region_id: String,
+    pub region_name: String,
+    pub pending_cases: u32,
+    pub border_conflicts: u32,
+    pub arbitration_cases: u32,
+    pub avg_processing_turns: f64,
+    pub court_status: String,
+    /// Whether the court is in crisis (severely backlogged or paralyzed).
+    pub is_crisis: bool,
+}
+
+/// Phase 60: Arbitration case row (public data).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct ArbitrationCaseRow {
+    pub case_id: String,
+    pub plaintiff_name: String,
+    pub plaintiff_type: String,
+    pub compensation_claimed: f64,
+    pub status: String,
+    pub filed_turn: u32,
+    pub state_strength_assessment: f64,
+}
+
+/// Phase 60: Parcel detail row (public data).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct ParcelDetailRow {
+    pub parcel_id: String,
+    pub region_id: String,
+    pub size_hectares: f64,
+    pub soil_class: String,
+    pub zoning: String,
+    pub owner_type: String,
+    pub owner_name: String,
+    pub legal_certainty: f64,
+    pub infrastructure_access: f64,
+    pub current_value: f64,
+    pub is_frozen: bool,
+    pub is_border_zone: bool,
+}
+
+/// Phase 60: Ministry land report (role-gated — internal government document).
+/// Only visible to players controlling a VIP in a top executive role.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct MinistryLandReportDTO {
+    pub report_turn: u32,
+    pub total_land_value: f64,
+    pub total_hectares: f64,
+    pub foreign_ownership_pct: f64,
+    pub total_border_conflicts: u32,
+    pub total_arbitration_cases: u32,
+    pub total_arbitration_exposure: f64,
+    pub regional_summaries: Vec<MinistryRegionalSummaryDTO>,
+    pub delay_note: String,
+}
+
+/// Phase 60: Per-region summary in the ministry report.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct MinistryRegionalSummaryDTO {
+    pub region_id: String,
+    pub total_hectares: f64,
+    pub total_value: f64,
+    pub avg_legal_certainty: f64,
+    pub border_conflicts: u32,
+    pub foreign_ownership_pct: f64,
+    pub court_backlog: f64,
+}
+
+/// Phase 60: Response wrapper for cadastre summary query.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CadastreSummaryResponse {
+    pub rows: Vec<CadastreSummaryRow>,
+}
+
+/// Phase 60: Response wrapper for zoning plans query.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct ZoningPlansResponse {
+    pub rows: Vec<ZoningPlanRow>,
+}
+
+/// Phase 60: Response wrapper for court backlog query.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CourtBacklogResponse {
+    pub rows: Vec<CourtBacklogRow>,
+    /// Whether any region is in court crisis (for pulsating red warning).
+    pub has_crisis: bool,
+}
+
+/// Phase 60: Response wrapper for arbitration cases query.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct ArbitrationCasesResponse {
+    pub rows: Vec<ArbitrationCaseRow>,
+    pub total_exposure: f64,
+    pub state_strength: f64,
+}
+
 pub fn build_global_snapshot(
     state: &GameState,
     market_history: &MarketHistory,

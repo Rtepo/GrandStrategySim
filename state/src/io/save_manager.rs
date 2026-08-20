@@ -193,6 +193,15 @@ pub fn load_country_data(data_dir: &Path, country: &str) -> Result<Country, Save
         regional_overflow_fees: std::collections::BTreeMap::new(),
         last_tax_result: None,
         accumulated_vat: 0.0,
+        cadastre: crate::society::cadastre::Cadastre::default(),
+        cadastre_config: crate::society::cadastre::CadastreConfig::default(),
+        land_price_history: crate::society::cadastre::LandPriceHistoryRegistry::default(),
+        arbitration_config: crate::society::cadastre::ArbitrationConfig::default(),
+        arbitration_court: crate::society::cadastre::ArbitrationCourt::default(),
+        border_conflicts: crate::society::cadastre::BorderConflictRegistry::default(),
+        legal_certainty_config: crate::society::cadastre::LegalCertaintyConfig::default(),
+        externality_config: crate::society::cadastre::ExternalityConfig::default(),
+        national_zoning_quota: crate::society::cadastre::NationalZoningQuota::default(),
     })
 }
 
@@ -319,6 +328,15 @@ pub fn load_game_state(data_dir: &Path) -> Result<GameState, SaveError> {
         regional_overflow_fees: std::collections::BTreeMap::new(),
         last_tax_result: None,
         accumulated_vat: 0.0,
+        cadastre: crate::society::cadastre::Cadastre::default(),
+        cadastre_config: crate::society::cadastre::CadastreConfig::default(),
+        land_price_history: crate::society::cadastre::LandPriceHistoryRegistry::default(),
+        arbitration_config: crate::society::cadastre::ArbitrationConfig::default(),
+        arbitration_court: crate::society::cadastre::ArbitrationCourt::default(),
+        border_conflicts: crate::society::cadastre::BorderConflictRegistry::default(),
+        legal_certainty_config: crate::society::cadastre::LegalCertaintyConfig::default(),
+        externality_config: crate::society::cadastre::ExternalityConfig::default(),
+        national_zoning_quota: crate::society::cadastre::NationalZoningQuota::default(),
             },
         );
     }

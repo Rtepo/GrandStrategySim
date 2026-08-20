@@ -520,6 +520,36 @@ pub struct Country {
     /// and read by process_tax_collection_turn for REPORTING ONLY (no second treasury credit).
     #[serde(default)]
     pub accumulated_vat: f64,
+    /// Phase 58: Topological land cadastre (slotmap-backed ParcelChunks).
+    /// Replaces the old aggregate LandRegistry. Source of truth for all land
+    /// ownership, zoning, valuation, and legal certainty.
+    #[serde(default)]
+    pub cadastre: crate::society::cadastre::Cadastre,
+    /// Phase 58: Hedonic valuation and cadastre cost configuration.
+    #[serde(default)]
+    pub cadastre_config: crate::society::cadastre::CadastreConfig,
+    /// Phase 58: Per-region rolling land price history for FairMarketAverage
+    /// compensation calculations during agrarian reform / expropriation.
+    #[serde(default)]
+    pub land_price_history: crate::society::cadastre::LandPriceHistoryRegistry,
+    /// Phase 58: Arbitration court configuration (no hardcoded multipliers).
+    #[serde(default)]
+    pub arbitration_config: crate::society::cadastre::ArbitrationConfig,
+    /// Phase 59: Arbitration court system (cases, compensation liabilities).
+    #[serde(default)]
+    pub arbitration_court: crate::society::cadastre::ArbitrationCourt,
+    /// Phase 59: Border conflict registry (per-country, parcels frozen by disputes).
+    #[serde(default)]
+    pub border_conflicts: crate::society::cadastre::BorderConflictRegistry,
+    /// Phase 59: Legal certainty dynamics configuration.
+    #[serde(default)]
+    pub legal_certainty_config: crate::society::cadastre::LegalCertaintyConfig,
+    /// Phase 59: Negative externality configuration for incompatible zoning.
+    #[serde(default)]
+    pub externality_config: crate::society::cadastre::ExternalityConfig,
+    /// Phase 59: National zoning quota set by the central government (player as PM).
+    #[serde(default)]
+    pub national_zoning_quota: crate::society::cadastre::NationalZoningQuota,
 }
 
 impl Country {
@@ -616,6 +646,15 @@ impl Country {
             regional_overflow_fees: std::collections::BTreeMap::new(),
             last_tax_result: None,
             accumulated_vat: 0.0,
+            cadastre: crate::society::cadastre::Cadastre::default(),
+            cadastre_config: crate::society::cadastre::CadastreConfig::default(),
+            land_price_history: crate::society::cadastre::LandPriceHistoryRegistry::default(),
+            arbitration_config: crate::society::cadastre::ArbitrationConfig::default(),
+            arbitration_court: crate::society::cadastre::ArbitrationCourt::default(),
+            border_conflicts: crate::society::cadastre::BorderConflictRegistry::default(),
+            legal_certainty_config: crate::society::cadastre::LegalCertaintyConfig::default(),
+            externality_config: crate::society::cadastre::ExternalityConfig::default(),
+            national_zoning_quota: crate::society::cadastre::NationalZoningQuota::default(),
         }
     }
 
@@ -918,6 +957,15 @@ impl CountryBuilder {
             regional_overflow_fees: std::collections::BTreeMap::new(),
             last_tax_result: None,
             accumulated_vat: 0.0,
+            cadastre: crate::society::cadastre::Cadastre::default(),
+            cadastre_config: crate::society::cadastre::CadastreConfig::default(),
+            land_price_history: crate::society::cadastre::LandPriceHistoryRegistry::default(),
+            arbitration_config: crate::society::cadastre::ArbitrationConfig::default(),
+            arbitration_court: crate::society::cadastre::ArbitrationCourt::default(),
+            border_conflicts: crate::society::cadastre::BorderConflictRegistry::default(),
+            legal_certainty_config: crate::society::cadastre::LegalCertaintyConfig::default(),
+            externality_config: crate::society::cadastre::ExternalityConfig::default(),
+            national_zoning_quota: crate::society::cadastre::NationalZoningQuota::default(),
         }
     }
 }

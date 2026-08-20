@@ -148,7 +148,7 @@ pub struct LatifundiumData {
     #[serde(default)]
     pub total_hectares: i64,
     
-    /// Soil quality classes controlled (I_Klasa through VI_Klasa)
+    /// Soil quality classes controlled (Class_I through Class_VI)
     #[serde(default)]
     pub soil_classes: std::collections::BTreeMap<String, i64>,
     

@@ -1,5 +1,6 @@
 pub mod actions;
 pub mod bank_queries;
+pub mod cadastre_queries;
 pub mod company_queries;
 pub mod governance_queries;
 pub mod macro_queries;

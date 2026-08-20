@@ -6,6 +6,16 @@
 export type AdvisoryCouncilSnapshot = { council_type: string, members: Array<CouncilMemberRow>, aggregate_loyalty: number, coup_risk_threshold: number, coup_cooldown_until_turn: number, };
 
 /**
+ * Phase 60: Arbitration case row (public data).
+ */
+export type ArbitrationCaseRow = { case_id: string, plaintiff_name: string, plaintiff_type: string, compensation_claimed: number, status: string, filed_turn: number, state_strength_assessment: number, };
+
+/**
+ * Phase 60: Response wrapper for arbitration cases query.
+ */
+export type ArbitrationCasesResponse = { rows: Array<ArbitrationCaseRow>, total_exposure: number, state_strength: number, };
+
+/**
  * Response for paginated bank queries.
  */
 export type BankPageResponse = { rows: Array<BankRow>, total_count: number, };
@@ -29,6 +39,36 @@ export type BankingHistoryResponse = { turns: Array<number>, total_reserves: Arr
  * Phase 55: Board member row for governance display.
  */
 export type BoardMemberRow = { vip_id: string, name: string, role: string, loyalty_to_ceo: number, appointed_turn: number, age: number, main_trait: string, };
+
+/**
+ * Phase 60: Owner distribution entry (owner_type + percentage).
+ */
+export type CadastreOwnerEntry = { owner_type: string, percentage: number, };
+
+/**
+ * Phase 60: Response wrapper for cadastre summary query.
+ */
+export type CadastreSummaryResponse = { rows: Array<CadastreSummaryRow>, };
+
+/**
+ * Build a `GlobalSnapshot` from the full `GameState` and market data.
+ *
+ * # Arguments
+ * * `state` - The full game state.
+ * * `market_history` - Global market history.
+ * * `market` - Global market.
+ * * `buildings` - All buildings (grouped by country via owner/region).
+ *
+ * # Returns
+ * A `GlobalSnapshot` with per-country snapshots.
+ * Phase 60: Cadastre summary row per region (public data — visible to all players).
+ */
+export type CadastreSummaryRow = { region_id: string, region_name: string, total_hectares: number, total_value: number, avg_legal_certainty: number, avg_infrastructure_access: number, zoning_distribution: Array<CadastreZoningEntry>, owner_distribution: Array<CadastreOwnerEntry>, border_conflicts: number, foreign_ownership_pct: number, };
+
+/**
+ * Phase 60: Zoning distribution entry (designation + percentage).
+ */
+export type CadastreZoningEntry = { designation: string, percentage: number, };
 
 /**
  * Phase 57: Capital gains tax summary row.
@@ -138,6 +178,24 @@ export type CompanyRow = { id: string, name: string, sector: string, region: str
  * A single council member row.
  */
 export type CouncilMemberRow = { vip_id: string, name: string, faction: string, loyalty: number, influence: number, };
+
+/**
+ * Phase 60: Response wrapper for court backlog query.
+ */
+export type CourtBacklogResponse = { rows: Array<CourtBacklogRow>, 
+/**
+ * Whether any region is in court crisis (for pulsating red warning).
+ */
+has_crisis: boolean, };
+
+/**
+ * Phase 60: Court backlog row per region (public data).
+ */
+export type CourtBacklogRow = { region_id: string, region_name: string, pending_cases: number, border_conflicts: number, arbitration_cases: number, avg_processing_turns: number, court_status: string, 
+/**
+ * Whether the court is in crisis (severely backlogged or paralyzed).
+ */
+is_crisis: boolean, };
 
 /**
  * Building defect summary.
@@ -292,6 +350,17 @@ ministry_cash: number, };
 export type MinistryExpenditureEntry = { category: string, amount: number, share_pct: number, };
 
 /**
+ * Phase 60: Ministry land report (role-gated — internal government document).
+ * Only visible to players controlling a VIP in a top executive role.
+ */
+export type MinistryLandReportDTO = { report_turn: number, total_land_value: number, total_hectares: number, foreign_ownership_pct: number, total_border_conflicts: number, total_arbitration_cases: number, total_arbitration_exposure: number, regional_summaries: Array<MinistryRegionalSummaryDTO>, delay_note: string, };
+
+/**
+ * Phase 60: Per-region summary in the ministry report.
+ */
+export type MinistryRegionalSummaryDTO = { region_id: string, total_hectares: number, total_value: number, avg_legal_certainty: number, border_conflicts: number, foreign_ownership_pct: number, court_backlog: number, };
+
+/**
  * OHS / casualty summary.
  */
 export type OhsSummary = { total_deceased: bigint, total_disabled: bigint, total_unable_to_work_fte: number, ohs_accidents_on_projects: number, };
@@ -308,6 +377,11 @@ offset: number,
  * Maximum number of items to include in the page.
  */
 limit: number, };
+
+/**
+ * Phase 60: Parcel detail row (public data).
+ */
+export type ParcelDetailRow = { parcel_id: string, region_id: string, size_hectares: number, soil_class: string, zoning: string, owner_type: string, owner_name: string, legal_certainty: number, infrastructure_access: number, current_value: number, is_frozen: boolean, is_border_zone: boolean, };
 
 /**
  * Response for the get_parliament command.
@@ -608,3 +682,13 @@ export type VipRow = { full_name: string, party: string, role: string, ideology:
  * A recent vote row.
  */
 export type VoteRow = { bill_id: string, bill_title: string, votes_for: number, votes_against: number, passed: boolean, turn: number, };
+
+/**
+ * Phase 60: Zoning plan row (public data).
+ */
+export type ZoningPlanRow = { region_id: string, region_name: string, plan_id: string, enacted_turn: number, implementation_progress: number, target_distribution: Array<CadastreZoningEntry>, governor_name: string, governor_trait: string, };
+
+/**
+ * Phase 60: Response wrapper for zoning plans query.
+ */
+export type ZoningPlansResponse = { rows: Array<ZoningPlanRow>, };

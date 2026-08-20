@@ -18,6 +18,12 @@ interface GameStore {
   selectedFundId: string | null;
   /** Phase 57: Selected listed company ID for detail panel. */
   selectedListedCompanyId: string | null;
+  /** Phase 60: Selected parcel ID for land detail panel. */
+  selectedParcelId: string | null;
+  /** Phase 60: Selected zoning region ID for zoning plan detail. */
+  selectedZoningRegionId: string | null;
+  /** Phase 60: Player VIP role for role-gated UI (Ministry Reports). */
+  playerVipRole: string;
   setSelectedCountry: (country: string | null) => void;
   refreshStatus: () => Promise<void>;
   setLoading: (loading: boolean) => void;
@@ -26,6 +32,9 @@ interface GameStore {
   setPendingVipId: (id: string | null) => void;
   setSelectedFundId: (id: string | null) => void;
   setSelectedListedCompanyId: (id: string | null) => void;
+  setSelectedParcelId: (id: string | null) => void;
+  setSelectedZoningRegionId: (id: string | null) => void;
+  setPlayerVipRole: (role: string) => void;
   bumpTurn: () => void;
   resetStore: () => void;
 }
@@ -40,6 +49,9 @@ export const useGameStore = create<GameStore>((set) => ({
   pendingVipId: null,
   selectedFundId: null,
   selectedListedCompanyId: null,
+  selectedParcelId: null,
+  selectedZoningRegionId: null,
+  playerVipRole: "",
   setSelectedCountry: (country) => set({ selectedCountry: country }),
   setLoading: (loading) => set({ loading }),
   setGenerating: (generating) => set({ generating }),
@@ -47,6 +59,9 @@ export const useGameStore = create<GameStore>((set) => ({
   setPendingVipId: (id) => set({ pendingVipId: id }),
   setSelectedFundId: (id) => set({ selectedFundId: id }),
   setSelectedListedCompanyId: (id) => set({ selectedListedCompanyId: id }),
+  setSelectedParcelId: (id) => set({ selectedParcelId: id }),
+  setSelectedZoningRegionId: (id) => set({ selectedZoningRegionId: id }),
+  setPlayerVipRole: (role) => set({ playerVipRole: role }),
   bumpTurn: () => set((s) => ({ turnNonce: s.turnNonce + 1 })),
   resetStore: () => set({
     selectedCountry: null,
@@ -58,6 +73,9 @@ export const useGameStore = create<GameStore>((set) => ({
     pendingVipId: null,
     selectedFundId: null,
     selectedListedCompanyId: null,
+    selectedParcelId: null,
+    selectedZoningRegionId: null,
+    playerVipRole: "",
   }),
   refreshStatus: async () => {
     try {

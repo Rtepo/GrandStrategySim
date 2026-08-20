@@ -58,6 +58,12 @@ fn main() {
             commands::region_queries::get_megaregion_detail,
             commands::parliament_queries::get_parliament,
             commands::parliament_queries::get_government,
+            // Phase 60: Cadastre / Land / Courts
+            commands::cadastre_queries::get_cadastre_summary,
+            commands::cadastre_queries::get_zoning_plans,
+            commands::cadastre_queries::get_court_backlog,
+            commands::cadastre_queries::get_arbitration_cases,
+            commands::cadastre_queries::get_ministry_land_report,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

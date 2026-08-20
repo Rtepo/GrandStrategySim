@@ -28,6 +28,11 @@ import type {
   FundDetail,
   KnfFindingRow,
   CapitalGainsTaxSummary,
+  CadastreSummaryResponse,
+  ZoningPlansResponse,
+  CourtBacklogResponse,
+  ArbitrationCasesResponse,
+  MinistryLandReportDTO,
 } from "../types/api";
 
 export async function getGameStatus(): Promise<GameStatus> {
@@ -183,6 +188,27 @@ export interface SectorOption {
 
 export async function getAvailableSectors(): Promise<SectorOption[]> {
   return invoke<SectorOption[]>("get_available_sectors");
+}
+
+// Phase 60: Cadastre / Land / Courts commands
+export async function getCadastreSummary(country: string): Promise<CadastreSummaryResponse> {
+  return invoke<CadastreSummaryResponse>("get_cadastre_summary", { country });
+}
+
+export async function getZoningPlans(country: string): Promise<ZoningPlansResponse> {
+  return invoke<ZoningPlansResponse>("get_zoning_plans", { country });
+}
+
+export async function getCourtBacklog(country: string): Promise<CourtBacklogResponse> {
+  return invoke<CourtBacklogResponse>("get_court_backlog", { country });
+}
+
+export async function getArbitrationCases(country: string): Promise<ArbitrationCasesResponse> {
+  return invoke<ArbitrationCasesResponse>("get_arbitration_cases", { country });
+}
+
+export async function getMinistryLandReport(country: string, playerVipRole: string): Promise<MinistryLandReportDTO> {
+  return invoke<MinistryLandReportDTO>("get_ministry_land_report", { country, playerVipRole });
 }
 
 /// Phase 54: Fetch banking history for sparkline tooltips.

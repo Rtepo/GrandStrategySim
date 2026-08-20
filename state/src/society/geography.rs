@@ -215,36 +215,36 @@ impl Climate {
     fn soil_profile(&self, rng: &mut impl Rng) -> (BTreeMap<String, f64>, f64) {
         let profile = match self {
             Climate::Fertile => BTreeMap::from([
-                ("I_Klasa".to_string(), 0.2),
-                ("II_Klasa".to_string(), 0.3),
-                ("III_Klasa".to_string(), 0.3),
-                ("IV_Klasa".to_string(), 0.15),
-                ("V_Klasa".to_string(), 0.05),
-                ("VI_Klasa".to_string(), 0.0),
+                ("Class_I".to_string(), 0.2),
+                ("Class_II".to_string(), 0.3),
+                ("Class_III".to_string(), 0.3),
+                ("Class_IV".to_string(), 0.15),
+                ("Class_V".to_string(), 0.05),
+                ("Class_VI".to_string(), 0.0),
             ]),
             Climate::Desert => BTreeMap::from([
-                ("I_Klasa".to_string(), 0.01),
-                ("II_Klasa".to_string(), 0.04),
-                ("III_Klasa".to_string(), 0.1),
-                ("IV_Klasa".to_string(), 0.2),
-                ("V_Klasa".to_string(), 0.3),
-                ("VI_Klasa".to_string(), 0.35),
+                ("Class_I".to_string(), 0.01),
+                ("Class_II".to_string(), 0.04),
+                ("Class_III".to_string(), 0.1),
+                ("Class_IV".to_string(), 0.2),
+                ("Class_V".to_string(), 0.3),
+                ("Class_VI".to_string(), 0.35),
             ]),
             Climate::Mountainous => BTreeMap::from([
-                ("I_Klasa".to_string(), 0.05),
-                ("II_Klasa".to_string(), 0.1),
-                ("III_Klasa".to_string(), 0.25),
-                ("IV_Klasa".to_string(), 0.3),
-                ("V_Klasa".to_string(), 0.2),
-                ("VI_Klasa".to_string(), 0.1),
+                ("Class_I".to_string(), 0.05),
+                ("Class_II".to_string(), 0.1),
+                ("Class_III".to_string(), 0.25),
+                ("Class_IV".to_string(), 0.3),
+                ("Class_V".to_string(), 0.2),
+                ("Class_VI".to_string(), 0.1),
             ]),
             Climate::Balanced => BTreeMap::from([
-                ("I_Klasa".to_string(), 0.1),
-                ("II_Klasa".to_string(), 0.2),
-                ("III_Klasa".to_string(), 0.2),
-                ("IV_Klasa".to_string(), 0.25),
-                ("V_Klasa".to_string(), 0.15),
-                ("VI_Klasa".to_string(), 0.1),
+                ("Class_I".to_string(), 0.1),
+                ("Class_II".to_string(), 0.2),
+                ("Class_III".to_string(), 0.2),
+                ("Class_IV".to_string(), 0.25),
+                ("Class_V".to_string(), 0.15),
+                ("Class_VI".to_string(), 0.1),
             ]),
         };
         let arable_mult = match self {
@@ -325,7 +325,7 @@ pub enum LandSubType {
 /// Soil class data within land categories (subordinate layer).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct SoilClassData {
-    /// Soil class identifier (e.g., "I_Klasa" through "VI_Klasa")
+    /// Soil class identifier in English (e.g., "Class_I" through "Class_VI")
     #[serde(rename = "klasa_gleby")]
     pub soil_class: String,
     /// Area in hectares
@@ -512,37 +512,6 @@ impl ClassLandDistribution {
     }
 }
 
-/// Land registry for a country (aggregates data from Regions dynamically)
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
-pub struct LandRegistry {
-    #[serde(alias = "klimat")]
-    pub climate: Climate,
-    #[serde(alias = "profil_gleb")]
-    pub soil_profile: BTreeMap<String, f64>,
-    #[serde(alias = "ziemia_orna_max")]
-    pub arable_land_max: i64,
-    #[serde(alias = "ziemia_orna_wykorzystana")]
-    pub arable_land_used: i64,
-    #[serde(alias = "limity_wydobycia")]
-    pub extraction_limits: BTreeMap<String, i64>,
-    #[serde(alias = "limity_wykorzystane")]
-    pub extraction_used: BTreeMap<String, i64>,
-    #[serde(alias = "zasoby")]
-    pub resources: Map<String, Value>,
-    #[serde(alias = "hektary_skarb_panstwa")]
-    pub state_hectares: BTreeMap<String, i64>,
-    #[serde(alias = "hektary_obywateli")]
-    pub citizen_hectares: BTreeMap<String, i64>,
-    #[serde(alias = "hektary_korporacji")]
-    pub corporate_hectares: BTreeMap<String, i64>,
-    #[serde(alias = "rezerwy_strategiczne")]
-    pub strategic_reserves: Map<String, Value>,
-    #[serde(alias = "ziemia_zabudowana")]
-    pub built_land: i64,
-    // REMOVED: land_distribution - Region is the single source of truth
-    // National aggregates are computed dynamically from Regions during run_turn
-}
-
 fn default_winter_mortality_multiplier() -> f64 {
     1.0
 }
@@ -659,6 +628,11 @@ pub struct Region {
     /// retail format selection, internal migration attractiveness.
     #[serde(default = "default_development_level")]
     pub development_level: f64,
+    /// Phase 58: Parcel IDs in the country's Cadastre that belong to this region.
+    /// Stored as a Vec of serialized ParcelId keys for serde compatibility.
+    /// Filled during cadastre generation and updated when parcels are split/merged.
+    #[serde(default)]
+    pub parcel_ids: Vec<crate::society::cadastre::ParcelId>,
 }
 
 /// Phase 47: Default development level for old saves (conservative mid-low).
@@ -1299,59 +1273,6 @@ pub struct Megaregion {
     pub governance: Option<crate::politics::local_government::MegaregionGovernance>,
 }
 
-/// Generates the top-level land registry for a country.
-pub fn generate_land_registry(_country: &str, population: i64, gdp: f64) -> LandRegistry {
-    let mut rng = rand::thread_rng();
-    let climate = Climate::random(&mut rng);
-    let (soil_profile, arable_mult) = climate.soil_profile(&mut rng);
-    let arable_max = (population as f64 * rng.gen_range(0.15..0.45) * arable_mult) as i64;
-    let base_mines = (population / 100_000) + 5;
-    let mine_limits = climate.mine_limits(base_mines, &mut rng);
-
-    let mut state_hectares = BTreeMap::new();
-    let mut citizen_hectares = BTreeMap::new();
-    let mut corporate_hectares = BTreeMap::new();
-    for (klasa, udzial) in &soil_profile {
-        if *udzial > 0.0 {
-            let total = (arable_max as f64 * *udzial) as i64;
-            let skarb = (total as f64 * 0.50) as i64;
-            let obywatele = (total as f64 * 0.40) as i64;
-            let korporacje = total - skarb - obywatele;
-            state_hectares.insert(klasa.clone(), skarb);
-            citizen_hectares.insert(klasa.clone(), obywatele);
-            corporate_hectares.insert(klasa.clone(), korporacje);
-        }
-    }
-
-    let mut resources = Map::new();
-    resources.insert("lasy".to_string(), serde_json::json!({"wyeksploatowanie": rng.gen_range(0.1..0.3)}));
-    resources.insert("woda_slodka".to_string(), serde_json::json!({"dostepnosc": rng.gen_range(0.5..1.0)}));
-    seed_geological_deposits(&mut resources, gdp, &mut rng);
-
-    let mut strategic_reserves = Map::new();
-    for good in ["węgiel", "węgiel_brunatny", "ropa", "gaz_ziemny", "torf", "uran", "żelazo", "miedź", "cynk", "boksyt", "złoto", "srebro", "diamenty", "kamień", "piasek", "sól", "wapień"] {
-        let mult = resource_category_multiplier(&good);
-        strategic_reserves.insert(good.to_string(), serde_json::json!(int(gdp * mult * 0.0001)));
-    }
-
-    let used: BTreeMap<String, i64> = mine_limits.keys().map(|k| (k.clone(), 0)).collect();
-
-    LandRegistry {
-        climate,
-        soil_profile,
-        arable_land_max: arable_max,
-        arable_land_used: 0,
-        extraction_limits: mine_limits,
-        extraction_used: used,
-        resources,
-        state_hectares,
-        citizen_hectares,
-        corporate_hectares,
-        strategic_reserves,
-        built_land: 0,
-    }
-}
-
 fn seed_geological_deposits(zasoby: &mut Map<String, Value>, gdp: f64, _rng: &mut impl Rng) {
     let goods = ["węgiel", "węgiel_brunatny", "ropa", "gaz_ziemny", "torf", "uran", "żelazo", "miedź", "cynk", "boksyt", "złoto", "srebro", "diamenty", "kamień", "piasek", "sól", "wapień"];
     for good in goods {
@@ -1375,15 +1296,6 @@ fn geological_multiplier(good: &str) -> f64 {
         "metaliczne" => 30.0,
         "skalne" => 100.0,
         _ => 100.0,
-    }
-}
-
-fn resource_category_multiplier(good: &str) -> f64 {
-    match resource_category(good) {
-        "energetyczne" => 0.0001,
-        "metaliczne" => 0.00005,
-        "skalne" => 0.00002,
-        _ => 0.00002,
     }
 }
 
@@ -1564,6 +1476,7 @@ pub fn generate_regional_topology(country: &str, population: i64, gdp: f64, star
             coord_x: 0.0,
             coord_y: 0.0,
             development_level,
+            parcel_ids: Vec::new(),
         });
     }
 
@@ -1881,6 +1794,7 @@ pub fn generate_maritime_nodes(
         coord_x: 0.0,
         coord_y: 0.0,
         development_level: 0.0,
+        parcel_ids: Vec::new(),
     };
     maritime_nodes.insert(sea_node_id, sea_node);
 
@@ -1921,6 +1835,7 @@ pub fn generate_maritime_nodes(
         coord_x: 0.0,
         coord_y: 0.0,
         development_level: 0.0,
+        parcel_ids: Vec::new(),
     };
     maritime_nodes.insert(ocean_node_id, ocean_node);
 
@@ -2182,21 +2097,21 @@ pub fn migrate_soil_profile_to_land_inventory(region: &mut Region) {
                 area_hectares: soil_hectares,
                 ownership: ClassLandDistribution::default(),
                 fertility_index: match soil_class.as_str() {
-                    "I_Klasa" => 1.0,
-                    "II_Klasa" => 0.9,
-                    "III_Klasa" => 0.75,
-                    "IV_Klasa" => 0.6,
-                    "V_Klasa" => 0.4,
-                    "VI_Klasa" => 0.2,
+                    "Class_I" => 1.0,
+                    "Class_II" => 0.9,
+                    "Class_III" => 0.75,
+                    "Class_IV" => 0.6,
+                    "Class_V" => 0.4,
+                    "Class_VI" => 0.2,
                     _ => 0.5,
                 },
                 erosion_risk: match soil_class.as_str() {
-                    "I_Klasa" => 0.1,
-                    "II_Klasa" => 0.15,
-                    "III_Klasa" => 0.2,
-                    "IV_Klasa" => 0.3,
-                    "V_Klasa" => 0.5,
-                    "VI_Klasa" => 0.7,
+                    "Class_I" => 0.1,
+                    "Class_II" => 0.15,
+                    "Class_III" => 0.2,
+                    "Class_IV" => 0.3,
+                    "Class_V" => 0.5,
+                    "Class_VI" => 0.7,
                     _ => 0.4,
                 },
             };
@@ -2353,7 +2268,7 @@ impl LandTransformationProject {
 
             // If target is Agricultural, assign soil class
             if self.target_category == LandCategory::Agricultural {
-                let soil_class = self.assigned_soil_class.as_ref().unwrap_or(&"III_Klasa".to_string()).clone();
+                let soil_class = self.assigned_soil_class.as_ref().unwrap_or(&"Class_III".to_string()).clone();
 
                 // Create or update soil class data
                 let soil_data = SoilClassData {
@@ -2364,21 +2279,21 @@ impl LandTransformationProject {
                         ..Default::default()
                     },
                     fertility_index: match soil_class.as_str() {
-                        "I_Klasa" => 1.0,
-                        "II_Klasa" => 0.9,
-                        "III_Klasa" => 0.75,
-                        "IV_Klasa" => 0.6,
-                        "V_Klasa" => 0.4,
-                        "VI_Klasa" => 0.2,
+                        "Class_I" => 1.0,
+                        "Class_II" => 0.9,
+                        "Class_III" => 0.75,
+                        "Class_IV" => 0.6,
+                        "Class_V" => 0.4,
+                        "Class_VI" => 0.2,
                         _ => 0.5,
                     },
                     erosion_risk: match soil_class.as_str() {
-                        "I_Klasa" => 0.1,
-                        "II_Klasa" => 0.15,
-                        "III_Klasa" => 0.2,
-                        "IV_Klasa" => 0.3,
-                        "V_Klasa" => 0.5,
-                        "VI_Klasa" => 0.7,
+                        "Class_I" => 0.1,
+                        "Class_II" => 0.15,
+                        "Class_III" => 0.2,
+                        "Class_IV" => 0.3,
+                        "Class_V" => 0.5,
+                        "Class_VI" => 0.7,
                         _ => 0.4,
                     },
                 };
@@ -2403,7 +2318,7 @@ impl LandTransformationProject {
 /// # Arguments
 /// * `region_id` - Region ID
 /// * `area_hectares` - Area to transform
-/// * `soil_class` - Soil class to assign (e.g., "I_Klasa" for high-quality melioration)
+/// * `soil_class` - Soil class to assign (e.g., "Class_I" for high-quality melioration)
 /// * `rng` - Random number generator for unique ID
 ///
 /// # Returns
@@ -2922,6 +2837,7 @@ mod phase30_tests {
             coord_x: 0.0,
             coord_y: 0.0,
             development_level: 0.0,
+            parcel_ids: Vec::new(),
         }
     }
 

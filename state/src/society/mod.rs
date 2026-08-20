@@ -10,6 +10,8 @@ pub mod geography;
 pub mod tourism;
 pub mod housing;
 pub mod charities;
+pub mod cadastre;
+pub mod real_estate_market;
 
 pub use tourism::{NaturalWonder, WonderType, TourismDestination, TourismIndustry, TourismTurnResult, create_natural_wonder, create_tourism_destination, process_tourism_turn};
 pub use housing::{HousingType, HousingBuilding, HousingSlots, CommercialBuilding, CommercialBuildingType, UtilityConnections, HousingInventory, CommercialInventory};

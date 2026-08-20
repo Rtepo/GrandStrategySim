@@ -4361,6 +4361,184 @@ pub fn run_turn_in_memory(
             }
         }
     }
+
+    // Phase 59: Land legal certainty, border conflicts, zoning, and arbitration.
+    // Runs sequentially (post-parallel) for determinism. Each country processes
+    // its own cadastre, border conflicts, zoning plans, and arbitration cases.
+    for (country_name, country) in &mut state.countries {
+        use crate::society::cadastre as cad;
+        use crate::corporate::market_behavior::evaluate_market_behavior;
+
+        let current_turn = turn;
+
+        // 59.1: Legal certainty degradation
+        cad::process_certainty_degradation(
+            &mut country.cadastre,
+            &country.legal_certainty_config,
+        );
+
+        // 59.1: Cadastral survey funding (per region, debiting RegionalBudget)
+        // Collect region IDs first to avoid borrow issues
+        let region_ids: Vec<String> = country.regions
+            .iter()
+            .filter(|r| r.node_type == crate::society::geography::NodeType::LandRegion)
+            .map(|r| r.id.clone())
+            .collect();
+
+        for region_id in &region_ids {
+            // Find the region's governance and development level
+            let (dev_level, has_governance) = country.regions
+                .iter()
+                .find(|r| &r.id == region_id)
+                .map(|r| (r.development_level, r.governance.is_some()))
+                .unwrap_or((0.0, false));
+
+            if !has_governance {
+                continue;
+            }
+
+            // Get mutable access to the region's governance budget
+            let region_idx = country.regions.iter().position(|r| &r.id == region_id);
+            if let Some(idx) = region_idx {
+                let governance = &mut country.regions[idx].governance;
+                if let Some(gov) = governance {
+                    let budget = &mut gov.budget;
+                    cad::fund_cadastral_survey(
+                        &mut country.cadastre,
+                        region_id,
+                        budget,
+                        &country.cadastre_config,
+                        &country.legal_certainty_config,
+                        dev_level,
+                    );
+                }
+            }
+        }
+
+        // 59.2: Border conflict generation
+        let mut rng = rand::thread_rng();
+        cad::generate_border_conflicts(
+            &mut country.cadastre,
+            &mut country.border_conflicts,
+            &country.legal_certainty_config,
+            &country.cadastre_config,
+            current_turn,
+            &mut rng,
+        );
+
+        // 59.6: Court capacity and border conflict resolution
+        let justice_law = country.politics.justice_law.clone()
+            .unwrap_or_default();
+        let court_wait_time = justice_law.court_wait_time_target;
+        for region_id in &region_ids {
+            let court_capacity = if let Some(idx) = country.regions.iter().position(|r| &r.id == region_id) {
+                let gov = &country.regions[idx].governance;
+                if let Some(g) = gov {
+                    cad::compute_court_capacity(&g.budget, &justice_law, &court_wait_time)
+                } else {
+                    0.0
+                }
+            } else {
+                0.0
+            };
+
+            cad::process_border_conflicts(
+                &mut country.cadastre,
+                &mut country.border_conflicts,
+                court_capacity,
+                current_turn,
+            );
+        }
+
+        // 59.3: Autonomous zoning plan enactment by governors
+        // Governors enact plans based on national quotas and their traits.
+        let quota = country.national_zoning_quota.clone();
+        for region_idx in 0..country.regions.len() {
+            if country.regions[region_idx].node_type != crate::society::geography::NodeType::LandRegion {
+                continue;
+            }
+            let region_id = country.regions[region_idx].id.clone();
+            let dev_level = country.regions[region_idx].development_level;
+
+            // Get governor traits and derive preferences
+            let governor_traits = country.regions[region_idx]
+                .governance
+                .as_ref()
+                .map(|g| g.head.traits.clone())
+                .unwrap_or_default();
+
+            let modifiers = evaluate_market_behavior(&governor_traits);
+            let preferences = cad::derive_governor_preferences(&modifiers);
+
+            // Check if there's already an active plan
+            let has_active_plan = country.regions[region_idx]
+                .governance
+                .as_ref()
+                .map(|g| g.zoning_plans.active_plan_for_region(&region_id).is_some())
+                .unwrap_or(false);
+
+            if !has_active_plan {
+                // Governor enacts a new plan
+                let next_id = country.regions[region_idx]
+                    .governance
+                    .as_ref()
+                    .map(|g| g.zoning_plans.next_plan_id)
+                    .unwrap_or(0);
+
+                let plan = cad::governor_enact_zoning_plan(
+                    &region_id,
+                    &quota,
+                    &preferences,
+                    current_turn,
+                    next_id,
+                );
+
+                if let Some(gov) = country.regions[region_idx].governance.as_mut() {
+                    gov.zoning_plans.enact_plan(plan);
+                    gov.zoning_plans.next_plan_id += 1;
+                }
+            }
+
+            // Advance implementation progress (budget-draining)
+            if let Some(gov) = country.regions[region_idx].governance.as_mut() {
+                if let Some(plan) = gov.zoning_plans.active_plan_for_region_mut(&region_id) {
+                    let budget = &mut gov.budget;
+                    cad::advance_zoning_implementation(
+                        &mut country.cadastre,
+                        plan,
+                        budget,
+                        &country.cadastre_config,
+                        current_turn,
+                    );
+                }
+            }
+
+            let _ = dev_level;
+        }
+
+        // 59.4: Apply externality penalties
+        cad::apply_externality_penalties(
+            &mut country.cadastre,
+            &country.externality_config,
+        );
+
+        // 59.5: Arbitration case processing
+        cad::process_arbitration_cases(
+            &mut country.arbitration_court,
+            &country.arbitration_config,
+            current_turn,
+            &mut rng,
+        );
+
+        // 59.5: Pay accrued arbitration compensation from treasury
+        cad::pay_arbitration_compensation(
+            &mut country.arbitration_court,
+            &mut country.budget.liquid_reserves,
+        );
+
+        let _ = country_name;
+    }
+
     // Sync state.calendar so the TUI and snapshots show the correct turn/year.
     state.calendar.global_turn = turn;
     state.calendar.current_year = year;

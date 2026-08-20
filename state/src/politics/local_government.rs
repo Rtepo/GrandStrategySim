@@ -43,6 +43,10 @@ pub struct RegionalGovernance {
     /// Years until next local election
     #[serde(rename = "lata_do_wyborow_lokalnych", default)]
     pub years_to_next_election: u32,
+
+    /// Phase 59: Zoning plan registry (MPZP plans enacted by this governor).
+    #[serde(default)]
+    pub zoning_plans: crate::society::cadastre::ZoningPlanRegistry,
 }
 
 /// Type of regional head
@@ -266,6 +270,7 @@ pub fn initialize_regional_governance(region_id: &str, country_name: &str) -> Re
         admin_status: AdministrativeStatus::Normal,
         last_election_year: 0,
         years_to_next_election: 4,
+        zoning_plans: crate::society::cadastre::ZoningPlanRegistry::default(),
     }
 }
 

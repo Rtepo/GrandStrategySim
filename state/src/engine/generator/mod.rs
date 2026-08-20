@@ -17,7 +17,8 @@ use crate::politics::Politics;
 use crate::registries::enums::{Commodity, Sector, WealthBracket};
 use crate::registries::Registries;
 use crate::society::cultures::{generate_cultural_background, CulturalBackground};
-use crate::society::geography::{generate_land_registry, generate_megaregions, generate_regional_topology, LandRegistry, Megaregion, Region};
+use crate::society::geography::{generate_megaregions, generate_regional_topology, Megaregion, Region};
+use crate::society::cadastre::generate_cadastre;
 use crate::state::{Country, Currency, CurrencyPolicy, GameState, MacroData, TaxRates, Treasury};
 use crate::state::banking::{BankBalanceSheet, BankType as BankingBankType, Loan, LoanStatus, LoanType, InterestType};
 use crate::entities::{Company, LegalForm};
@@ -94,8 +95,6 @@ pub struct GenerateOptions {
 pub struct GeneratedWorld {
     /// The generated game state.
     pub state: GameState,
-    /// Per-country land registries.
-    pub land_registry: HashMap<String, LandRegistry>,
     /// Flat region map.
     pub regions: HashMap<String, Region>,
     /// Megaregion map.
@@ -117,7 +116,7 @@ pub struct GeneratedWorld {
 /// # Rules
 /// * Overwrites any existing `budgets.json`, `makro.json`, `tax_rates.json`,
 ///   `waluty.json`, `banks.json`, `storage.json`, `diplomacy.json`,
-///   `regions.json`, `megaregions.json` and `land_registry.json` in `data_dir`.
+///   `regions.json`, `megaregions.json` and `cadastres.json` in `data_dir`.
 /// * Leaves `entities/` and `spatial_registry/` empty so the lazy loader returns
 ///   an empty initial corporate sector; the first `run_turn` will seed them.
 pub fn generate_world(
@@ -136,7 +135,6 @@ pub fn generate_world(
     state.calendar.current_month = 1;
     state.calendar.half_month = false;
 
-    let mut land_registry = HashMap::new();
     let mut regions = HashMap::new();
     let mut megaregions = HashMap::new();
 
@@ -146,7 +144,7 @@ pub fn generate_world(
     let selected: Vec<String> = available.into_iter().take(count).collect();
 
     for name in &selected {
-        let (mut country, currency, lr, mut country_regions, bank_companies) = generate_country(name, options.start_year, &mut rng);
+        let (mut country, currency, mut country_regions, bank_companies) = generate_country(name, options.start_year, &mut rng);
         let region_ids: Vec<String> = country_regions.keys().cloned().collect();
         let mut megaregion_list = generate_megaregions(name, &region_ids);
 
@@ -178,7 +176,6 @@ pub fn generate_world(
 
         state.countries.insert(name.clone(), country);
         state.currencies.insert(currency.prefix.clone(), currency);
-        land_registry.insert(name.clone(), lr);
         regions.extend(country_regions);
     }
 
@@ -203,7 +200,6 @@ pub fn generate_world(
 
     save_game_state(data_dir, &state)?;
     save_named_map(&data_dir.join("diplomacy.json"), &diplomacy)?;
-    save_named_map(&data_dir.join("land_registry.json"), &land_registry)?;
     save_named_map(&data_dir.join("regions.json"), &regions)?;
     save_named_map(&data_dir.join("megaregions.json"), &megaregions)?;
 
@@ -218,7 +214,6 @@ pub fn generate_world(
 
     Ok(GeneratedWorld {
         state,
-        land_registry,
         regions,
         megaregions,
         diplomacy,
@@ -229,7 +224,7 @@ fn generate_country(
     name: &str,
     start_year: StartYear,
     rng: &mut impl Rng,
-) -> (Country, Currency, LandRegistry, HashMap<String, Region>, Vec<Company>) {
+) -> (Country, Currency, HashMap<String, Region>, Vec<Company>) {
     let wealth = weighted_wealth(rng);
     let year_mult = start_year.year_multiplier();
 
@@ -353,6 +348,15 @@ fn generate_country(
         regional_overflow_fees: std::collections::BTreeMap::new(),
         last_tax_result: None,
         accumulated_vat: 0.0,
+        cadastre: crate::society::cadastre::Cadastre::default(),
+        cadastre_config: crate::society::cadastre::CadastreConfig::default(),
+        land_price_history: crate::society::cadastre::LandPriceHistoryRegistry::default(),
+        arbitration_config: crate::society::cadastre::ArbitrationConfig::default(),
+        arbitration_court: crate::society::cadastre::ArbitrationCourt::default(),
+        border_conflicts: crate::society::cadastre::BorderConflictRegistry::default(),
+        legal_certainty_config: crate::society::cadastre::LegalCertaintyConfig::default(),
+        externality_config: crate::society::cadastre::ExternalityConfig::default(),
+        national_zoning_quota: crate::society::cadastre::NationalZoningQuota::default(),
     };
     country.macro_indicators.currency = currency.prefix.clone();
 
@@ -371,11 +375,27 @@ fn generate_country(
     companies.extend(bank_companies);
     crate::politics::bootstrap_politics(&mut country, &mut companies, start_year as u32, rng);
 
-    let land_registry = generate_land_registry(name, population as i64, gdp_total);
-    let country_regions = generate_regional_topology(name, population as i64, gdp_total, start_year.as_year());
+    let mut country_regions = generate_regional_topology(name, population as i64, gdp_total, start_year.as_year());
 
     // Phase 21A: Generate geological formations with finite, depletable deposits.
     let region_ids: Vec<String> = country_regions.keys().cloned().collect();
+
+    // Phase 58: Generate topological cadastre with slotmap-backed ParcelChunks.
+    let region_list: Vec<Region> = country_regions.values().cloned().collect();
+    let mut cadastre = generate_cadastre(name, &region_list, rng, 0);
+
+    // Populate parcel_ids on each region based on the generated cadastre.
+    for region in country_regions.values_mut() {
+        region.parcel_ids.clear();
+    }
+    for (parcel_id, parcel) in cadastre.iter() {
+        if let Some(region) = country_regions.get_mut(&parcel.region_id) {
+            region.parcel_ids.push(parcel_id);
+        }
+    }
+
+    // Store the cadastre on the country.
+    country.cadastre = cadastre;
     country.geological_formations = crate::society::geography::generate_geological_formations(&region_ids, rng);
 
     // Phase 26: Generate baseline transport network links from regional adjacency.
@@ -402,7 +422,7 @@ fn generate_country(
         rng,
     );
 
-    (country, currency, land_registry, country_regions, companies)
+    (country, currency, country_regions, companies)
 }
 
 /// Phase 45: Spawn a standing army for a country based on its population and era.

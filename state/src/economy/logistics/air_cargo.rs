@@ -233,6 +233,7 @@ mod tests {
             coord_x: x,
             coord_y: y,
             development_level: 0.0,
+            parcel_ids: Vec::new(),
         }
     }
 
