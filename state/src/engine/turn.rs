@@ -4133,6 +4133,27 @@ pub fn run_turn_in_memory(
         }
     }
 
+    // Phase 54: Record banking history for sparkline tooltips.
+    // Runs after all parallel per-country processing is complete and countries
+    // are fully updated. Aggregates bank balance sheets per country and stores
+    // a rolling window of (reserves, deposits, loans) for UI sparklines.
+    for country_name in state.countries.keys() {
+        let mut total_reserves = 0.0_f64;
+        let mut total_deposits = 0.0_f64;
+        let mut total_loans = 0.0_f64;
+        if let Some(ents) = entities.get(country_name) {
+            for c in &ents.companies {
+                if let Some(ref bs) = c.balance_sheet {
+                    total_reserves += bs.reserves_at_central_bank;
+                    total_deposits += bs.deposits;
+                    total_loans += bs.loans_issued.iter().map(|l| l.principal).sum::<f64>();
+                }
+            }
+        }
+        let history = state.banking_history.entry(country_name.clone()).or_default();
+        history.record(turn, total_reserves, total_deposits, total_loans);
+    }
+
     // Phase 29: Dynamic tariff adjustment based on economic conditions.
     // The ruling party adjusts tariffs in response to trade deficits and
     // domestic industry health before global trade is balanced.

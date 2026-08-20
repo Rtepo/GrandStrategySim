@@ -1,6 +1,7 @@
 use crate::state::AppState;
 use sim_engine::ui::snapshot::{
     build_country_snapshot, CompanyPageResponse, CompanyDetail, ViewQuery, PageQuery, CompanyFilter,
+    RegionOption,
 };
 use sim_engine::registries::enums::Sector;
 use serde::Serialize;
@@ -53,6 +54,40 @@ pub async fn get_available_sectors() -> Result<Vec<SectorOption>, String> {
     Ok(result)
 }
 
+/// Phase 54: Returns all regions for a country from the backend, for the
+/// Companies tab region filter dropdown.
+#[tauri::command]
+pub async fn get_available_regions(
+    state: tauri::State<'_, AppState>,
+    country: String,
+) -> Result<Vec<RegionOption>, String> {
+    let state_clone = state.inner().clone();
+    tokio::task::spawn_blocking(move || {
+        let engine_guard = state_clone.engine.blocking_read();
+        let engine_state = engine_guard
+            .as_ref()
+            .ok_or("No game loaded")?;
+
+        let country_ref = engine_state
+            .game_state
+            .countries
+            .get(&country)
+            .ok_or(format!("Country '{}' not found", country))?;
+
+        let result = country_ref
+            .regions
+            .iter()
+            .map(|r| RegionOption {
+                value: r.id.clone(),
+                label: if r.display_name.is_empty() { r.id.clone() } else { r.display_name.clone() },
+            })
+            .collect();
+        Ok(result)
+    })
+    .await
+    .map_err(|e| format!("Task join error: {e}"))?
+}
+
 #[tauri::command]
 pub async fn get_paginated_companies(
     state: tauri::State<'_, AppState>,
@@ -61,6 +96,7 @@ pub async fn get_paginated_companies(
     limit: usize,
     search: String,
     sector_filter: String,
+    region_filter: Option<String>,
 ) -> Result<CompanyPageResponse, String> {
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
@@ -84,7 +120,11 @@ pub async fn get_paginated_companies(
 
         let view = ViewQuery {
             company_page: PageQuery { offset, limit },
-            company_filter: CompanyFilter { search, sector_filter },
+            company_filter: CompanyFilter {
+                search,
+                sector_filter,
+                region_filter: region_filter.unwrap_or_default(),
+            },
             ..Default::default()
         };
 

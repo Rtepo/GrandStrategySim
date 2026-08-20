@@ -5,6 +5,7 @@ import { useGameStore } from "../store/gameStore";
 import { getRegions, getRegionDetail, getMegaregionDetail } from "../hooks/useTauriCommand";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Button, Tabs } from "../components/ui";
 import { EChart } from "../components/charts/EChart";
+import { VipHoverCard } from "../components/VipHoverCard";
 import { fmt, num } from "../lib/format";
 import type { RegionDetail, MegaregionDetail } from "../types/api";
 
@@ -166,7 +167,16 @@ function RegionDetailPanel({ detail }: { detail: RegionDetail }) {
               <div className="space-y-2 text-sm">
                 <Field label="Development Level" value={`${(devLevel * 100).toFixed(1)}%`} />
                 <Field label="Admin Status" value={safeStr(detail.admin_status)} />
-                <Field label="Head" value={`${safeStr(detail.head_name)} (${safeStr(detail.head_type)})`} />
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Head</span>
+                  {detail.head_vip_id && detail.head_name ? (
+                    <VipHoverCard vipId={detail.head_vip_id} className="text-foreground font-medium">
+                      {`${detail.head_name} (${detail.head_type})`}
+                    </VipHoverCard>
+                  ) : (
+                    <span className="text-foreground font-medium">{safeStr(detail.head_name)} ({safeStr(detail.head_type)})</span>
+                  )}
+                </div>
                 <Field label="Credit Rating" value={safeStr(detail.credit_rating)} />
                 <Field label="Budget Reserves" value={fmt(safeNum(detail.budget_reserves))} />
                 <Field label="Tax Revenue" value={fmt(safeNum(detail.budget_tax_revenue))} />
@@ -179,7 +189,14 @@ function RegionDetailPanel({ detail }: { detail: RegionDetail }) {
               </div>
             )},
             { label: "Council", value: "council", content: (
-              <CouncilPieChart factions={safeArr(detail.council_factions)} />
+              <div>
+                <CouncilPieChart factions={safeArr(detail.council_factions)} />
+                {safeNum(detail.total_council_seats) > 0 && (
+                  <div className="text-center text-sm text-muted-foreground mt-2">
+                    Total Mandates/Seats: <span className="font-bold text-foreground">{safeNum(detail.total_council_seats)}</span>
+                  </div>
+                )}
+              </div>
             )},
             { label: "Employment", value: "employment", content: (
               <div className="space-y-2">

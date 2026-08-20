@@ -39,6 +39,7 @@ pub use tax::{TaxRates, AggregateVatRecord, process_tax_collection_turn, TaxColl
 pub use treasury::Treasury;
 
 use crate::economy::market_history::MarketHistory;
+use crate::economy::banking_history::BankingHistory;
 use crate::registries::enums::Commodity;
 use crate::society::geography::{Region, Megaregion};
 use serde::{Deserialize, Serialize};
@@ -660,6 +661,9 @@ pub struct GameState {
     /// Phase 6.4: Historical price registry for fallback prices
     #[serde(default)]
     pub market_history: MarketHistory,
+    /// Phase 54: Rolling banking history for sparkline tooltips (per-country).
+    #[serde(default)]
+    pub banking_history: HashMap<String, BankingHistory>,
     /// All simulated nations, keyed by canonical country name.
     pub countries: HashMap<String, Country>,
     /// Shared currency zones, keyed by currency code.
@@ -700,6 +704,7 @@ impl GameState {
             calendar: Calendar::default(),
             climate_config: ClimateConfig::default(),
             market_history: MarketHistory::default(),
+            banking_history: HashMap::new(),
             countries: HashMap::new(),
             currencies: HashMap::new(),
             forex_market: ForexMarket::default(),

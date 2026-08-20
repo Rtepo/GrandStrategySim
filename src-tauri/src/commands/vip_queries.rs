@@ -1,7 +1,9 @@
 use crate::state::AppState;
 use sim_engine::ui::snapshot::{
     build_country_snapshot, VipPageResponse, VipDossier, ViewQuery, PageQuery, VipFilter,
+    RoleOption,
 };
+use sim_engine::politics::vip_registry::VipRoleExtended;
 
 #[tauri::command]
 pub async fn get_paginated_vips(
@@ -11,6 +13,7 @@ pub async fn get_paginated_vips(
     limit: usize,
     search: String,
     show_dead: bool,
+    role_filter: Option<String>,
 ) -> Result<VipPageResponse, String> {
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
@@ -34,7 +37,11 @@ pub async fn get_paginated_vips(
 
         let view = ViewQuery {
             vip_page: PageQuery { offset, limit },
-            vip_filter: VipFilter { search, show_dead },
+            vip_filter: VipFilter {
+                search,
+                show_dead,
+                role_filter: role_filter.unwrap_or_default(),
+            },
             ..Default::default()
         };
 
@@ -54,6 +61,21 @@ pub async fn get_paginated_vips(
     })
     .await
     .map_err(|e| format!("Task join error: {e}"))?
+}
+
+/// Phase 54: Returns all valid VIP roles from the authoritative Rust enum.
+/// The frontend uses this to populate the role filter dropdown dynamically.
+#[tauri::command]
+pub async fn get_available_roles() -> Result<Vec<RoleOption>, String> {
+    let roles = VipRoleExtended::all();
+    let result = roles
+        .iter()
+        .map(|r| RoleOption {
+            value: r.as_str().to_string(),
+            label: r.as_str().to_string(),
+        })
+        .collect();
+    Ok(result)
 }
 
 #[tauri::command]

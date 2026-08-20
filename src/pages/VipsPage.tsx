@@ -1,23 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useGameStore } from "../store/gameStore";
-import { getPaginatedVips, getVipDossier } from "../hooks/useTauriCommand";
+import { getPaginatedVips, getVipDossier, getAvailableRoles } from "../hooks/useTauriCommand";
 import { Card, CardHeader, CardTitle, CardContent, Input, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Button } from "../components/ui";
+import { VipHoverCard } from "../components/VipHoverCard";
 import type { VipDossier } from "../types/api";
 
 const PAGE_SIZE = 20;
 
 export function VipsPage() {
-  const { selectedCountry } = useGameStore();
+  const { selectedCountry, pendingVipId, setPendingVipId } = useGameStore();
   const [offset, setOffset] = useState(0);
   const [search, setSearch] = useState("");
   const [showDead, setShowDead] = useState(false);
+  const [roleFilter, setRoleFilter] = useState("");
   const [selectedVipId, setSelectedVipId] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["vips", selectedCountry, offset, PAGE_SIZE, search, showDead],
-    queryFn: () => getPaginatedVips(selectedCountry!, offset, PAGE_SIZE, search, showDead),
+    queryKey: ["vips", selectedCountry, offset, PAGE_SIZE, search, showDead, roleFilter],
+    queryFn: () => getPaginatedVips(selectedCountry!, offset, PAGE_SIZE, search, showDead, roleFilter || undefined),
     enabled: !!selectedCountry,
+  });
+
+  // Phase 54: Dynamic role options from backend (no hardcoding).
+  const { data: roles } = useQuery({
+    queryKey: ["available-roles"],
+    queryFn: () => getAvailableRoles(),
   });
 
   const { data: dossier } = useQuery({
@@ -26,19 +34,37 @@ export function VipsPage() {
     enabled: !!selectedCountry && !!selectedVipId,
   });
 
+  // Phase 54: Auto-open dossier when pendingVipId is set (from relational links).
+  useEffect(() => {
+    if (pendingVipId) {
+      setSelectedVipId(pendingVipId);
+      setPendingVipId(null);
+    }
+  }, [pendingVipId, setPendingVipId]);
+
   if (!selectedCountry) return <div className="p-6 text-muted-foreground">Select a country from the sidebar.</div>;
 
   return (
     <div className="p-6 space-y-4">
       <h2 className="text-xl font-bold text-foreground">VIP Explorer — {selectedCountry}</h2>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-wrap">
         <Input
           placeholder="Search by name..."
           value={search}
           onChange={(e) => { setSearch(e.target.value); setOffset(0); }}
           className="max-w-xs"
         />
+        <select
+          value={roleFilter}
+          onChange={(e) => { setRoleFilter(e.target.value); setOffset(0); }}
+          className="max-w-xs h-9 rounded-md border border-input bg-background px-3 text-sm"
+        >
+          <option value="">All roles</option>
+          {roles?.map((r) => (
+            <option key={r.value} value={r.value}>{r.label}</option>
+          ))}
+        </select>
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
           <input type="checkbox" checked={showDead} onChange={(e) => { setShowDead(e.target.checked); setOffset(0); }} />
           Show Dead
@@ -74,7 +100,12 @@ export function VipsPage() {
                         <TableCell className="font-medium">
                           {vip.full_name} {vip.is_dead && <span className="text-red-400">†</span>}
                         </TableCell>
-                        <TableCell className="text-xs text-muted-foreground">{vip.roles}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground" title={vip.company_name ?? undefined}>
+                          {vip.roles}
+                          {vip.company_name && (
+                            <span className="block text-xs text-primary/70">({vip.company_name})</span>
+                          )}
+                        </TableCell>
                         <TableCell className="text-right">{vip.age}</TableCell>
                         <TableCell className="text-right">
                           <Badge variant={vip.health > 0.7 ? "success" : vip.health > 0.4 ? "default" : "destructive"}>

@@ -22,6 +22,7 @@ pub mod state_sector;
 pub mod trade;
 
 // Modules that remain at the top level (not moved in Phase 24B)
+pub mod banking_history;
 pub mod corporate_rd;
 pub mod indicators;
 pub mod real_estate;

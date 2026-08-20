@@ -118,6 +118,12 @@ pub struct ParliamentaryClub {
     pub is_splinter: bool,
     /// Turn when the club was formed.
     pub formation_turn: u32,
+    /// Phase 54: Chairperson VIP ID (if assigned).
+    #[serde(default)]
+    pub chairperson_id: Option<String>,
+    /// Phase 54: Chairperson display name.
+    #[serde(default)]
+    pub chairperson_name: String,
 }
 
 // ============================================================================
@@ -397,6 +403,59 @@ pub fn initialize_parliament(
     }
 }
 
+/// Phase 54: Generate and assign a Chairperson VIP for each parliamentary club.
+/// Each chairperson is registered in the VIP registry with the `Speaker` role
+/// and their name/ID is stored on the club.
+///
+/// # Arguments
+/// * `parliament` - Mutable parliament whose clubs will receive chairpersons.
+/// * `registry` - Mutable VIP registry to register chairpersons in.
+/// * `cultural_group` - Cultural group for name generation.
+/// * `country_name` - Country name for nationality field.
+/// * `rng` - Random number generator.
+pub fn assign_club_chairpersons(
+    parliament: &mut Parliament,
+    registry: &mut super::vip_registry::VipRegistry,
+    cultural_group: &str,
+    country_name: &str,
+    rng: &mut impl rand::Rng,
+) {
+    use super::vip_registry::{Vip, VipRoleExtended, assign_core_traits};
+
+    for club in &mut parliament.clubs {
+        // Skip if already has a chairperson.
+        if club.chairperson_id.is_some() {
+            continue;
+        }
+
+        let vip_name = generate_full_vip(cultural_group, rng);
+        let (traits, main_trait) = assign_core_traits(rng);
+        let ideology = if club.ideology.is_empty() {
+            "Social Liberalism".to_string()
+        } else {
+            club.ideology.clone()
+        };
+
+        let chairperson = Vip {
+            full_name: vip_name.full_name.clone(),
+            gender: vip_name.gender,
+            age: 40 + rng.gen_range(0..25),
+            health: 1.0,
+            traits,
+            main_trait,
+            ideology,
+            nationality: country_name.to_string(),
+            roles: vec![VipRoleExtended::Speaker],
+            base_influence: 15 + rng.gen_range(0..25),
+            ..Default::default()
+        };
+
+        let chairperson_id = registry.register_new(chairperson);
+        club.chairperson_id = Some(chairperson_id);
+        club.chairperson_name = vip_name.full_name;
+    }
+}
+
 /// Build parliamentary clubs from the legacy seat map.
 fn build_clubs_from_seats(
     seats: &HashMap<String, u32>,
@@ -421,6 +480,8 @@ fn build_clubs_from_seats(
                 discipline,
                 is_splinter: false,
                 formation_turn: current_turn,
+                chairperson_id: None,
+                chairperson_name: String::new(),
             }
         })
         .collect()
@@ -777,6 +838,8 @@ pub fn check_faction_splintering(
             discipline: 0.3, // Splinter groups are less disciplined.
             is_splinter: true,
             formation_turn: current_turn,
+            chairperson_id: None,
+            chairperson_name: String::new(),
         };
         parliament.clubs.push(new_club);
 

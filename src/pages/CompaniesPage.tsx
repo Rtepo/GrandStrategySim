@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useGameStore } from "../store/gameStore";
-import { getPaginatedCompanies, getCompanyDetail, getAvailableSectors } from "../hooks/useTauriCommand";
+import { getPaginatedCompanies, getCompanyDetail, getAvailableSectors, getAvailableRegions } from "../hooks/useTauriCommand";
 import { Card, CardHeader, CardTitle, CardContent, Input, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Button } from "../components/ui";
+import { VipHoverCard } from "../components/VipHoverCard";
 import { fmt } from "../lib/format";
 
 const PAGE_SIZE = 20;
@@ -12,17 +13,25 @@ export function CompaniesPage() {
   const [offset, setOffset] = useState(0);
   const [search, setSearch] = useState("");
   const [sectorFilter, setSectorFilter] = useState("");
+  const [regionFilter, setRegionFilter] = useState("");
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["companies", selectedCountry, offset, PAGE_SIZE, search, sectorFilter],
-    queryFn: () => getPaginatedCompanies(selectedCountry!, offset, PAGE_SIZE, search, sectorFilter),
+    queryKey: ["companies", selectedCountry, offset, PAGE_SIZE, search, sectorFilter, regionFilter],
+    queryFn: () => getPaginatedCompanies(selectedCountry!, offset, PAGE_SIZE, search, sectorFilter, regionFilter || undefined),
     enabled: !!selectedCountry,
   });
 
   const { data: sectors } = useQuery({
     queryKey: ["available-sectors"],
     queryFn: () => getAvailableSectors(),
+  });
+
+  // Phase 54: Dynamic region options from backend.
+  const { data: regions } = useQuery({
+    queryKey: ["available-regions", selectedCountry],
+    queryFn: () => getAvailableRegions(selectedCountry!),
+    enabled: !!selectedCountry,
   });
 
   const { data: detail } = useQuery({
@@ -37,7 +46,7 @@ export function CompaniesPage() {
     <div className="p-6 space-y-4">
       <h2 className="text-xl font-bold text-foreground">Companies — {selectedCountry}</h2>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-wrap">
         <Input
           placeholder="Search by name..."
           value={search}
@@ -52,6 +61,16 @@ export function CompaniesPage() {
           <option value="">All sectors</option>
           {sectors?.map((s) => (
             <option key={s.value} value={s.value}>{s.label}</option>
+          ))}
+        </select>
+        <select
+          value={regionFilter}
+          onChange={(e) => { setRegionFilter(e.target.value); setOffset(0); }}
+          className="max-w-xs h-9 rounded-md border border-input bg-background px-3 text-sm"
+        >
+          <option value="">All regions</option>
+          {regions?.map((r) => (
+            <option key={r.value} value={r.value}>{r.label}</option>
           ))}
         </select>
       </div>
@@ -143,7 +162,17 @@ export function CompaniesPage() {
                 <Field label="Sector" value={detail.sector} />
                 <Field label="Region" value={detail.region} />
                 <Field label="Legal Form" value={detail.legal_form} />
-                <Field label="CEO" value={detail.ceo_vip_id ?? "—"} />
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">CEO</span>
+                  {detail.ceo_vip_id && detail.ceo_name ? (
+                    <VipHoverCard vipId={detail.ceo_vip_id} className="text-foreground font-medium">
+                      {detail.ceo_name}
+                    </VipHoverCard>
+                  ) : (
+                    <span className="text-foreground font-medium">—</span>
+                  )}
+                </div>
+                {detail.ceo_ideology && <Field label="CEO Ideology" value={detail.ceo_ideology} />}
                 <Field label="Union" value={detail.union_id ?? "—"} />
                 <Field label="FTE" value={`${Math.round(detail.fulfilled_fte)} / ${Math.round(detail.fte_demand)}`} />
                 <Field label="Avg Wage" value={fmt(detail.average_wage)} />

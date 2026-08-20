@@ -1,7 +1,38 @@
 use crate::state::AppState;
 use sim_engine::ui::snapshot::{
-    build_country_snapshot, BankPageResponse, BankingAggregates, ViewQuery, PageQuery,
+    build_country_snapshot, BankPageResponse, BankingAggregates, BankingHistoryResponse, ViewQuery, PageQuery,
 };
+
+/// Phase 54: Returns rolling banking history for sparkline tooltips.
+#[tauri::command]
+pub async fn get_banking_history(
+    state: tauri::State<'_, AppState>,
+    country: String,
+) -> Result<BankingHistoryResponse, String> {
+    let state_clone = state.inner().clone();
+    tokio::task::spawn_blocking(move || {
+        let engine_guard = state_clone.engine.blocking_read();
+        let engine_state = engine_guard
+            .as_ref()
+            .ok_or("No game loaded")?;
+
+        let history = engine_state
+            .game_state
+            .banking_history
+            .get(&country)
+            .cloned()
+            .unwrap_or_default();
+
+        Ok(BankingHistoryResponse {
+            turns: history.turns,
+            total_reserves: history.total_reserves,
+            total_deposits: history.total_deposits,
+            total_loans: history.total_loans,
+        })
+    })
+    .await
+    .map_err(|e| format!("Task join error: {e}"))?
+}
 
 #[tauri::command]
 pub async fn get_paginated_banks(

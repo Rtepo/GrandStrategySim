@@ -21,6 +21,11 @@ export type BankRow = { name: string, bank_type: string, reserves: number, depos
 export type BankingAggregates = { total_bank_reserves: number, total_bank_deposits: number, total_bank_loans: number, total_consumer_debt: number, dspw_bank_count: number, central_bank_rate: number, m0: number, m3: number, cb_fx_reserves_total: number, cb_gold_reserves: number, };
 
 /**
+ * Phase 54: Banking history response for sparkline tooltips.
+ */
+export type BankingHistoryResponse = { turns: Array<number>, total_reserves: Array<number>, total_deposits: Array<number>, total_loans: Array<number>, };
+
+/**
  * A chamber snapshot for the Parliament tab.
  */
 export type ChamberSnapshot = { name: string, total_seats: number, speaker_name: string, speaker_club: string, seat_distribution: Array<[string, number]>, };
@@ -28,7 +33,15 @@ export type ChamberSnapshot = { name: string, total_seats: number, speaker_name:
 /**
  * A parliamentary club row.
  */
-export type ClubRow = { name: string, seats: number, ideology: string, is_splinter: boolean, discipline: number, };
+export type ClubRow = { name: string, seats: number, ideology: string, is_splinter: boolean, discipline: number, 
+/**
+ * Phase 54: Chairperson VIP ID (if assigned).
+ */
+chairperson_id: string | null, 
+/**
+ * Phase 54: Chairperson display name.
+ */
+chairperson_name: string, };
 
 /**
  * Phase 42: A committee row for the Parliament tab.
@@ -59,7 +72,15 @@ demand_volume: number, };
 /**
  * A full company detail for the detail view.
  */
-export type CompanyDetail = { id: string, name: string, sector: string, region: string, legal_form: string, ceo_vip_id: string | null, union_id: string | null, fulfilled_fte: number, fte_demand: number, average_wage: number, seasonal_state: string, furloughed_workers_count: number, wage_arrears: number, building_count: number, available_cash: number, };
+export type CompanyDetail = { id: string, name: string, sector: string, region: string, legal_form: string, ceo_vip_id: string | null, 
+/**
+ * Phase 54: Resolved CEO display name from the VIP registry.
+ */
+ceo_name: string | null, 
+/**
+ * Phase 54: Resolved CEO ideology from the VIP registry.
+ */
+ceo_ideology: string | null, union_id: string | null, fulfilled_fte: number, fte_demand: number, average_wage: number, seasonal_state: string, furloughed_workers_count: number, wage_arrears: number, building_count: number, available_cash: number, };
 
 /**
  * Filter for the Company explorer list.
@@ -72,7 +93,11 @@ search: string,
 /**
  * If non-empty, only include companies in this sector (display name).
  */
-sector_filter: string, };
+sector_filter: string, 
+/**
+ * Phase 54: If non-empty, only include companies in this region (region ID).
+ */
+region_filter: string, };
 
 /**
  * Response for paginated company queries.
@@ -123,7 +148,11 @@ export type EmergencySnapshot = { active: boolean, reason: string, turns_remaini
  * consumer debt, and shadow economy. Reuses existing snapshot data rather
  * than creating disconnected accounting.
  */
-export type FinanceSnapshot = { treasury_reserves: number, gdp: number, ministry_total_allocated: number, ministry_total_spent: number, ministry_total_cash: number, pit_revenue: number, cit_revenue: number, vat_revenue: number, wealth_tax_revenue: number, capital_gains_revenue: number, customs_revenue: number, state_property_revenue: number, pit_rate: number, cit_rate: number, vat_rate: number, wealth_tax_rate: number, capital_gains_rate: number, total_public_debt: number, debt_service: number, weighted_avg_interest_rate: number, debt_held_by_banks: number, debt_held_by_central_bank: number, debt_held_by_funds: number, debt_held_by_citizens: number, m0: number, m3: number, cb_reference_rate: number, cb_lombard_rate: number, cb_discount_rate: number, cb_rediscount_rate: number, cb_deposit_rate: number, cb_fx_reserves_total: number, cb_gold_reserves: number, cb_reserve_requirement_ratio: number, cb_omo_holdings: number, cb_liquidity_injected: number, cb_last_omo_turn: number, cb_last_omo_amount: number, total_bank_reserves: number, total_bank_deposits: number, total_bank_loans: number, total_consumer_debt: number, dspw_bank_count: number, shadow_gdp: number, pit_evaded: number, fx_basket: Array<FxBasketEntry>, };
+export type FinanceSnapshot = { treasury_reserves: number, gdp: number, ministry_total_allocated: number, ministry_total_spent: number, ministry_total_cash: number, pit_revenue: number, cit_revenue: number, vat_revenue: number, wealth_tax_revenue: number, capital_gains_revenue: number, customs_revenue: number, state_property_revenue: number, pit_rate: number, cit_rate: number, vat_rate: number, wealth_tax_rate: number, capital_gains_rate: number, total_public_debt: number, debt_service: number, weighted_avg_interest_rate: number, debt_held_by_banks: number, debt_held_by_central_bank: number, debt_held_by_funds: number, debt_held_by_citizens: number, m0: number, m3: number, cb_reference_rate: number, cb_lombard_rate: number, cb_discount_rate: number, cb_rediscount_rate: number, cb_deposit_rate: number, cb_fx_reserves_total: number, cb_gold_reserves: number, cb_reserve_requirement_ratio: number, cb_omo_holdings: number, cb_liquidity_injected: number, cb_last_omo_turn: number, cb_last_omo_amount: number, total_bank_reserves: number, total_bank_deposits: number, total_bank_loans: number, total_consumer_debt: number, dspw_bank_count: number, shadow_gdp: number, pit_evaded: number, fx_basket: Array<FxBasketEntry>, 
+/**
+ * Phase 54: Ministry expenditure breakdown for the Finance tab.
+ */
+ministry_expenditure_breakdown: Array<MinistryExpenditureEntry>, };
 
 /**
  * Phase 42: A single entry in the Central Bank's FX reserves basket.
@@ -142,7 +171,15 @@ export type GovernmentSnapshot = { head_of_state_name: string, head_of_state_rol
 /**
  * Phase 41: Named VIPs moved from ParliamentSnapshot to GovernmentSnapshot.
  */
-vips: Array<VipRow>, };
+vips: Array<VipRow>, 
+/**
+ * Phase 54: Government form string for monarchy detection in the UI.
+ */
+government_form: string, 
+/**
+ * Phase 54: Royal dynasty snapshot (only populated for monarchies).
+ */
+royal_dynasty: RoyalDynastySnapshot | null, };
 
 /**
  * Infrastructure link summary.
@@ -183,6 +220,11 @@ export type MinisterRow = { ministry_name: string, minister_name: string, party:
  * Phase 35: Current cash pocket available for spending.
  */
 ministry_cash: number, };
+
+/**
+ * Phase 54: A single ministry expenditure category entry for the Finance tab.
+ */
+export type MinistryExpenditureEntry = { category: string, amount: number, share_pct: number, };
 
 /**
  * OHS / casualty summary.
@@ -229,12 +271,30 @@ export type QueueRow = { bill_id: string, bill_title: string, stage: string, ini
 /**
  * Full region drill-down data for the Regions tab modal.
  */
-export type RegionDetail = { region_id: string, display_name: string, development_level: number, admin_status: string, head_name: string, head_type: string, council_factions: Array<[string, number]>, budget_reserves: number, budget_tax_revenue: number, budget_property_tax: number, budget_expenditures: number, budget_balance: number, debt_total: number, debt_to_revenue_ratio: number, credit_rating: string, active_mandates: Array<MandateSummary>, infrastructure_avg_condition: number, sector_employment: Array<[string, number]>, durable_cohorts: Array<DurableCohortSummary>, };
+export type RegionDetail = { region_id: string, display_name: string, development_level: number, admin_status: string, head_name: string, head_type: string, 
+/**
+ * Phase 54: VIP ID of the regional head (for hover cards).
+ */
+head_vip_id: string | null, council_factions: Array<[string, number]>, 
+/**
+ * Phase 54: Total council seats/mandates (sum of all factions).
+ */
+total_council_seats: number, budget_reserves: number, budget_tax_revenue: number, budget_property_tax: number, budget_expenditures: number, budget_balance: number, debt_total: number, debt_to_revenue_ratio: number, credit_rating: string, active_mandates: Array<MandateSummary>, infrastructure_avg_condition: number, sector_employment: Array<[string, number]>, durable_cohorts: Array<DurableCohortSummary>, };
+
+/**
+ * Phase 54: A region option for the Companies tab region filter dropdown.
+ */
+export type RegionOption = { value: string, label: string, };
 
 /**
  * Phase 34: A region row for the Regions tab.
  */
 export type RegionRow = { id: string, display_name: string, megaregion: string, population: bigint, regional_gdp: number, gdp_per_capita: number, has_governance: boolean, liquid_reserves: number, };
+
+/**
+ * Phase 54: A role option for the VIPs tab role filter dropdown.
+ */
+export type RoleOption = { value: string, label: string, };
 
 /**
  * Royal dynasty snapshot for the Parliament tab (monarchies).
@@ -431,7 +491,11 @@ export type VipDossier = { id: string, full_name: string, gender: string, age: n
 /**
  * A row in the VIP explorer list (compact form for table display).
  */
-export type VipDossierRow = { id: string, full_name: string, roles: string, age: number, health: number, faction: string, influence: number, is_dead: boolean, main_trait: string, ideology: string, };
+export type VipDossierRow = { id: string, full_name: string, roles: string, age: number, health: number, faction: string, influence: number, is_dead: boolean, main_trait: string, ideology: string, 
+/**
+ * Phase 54: Company name if this VIP is a CEO (for tooltip display).
+ */
+company_name: string | null, };
 
 /**
  * Filter for the VIP explorer list.
@@ -444,7 +508,11 @@ show_dead: boolean,
 /**
  * If non-empty, only include VIPs whose name contains this substring (case-insensitive).
  */
-search: string, };
+search: string, 
+/**
+ * Phase 54: If non-empty, only include VIPs with a role matching this label.
+ */
+role_filter: string, };
 
 /**
  * Response for paginated VIP queries.

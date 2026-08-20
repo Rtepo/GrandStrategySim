@@ -145,9 +145,20 @@ pub fn generate_world(
     let selected: Vec<String> = available.into_iter().take(count).collect();
 
     for name in &selected {
-        let (country, currency, lr, country_regions, bank_companies) = generate_country(name, options.start_year, &mut rng);
+        let (mut country, currency, lr, mut country_regions, bank_companies) = generate_country(name, options.start_year, &mut rng);
         let region_ids: Vec<String> = country_regions.keys().cloned().collect();
-        let megaregion_list = generate_megaregions(name, &region_ids);
+        let mut megaregion_list = generate_megaregions(name, &region_ids);
+
+        // Phase 54: Assign mayor/governor names and register them in the VIP
+        // registry. Must run AFTER generate_regional_topology (which happened
+        // inside generate_country) so that governance structures exist.
+        crate::politics::turn::assign_regional_heads(
+            &mut country,
+            &mut country_regions,
+            &mut megaregion_list,
+            &mut rng,
+        );
+
         for megaregion in megaregion_list {
             megaregions.insert(megaregion.id.clone(), megaregion);
         }

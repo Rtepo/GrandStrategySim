@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useGameStore } from "../store/gameStore";
 import { getFinance } from "../hooks/useTauriCommand";
-import { Card, CardHeader, CardTitle, CardContent } from "../components/ui";
+import { Card, CardHeader, CardTitle, CardContent, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty } from "../components/ui";
 import { fmt } from "../lib/format";
 
 export function FinancePage() {
@@ -72,18 +72,32 @@ export function FinancePage() {
           </CardContent>
         </Card>
 
+        {/* Phase 54: Replaced Central Bank card with Ministry Expenditure Breakdown */}
         <Card>
-          <CardHeader><CardTitle>Central Bank</CardTitle></CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <Row label="M0" value={fmt(finance.m0)} />
-            <Row label="M3" value={fmt(finance.m3)} />
-            <Row label="Reference Rate" value={`${(finance.cb_reference_rate * 100).toFixed(2)}%`} />
-            <Row label="Lombard Rate" value={`${(finance.cb_lombard_rate * 100).toFixed(2)}%`} />
-            <Row label="Discount Rate" value={`${(finance.cb_discount_rate * 100).toFixed(2)}%`} />
-            <Row label="Reserve Req." value={`${(finance.cb_reserve_requirement_ratio * 100).toFixed(1)}%`} />
-            <Row label="FX Reserves" value={fmt(finance.cb_fx_reserves_total)} />
-            <Row label="Gold Reserves" value={fmt(finance.cb_gold_reserves)} />
-            <Row label="OMO Holdings" value={fmt(finance.cb_omo_holdings)} />
+          <CardHeader><CardTitle>Ministry Expenditure Breakdown</CardTitle></CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Category</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="text-right">Share</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {finance.ministry_expenditure_breakdown.length > 0 ? (
+                  finance.ministry_expenditure_breakdown.map((e) => (
+                    <TableRow key={e.category}>
+                      <TableCell className="font-medium text-sm">{e.category}</TableCell>
+                      <TableCell className="text-right text-sm">{fmt(e.amount)}</TableCell>
+                      <TableCell className="text-right text-sm text-muted-foreground">{e.share_pct.toFixed(1)}%</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableEmpty colSpan={3} message="No expenditure data" />
+                )}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
 

@@ -414,6 +414,8 @@ pub struct FinanceSnapshot {
     pub pit_evaded: f64,
     // Phase 42: FX basket — top 3 foreign currencies held by Central Bank.
     pub fx_basket: Vec<FxBasketEntry>,
+    /// Phase 54: Ministry expenditure breakdown for the Finance tab.
+    pub ministry_expenditure_breakdown: Vec<MinistryExpenditureEntry>,
 }
 
 /// Phase 42: A single entry in the Central Bank's FX reserves basket.
@@ -453,6 +455,10 @@ pub struct GovernmentSnapshot {
     pub political_capital: f64,
     /// Phase 41: Named VIPs moved from ParliamentSnapshot to GovernmentSnapshot.
     pub vips: Vec<VipRow>,
+    /// Phase 54: Government form string for monarchy detection in the UI.
+    pub government_form: String,
+    /// Phase 54: Royal dynasty snapshot (only populated for monarchies).
+    pub royal_dynasty: Option<RoyalDynastySnapshot>,
 }
 
 /// A minister row for the Government tab.
@@ -539,6 +545,10 @@ pub struct ClubRow {
     pub ideology: String,
     pub is_splinter: bool,
     pub discipline: f64,
+    /// Phase 54: Chairperson VIP ID (if assigned).
+    pub chairperson_id: Option<String>,
+    /// Phase 54: Chairperson display name.
+    pub chairperson_name: String,
 }
 
 /// A recent vote row.
@@ -604,6 +614,8 @@ pub struct VipFilter {
     pub show_dead: bool,
     /// If non-empty, only include VIPs whose name contains this substring (case-insensitive).
     pub search: String,
+    /// Phase 54: If non-empty, only include VIPs with a role matching this label.
+    pub role_filter: String,
 }
 
 /// Filter for the Company explorer list.
@@ -614,6 +626,8 @@ pub struct CompanyFilter {
     pub search: String,
     /// If non-empty, only include companies in this sector (display name).
     pub sector_filter: String,
+    /// Phase 54: If non-empty, only include companies in this region (region ID).
+    pub region_filter: String,
 }
 
 /// View parameters passed from the TUI `App` to the snapshot builder.
@@ -660,6 +674,8 @@ pub struct VipDossierRow {
     pub is_dead: bool,
     pub main_trait: String,
     pub ideology: String,
+    /// Phase 54: Company name if this VIP is a CEO (for tooltip display).
+    pub company_name: Option<String>,
 }
 
 /// A full VIP dossier for the detail view.
@@ -734,6 +750,10 @@ pub struct CompanyDetail {
     pub region: String,
     pub legal_form: String,
     pub ceo_vip_id: Option<String>,
+    /// Phase 54: Resolved CEO display name from the VIP registry.
+    pub ceo_name: Option<String>,
+    /// Phase 54: Resolved CEO ideology from the VIP registry.
+    pub ceo_ideology: Option<String>,
     pub union_id: Option<String>,
     pub fulfilled_fte: f64,
     pub fte_demand: f64,
@@ -759,7 +779,11 @@ pub struct RegionDetail {
     pub admin_status: String,
     pub head_name: String,
     pub head_type: String,
+    /// Phase 54: VIP ID of the regional head (for hover cards).
+    pub head_vip_id: Option<String>,
     pub council_factions: Vec<(String, u32)>,
+    /// Phase 54: Total council seats/mandates (sum of all factions).
+    pub total_council_seats: u32,
     pub budget_reserves: f64,
     pub budget_tax_revenue: f64,
     pub budget_property_tax: f64,
@@ -962,6 +986,41 @@ pub struct BankingAggregates {
     pub m3: f64,
     pub cb_fx_reserves_total: f64,
     pub cb_gold_reserves: f64,
+}
+
+/// Phase 54: Banking history response for sparkline tooltips.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct BankingHistoryResponse {
+    pub turns: Vec<u32>,
+    pub total_reserves: Vec<f64>,
+    pub total_deposits: Vec<f64>,
+    pub total_loans: Vec<f64>,
+}
+
+/// Phase 54: A single ministry expenditure category entry for the Finance tab.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct MinistryExpenditureEntry {
+    pub category: String,
+    pub amount: f64,
+    pub share_pct: f64,
+}
+
+/// Phase 54: A region option for the Companies tab region filter dropdown.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct RegionOption {
+    pub value: String,
+    pub label: String,
+}
+
+/// Phase 54: A role option for the VIPs tab role filter dropdown.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct RoleOption {
+    pub value: String,
+    pub label: String,
 }
 
 // ============================================================================
@@ -1286,7 +1345,7 @@ pub fn build_country_snapshot(
         parliament: build_parliament_snapshot(country),
         regions,
         finance: build_finance_snapshot(country, companies),
-        vips_page: build_vip_page(country, view),
+        vips_page: build_vip_page(country, companies, view),
         vip_total_count: count_vips(country, view),
         vip_dossier: build_vip_dossier(country, view),
         banks_page: build_bank_page(country, companies, view),
@@ -1307,20 +1366,34 @@ pub fn build_country_snapshot(
 // ============================================================================
 
 /// Build a paginated, filtered page of VIP rows from the VipRegistry.
-fn build_vip_page(country: &Country, view: &ViewQuery) -> Vec<VipDossierRow> {
+fn build_vip_page(country: &Country, companies: &[Company], view: &ViewQuery) -> Vec<VipDossierRow> {
     let registry = match &country.politics.vip_registry {
         Some(r) => r,
         None => return Vec::new(),
     };
 
+    // Phase 54: Build a lookup from CEO VIP ID to company name.
+    let ceo_to_company: std::collections::HashMap<&str, &str> = companies
+        .iter()
+        .filter_map(|c| c.ceo_vip_id.as_ref().map(|id| (id.as_str(), c.name.as_str())))
+        .collect();
+
     // Collect and filter VIPs from both living and deceased lists.
     let search_lower = view.vip_filter.search.to_lowercase();
+    let role_filter = &view.vip_filter.role_filter;
     let filter_fn = |v: &&crate::politics::vip_registry::Vip| {
         if !view.vip_filter.show_dead && v.is_dead {
             return false;
         }
         if !search_lower.is_empty() && !v.full_name.to_lowercase().contains(&search_lower) {
             return false;
+        }
+        // Phase 54: Role filter — check if any role's as_str() matches.
+        if !role_filter.is_empty() {
+            let has_role = v.roles.iter().any(|r| r.as_str() == role_filter.as_str());
+            if !has_role {
+                return false;
+            }
         }
         true
     };
@@ -1341,21 +1414,32 @@ fn build_vip_page(country: &Country, view: &ViewQuery) -> Vec<VipDossierRow> {
         .into_iter()
         .skip(view.vip_page.offset)
         .take(view.vip_page.limit.max(1))
-        .map(|v| VipDossierRow {
-            id: v.id.clone(),
-            full_name: if v.is_dead {
-                format!("{} †", v.full_name)
+        .map(|v| {
+            let roles_str = if v.roles.is_empty() {
+                "Private Citizen".to_string()
             } else {
-                v.full_name.clone()
-            },
-            roles: v.roles.iter().map(|r| format!("{:?}", r)).collect::<Vec<_>>().join(", "),
-            age: v.age,
-            health: v.health,
-            faction: v.faction.clone(),
-            influence: v.base_influence,
-            is_dead: v.is_dead,
-            main_trait: v.main_trait.clone(),
-            ideology: v.ideology.clone(),
+                v.roles.iter().map(|r| r.as_str().to_string()).collect::<Vec<_>>().join(", ")
+            };
+            let company_name = v.roles.iter().any(|r| *r == crate::politics::vip_registry::VipRoleExtended::Ceo)
+                .then(|| ceo_to_company.get(v.id.as_str()).map(|s| s.to_string()))
+                .flatten();
+            VipDossierRow {
+                id: v.id.clone(),
+                full_name: if v.is_dead {
+                    format!("{} †", v.full_name)
+                } else {
+                    v.full_name.clone()
+                },
+                roles: roles_str,
+                age: v.age,
+                health: v.health,
+                faction: v.faction.clone(),
+                influence: v.base_influence,
+                is_dead: v.is_dead,
+                main_trait: v.main_trait.clone(),
+                ideology: v.ideology.clone(),
+                company_name,
+            }
         })
         .collect()
 }
@@ -1373,6 +1457,13 @@ fn count_vips(country: &Country, view: &ViewQuery) -> usize {
         }
         if !search_lower.is_empty() && !v.full_name.to_lowercase().contains(&search_lower) {
             return false;
+        }
+        // Phase 54: Role filter.
+        if !view.vip_filter.role_filter.is_empty() {
+            let has_role = v.roles.iter().any(|r| r.as_str() == view.vip_filter.role_filter.as_str());
+            if !has_role {
+                return false;
+            }
         }
         true
     };
@@ -1406,7 +1497,11 @@ fn build_vip_dossier(country: &Country, view: &ViewQuery) -> Option<VipDossier> 
         religion: v.religion.clone(),
         nationality: v.nationality.clone(),
         dynasty: v.dynasty.clone(),
-        roles: v.roles.iter().map(|r| format!("{:?}", r)).collect(),
+        roles: if v.roles.is_empty() {
+            vec!["Private Citizen".to_string()]
+        } else {
+            v.roles.iter().map(|r| r.as_str().to_string()).collect()
+        },
         base_influence: v.base_influence,
         faction: v.faction.clone(),
         born_turn: v.born_turn,
@@ -1456,6 +1551,7 @@ fn count_banks(companies: &[Company]) -> usize {
 fn build_company_page(country: &Country, companies: &[Company], view: &ViewQuery) -> Vec<CompanyRow> {
     let search_lower = view.company_filter.search.to_lowercase();
     let sector_filter = &view.company_filter.sector_filter;
+    let region_filter = &view.company_filter.region_filter;
     let parsed_sector: Option<Sector> = if sector_filter.is_empty() {
         None
     } else {
@@ -1471,6 +1567,10 @@ fn build_company_page(country: &Country, companies: &[Company], view: &ViewQuery
                 if c.sector != *ps {
                     return false;
                 }
+            }
+            // Phase 54: Region filter.
+            if !region_filter.is_empty() && c.region_id != *region_filter {
+                return false;
             }
             true
         })
@@ -1503,6 +1603,7 @@ fn build_company_page(country: &Country, companies: &[Company], view: &ViewQuery
 fn count_companies(companies: &[Company], view: &ViewQuery) -> usize {
     let search_lower = view.company_filter.search.to_lowercase();
     let sector_filter = &view.company_filter.sector_filter;
+    let region_filter = &view.company_filter.region_filter;
     let parsed_sector: Option<Sector> = if sector_filter.is_empty() {
         None
     } else {
@@ -1519,6 +1620,10 @@ fn count_companies(companies: &[Company], view: &ViewQuery) -> usize {
                     return false;
                 }
             }
+            // Phase 54: Region filter.
+            if !region_filter.is_empty() && c.region_id != *region_filter {
+                return false;
+            }
             true
         })
         .count()
@@ -1528,6 +1633,22 @@ fn count_companies(companies: &[Company], view: &ViewQuery) -> usize {
 fn build_company_detail(country: &Country, companies: &[Company], view: &ViewQuery) -> Option<CompanyDetail> {
     let target_id = view.company_detail_id.as_ref()?;
     let c = companies.iter().find(|c| c.id == *target_id)?;
+
+    // Phase 54: Resolve CEO name and ideology from the VIP registry.
+    let (ceo_name, ceo_ideology) = if let Some(ref ceo_id) = c.ceo_vip_id {
+        if let Some(ref registry) = country.politics.vip_registry {
+            if let Some(ceo_vip) = registry.get(ceo_id) {
+                (Some(ceo_vip.full_name.clone()), Some(ceo_vip.ideology.clone()))
+            } else {
+                (None, None)
+            }
+        } else {
+            (None, None)
+        }
+    } else {
+        (None, None)
+    };
+
     Some(CompanyDetail {
         id: c.id.clone(),
         name: c.name.clone(),
@@ -1540,6 +1661,8 @@ fn build_company_detail(country: &Country, companies: &[Company], view: &ViewQue
             .unwrap_or_else(|| c.region_id.clone()),
         legal_form: legal_form_display(&c.legal_form),
         ceo_vip_id: c.ceo_vip_id.clone(),
+        ceo_name,
+        ceo_ideology,
         union_id: c.union_id.clone(),
         fulfilled_fte: c.fulfilled_fte,
         fte_demand: c.target_fte_demand,
@@ -1567,6 +1690,19 @@ fn build_region_detail(country: &Country, view: &ViewQuery) -> Option<RegionDeta
         ]
     } else {
         Vec::new()
+    };
+
+    // Phase 54: Total council seats (sum of all factions).
+    let total_council_seats: u32 = council_factions.iter().map(|(_, s)| *s).sum();
+
+    // Phase 54: Resolve head VIP ID from the registry by matching head name.
+    let head_name_for_lookup = region.governance.as_ref().map(|g| g.head.name.clone()).unwrap_or_default();
+    let head_vip_id = if !head_name_for_lookup.is_empty() {
+        country.politics.vip_registry.as_ref().and_then(|r| {
+            r.get_by_name(&head_name_for_lookup).map(|v| v.id.clone())
+        })
+    } else {
+        None
     };
 
     // Build budget/debt from local governance.
@@ -1650,7 +1786,9 @@ fn build_region_detail(country: &Country, view: &ViewQuery) -> Option<RegionDeta
         admin_status,
         head_name,
         head_type,
+        head_vip_id,
         council_factions,
+        total_council_seats,
         budget_reserves,
         budget_tax_revenue,
         budget_property_tax,
@@ -1957,7 +2095,50 @@ fn build_finance_snapshot(country: &Country, companies: &[Company]) -> FinanceSn
         shadow_gdp,
         pit_evaded,
         fx_basket,
+        ministry_expenditure_breakdown: build_ministry_expenditure_breakdown(country),
     }
+}
+
+/// Phase 54: Build ministry expenditure breakdown from ministry config.
+/// Aggregates spent cash by ministry into categories for the Finance tab.
+fn build_ministry_expenditure_breakdown(country: &Country) -> Vec<MinistryExpenditureEntry> {
+    let config = match &country.politics.ministry_config {
+        Some(c) => c,
+        None => return Vec::new(),
+    };
+
+    let mut entries: Vec<(String, f64)> = config
+        .ministries
+        .iter()
+        .map(|m| {
+            let category = m
+                .name
+                .strip_prefix("Ministry of ")
+                .unwrap_or(&m.name)
+                .to_string();
+            (category, m.spent_cash)
+        })
+        .collect();
+
+    // Sort by amount descending.
+    entries.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+
+    let total: f64 = entries.iter().map(|(_, amt)| *amt).sum();
+    entries
+        .into_iter()
+        .map(|(category, amount)| {
+            let share_pct = if total > 0.0 {
+                (amount / total) * 100.0
+            } else {
+                0.0
+            };
+            MinistryExpenditureEntry {
+                category,
+                amount,
+                share_pct,
+            }
+        })
+        .collect()
 }
 
 /// Phase 32: Build the Government tab snapshot.
@@ -2061,6 +2242,9 @@ fn build_government_snapshot(country: &Country) -> GovernmentSnapshot {
         political_capital: politics.political_capital,
         // Phase 41: VIPs moved from Parliament to Government tab.
         vips: build_vip_rows(country),
+        // Phase 54: Government form + royal dynasty for monarchy sub-tab.
+        government_form: format!("{:?}", politics.government_form),
+        royal_dynasty: build_royal_dynasty_snapshot(country),
     }
 }
 
@@ -2114,6 +2298,8 @@ fn build_parliament_snapshot(country: &Country) -> ParliamentSnapshot {
                 ideology: c.ideology.clone(),
                 is_splinter: c.is_splinter,
                 discipline: c.discipline,
+                chairperson_id: c.chairperson_id.clone(),
+                chairperson_name: c.chairperson_name.clone(),
             })
             .collect();
 

@@ -13,11 +13,14 @@ import type {
   CompanyDetail,
   BankPageResponse,
   BankingAggregates,
+  BankingHistoryResponse,
   RegionRow,
   RegionDetail,
   MegaregionDetail,
   ParliamentResponse,
   GovernmentSnapshot,
+  RegionOption,
+  RoleOption,
 } from "../types/api";
 
 export async function getGameStatus(): Promise<GameStatus> {
@@ -70,9 +73,10 @@ export async function getPaginatedVips(
   limit: number,
   search: string,
   showDead: boolean,
+  roleFilter?: string,
 ): Promise<VipPageResponse> {
   return invoke<VipPageResponse>("get_paginated_vips", {
-    country, offset, limit, search, showDead,
+    country, offset, limit, search, showDead, roleFilter: roleFilter ?? null,
   });
 }
 
@@ -86,9 +90,10 @@ export async function getPaginatedCompanies(
   limit: number,
   search: string,
   sectorFilter: string,
+  regionFilter?: string,
 ): Promise<CompanyPageResponse> {
   return invoke<CompanyPageResponse>("get_paginated_companies", {
-    country, offset, limit, search, sectorFilter,
+    country, offset, limit, search, sectorFilter, regionFilter: regionFilter ?? null,
   });
 }
 
@@ -135,4 +140,19 @@ export interface SectorOption {
 
 export async function getAvailableSectors(): Promise<SectorOption[]> {
   return invoke<SectorOption[]>("get_available_sectors");
+}
+
+/// Phase 54: Fetch banking history for sparkline tooltips.
+export async function getBankingHistory(country: string): Promise<BankingHistoryResponse> {
+  return invoke<BankingHistoryResponse>("get_banking_history", { country });
+}
+
+/// Phase 54: Fetch available regions for the company filter dropdown.
+export async function getAvailableRegions(country: string): Promise<RegionOption[]> {
+  return invoke<RegionOption[]>("get_available_regions", { country });
+}
+
+/// Phase 54: Fetch available VIP roles for the role filter dropdown.
+export async function getAvailableRoles(): Promise<RoleOption[]> {
+  return invoke<RoleOption[]>("get_available_roles");
 }

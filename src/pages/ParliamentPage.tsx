@@ -3,6 +3,7 @@ import { useGameStore } from "../store/gameStore";
 import { getParliament } from "../hooks/useTauriCommand";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Tabs } from "../components/ui";
 import { SeatDistributionChart } from "../components/charts/SeatDistributionChart";
+import { VipHoverCard } from "../components/VipHoverCard";
 import type { AdvisoryCouncilSnapshot, RoyalDynastySnapshot, ParliamentSnapshot } from "../types/api";
 
 const AUTHORITARIAN_FORMS = ["Absolute Monarchy", "Constitutional Monarchy", "Authoritarian Republic", "Personalist Dictatorship", "Military Junta", "One-Party State"];
@@ -128,6 +129,7 @@ function ClubsView({ parliament }: { parliament: ParliamentSnapshot }) {
               <TableHead>Name</TableHead>
               <TableHead className="text-right">Seats</TableHead>
               <TableHead>Ideology</TableHead>
+              <TableHead>Chairperson</TableHead>
               <TableHead className="text-right">Discipline</TableHead>
               <TableHead>Splinter</TableHead>
             </TableRow>
@@ -139,12 +141,17 @@ function ClubsView({ parliament }: { parliament: ParliamentSnapshot }) {
                   <TableCell className="font-medium">{club.name}</TableCell>
                   <TableCell className="text-right">{club.seats}</TableCell>
                   <TableCell>{club.ideology}</TableCell>
+                  <TableCell>
+                    {club.chairperson_name ? (
+                      <VipHoverCard vipId={club.chairperson_id}>{club.chairperson_name}</VipHoverCard>
+                    ) : "—"}
+                  </TableCell>
                   <TableCell className="text-right">{club.discipline.toFixed(2)}</TableCell>
                   <TableCell>{club.is_splinter ? <Badge variant="secondary">Yes</Badge> : "—"}</TableCell>
                 </TableRow>
               ))
             ) : (
-              <TableEmpty colSpan={5} message="No clubs data" />
+              <TableEmpty colSpan={6} message="No clubs data" />
             )}
           </TableBody>
         </Table>

@@ -154,6 +154,53 @@ impl VipRoleExtended {
                 | VipRoleExtended::RegionalCouncilor
         )
     }
+
+    /// Phase 54: Returns a human-readable label for this role.
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            VipRoleExtended::None => "Private Citizen",
+            VipRoleExtended::HeadOfState => "Head of State",
+            VipRoleExtended::PrimeMinister => "Prime Minister",
+            VipRoleExtended::Minister => "Minister",
+            VipRoleExtended::Speaker => "Speaker",
+            VipRoleExtended::DeputySpeaker => "Deputy Speaker",
+            VipRoleExtended::Whip => "Whip",
+            VipRoleExtended::RegionalGovernor => "Regional Governor",
+            VipRoleExtended::Mayor => "Mayor",
+            VipRoleExtended::RegionalCouncilor => "Regional Councilor",
+            VipRoleExtended::Ceo => "CEO",
+            VipRoleExtended::UnionBoss => "Union Boss",
+            VipRoleExtended::ReligiousLeader => "Religious Leader",
+            VipRoleExtended::MilitaryCommander => "Military Commander",
+            VipRoleExtended::Monarch => "Monarch",
+            VipRoleExtended::RoyalConsort => "Royal Consort",
+            VipRoleExtended::RoyalHeir => "Royal Heir",
+            VipRoleExtended::Regent => "Regent",
+        }
+    }
+
+    /// Phase 54: Returns all valid role variants (excluding `None`).
+    pub fn all() -> &'static [VipRoleExtended] {
+        &[
+            VipRoleExtended::HeadOfState,
+            VipRoleExtended::PrimeMinister,
+            VipRoleExtended::Minister,
+            VipRoleExtended::Speaker,
+            VipRoleExtended::DeputySpeaker,
+            VipRoleExtended::Whip,
+            VipRoleExtended::RegionalGovernor,
+            VipRoleExtended::Mayor,
+            VipRoleExtended::RegionalCouncilor,
+            VipRoleExtended::Ceo,
+            VipRoleExtended::UnionBoss,
+            VipRoleExtended::ReligiousLeader,
+            VipRoleExtended::MilitaryCommander,
+            VipRoleExtended::Monarch,
+            VipRoleExtended::RoyalConsort,
+            VipRoleExtended::RoyalHeir,
+            VipRoleExtended::Regent,
+        ]
+    }
 }
 
 // ============================================================================

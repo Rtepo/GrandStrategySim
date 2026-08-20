@@ -688,6 +688,19 @@ pub fn process_political_turn(
     );
     country.politics.parliament_struct = Some(parliament);
 
+    // Phase 54: Assign chairperson VIPs to each parliamentary club.
+    if let Some(ref mut parl) = country.politics.parliament_struct {
+        if let Some(ref mut registry) = country.politics.vip_registry {
+            super::parliament::assign_club_chairpersons(
+                parl,
+                registry,
+                &cultural_group,
+                &country.name,
+                &mut rng,
+            );
+        }
+    }
+
     // Phase 32: Check for mid-term faction splintering.
     if let Some(ref mut parl) = country.politics.parliament_struct {
         // Use ruling party support as a proxy for approval rating.
@@ -992,6 +1005,19 @@ pub fn run_election_if_due(country: &mut Country, unrest: f64, current_turn: u32
         &mut used_vip_names,
     );
     country.politics.parliament_struct = Some(parliament);
+
+    // Phase 54: Assign chairperson VIPs to each parliamentary club.
+    if let Some(ref mut parl) = country.politics.parliament_struct {
+        if let Some(ref mut registry) = country.politics.vip_registry {
+            super::parliament::assign_club_chairpersons(
+                parl,
+                registry,
+                &cultural_group,
+                &country.name,
+                &mut rng,
+            );
+        }
+    }
 
     // Phase 40: Reform government ministries with the new coalition.
     // Previously, form_government was only called in migrate_legacy_budget,
@@ -1321,79 +1347,11 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
         }
     }
 
-    // Phase 53: Name and register mayors (regional heads) and megaregion
-    // governors. Previously these were `Leader::default()` (empty name) and
-    // never registered in the VIP registry.
-    let mut rng4 = rand::thread_rng();
-    for region in country.regions.iter_mut() {
-        if let Some(ref mut gov) = region.governance {
-            if gov.head.name.is_empty() {
-                let vip_name = names::generate_full_vip(cultural_group, &mut rng4);
-                gov.head.name = vip_name.full_name.clone();
-                gov.head.gender = vip_name.gender.clone();
-                gov.head.age = 35 + rng4.gen_range(0..30);
-                gov.head.nationality = country.name.clone();
-                gov.head.religion = country.macro_indicators.religion.clone();
-            }
-            let (traits, main_trait) = assign_core_traits(&mut rng4);
-            let ideology = if form.is_democratic() {
-                "Social Liberalism".to_string()
-            } else {
-                "National Conservatism".to_string()
-            };
-            // Only register if not already in the registry by name.
-            if registry.get_by_name(&gov.head.name).is_none() {
-                registry.register_new(Vip {
-                    full_name: gov.head.name.clone(),
-                    gender: gov.head.gender.clone(),
-                    age: gov.head.age,
-                    health: 1.0,
-                    traits,
-                    main_trait,
-                    ideology,
-                    nationality: country.name.clone(),
-                    roles: vec![VipRoleExtended::Mayor],
-                    base_influence: 20 + rng4.gen_range(0..30),
-                    ..Default::default()
-                });
-            }
-        }
-    }
-
-    // Phase 53: Name and register megaregion governors.
-    for megaregion in country.megaregions.iter_mut() {
-        if let Some(ref mut mg_gov) = megaregion.governance {
-            if mg_gov.governor.name.is_empty() {
-                let vip_name = names::generate_full_vip(cultural_group, &mut rng4);
-                mg_gov.governor.name = vip_name.full_name.clone();
-                mg_gov.governor.gender = vip_name.gender.clone();
-                mg_gov.governor.age = 40 + rng4.gen_range(0..25);
-                mg_gov.governor.nationality = country.name.clone();
-                mg_gov.governor.religion = country.macro_indicators.religion.clone();
-            }
-            let (traits, main_trait) = assign_core_traits(&mut rng4);
-            let ideology = if form.is_democratic() {
-                "Christian Democracy".to_string()
-            } else {
-                "National Conservatism".to_string()
-            };
-            if registry.get_by_name(&mg_gov.governor.name).is_none() {
-                registry.register_new(Vip {
-                    full_name: mg_gov.governor.name.clone(),
-                    gender: mg_gov.governor.gender.clone(),
-                    age: mg_gov.governor.age,
-                    health: 1.0,
-                    traits,
-                    main_trait,
-                    ideology,
-                    nationality: country.name.clone(),
-                    roles: vec![VipRoleExtended::RegionalGovernor],
-                    base_influence: 25 + rng4.gen_range(0..35),
-                    ..Default::default()
-                });
-            }
-        }
-    }
+    // Phase 54: Mayor/governor naming and registration has been moved to
+    // `assign_regional_heads()`, which is called from the generator AFTER
+    // `generate_regional_topology` produces the regions. Previously this code
+    // ran inside `bootstrap_politics` before regions existed, so
+    // `country.regions` was always empty and no mayors were ever named.
 
     if !form.is_democratic() {
         // For non-democratic forms, install the strongest party as the regime.
@@ -1409,6 +1367,111 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
             country.politics.coalition_id = "authoritarian".to_string();
             country.politics.minority_government = false;
             apply_ruling_ideology_policies(country);
+        }
+    }
+}
+
+/// Phase 54: Name and register mayors (regional heads) and megaregion
+/// governors. This must be called AFTER `generate_regional_topology` has
+/// produced the regions HashMap, because the governance structures are
+/// initialized during region generation.
+///
+/// Previously this code ran inside `bootstrap_politics` before regions
+/// existed, so `country.regions` was always empty and no mayors were
+/// ever named — causing the UI to show blank head names.
+///
+/// # Arguments
+/// * `country` - Mutable country with an initialized `vip_registry`.
+/// * `regions` - The generated regional topology (mutated to name heads).
+/// * `megaregions` - The generated megaregion list (mutated to name governors).
+/// * `rng` - Random number generator.
+pub fn assign_regional_heads(
+    country: &mut Country,
+    regions: &mut HashMap<String, crate::society::geography::Region>,
+    megaregions: &mut Vec<crate::society::geography::Megaregion>,
+    rng: &mut impl Rng,
+) {
+    let cultural_group = if country.macro_indicators.cultural_group.is_empty() {
+        "slavic"
+    } else {
+        &country.macro_indicators.cultural_group
+    };
+    let form = country.politics.government_form;
+    let country_name = country.name.clone();
+    let religion = country.macro_indicators.religion.clone();
+
+    let registry = match country.politics.vip_registry.as_mut() {
+        Some(r) => r,
+        None => return,
+    };
+
+    // Name and register mayors (regional heads).
+    for region in regions.values_mut() {
+        if let Some(ref mut gov) = region.governance {
+            if gov.head.name.is_empty() {
+                let vip_name = names::generate_full_vip(cultural_group, rng);
+                gov.head.name = vip_name.full_name.clone();
+                gov.head.gender = vip_name.gender.clone();
+                gov.head.age = 35 + rng.gen_range(0..30);
+                gov.head.nationality = country_name.clone();
+                gov.head.religion = religion.clone();
+            }
+            let (traits, main_trait) = assign_core_traits(rng);
+            let ideology = if form.is_democratic() {
+                "Social Liberalism".to_string()
+            } else {
+                "National Conservatism".to_string()
+            };
+            if registry.get_by_name(&gov.head.name).is_none() {
+                registry.register_new(Vip {
+                    full_name: gov.head.name.clone(),
+                    gender: gov.head.gender.clone(),
+                    age: gov.head.age,
+                    health: 1.0,
+                    traits,
+                    main_trait,
+                    ideology,
+                    nationality: country_name.clone(),
+                    roles: vec![VipRoleExtended::Mayor],
+                    base_influence: 20 + rng.gen_range(0..30),
+                    ..Default::default()
+                });
+            }
+        }
+    }
+
+    // Name and register megaregion governors.
+    for megaregion in megaregions.iter_mut() {
+        if let Some(ref mut mg_gov) = megaregion.governance {
+            if mg_gov.governor.name.is_empty() {
+                let vip_name = names::generate_full_vip(cultural_group, rng);
+                mg_gov.governor.name = vip_name.full_name.clone();
+                mg_gov.governor.gender = vip_name.gender.clone();
+                mg_gov.governor.age = 40 + rng.gen_range(0..25);
+                mg_gov.governor.nationality = country_name.clone();
+                mg_gov.governor.religion = religion.clone();
+            }
+            let (traits, main_trait) = assign_core_traits(rng);
+            let ideology = if form.is_democratic() {
+                "Christian Democracy".to_string()
+            } else {
+                "National Conservatism".to_string()
+            };
+            if registry.get_by_name(&mg_gov.governor.name).is_none() {
+                registry.register_new(Vip {
+                    full_name: mg_gov.governor.name.clone(),
+                    gender: mg_gov.governor.gender.clone(),
+                    age: mg_gov.governor.age,
+                    health: 1.0,
+                    traits,
+                    main_trait,
+                    ideology,
+                    nationality: country_name.clone(),
+                    roles: vec![VipRoleExtended::RegionalGovernor],
+                    base_influence: 25 + rng.gen_range(0..35),
+                    ..Default::default()
+                });
+            }
         }
     }
 }

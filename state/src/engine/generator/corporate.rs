@@ -30,6 +30,38 @@ use std::error::Error;
 use std::fs;
 use std::path::Path;
 
+/// Phase 54: Derive a CEO's ideology from their assigned traits instead of
+/// hardcoding "Neoliberalism" for all CEOs. Maps trait profiles to
+/// business-relevant ideologies, with a weighted random fallback for
+/// trait combinations that don't have a clear mapping.
+fn ceo_ideology_from_traits(traits: &[String], main_trait: &str, rng: &mut impl Rng) -> String {
+    // Check for specific trait indicators in priority order.
+    let has = |t: &str| traits.iter().any(|x| x == t) || main_trait == t;
+
+    if has("Reformer") {
+        "Social Liberalism".to_string()
+    } else if has("Conservative") || has("Pious") {
+        "Social Conservatism".to_string()
+    } else if has("Populist") {
+        "National Conservatism".to_string()
+    } else if has("Militarist") || has("Cruel") {
+        "Neoconservatism".to_string()
+    } else if has("Corrupt") || has("Ambitious") {
+        "Classical Liberalism".to_string()
+    } else if has("Diplomatic") || has("Charismatic") {
+        "Christian Democracy".to_string()
+    } else {
+        // Weighted random fallback for neutral/unmapped trait combos.
+        let fallbacks = [
+            "Neoliberalism",
+            "Classical Liberalism",
+            "Social Liberalism",
+            "Christian Democracy",
+        ];
+        fallbacks[rng.gen_range(0..fallbacks.len())].to_string()
+    }
+}
+
 /// Phase 47: Determine the seasonal profile for a company based on its sector
 /// and the region's climate profile. Returns None for non-seasonal sectors.
 ///
@@ -454,6 +486,7 @@ pub fn generate_corporate_entities(
         }
         let ceo_name = crate::politics::names::generate_full_vip(&cultural_group, rng);
         let (traits, main_trait) = assign_core_traits(rng);
+        let ideology = ceo_ideology_from_traits(&traits, &main_trait, rng);
         let ceo_vip = Vip {
             full_name: ceo_name.full_name.clone(),
             gender: ceo_name.gender,
@@ -461,7 +494,7 @@ pub fn generate_corporate_entities(
             health: 1.0,
             traits,
             main_trait,
-            ideology: "Neoliberalism".to_string(),
+            ideology,
             nationality: country.name.clone(),
             roles: vec![VipRoleExtended::Ceo],
             base_influence: 20 + rng.gen_range(0..30),

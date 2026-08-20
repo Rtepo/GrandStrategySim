@@ -56,7 +56,7 @@ pub use local_council::{LocalCouncil, Councilor, CouncilorTrait, Faction, Factio
 pub use lobbying::{LobbyingGroup, LobbyingOperation, LobbyingGroupType, LobbyingTarget, LobbyingOperationType, LobbyingStatus, collect_membership_dues, execute_legal_lobbying, execute_councilor_bribery, execute_black_money_financing, process_lobbying_turn};
 pub use rebellions::{RebellionType, RebellionTrigger, spawn_rebel_proto_state, check_rebellion_risk, process_rebellion_spawning};
 pub use system::{Constitution, FiscalTransferConfig, Judiciary, Leader, Party, Politics, UpperHouse};
-pub use turn::{bootstrap_politics, process_political_year, process_political_turn, apply_ruling_ideology_policies, check_snap_election, run_election_if_due};
+pub use turn::{bootstrap_politics, process_political_year, process_political_turn, apply_ruling_ideology_policies, check_snap_election, run_election_if_due, assign_regional_heads};
 pub use campaign::{ElectionState, ElectoralCommission, CampaignAction, AuditStatus, BlackMoneyPool, BlackMoneySource, CampaignError, CampaignExecution, execute_national_ad_campaign, execute_regional_rally, execute_television_campaign, execute_digital_campaign, generate_corporate_lobbying_black_money, generate_organized_crime_black_money, generate_money_laundering_black_money, process_election_cycle, process_campaign_spending};
 pub use conservation::{ConservationPolicy, ConservationPolicyType, ZoningRule, NationalPark, LandscapePark, create_national_park, create_landscape_park, process_conservation_turn};
 pub use chaos_config::ChaosConfig;
@@ -67,7 +67,7 @@ pub use budget_lifecycle::{BudgetBill, BudgetAmendment, BudgetBillStage, process
 pub use laws::{HealthcareLaw, EducationLaw, LawType, enact_law, MigrationLaw, DeportationPolicy, BorderState, CustomsState, MigrationFlow, MigrationReason, InspectorateState, Violation, ViolationType};
 pub use free_speech::{FreeSpeechLaw, FreeSpeechLevel, AssemblyRights, PressFreedom};
 pub use names::{NamePool, VipName, generate_person_name, generate_full_vip, name_pool_for_culture, vip_to_leader};
-pub use parliament::{Parliament, Chamber, ChamberPresidium, NamedVip, VipRole, ParliamentaryClub, VoteRecord, SplinterEvent, StateOfEmergency, initialize_parliament, check_faction_splintering};
+pub use parliament::{Parliament, Chamber, ChamberPresidium, NamedVip, VipRole, ParliamentaryClub, VoteRecord, SplinterEvent, StateOfEmergency, initialize_parliament, check_faction_splintering, assign_club_chairpersons};
 pub use vip_registry::{Vip, VipRegistry, VipRoleExtended, IncapacityStatus, DeathCause, PendingDeath, age_health_degradation, death_probability, assign_core_traits, CORE_TRAITS};
 pub use succession::{RoyalDynasty, RoyalFamilyMember, RoyalRelation, SuccessionOutcome, RegentBehavior, regent_behavior};
 pub use advisory_council::{AdvisoryCouncil, CouncilMember, CouncilType, CouncilOpinion, FactionType, calculate_council_opinion, apply_decree_against_council};

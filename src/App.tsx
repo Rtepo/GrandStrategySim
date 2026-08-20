@@ -47,11 +47,12 @@ interface SidebarProps {
 }
 
 function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
-  const { gameStatus, selectedCountry, setSelectedCountry, loading, refreshStatus, bumpTurn } = useGameStore();
+  const { gameStatus, selectedCountry, setSelectedCountry, processing, refreshStatus, bumpTurn } = useGameStore();
   const queryClient = useQueryClient();
 
   const handleAdvance = async () => {
-    useGameStore.getState().setLoading(true);
+    if (processing) return; // Prevent duplicate clicks
+    useGameStore.getState().setProcessing(true);
     try {
       await advanceTurn();
       await refreshStatus();
@@ -61,7 +62,7 @@ function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
       console.error("Turn failed:", e);
       alert(`Turn failed: ${e}`);
     }
-    useGameStore.getState().setLoading(false);
+    useGameStore.getState().setProcessing(false);
   };
 
   return (
@@ -81,7 +82,8 @@ function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
           <select
             value={selectedCountry ?? ""}
             onChange={(e) => setSelectedCountry(e.target.value || null)}
-            className="w-full bg-input text-foreground text-sm rounded px-2 py-1 border border-border"
+            disabled={processing}
+            className="w-full bg-input text-foreground text-sm rounded px-2 py-1 border border-border disabled:opacity-50"
           >
             <option value="">— Select —</option>
             {gameStatus.countries.map((c) => (
@@ -101,7 +103,7 @@ function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
                 isActive
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`
+            } ${processing ? "pointer-events-none opacity-60" : ""}`
             }
           >
             <item.icon size={16} />
@@ -113,15 +115,19 @@ function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
       <div className="p-3 border-t border-border space-y-2">
         <button
           onClick={handleAdvance}
-          disabled={loading || !gameStatus?.has_game}
+          disabled={processing || !gameStatus?.has_game}
           className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 hover:opacity-90"
         >
-          <Play size={16} />
-          {loading ? "Processing..." : "Advance Turn"}
+          {processing ? (
+            <RefreshCw size={16} className="animate-spin" />
+          ) : (
+            <Play size={16} />
+          )}
+          {processing ? "Processing..." : "Advance Turn"}
         </button>
         <button
           onClick={onCheckUpdates}
-          disabled={updateChecking}
+          disabled={updateChecking || processing}
           className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded bg-muted text-muted-foreground text-xs font-medium disabled:opacity-50 hover:bg-accent hover:text-accent-foreground"
         >
           <RefreshCw size={14} className={updateChecking ? "animate-spin" : ""} />
@@ -137,15 +143,17 @@ function NewGameScreen({ onStart }: { onStart: () => void }) {
   const [startYear, setStartYear] = useState("1975");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { refreshStatus, resetStore, setLoading } = useGameStore();
+  const { refreshStatus, resetStore, setGenerating } = useGameStore();
   const queryClient = useQueryClient();
 
   const handleCreate = async () => {
     setCreating(true);
     setError(null);
-    // Phase 53: Set the global loading flag so the full-screen overlay
+    // Phase 54: Set the generating flag so the full-screen overlay
     // persists from generation through the first game-view render.
-    setLoading(true);
+    // This flag is NOT cleared by parameter changes (countryCount, startYear)
+    // so the overlay stays visible without flashing the base menu.
+    setGenerating(true);
     try {
       resetStore();
       queryClient.clear();
@@ -156,8 +164,8 @@ function NewGameScreen({ onStart }: { onStart: () => void }) {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       setError(msg);
-      // Clear loading on error so the user can retry.
-      setLoading(false);
+      // Clear generating on error so the user can retry.
+      setGenerating(false);
     }
     setCreating(false);
   };
@@ -223,7 +231,7 @@ function NewGameScreen({ onStart }: { onStart: () => void }) {
 }
 
 export default function App() {
-  const { refreshStatus, gameStatus, loading, setLoading } = useGameStore();
+  const { refreshStatus, gameStatus, generating, setGenerating } = useGameStore();
   const updater = useUpdater();
 
   useEffect(() => {
@@ -236,20 +244,22 @@ export default function App() {
     updater.checkForUpdates();
   }, []);
 
-  // Phase 53: Clear the loading flag once the game shell has rendered
-  // (gameStatus.has_game is true and loading is still active). This ensures
+  // Phase 54: Clear the generating flag once the game shell has rendered
+  // (gameStatus.has_game is true and generating is still active). This ensures
   // the overlay stays visible through the transition from NewGameScreen to
   // the game view, preventing the base-menu flash.
+  // The generating flag is NOT affected by parameter changes (countryCount,
+  // startYear) so the overlay persists reliably.
   useEffect(() => {
-    if (loading && gameStatus?.has_game) {
+    if (generating && gameStatus?.has_game) {
       // Defer clearing to the next frame so the game shell has a chance to
       // mount and begin fetching its data.
       const raf = requestAnimationFrame(() => {
-        setLoading(false);
+        setGenerating(false);
       });
       return () => cancelAnimationFrame(raf);
     }
-  }, [loading, gameStatus?.has_game, setLoading]);
+  }, [generating, gameStatus?.has_game, setGenerating]);
 
   if (!gameStatus) {
     return (
@@ -263,7 +273,7 @@ export default function App() {
     return (
       <>
         <NewGameScreen onStart={() => {}} />
-        {loading && <LoadingOverlay />}
+        {generating && <LoadingOverlay />}
       </>
     );
   }
@@ -295,19 +305,24 @@ export default function App() {
           </Routes>
         </ErrorBoundary>
       </main>
-      {loading && <LoadingOverlay />}
+      {generating && <LoadingOverlay />}
     </div>
   );
 }
 
-/// Phase 53: Full-screen loading overlay shown during world generation and
+/// Phase 54: Full-screen loading overlay shown during world generation and
 /// the initial game-view render. Prevents the base-menu flash.
+/// Includes a progress bar for visual feedback.
 function LoadingOverlay() {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95">
       <div className="text-center space-y-4">
         <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
         <p className="text-muted-foreground text-sm">Generating world...</p>
+        {/* Phase 54: Indeterminate progress bar for visual feedback */}
+        <div className="w-48 h-1 bg-muted rounded-full overflow-hidden">
+          <div className="h-full bg-primary rounded-full animate-pulse" style={{ width: "60%" }} />
+        </div>
       </div>
     </div>
   );
