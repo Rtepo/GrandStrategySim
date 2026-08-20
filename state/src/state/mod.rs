@@ -550,6 +550,9 @@ pub struct Country {
     /// Phase 59: National zoning quota set by the central government (player as PM).
     #[serde(default)]
     pub national_zoning_quota: crate::society::cadastre::NationalZoningQuota,
+    /// Phase 63.3: National subsurface rights law (default by tradition, changeable via legislation).
+    #[serde(default)]
+    pub subsurface_rights_law: crate::society::cadastre::SubsurfaceRightsLaw,
 }
 
 impl Country {
@@ -655,6 +658,7 @@ impl Country {
             legal_certainty_config: crate::society::cadastre::LegalCertaintyConfig::default(),
             externality_config: crate::society::cadastre::ExternalityConfig::default(),
             national_zoning_quota: crate::society::cadastre::NationalZoningQuota::default(),
+            subsurface_rights_law: crate::society::cadastre::SubsurfaceRightsLaw::default(),
         }
     }
 
@@ -966,6 +970,7 @@ impl CountryBuilder {
             legal_certainty_config: crate::society::cadastre::LegalCertaintyConfig::default(),
             externality_config: crate::society::cadastre::ExternalityConfig::default(),
             national_zoning_quota: crate::society::cadastre::NationalZoningQuota::default(),
+            subsurface_rights_law: crate::society::cadastre::SubsurfaceRightsLaw::default(),
         }
     }
 }

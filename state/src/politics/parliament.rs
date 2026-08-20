@@ -440,7 +440,7 @@ pub fn assign_club_chairpersons(
             full_name: vip_name.full_name.clone(),
             gender: vip_name.gender,
             age: 40 + rng.gen_range(0..25),
-            health: 1.0,
+            health: crate::politics::vip_registry::VipHealth { physical_health: 1.0, mental_health: 1.0 },
             traits,
             main_trait,
             ideology,

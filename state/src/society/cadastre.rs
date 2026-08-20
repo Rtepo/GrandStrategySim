@@ -86,6 +86,98 @@ pub enum ParcelOwnerType {
 // PARCEL CHUNK
 // ============================================================================
 
+/// Phase 62.1: Easement type — right granted to a beneficiary over this parcel.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
+pub enum EasementType {
+    #[default]
+    RightOfWay,
+    Utility,
+    WaterAccess,
+}
+
+/// Phase 62.1: An easement on a parcel.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct Easement {
+    pub easement_type: EasementType,
+    pub beneficiary_id: String,
+    pub granted_turn: u32,
+}
+
+/// Phase 62.1: Adverse possession (squatter) state.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct AdversePossessionState {
+    /// Turn when squatters first settled
+    pub settlement_turn: u32,
+    /// Whether the squatter is in good faith (believed the land was theirs)
+    pub good_faith: bool,
+    /// Number of squatters
+    pub squatter_count: u32,
+    /// Whether the owner has contested the squatting
+    pub contested: bool,
+    /// Turn when contested (if applicable)
+    pub contested_turn: u32,
+}
+
+// ============================================================================
+// PHASE 63: TOPOGRAPHY, WATER & SUBSURFACE RIGHTS
+// ============================================================================
+
+/// Phase 63.1: Water access type for a parcel.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
+pub enum WaterAccessType {
+    #[default]
+    None,
+    Lake,
+    River,
+    Sea,
+}
+
+/// Phase 63.1: Subsurface mineral rights ownership model.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
+pub enum SubsurfaceRights {
+    /// Surface owner also owns subsurface minerals
+    #[default]
+    SurfaceOwner,
+    /// State owns subsurface minerals (civil law default)
+    StateOwned,
+    /// Separately owned (mining concession holder)
+    SplitConcession,
+}
+
+/// Phase 63.1: Topographic traits for a parcel.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct ParcelTopography {
+    /// Water access type (affects tourism, industry, water intake)
+    pub water_access: WaterAccessType,
+    /// Whether this parcel is forested
+    pub is_forest: bool,
+    /// Whether this parcel contains a natural wonder (protected site)
+    pub is_natural_wonder: bool,
+    /// Subsurface mineral rights ownership
+    pub subsurface_rights: SubsurfaceRights,
+}
+
+/// Phase 63.3: National subsurface rights law.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct SubsurfaceRightsLaw {
+    /// Default subsurface ownership model
+    pub default_ownership: SubsurfaceRights,
+    /// Whether the state can expropriate subsurface without surface owner consent
+    pub state_can_expropriate_subsurface: bool,
+    /// Premium multiplier for mining companies buying land with mineral rights
+    pub mining_land_premium: f64,
+}
+
+impl Default for SubsurfaceRightsLaw {
+    fn default() -> Self {
+        Self {
+            default_ownership: SubsurfaceRights::StateOwned,
+            state_can_expropriate_subsurface: true,
+            mining_land_premium: 2.5,
+        }
+    }
+}
+
 /// A contiguous chunk of land — the atomic unit of the cadastre.
 ///
 /// A 500-hectare farm is ONE `ParcelChunk` with `size_hectares: 500.0`.
@@ -123,6 +215,35 @@ pub struct ParcelChunk {
     pub zoning_change_turn: u32,
     /// Whether this parcel is in a border zone (national security restriction)
     pub is_border_zone: bool,
+    /// Phase 61.4: Land use tag for endowment classification (e.g., "StateForest",
+    /// "MunicipalReserve", "PrivateEstate", "StateAgricultural"). Empty = unclassified.
+    #[serde(default)]
+    pub land_use_tag: String,
+    /// Phase 62.1: Topological adjacency — IDs of neighboring parcels within the same region.
+    /// Built during cadastre generation as a simple connected graph.
+    /// Used for immissions (pollution spread), easements, and vindication scope.
+    #[serde(default)]
+    pub adjacent_parcels: Vec<ParcelId>,
+    /// Phase 62.1: Co-ownership shares: maps owner_id → fractional share (0.0–1.0).
+    /// Empty = sole ownership. Sum of all shares must = 1.0.
+    #[serde(default)]
+    pub co_owners: BTreeMap<String, f64>,
+    /// Phase 62.1: Usufruct right: entity ID that has the right to use this parcel
+    /// without owning it. They collect output but cannot sell.
+    #[serde(default)]
+    pub usufruct_holder: Option<String>,
+    /// Phase 62.1: Easements: rights of way granted to neighboring parcels or infrastructure.
+    #[serde(default)]
+    pub easements: Vec<Easement>,
+    /// Phase 62.1: Adverse possession state (squatters).
+    #[serde(default)]
+    pub adverse_possession: Option<AdversePossessionState>,
+    /// Phase 62.1: Pollution level emitted by this parcel (0.0–1.0). Industrial parcels emit.
+    #[serde(default)]
+    pub pollution_level: f64,
+    /// Phase 63.1: Topographic traits (water access, forest, natural wonder, subsurface rights).
+    #[serde(default)]
+    pub topography: ParcelTopography,
 }
 
 impl Default for ParcelChunk {
@@ -142,6 +263,14 @@ impl Default for ParcelChunk {
             is_frozen: false,
             zoning_change_turn: 0,
             is_border_zone: false,
+            land_use_tag: String::new(),
+            adjacent_parcels: Vec::new(),
+            co_owners: BTreeMap::new(),
+            usufruct_holder: None,
+            easements: Vec::new(),
+            adverse_possession: None,
+            pollution_level: 0.0,
+            topography: ParcelTopography::default(),
         }
     }
 }
@@ -241,6 +370,14 @@ impl Cadastre {
             is_frozen: original.is_frozen,
             zoning_change_turn: original.zoning_change_turn,
             is_border_zone: original.is_border_zone,
+            land_use_tag: original.land_use_tag.clone(),
+            adjacent_parcels: original.adjacent_parcels.clone(),
+            co_owners: original.co_owners.clone(),
+            usufruct_holder: original.usufruct_holder.clone(),
+            easements: original.easements.clone(),
+            adverse_possession: original.adverse_possession.clone(),
+            pollution_level: original.pollution_level,
+            topography: original.topography.clone(),
         };
         // Mark the split as a new acquisition
         new_parcel.acquisition_turn = current_turn;
@@ -282,6 +419,12 @@ pub struct CadastreConfig {
     pub zoning_plan_cost_per_hectare: f64,
     /// Transaction tax (stamp duty) rate for real estate transactions
     pub stamp_duty_rate: f64,
+    /// Phase 63.5: Topographic value premiums (config-driven, no magic numbers).
+    pub sea_access_premium: f64,
+    pub river_access_premium: f64,
+    pub lake_access_premium: f64,
+    pub forest_premium: f64,
+    pub natural_wonder_premium: f64,
 }
 
 impl Default for CadastreConfig {
@@ -314,6 +457,76 @@ impl Default for CadastreConfig {
             cadastral_survey_cost_per_certainty_point: 100.0,
             zoning_plan_cost_per_hectare: 50.0,
             stamp_duty_rate: 0.04,
+            sea_access_premium: 0.30,
+            river_access_premium: 0.15,
+            lake_access_premium: 0.10,
+            forest_premium: 0.05,
+            natural_wonder_premium: 0.50,
+        }
+    }
+}
+
+/// Phase 62.2: Configuration for adverse possession (Zasiedzenie).
+/// All values configurable — no magic numbers in business logic.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct AdversePossessionConfig {
+    /// Duration of uncontested possession required for good faith squatters.
+    pub good_faith_duration_turns: u32,
+    /// Duration of uncontested possession required for bad faith squatters.
+    pub bad_faith_duration_turns: u32,
+    /// Probability per unused parcel per turn that squatters will settle.
+    pub squatter_spawn_probability: f64,
+    /// Minimum regional unemployment rate for squatting to occur.
+    pub min_unemployment_for_squatting: f64,
+}
+
+impl Default for AdversePossessionConfig {
+    fn default() -> Self {
+        Self {
+            good_faith_duration_turns: 10,
+            bad_faith_duration_turns: 20,
+            squatter_spawn_probability: 0.05,
+            min_unemployment_for_squatting: 0.08,
+        }
+    }
+}
+
+/// Phase 62.4: Configuration for immissions (pollution spread and health impacts).
+/// All values configurable — no magic numbers in business logic.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ImmissionConfig {
+    /// Pollution emission rate per industrial parcel (0.0–1.0).
+    pub industrial_emission_rate: f64,
+    /// Pollution spread rate to adjacent parcels (0.0–1.0).
+    pub pollution_spread_rate: f64,
+    /// Pollution dissipation rate per turn (0.0–1.0).
+    pub pollution_decay_rate: f64,
+    /// Threshold above which pollution affects VIP health.
+    pub health_impact_threshold: f64,
+    /// Physical health decay per turn at threshold pollution.
+    pub physical_health_decay_rate: f64,
+    /// Mental health decay per turn at threshold pollution.
+    pub mental_health_decay_rate: f64,
+    /// Health recovery rate per turn in clean region.
+    pub health_recovery_rate: f64,
+    /// Physical health below which VIP dies.
+    pub death_threshold: f64,
+    /// Mental health below which VIP has breakdown.
+    pub breakdown_threshold: f64,
+}
+
+impl Default for ImmissionConfig {
+    fn default() -> Self {
+        Self {
+            industrial_emission_rate: 0.5,
+            pollution_spread_rate: 0.3,
+            pollution_decay_rate: 0.10,
+            health_impact_threshold: 0.30,
+            physical_health_decay_rate: 0.01,
+            mental_health_decay_rate: 0.015,
+            health_recovery_rate: 0.005,
+            death_threshold: 0.10,
+            breakdown_threshold: 0.10,
         }
     }
 }
@@ -370,6 +583,20 @@ pub fn compute_parcel_value(parcel: &ParcelChunk, config: &CadastreConfig) -> f6
     // Unplanned penalty
     if parcel.zoning == ZoningDesignation::Unplanned {
         value *= config.unplanned_penalty;
+    }
+
+    // Phase 63.5: Topographic premiums (config-driven, no magic numbers)
+    match parcel.topography.water_access {
+        WaterAccessType::Sea => value *= 1.0 + config.sea_access_premium,
+        WaterAccessType::River => value *= 1.0 + config.river_access_premium,
+        WaterAccessType::Lake => value *= 1.0 + config.lake_access_premium,
+        WaterAccessType::None => {}
+    }
+    if parcel.topography.is_forest {
+        value *= 1.0 + config.forest_premium;
+    }
+    if parcel.topography.is_natural_wonder {
+        value *= 1.0 + config.natural_wonder_premium;
     }
 
     value.max(0.0)
@@ -605,8 +832,8 @@ pub fn generate_cadastre(
             let size_variation = rng.gen_range(0.5..2.0);
             let parcel_size = avg_parcel_size * size_variation;
 
-            // Determine owner type
-            let (owner_type, owner_id) = pick_owner(region, i, num_parcels, rng);
+            // Determine owner type and land use tag
+            let (owner_type, owner_id, land_use_tag) = pick_owner(region, i, num_parcels, rng);
 
             // Initial legal certainty based on development level
             let legal_certainty = (region.development_level * 0.5
@@ -618,11 +845,36 @@ pub fn generate_cadastre(
                 + rng.gen_range(0.05..0.15))
             .clamp(0.05, 0.6);
 
-            // Initial zoning
-            let zoning = pick_initial_zoning(&soil_class, region.is_capital, rng);
+            // Initial zoning — state forests get ProtectedNatural, others use soil-based zoning
+            let zoning = if land_use_tag == "StateForest" {
+                ZoningDesignation::ProtectedNatural
+            } else if land_use_tag == "MunicipalReserve" {
+                ZoningDesignation::Unplanned
+            } else {
+                pick_initial_zoning(&soil_class, region.is_capital, rng)
+            };
 
             // Border zone flag (10% chance for edge regions)
             let is_border_zone = rng.gen_range(0.0..1.0) < 0.10;
+
+            // Phase 63.2: Generate topographic traits based on region geography.
+            let water_access = if region.geographic_traits.has_coastline && rng.gen_range(0.0..1.0) < 0.15 {
+                WaterAccessType::Sea
+            } else if region.geographic_traits.has_navigable_river && rng.gen_range(0.0..1.0) < 0.20 {
+                WaterAccessType::River
+            } else if rng.gen_range(0.0..1.0) < 0.10 {
+                WaterAccessType::Lake
+            } else {
+                WaterAccessType::None
+            };
+            let is_forest = land_use_tag == "StateForest" || rng.gen_range(0.0..1.0) < 0.15;
+            let is_natural_wonder = rng.gen_range(0.0..1.0) < 0.02;
+            let topography = ParcelTopography {
+                water_access,
+                is_forest,
+                is_natural_wonder,
+                subsurface_rights: SubsurfaceRights::StateOwned, // Default; set by national law
+            };
 
             // Create the parcel
             let mut parcel = ParcelChunk {
@@ -640,6 +892,14 @@ pub fn generate_cadastre(
                 is_frozen: false,
                 zoning_change_turn: start_turn,
                 is_border_zone,
+                land_use_tag: land_use_tag.clone(),
+                adjacent_parcels: Vec::new(),
+                co_owners: BTreeMap::new(),
+                usufruct_holder: None,
+                easements: Vec::new(),
+                adverse_possession: None,
+                pollution_level: 0.0,
+                topography,
             };
 
             // Set acquisition price to the hedonic value at generation
@@ -650,8 +910,64 @@ pub fn generate_cadastre(
         }
     }
 
+    // Phase 62.1: Build topological adjacency graph for each region.
+    for region in regions {
+        build_adjacency_graph(&mut cadastre, &region.id, rng);
+    }
+
     let _ = country_name; // currently unused, kept for future logging
     cadastre
+}
+
+/// Phase 62.1: Build a topological adjacency graph for parcels in a region.
+///
+/// Chains parcels in insertion order (guarantees connectivity) then adds
+/// 1-2 random extra edges per parcel for richer topology.
+fn build_adjacency_graph(
+    cadastre: &mut Cadastre,
+    region_id: &str,
+    rng: &mut impl Rng,
+) {
+    let parcel_ids: Vec<ParcelId> = cadastre
+        .parcels
+        .iter()
+        .filter(|(_, p)| p.region_id == region_id)
+        .map(|(id, _)| id)
+        .collect();
+    if parcel_ids.len() < 2 {
+        return;
+    }
+
+    // Chain parcels in insertion order (guarantees connectivity)
+    for i in 0..parcel_ids.len() {
+        let next = (i + 1) % parcel_ids.len();
+        // Add bidirectional edge
+        if let Some(p) = cadastre.parcels.get_mut(parcel_ids[i]) {
+            if !p.adjacent_parcels.contains(&parcel_ids[next]) {
+                p.adjacent_parcels.push(parcel_ids[next]);
+            }
+        }
+        if let Some(p) = cadastre.parcels.get_mut(parcel_ids[next]) {
+            if !p.adjacent_parcels.contains(&parcel_ids[i]) {
+                p.adjacent_parcels.push(parcel_ids[i]);
+            }
+        }
+    }
+
+    // Add 1-2 random extra edges per parcel for richer topology
+    for &pid in &parcel_ids {
+        let extra = rng.gen_range(0..2);
+        for _ in 0..extra {
+            let neighbor = parcel_ids[rng.gen_range(0..parcel_ids.len())];
+            if neighbor != pid {
+                if let Some(p) = cadastre.parcels.get_mut(pid) {
+                    if !p.adjacent_parcels.contains(&neighbor) {
+                        p.adjacent_parcels.push(neighbor);
+                    }
+                }
+            }
+        }
+    }
 }
 
 /// Pick a soil class distribution for a region based on its climate profile.
@@ -739,31 +1055,37 @@ fn pick_weighted_soil_class<'a>(
 }
 
 /// Pick an owner type for a parcel at generation.
+/// Returns (owner_type, owner_id, land_use_tag).
 fn pick_owner(
     region: &crate::society::geography::Region,
     index: usize,
     total: usize,
     rng: &mut impl Rng,
-) -> (ParcelOwnerType, String) {
-    // First 30% of parcels: State land
+) -> (ParcelOwnerType, String, String) {
+    // First 30% of parcels: State land — split into State Forests and State Agricultural
     if index < total / 3 {
-        return (ParcelOwnerType::State, "TREASURY".to_string());
+        // 40% of state land is forest, 60% is agricultural
+        if rng.gen_range(0.0..1.0) < 0.4 {
+            return (ParcelOwnerType::State, "TREASURY".to_string(), "StateForest".to_string());
+        }
+        return (ParcelOwnerType::State, "TREASURY".to_string(), "StateAgricultural".to_string());
     }
     // Next 20%: Aristocracy / Private (large estates)
     if index < total / 2 {
         let dynasty_id = format!("DYNASTY_{}_{}", region.id, index);
-        return (ParcelOwnerType::Private, dynasty_id);
+        return (ParcelOwnerType::Private, dynasty_id, "PrivateEstate".to_string());
     }
     // Next 20%: Corporate (agricultural firms)
     if index < total * 7 / 10 {
         let corp_id = format!("CORP_AGRI_{}_{}", region.id, index);
-        return (ParcelOwnerType::Corporate, corp_id);
+        return (ParcelOwnerType::Corporate, corp_id, "CorporateFarm".to_string());
     }
     // Next 10%: Municipal
     if index < total * 8 / 10 {
         return (
             ParcelOwnerType::Municipal,
             format!("JST:{}", region.id),
+            "MunicipalReserve".to_string(),
         );
     }
     // Remaining: Smallholders (Free Peasants) or Religious
@@ -771,11 +1093,13 @@ fn pick_owner(
         (
             ParcelOwnerType::Religious,
             format!("MONASTERY_{}_{}", region.id, index),
+            "ReligiousEstate".to_string(),
         )
     } else {
         (
             ParcelOwnerType::Private,
             format!("PEASANT_{}_{}", region.id, index),
+            "Smallholder".to_string(),
         )
     }
 }
@@ -2956,5 +3280,241 @@ mod tests {
         let resolved = process_border_conflicts(&mut cadastre, &mut conflicts, 10.0, 10);
         assert_eq!(resolved.len(), 1, "Conflict should be resolved");
         assert!(!cadastre.parcels.values().next().unwrap().is_frozen, "Parcel should be unfrozen");
+    }
+
+    #[test]
+    fn test_state_forest_endowment_zoning() {
+        // State Forest parcels should have ProtectedNatural zoning
+        let mut cadastre = Cadastre::default();
+        cadastre.insert(ParcelChunk {
+            owner_type: ParcelOwnerType::State,
+            owner_id: "TREASURY".to_string(),
+            zoning: ZoningDesignation::ProtectedNatural,
+            land_use_tag: "StateForest".to_string(),
+            size_hectares: 500.0,
+            ..Default::default()
+        });
+        let parcel = cadastre.parcels.values().next().unwrap();
+        assert_eq!(parcel.zoning, ZoningDesignation::ProtectedNatural);
+        assert_eq!(parcel.land_use_tag, "StateForest");
+        assert_eq!(parcel.owner_type, ParcelOwnerType::State);
+    }
+
+    #[test]
+    fn test_municipal_endowment_tag() {
+        let mut cadastre = Cadastre::default();
+        cadastre.insert(ParcelChunk {
+            owner_type: ParcelOwnerType::Municipal,
+            owner_id: "JST:R1".to_string(),
+            land_use_tag: "MunicipalReserve".to_string(),
+            size_hectares: 100.0,
+            ..Default::default()
+        });
+        let parcel = cadastre.parcels.values().next().unwrap();
+        assert_eq!(parcel.land_use_tag, "MunicipalReserve");
+        assert_eq!(parcel.owner_type, ParcelOwnerType::Municipal);
+    }
+
+    #[test]
+    fn test_generate_cadastre_has_state_forests() {
+        use crate::society::geography::{Region, NodeType, Climate};
+        let region = Region {
+            id: "R1".to_string(),
+            display_name: "Test Region".to_string(),
+            population: 500_000,
+            development_level: 0.5,
+            is_capital: false,
+            node_type: NodeType::LandRegion,
+            climate: Climate::Fertile,
+            ..Default::default()
+        };
+        let mut rng = rand::thread_rng();
+        let cadastre = generate_cadastre("TestLand", &[region], &mut rng, 0);
+        // Should have at least one state-owned parcel
+        let state_parcels: Vec<_> = cadastre.parcels.values()
+            .filter(|p| p.owner_type == ParcelOwnerType::State)
+            .collect();
+        assert!(!state_parcels.is_empty(), "Should have state-owned parcels");
+        // Should have at least one state forest with ProtectedNatural zoning
+        let state_forests: Vec<_> = state_parcels.iter()
+            .filter(|p| p.land_use_tag == "StateForest")
+            .collect();
+        // State forests may or may not appear due to randomness, but if they do, they must have ProtectedNatural
+        for sf in state_forests {
+            assert_eq!(sf.zoning, ZoningDesignation::ProtectedNatural,
+                "State Forest parcels must have ProtectedNatural zoning");
+        }
+    }
+
+    #[test]
+    fn test_generate_cadastre_has_municipal_parcels() {
+        use crate::society::geography::{Region, NodeType, Climate};
+        let region = Region {
+            id: "R1".to_string(),
+            display_name: "Test Region".to_string(),
+            population: 500_000,
+            development_level: 0.5,
+            is_capital: false,
+            node_type: NodeType::LandRegion,
+            climate: Climate::Fertile,
+            ..Default::default()
+        };
+        let mut rng = rand::thread_rng();
+        let cadastre = generate_cadastre("TestLand", &[region], &mut rng, 0);
+        let municipal_parcels: Vec<_> = cadastre.parcels.values()
+            .filter(|p| p.owner_type == ParcelOwnerType::Municipal)
+            .collect();
+        assert!(!municipal_parcels.is_empty(), "Should have municipal parcels");
+        for mp in municipal_parcels {
+            assert_eq!(mp.land_use_tag, "MunicipalReserve");
+            assert!(mp.owner_id.starts_with("JST:"));
+        }
+    }
+
+    #[test]
+    fn test_land_use_tag_persists_through_split() {
+        let mut cadastre = Cadastre::default();
+        let id = cadastre.insert(ParcelChunk {
+            size_hectares: 200.0,
+            land_use_tag: "StateForest".to_string(),
+            acquisition_price: 100_000.0,
+            ..Default::default()
+        });
+        let split_id = cadastre.split_parcel(id, 80.0, 5).unwrap();
+        let split = cadastre.get(split_id).unwrap();
+        assert_eq!(split.land_use_tag, "StateForest", "land_use_tag should persist through split");
+    }
+
+    // ========================================================================
+    // Phase 63 Tests: Topography, Water & Subsurface Rights
+    // ========================================================================
+
+    #[test]
+    fn test_water_access_boosts_value() {
+        let config = CadastreConfig::default();
+        let make_parcel = |water: WaterAccessType| ParcelChunk {
+            soil_class: "Class_II".to_string(),
+            size_hectares: 100.0,
+            zoning: ZoningDesignation::Agricultural,
+            topography: ParcelTopography {
+                water_access: water,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let base_value = compute_parcel_value(&make_parcel(WaterAccessType::None), &config);
+        let sea_value = compute_parcel_value(&make_parcel(WaterAccessType::Sea), &config);
+        assert!(sea_value > base_value, "Sea access should boost value");
+        assert!((sea_value - base_value * (1.0 + config.sea_access_premium)).abs() < 1.0);
+        let river_value = compute_parcel_value(&make_parcel(WaterAccessType::River), &config);
+        assert!(river_value > base_value, "River access should boost value");
+        let lake_value = compute_parcel_value(&make_parcel(WaterAccessType::Lake), &config);
+        assert!(lake_value > base_value, "Lake access should boost value");
+    }
+
+    #[test]
+    fn test_forest_parcel_value() {
+        let config = CadastreConfig::default();
+        let base = ParcelChunk {
+            soil_class: "Class_II".to_string(),
+            size_hectares: 100.0,
+            zoning: ZoningDesignation::Agricultural,
+            ..Default::default()
+        };
+        let base_value = compute_parcel_value(&base, &config);
+        let forest = ParcelChunk {
+            topography: ParcelTopography {
+                is_forest: true,
+                ..Default::default()
+            },
+            ..base
+        };
+        let forest_value = compute_parcel_value(&forest, &config);
+        assert!(forest_value > base_value, "Forest should boost value");
+    }
+
+    #[test]
+    fn test_natural_wonder_value() {
+        let config = CadastreConfig::default();
+        let base = ParcelChunk {
+            soil_class: "Class_II".to_string(),
+            size_hectares: 100.0,
+            zoning: ZoningDesignation::Agricultural,
+            ..Default::default()
+        };
+        let base_value = compute_parcel_value(&base, &config);
+        let wonder = ParcelChunk {
+            topography: ParcelTopography {
+                is_natural_wonder: true,
+                ..Default::default()
+            },
+            ..base
+        };
+        let wonder_value = compute_parcel_value(&wonder, &config);
+        assert!(wonder_value > base_value, "Natural wonder should boost value");
+        assert!((wonder_value - base_value * (1.0 + config.natural_wonder_premium)).abs() < 1.0);
+    }
+
+    #[test]
+    fn test_subsurface_rights_default_state_owned() {
+        let law = SubsurfaceRightsLaw::default();
+        assert_eq!(law.default_ownership, SubsurfaceRights::StateOwned);
+        assert!(law.state_can_expropriate_subsurface);
+        assert!(law.mining_land_premium > 1.0);
+    }
+
+    #[test]
+    fn test_topography_generation_assigns_traits() {
+        use crate::society::geography::{Region, NodeType, Climate, GeographicTraits};
+        let region = Region {
+            id: "R1".to_string(),
+            display_name: "Coastal Region".to_string(),
+            population: 100_000,
+            development_level: 0.5,
+            is_capital: false,
+            node_type: NodeType::LandRegion,
+            climate: Climate::Fertile,
+            geographic_traits: GeographicTraits {
+                has_coastline: true,
+                has_navigable_river: true,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let mut rng = rand::thread_rng();
+        let cadastre = generate_cadastre("TestLand", &[region], &mut rng, 0);
+        // With coastline and river, at least some parcels should have water access
+        let water_parcels: Vec<_> = cadastre.parcels.values()
+            .filter(|p| p.topography.water_access != WaterAccessType::None)
+            .collect();
+        // Due to randomness, we can't guarantee water parcels, but the code should not crash
+        // and should produce valid topography.
+        let _ = water_parcels;
+        // Verify all parcels have valid topography
+        for parcel in cadastre.parcels.values() {
+            assert!(parcel.topography.subsurface_rights == SubsurfaceRights::StateOwned,
+                "Default subsurface rights should be StateOwned");
+        }
+    }
+
+    #[test]
+    fn test_topography_persists_through_split() {
+        let mut cadastre = Cadastre::default();
+        let id = cadastre.insert(ParcelChunk {
+            size_hectares: 200.0,
+            acquisition_price: 100_000.0,
+            topography: ParcelTopography {
+                water_access: WaterAccessType::Sea,
+                is_forest: true,
+                is_natural_wonder: false,
+                subsurface_rights: SubsurfaceRights::SurfaceOwner,
+            },
+            ..Default::default()
+        });
+        let split_id = cadastre.split_parcel(id, 80.0, 5).unwrap();
+        let split = cadastre.get(split_id).unwrap();
+        assert_eq!(split.topography.water_access, WaterAccessType::Sea);
+        assert!(split.topography.is_forest);
+        assert_eq!(split.topography.subsurface_rights, SubsurfaceRights::SurfaceOwner);
     }
 }

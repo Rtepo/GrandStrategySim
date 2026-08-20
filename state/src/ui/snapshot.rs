@@ -331,6 +331,8 @@ pub struct RegionRow {
     pub id: String,
     pub display_name: String,
     pub megaregion: String,
+    /// Phase 61.3: Megaregion ID for drill-down lookup (separate from display name).
+    pub megaregion_id: String,
     pub population: i64,
     pub regional_gdp: f64,
     pub gdp_per_capita: f64,
@@ -1523,12 +1525,12 @@ pub fn build_country_snapshot(
         .iter()
         .map(|r| {
             // Derive megaregion membership by searching country.megaregions.
-            let megaregion = country
+            let megaregion_info = country
                 .megaregions
                 .iter()
                 .find(|mg| mg.regions.contains(&r.id))
-                .map(|mg| mg.name.clone())
-                .unwrap_or_else(|| "Unassigned".to_string());
+                .map(|mg| (mg.name.clone(), mg.id.clone()))
+                .unwrap_or_else(|| ("Unassigned".to_string(), String::new()));
             let gdp_per_capita = if r.population > 0 {
                 r.gdp / r.population as f64
             } else {
@@ -1537,7 +1539,8 @@ pub fn build_country_snapshot(
             RegionRow {
                 id: r.id.clone(),
                 display_name: if r.display_name.is_empty() { r.id.clone() } else { r.display_name.clone() },
-                megaregion,
+                megaregion: megaregion_info.0,
+                megaregion_id: megaregion_info.1,
                 population: r.population,
                 regional_gdp: r.gdp,
                 gdp_per_capita,
@@ -1671,7 +1674,7 @@ fn build_vip_page(country: &Country, companies: &[Company], view: &ViewQuery) ->
                 },
                 roles: roles_str,
                 age: v.age,
-                health: v.health,
+                health: v.health.aggregate(),
                 faction: v.faction.clone(),
                 influence: v.base_influence,
                 is_dead: v.is_dead,
@@ -1728,7 +1731,7 @@ fn build_vip_dossier(country: &Country, view: &ViewQuery) -> Option<VipDossier> 
         full_name: v.full_name.clone(),
         gender: v.gender.clone(),
         age: v.age,
-        health: v.health,
+        health: v.health.aggregate(),
         incapacity: format!("{:?}", v.incapacity),
         traits: v.traits.clone(),
         main_trait: v.main_trait.clone(),

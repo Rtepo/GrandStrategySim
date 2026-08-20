@@ -4367,6 +4367,7 @@ pub fn run_turn_in_memory(
     // its own cadastre, border conflicts, zoning plans, and arbitration cases.
     for (country_name, country) in &mut state.countries {
         use crate::society::cadastre as cad;
+        use crate::society::real_estate_market as rem;
         use crate::corporate::market_behavior::evaluate_market_behavior;
 
         let current_turn = turn;
@@ -4535,6 +4536,89 @@ pub fn run_turn_in_memory(
             &mut country.arbitration_court,
             &mut country.budget.liquid_reserves,
         );
+
+        // Phase 62.2: Process adverse possession (Zasiedzenie)
+        let ap_config = cad::AdversePossessionConfig::default();
+        rem::process_adverse_possession(
+            &mut country.cadastre,
+            &mut country.regions,
+            current_turn,
+            &ap_config,
+            &mut rng,
+        );
+
+        // Phase 62.4: Process immissions (pollution spread via topological graph)
+        let immission_config = cad::ImmissionConfig::default();
+        rem::process_immissions(
+            &mut country.cadastre,
+            &mut country.arbitration_court,
+            &immission_config,
+            current_turn,
+        );
+
+        // Phase 62.5: Process VIP health from pollution
+        // Extract region data first to avoid borrow conflicts.
+        let vip_region_map: std::collections::HashMap<String, String> = {
+            let mut map = std::collections::HashMap::new();
+            if let Some(ref vip_registry) = country.politics.vip_registry {
+                for (vip_id, vip) in &vip_registry.vips {
+                    if let Some(region_id) = rem::infer_vip_region(vip, country) {
+                        map.insert(vip_id.clone(), region_id);
+                    }
+                }
+            }
+            map
+        };
+        // Compute regional pollution levels
+        let region_pollution: std::collections::HashMap<String, f64> = {
+            let mut rp = std::collections::HashMap::new();
+            let mut counts: std::collections::HashMap<String, u32> = std::collections::HashMap::new();
+            for parcel in country.cadastre.parcels.values() {
+                *rp.entry(parcel.region_id.clone()).or_insert(0.0) += parcel.pollution_level;
+                *counts.entry(parcel.region_id.clone()).or_insert(0) += 1;
+            }
+            let keys: Vec<String> = rp.keys().cloned().collect();
+            for key in keys {
+                let total = rp.remove(&key).unwrap_or(0.0);
+                let count = *counts.get(&key).unwrap_or(&1) as f64;
+                rp.insert(key, total / count);
+            }
+            rp
+        };
+        if let Some(ref mut vip_registry) = country.politics.vip_registry {
+            let vip_ids: Vec<String> = vip_registry.vips.keys().cloned().collect();
+            for vip_id in vip_ids {
+                let vip = match vip_registry.vips.get_mut(&vip_id) {
+                    Some(v) => v,
+                    None => continue,
+                };
+                if vip.is_dead { continue; }
+                let region_id = match vip_region_map.get(&vip_id) {
+                    Some(r) => r.clone(),
+                    None => continue,
+                };
+                let pollution = *region_pollution.get(&region_id).unwrap_or(&0.0);
+                if pollution > immission_config.health_impact_threshold {
+                    vip.health.physical_health -= pollution * immission_config.physical_health_decay_rate;
+                    vip.health.mental_health -= pollution * immission_config.mental_health_decay_rate;
+                    vip.health.physical_health = vip.health.physical_health.max(0.0);
+                    vip.health.mental_health = vip.health.mental_health.max(0.0);
+                    if vip.health.physical_health < immission_config.death_threshold {
+                        vip.is_dead = true;
+                        vip.death_turn = Some(current_turn);
+                        vip.incapacity = crate::politics::vip_registry::IncapacityStatus::Dead;
+                    }
+                    if vip.health.mental_health < immission_config.breakdown_threshold {
+                        if matches!(vip.incapacity, crate::politics::vip_registry::IncapacityStatus::Healthy) {
+                            vip.incapacity = crate::politics::vip_registry::IncapacityStatus::Sick;
+                        }
+                    }
+                } else {
+                    vip.health.physical_health = (vip.health.physical_health + immission_config.health_recovery_rate).min(1.0);
+                    vip.health.mental_health = (vip.health.mental_health + immission_config.health_recovery_rate).min(1.0);
+                }
+            }
+        }
 
         let _ = country_name;
     }

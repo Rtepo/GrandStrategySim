@@ -202,6 +202,7 @@ pub fn load_country_data(data_dir: &Path, country: &str) -> Result<Country, Save
         legal_certainty_config: crate::society::cadastre::LegalCertaintyConfig::default(),
         externality_config: crate::society::cadastre::ExternalityConfig::default(),
         national_zoning_quota: crate::society::cadastre::NationalZoningQuota::default(),
+        subsurface_rights_law: crate::society::cadastre::SubsurfaceRightsLaw::default(),
     })
 }
 
@@ -337,6 +338,7 @@ pub fn load_game_state(data_dir: &Path) -> Result<GameState, SaveError> {
         legal_certainty_config: crate::society::cadastre::LegalCertaintyConfig::default(),
         externality_config: crate::society::cadastre::ExternalityConfig::default(),
         national_zoning_quota: crate::society::cadastre::NationalZoningQuota::default(),
+        subsurface_rights_law: crate::society::cadastre::SubsurfaceRightsLaw::default(),
             },
         );
     }

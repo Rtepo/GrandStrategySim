@@ -428,7 +428,11 @@ export type RegionOption = { value: string, label: string, };
 /**
  * Phase 34: A region row for the Regions tab.
  */
-export type RegionRow = { id: string, display_name: string, megaregion: string, population: bigint, regional_gdp: number, gdp_per_capita: number, has_governance: boolean, liquid_reserves: number, };
+export type RegionRow = { id: string, display_name: string, megaregion: string, 
+/**
+ * Phase 61.3: Megaregion ID for drill-down lookup (separate from display name).
+ */
+megaregion_id: string, population: bigint, regional_gdp: number, gdp_per_capita: number, has_governance: boolean, liquid_reserves: number, };
 
 /**
  * Phase 54: A role option for the VIPs tab role filter dropdown.

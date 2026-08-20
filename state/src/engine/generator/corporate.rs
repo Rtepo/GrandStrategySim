@@ -491,7 +491,7 @@ pub fn generate_corporate_entities(
             full_name: ceo_name.full_name.clone(),
             gender: ceo_name.gender,
             age: 35 + rng.gen_range(0..30),
-            health: 1.0,
+            health: crate::politics::vip_registry::VipHealth { physical_health: 1.0, mental_health: 1.0 },
             traits,
             main_trait,
             ideology,
@@ -537,7 +537,7 @@ pub fn generate_corporate_entities(
                     full_name: bm_name.full_name.clone(),
                     gender: bm_name.gender,
                     age: 40 + rng.gen_range(0..25),
-                    health: 1.0,
+                    health: crate::politics::vip_registry::VipHealth { physical_health: 1.0, mental_health: 1.0 },
                     traits: bm_traits,
                     main_trait: bm_main_trait,
                     ideology: bm_ideology,
@@ -585,7 +585,7 @@ pub fn generate_corporate_entities(
                         full_name: heir_name.full_name.clone(),
                         gender: heir_name.gender,
                         age: 18 + rng.gen_range(0..13), // 18–30
-                        health: 1.0,
+                        health: crate::politics::vip_registry::VipHealth { physical_health: 1.0, mental_health: 1.0 },
                         traits: heir_traits,
                         main_trait: heir_main_trait,
                         ideology: heir_ideology,
@@ -868,6 +868,9 @@ fn generate_region_companies(
         } else {
             0.0
         };
+        // Phase 61.2: Derive is_listed and free_float from legal_form before it's moved.
+        let is_listed = legal_form.is_listed();
+        let free_float = legal_form.free_float();
 
         let mut company = Company {
             id: company_id.clone(),
@@ -897,9 +900,9 @@ fn generate_region_companies(
             scale_factor,
             worker_capacity: actual_capacity,
             is_national_champion,
-            is_listed: false,
+            is_listed,
             owners: BTreeMap::new(),
-            free_float: 0.0,
+            free_float,
             aggregated_stats: crate::entities::AggregatedStats::default(),
             bank_type: None,
             balance_sheet: None,
@@ -3818,6 +3821,7 @@ fn find_mining_deposit_for_region(
 /// * Assign fund manager VIP with traits appropriate to fund type.
 /// * Register fund manager in VIP registry.
 pub fn generate_investment_funds(
+    data_dir: &std::path::Path,
     country: &mut Country,
     cultural_group: &str,
     start_year: u32,
@@ -3826,6 +3830,7 @@ pub fn generate_investment_funds(
     use crate::politics::vip_registry::{Vip, VipRoleExtended, assign_core_traits};
     use crate::securities::{FundType, FundLedger, InvestmentMandate, BrokerageAccount};
     use crate::entities::AggregatedStats;
+    use crate::io::entity_store::{DiskEntityStore, EntityStore};
 
     // Determine fund count based on GDP (2–5 funds).
     let total_gdp: f64 = country.regions.iter().map(|r| r.gdp_pc * r.population as f64).sum();
@@ -3906,7 +3911,7 @@ pub fn generate_investment_funds(
             full_name: manager_name.full_name.clone(),
             gender: manager_name.gender,
             age: 35 + rng.gen_range(0..30),
-            health: 1.0,
+            health: crate::politics::vip_registry::VipHealth { physical_health: 1.0, mental_health: 1.0 },
             traits: traits.clone(),
             main_trait: main_trait.clone(),
             ideology,
@@ -4039,13 +4044,16 @@ pub fn generate_investment_funds(
         fund_companies.push(fund_company);
     }
 
-    // Save fund companies to the banking sector.
+    // Phase 61.1: Save fund companies to disk so they persist across game load.
+    // Funds are stored in the "banking" sector file alongside bank companies.
     if !fund_companies.is_empty() {
-        let company_store = DiskEntityStore::<Company>::new(
-            &std::path::Path::new(&country.name).to_path_buf(),
-        );
-        let _ = company_store; // We don't save here — funds are added to the country's entity list at runtime.
-        // Note: Fund companies are stored in the country's entity collection
-        // and will be saved with the next save_game_state call.
+        let company_store = DiskEntityStore::<Company>::new(data_dir);
+        let sector_name = sector_json_name(Sector::Banking);
+        // Load existing banking companies, append funds, and save back.
+        let mut existing = company_store
+            .load_sector(&country.name, &sector_name, None)
+            .unwrap_or_default();
+        existing.extend(fund_companies);
+        let _ = company_store.save_sector(&country.name, &sector_name, None, &existing);
     }
 }

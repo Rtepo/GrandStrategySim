@@ -195,7 +195,7 @@ pub fn generate_world(
         } else {
             country.macro_indicators.cultural_group.clone()
         };
-        generate_investment_funds(country, &cultural_group, options.start_year as u32, &mut rng);
+        generate_investment_funds(data_dir, country, &cultural_group, options.start_year as u32, &mut rng);
     }
 
     save_game_state(data_dir, &state)?;
@@ -357,6 +357,7 @@ fn generate_country(
         legal_certainty_config: crate::society::cadastre::LegalCertaintyConfig::default(),
         externality_config: crate::society::cadastre::ExternalityConfig::default(),
         national_zoning_quota: crate::society::cadastre::NationalZoningQuota::default(),
+        subsurface_rights_law: crate::society::cadastre::SubsurfaceRightsLaw::default(),
     };
     country.macro_indicators.currency = currency.prefix.clone();
 

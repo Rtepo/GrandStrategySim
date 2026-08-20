@@ -220,6 +220,26 @@ impl VipRoleExtended {
 // VIP ENTITY
 // ============================================================================
 
+/// Phase 62.5: Holistic VIP health model.
+/// Replaces the single `health: f64` field with physical and mental components.
+/// This is a clean breaking change — old saves will fail to deserialize (per Phase 55 policy).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct VipHealth {
+    /// Physical health (0.0 = dead, 1.0 = perfect health)
+    #[serde(default = "default_health")]
+    pub physical_health: f64,
+    /// Mental health (0.0 = breakdown, 1.0 = stable)
+    #[serde(default = "default_health")]
+    pub mental_health: f64,
+}
+
+impl VipHealth {
+    /// Returns the aggregate health score (average of physical and mental).
+    pub fn aggregate(&self) -> f64 {
+        (self.physical_health + self.mental_health) / 2.0
+    }
+}
+
 /// Unique VIP identity tracked across the entire simulation.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct Vip {
@@ -235,9 +255,9 @@ pub struct Vip {
     /// Current age (increments each year).
     #[serde(default)]
     pub age: u32,
-    /// Health status (0.0–1.0, degrades with age/events).
-    #[serde(default = "default_health")]
-    pub health: f64,
+    /// Phase 62.5: Holistic health (physical + mental). Replaces single `health: f64`.
+    #[serde(default)]
+    pub health: VipHealth,
     /// Incapacity status.
     #[serde(default)]
     pub incapacity: IncapacityStatus,
@@ -558,9 +578,11 @@ impl VipRegistry {
             if vip.is_dead {
                 continue;
             }
-            vip.health = age_health_degradation(vip.age, vip.health);
-            // Check for illness-induced incapacity at very low health.
-            if vip.health < 0.15 && matches!(vip.incapacity, IncapacityStatus::Healthy) {
+            // Phase 62.5: Degrade both physical and mental health with age.
+            vip.health.physical_health = age_health_degradation(vip.age, vip.health.physical_health);
+            vip.health.mental_health = age_health_degradation(vip.age, vip.health.mental_health);
+            // Check for illness-induced incapacity at very low aggregate health.
+            if vip.health.aggregate() < 0.15 && matches!(vip.incapacity, IncapacityStatus::Healthy) {
                 vip.incapacity = IncapacityStatus::Sick;
             }
         }
@@ -583,9 +605,9 @@ impl VipRegistry {
                 continue;
             }
 
-            let death_prob = death_probability(vip.age, vip.health);
+            let death_prob = death_probability(vip.age, vip.health.aggregate());
             if rng.gen::<f64>() < death_prob {
-                let cause = if vip.age >= 60 || vip.health < 0.3 {
+                let cause = if vip.age >= 60 || vip.health.aggregate() < 0.3 {
                     DeathCause::Illness
                 } else {
                     DeathCause::OldAge
@@ -713,7 +735,7 @@ mod tests {
             full_name: name.to_string(),
             gender: "M".to_string(),
             age,
-            health: 1.0,
+            health: VipHealth { physical_health: 1.0, mental_health: 1.0 },
             incapacity: IncapacityStatus::Healthy,
             traits: vec!["Loyal".to_string()],
             main_trait: "Loyal".to_string(),
@@ -938,7 +960,7 @@ mod tests {
         let mut rng = rand::thread_rng();
         let mut registry = VipRegistry::new();
         let mut vip = make_test_vip("Old Leader", 95);
-        vip.health = 0.1; // Very unhealthy
+        vip.health = VipHealth { physical_health: 0.1, mental_health: 0.1 }; // Very unhealthy
         let id = registry.register_new(vip);
 
         // Run death check multiple times — with age 95 and health 0.1,
@@ -952,7 +974,7 @@ mod tests {
             }
             // Re-age to keep probability high
             if let Some(v) = registry.get_mut(&id) {
-                v.health = 0.1;
+                v.health = VipHealth { physical_health: 0.1, mental_health: 0.1 };
             }
         }
         assert!(died, "A 95-year-old with 0.1 health should eventually die");
@@ -1019,7 +1041,7 @@ mod tests {
     fn test_degrade_health_all_applies_to_living_only() {
         let mut registry = VipRegistry::new();
         let mut vip1 = make_test_vip("Old Man", 70);
-        vip1.health = 1.0;
+        vip1.health = VipHealth { physical_health: 1.0, mental_health: 1.0 };
         let id1 = registry.register_new(vip1);
         let mut vip2 = make_test_vip("Dead Man", 70);
         vip2.mark_dead(5, DeathCause::OldAge);
@@ -1028,16 +1050,16 @@ mod tests {
         registry.degrade_health_all();
 
         let v1 = registry.get(&id1).unwrap();
-        assert!((v1.health - 0.99).abs() < 1e-6, "Living 70yo should degrade");
+        assert!((v1.health.aggregate() - 0.99).abs() < 1e-6, "Living 70yo should degrade");
         let v2 = registry.get(&id2).unwrap();
-        assert_eq!(v2.health, 1.0, "Dead VIP health should not change (was 1.0 at creation)");
+        assert_eq!(v2.health.aggregate(), 1.0, "Dead VIP health should not change (was 1.0 at creation)");
     }
 
     #[test]
     fn test_low_health_triggers_sick_incapacity() {
         let mut registry = VipRegistry::new();
         let mut vip = make_test_vip("Sick Leader", 75);
-        vip.health = 0.10;
+        vip.health = VipHealth { physical_health: 0.10, mental_health: 0.10 };
         let id = registry.register_new(vip);
 
         registry.degrade_health_all();

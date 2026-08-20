@@ -45,10 +45,8 @@ export function RegionsPage() {
   if (regions) {
     for (const r of regions) {
       const mega = r.megaregion || "Ungrouped";
-      // Use the megaregion name as a pseudo-id if we don't have the real id.
-      // The backend build_megaregion_detail looks up by id, so we use the name
-      // as the id (megaregion names are unique per country).
-      if (!megaNameToId.has(mega)) megaNameToId.set(mega, mega);
+      // Phase 61.3: Use the real megaregion_id from the DTO, not the name.
+      if (!megaNameToId.has(mega)) megaNameToId.set(mega, r.megaregion_id || mega);
     }
   }
 
