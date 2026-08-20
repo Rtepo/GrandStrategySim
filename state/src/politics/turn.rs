@@ -54,6 +54,97 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
                 vip_id, cause
             ));
         }
+
+        // Phase 55: Process CEO succession for dead CEOs.
+        // When a CEO VIP dies, find the company they managed and trigger
+        // family business succession or board appointment.
+        let dead_ceo_ids: Vec<String> = deaths
+            .iter()
+            .filter_map(|(vip_id, _)| {
+                let vip = registry.get(vip_id)?;
+                if vip.has_role(&crate::politics::vip_registry::VipRoleExtended::Ceo) {
+                    Some(vip_id.clone())
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        for dead_ceo_id in &dead_ceo_ids {
+            // Find the company managed by this CEO.
+            let company_idx = companies.iter().position(|c| {
+                c.ceo_vip_id.as_deref() == Some(dead_ceo_id.as_str())
+            });
+
+            if let Some(idx) = company_idx {
+                let company = &mut companies[idx];
+
+                // Try family business succession first.
+                let heir_id = if let crate::entities::LegalForm::FamilyBusiness(ref fbd) = company.legal_form {
+                    // Find first living heir of age (≥18).
+                    fbd.heir_vip_ids.iter().find_map(|heir_id| {
+                        let heir = registry.get(heir_id)?;
+                        if heir.is_dead || heir.age < 18 {
+                            return None;
+                        }
+                        // Remove Heir role, add Ceo role.
+                        Some(heir_id.clone())
+                    })
+                } else {
+                    None
+                };
+
+                if let Some(heir_id) = heir_id {
+                    // Promote heir to CEO.
+                    if let Some(ref mut heir) = registry.get_mut(&heir_id) {
+                        heir.remove_role(&crate::politics::vip_registry::VipRoleExtended::Heir);
+                        heir.add_role(crate::politics::vip_registry::VipRoleExtended::Ceo);
+                    }
+                    company.ceo_vip_id = Some(heir_id.clone());
+                    if let crate::entities::LegalForm::FamilyBusiness(ref mut fbd) = company.legal_form {
+                        fbd.successor_generation += 1;
+                        fbd.succession_crisis = false;
+                    }
+                    messages.push(format!(
+                        "[SUCCESSION] Family business {} — heir {} promoted to CEO (generation {}).",
+                        company.id, heir_id,
+                        if let crate::entities::LegalForm::FamilyBusiness(fbd) = &company.legal_form {
+                            fbd.successor_generation
+                        } else { 0 }
+                    ));
+                } else {
+                    // No living heir — check for board to appoint external CEO.
+                    let has_board = if let crate::entities::LegalForm::JointStockCompany(ref jsd) = company.legal_form {
+                        !jsd.board_members.is_empty()
+                    } else {
+                        false
+                    };
+
+                    if has_board {
+                        // Board appoints an external CEO from the VIP pool.
+                        // For now, mark as succession crisis — the board will
+                        // recruit externally in a future turn.
+                        if let crate::entities::LegalForm::FamilyBusiness(ref mut fbd) = company.legal_form {
+                            fbd.succession_crisis = true;
+                        }
+                        messages.push(format!(
+                            "[SUCCESSION] Company {} — CEO died, no living heir. Board will appoint external CEO.",
+                            company.id
+                        ));
+                    } else {
+                        // No board, no heir — mark as succession crisis.
+                        // Company will be liquidated or sold via bankruptcy in future turns.
+                        if let crate::entities::LegalForm::FamilyBusiness(ref mut fbd) = company.legal_form {
+                            fbd.succession_crisis = true;
+                        }
+                        messages.push(format!(
+                            "[SUCCESSION] Family business {} — CEO died, no heir. Succession crisis triggered.",
+                            company.id
+                        ));
+                    }
+                }
+            }
+        }
     }
 
     // Phase 45: Single global VIP deduplication set.

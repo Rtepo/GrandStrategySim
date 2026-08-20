@@ -13,6 +13,8 @@ import {
   Play,
   Plus,
   RefreshCw,
+  CandlestickChart,
+  PiggyBank,
 } from "lucide-react";
 import { useGameStore } from "./store/gameStore";
 import { advanceTurn, newGame } from "./hooks/useTauriCommand";
@@ -25,6 +27,8 @@ import { CompaniesPage } from "./pages/CompaniesPage";
 import { ParliamentPage } from "./pages/ParliamentPage";
 import { GovernmentPage } from "./pages/GovernmentPage";
 import { RegionsPage } from "./pages/RegionsPage";
+import { StockExchangePage } from "./pages/StockExchangePage";
+import { FundsPage } from "./pages/FundsPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { useUpdater } from "./hooks/useUpdater";
@@ -34,6 +38,8 @@ const NAV_ITEMS = [
   { to: "/market", label: "Market", icon: LayoutDashboard },
   { to: "/finance", label: "Finance", icon: Banknote },
   { to: "/banking", label: "Banking", icon: Landmark },
+  { to: "/stock-exchange", label: "Stock Exchange", icon: CandlestickChart },
+  { to: "/funds", label: "Funds", icon: PiggyBank },
   { to: "/vips", label: "VIPs", icon: Users },
   { to: "/companies", label: "Companies", icon: Building2 },
   { to: "/parliament", label: "Parliament", icon: Globe },
@@ -297,6 +303,8 @@ export default function App() {
             <Route path="/market" element={<MarketPage />} />
             <Route path="/finance" element={<FinancePage />} />
             <Route path="/banking" element={<BankingPage />} />
+            <Route path="/stock-exchange" element={<StockExchangePage />} />
+            <Route path="/funds" element={<FundsPage />} />
             <Route path="/vips" element={<VipsPage />} />
             <Route path="/companies" element={<CompaniesPage />} />
             <Route path="/parliament" element={<ParliamentPage />} />

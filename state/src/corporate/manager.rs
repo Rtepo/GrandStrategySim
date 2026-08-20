@@ -256,7 +256,7 @@ pub fn process_companies(
                     if let Some(ref mut ba) = buyer.brokerage_account {
                         if ba.cash >= cost {
                             ba.cash -= cost;
-                            *ba.portfolio.entry(format!("EQUITY:{}", company_id)).or_insert(0) += *allocation;
+                            ba.add_lot(&format!("EQUITY:{}", company_id), *allocation, *reserve_price, year);
                             total_collected += cost;
                         }
                     }
@@ -650,6 +650,21 @@ pub fn process_company(
             .sectors
             .get(&company.sector)
             .unwrap_or(&default_sector_share);
+        // Phase 57: Evaluate CEO traits via centralized module — no raw string checks.
+        let behavior_modifiers = if let Some(ref ceo_id) = company.ceo_vip_id {
+            if let Some(ref registry) = country.politics.vip_registry {
+                if let Some(vip) = registry.get(ceo_id) {
+                    crate::corporate::market_behavior::evaluate_market_behavior(&vip.traits)
+                } else {
+                    crate::corporate::market_behavior::MarketBehaviorModifiers::default()
+                }
+            } else {
+                crate::corporate::market_behavior::MarketBehaviorModifiers::default()
+            }
+        } else {
+            crate::corporate::market_behavior::MarketBehaviorModifiers::default()
+        };
+
         let ctx = CorporateDecisionCtx {
             company: &*company,
             country: &*country,
@@ -662,6 +677,7 @@ pub fn process_company(
             year,
             gross_profit: total_profit,
             net_profit,
+            behavior_modifiers,
         };
         company.legal_form.decide(&ctx)
     };
@@ -688,6 +704,26 @@ pub fn process_company(
     company.financial_history.push(record);
     if company.financial_history.len() > 5 {
         company.financial_history.remove(0);
+    }
+
+    // Phase 55: Compute EPS, P/E ratio, and dividend yield for listed companies.
+    if company.shares_count > 0 {
+        company.eps = net_profit / company.shares_count as f64;
+        if company.eps > 0.0 && company.share_price > 0.0 {
+            company.pe_ratio = company.share_price / company.eps;
+        } else {
+            company.pe_ratio = 0.0;
+        }
+        let market_cap = company.share_price * company.shares_count as f64;
+        if market_cap > 0.0 {
+            company.dividend_yield = company.aggregated_stats.total_dividends / market_cap;
+        } else {
+            company.dividend_yield = 0.0;
+        }
+    } else {
+        company.eps = 0.0;
+        company.pe_ratio = 0.0;
+        company.dividend_yield = 0.0;
     }
 
     (net_profit > 0.0, interest)
@@ -804,6 +840,21 @@ fn apply_action(
                 .sectors
                 .get(&company.sector)
                 .unwrap_or(&default_sector_share);
+            // Phase 57: Evaluate CEO traits via centralized module.
+            let behavior_modifiers = if let Some(ref ceo_id) = company.ceo_vip_id {
+                if let Some(ref registry) = country.politics.vip_registry {
+                    if let Some(vip) = registry.get(ceo_id) {
+                        crate::corporate::market_behavior::evaluate_market_behavior(&vip.traits)
+                    } else {
+                        crate::corporate::market_behavior::MarketBehaviorModifiers::default()
+                    }
+                } else {
+                    crate::corporate::market_behavior::MarketBehaviorModifiers::default()
+                }
+            } else {
+                crate::corporate::market_behavior::MarketBehaviorModifiers::default()
+            };
+
             let ctx = CorporateDecisionCtx {
                 company: &*company,
                 country: &*country,
@@ -816,6 +867,7 @@ fn apply_action(
                 year,
                 gross_profit,
                 net_profit,
+                behavior_modifiers,
             };
             if let Some(new_form) = try_apply_ipo(&*company, &company.legal_form, shares_to_float, reserve_price, &ctx) {
                 let _ = ctx;

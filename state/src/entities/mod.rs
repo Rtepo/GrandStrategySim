@@ -627,6 +627,27 @@ pub struct Company {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ceo_vip_id: Option<String>,
 
+    /// Phase 55: Earnings per share (net profit / shares_count).
+    /// Computed each turn after process_company. Used for P/E ratio.
+    #[serde(default)]
+    pub eps: f64,
+    /// Phase 55: Price-to-earnings ratio (share_price / eps).
+    /// Computed each turn. 0.0 if eps <= 0 or shares_count == 0.
+    #[serde(default)]
+    pub pe_ratio: f64,
+    /// Phase 55: Dividend yield (annualized dividends / market cap).
+    /// Computed each turn from aggregated_stats.total_dividends.
+    #[serde(default)]
+    pub dividend_yield: f64,
+    /// Phase 55: Opening share price for the current turn (first trade price).
+    /// Set during securities matching. 0.0 if no trades occurred.
+    #[serde(default)]
+    pub open_price: f64,
+    /// Phase 55: Closing share price for the current turn (last trade price).
+    /// Set during securities matching. Falls back to share_price if no trades.
+    #[serde(default)]
+    pub close_price: f64,
+
     /// Any additional company fields.
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -748,6 +769,7 @@ impl Company {
             seasonal_profile: None,
             furloughed_workers_count: 0.0,
             ceo_vip_id: None,
+            eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
             extra: Map::new(),
         }
     }
@@ -945,6 +967,7 @@ impl From<CompanyDef> for Company {
             seasonal_profile: None,
             furloughed_workers_count: 0.0,
             ceo_vip_id: None,
+            eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
             extra: def.extra,
         }
     }
@@ -1018,6 +1041,8 @@ fn infer_legal_form(def: &CompanyDef) -> LegalForm {
             dynasty_id: None,
             successor_generation: 0,
             family_retained_share: 1.0,
+            heir_vip_ids: Vec::new(),
+            succession_crisis: false,
         });
     }
 
@@ -1036,6 +1061,7 @@ fn infer_legal_form(def: &CompanyDef) -> LegalForm {
             free_float,
             dividend_per_share: 0.0,
             board_independence: 0.5,
+            board_members: Vec::new(),
         });
     }
 
@@ -1043,6 +1069,8 @@ fn infer_legal_form(def: &CompanyDef) -> LegalForm {
         dynasty_id: None,
         successor_generation: 0,
         family_retained_share: 1.0,
+        heir_vip_ids: Vec::new(),
+        succession_crisis: false,
     })
 }
 

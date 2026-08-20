@@ -24,9 +24,9 @@ pub mod mbs;
 pub mod derivatives;
 pub mod ccp;
 
-pub use brokerage::{BrokerageAccount, MarginAccount};
+pub use brokerage::{BrokerageAccount, MarginAccount, PositionLot};
 pub use config::SecuritiesMarketConfig;
-pub use exchange::{StockExchange, OrderBook, Order, LiquidityPool, Trade, CircuitBreaker, InstrumentType};
+pub use exchange::{StockExchange, OrderBook, Order, LiquidityPool, Trade, CircuitBreaker, InstrumentType, MarketIndex, CommoditySpotMarket};
 pub use knf::{KNF, AuditFinding, ViolationType, TradingHalt, HaltReason, FreezeReason};
 pub use funds::{FundType, FundLedger, InvestmentMandate};
 pub use trade_finance::{BillOfLading, BillStatus, WorkingCapitalLoan};

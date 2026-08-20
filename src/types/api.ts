@@ -26,6 +26,21 @@ export type BankingAggregates = { total_bank_reserves: number, total_bank_deposi
 export type BankingHistoryResponse = { turns: Array<number>, total_reserves: Array<number>, total_deposits: Array<number>, total_loans: Array<number>, };
 
 /**
+ * Phase 55: Board member row for governance display.
+ */
+export type BoardMemberRow = { vip_id: string, name: string, role: string, loyalty_to_ceo: number, appointed_turn: number, age: number, main_trait: string, };
+
+/**
+ * Phase 57: Capital gains tax summary row.
+ */
+export type CapitalGainsTaxRow = { entity_id: string, realized_gains: number, realized_losses: number, tax_owed: number, carried_forward_losses: number, };
+
+/**
+ * Phase 57: Capital gains tax summary response.
+ */
+export type CapitalGainsTaxSummary = { rows: Array<CapitalGainsTaxRow>, total_tax_collected: number, annual_tax_history: Array<number>, };
+
+/**
  * A chamber snapshot for the Parliament tab.
  */
 export type ChamberSnapshot = { name: string, total_seats: number, speaker_name: string, speaker_club: string, seat_distribution: Array<[string, number]>, };
@@ -49,6 +64,11 @@ chairperson_name: string, };
 export type CommitteeRow = { name: string, committee_type: string, chair: string, chair_party: string, member_count: number, bills_under_review: number, partisan_bias: number, };
 
 /**
+ * Phase 56: Commodity futures row.
+ */
+export type CommodityFuturesRow = { commodity_id: string, delivery_turn: number, futures_price: number, spot_price: number, basis: number, };
+
+/**
  * Per-commodity market data for the Market tab.
  */
 export type CommodityRow = { name: string, vwap: number, last_trade: number, base_price: number, net_surplus: number, 
@@ -68,6 +88,11 @@ supply_volume: number,
  * Phase 43: Total buy order volume (demand).
  */
 demand_volume: number, };
+
+/**
+ * Phase 56: Commodity spot price row.
+ */
+export type CommoditySpotRow = { commodity_id: string, spot_price: number, open_interest: bigint, history: Array<number>, };
 
 /**
  * A full company detail for the detail view.
@@ -155,6 +180,16 @@ export type FinanceSnapshot = { treasury_reserves: number, gdp: number, ministry
 ministry_expenditure_breakdown: Array<MinistryExpenditureEntry>, };
 
 /**
+ * Phase 57: Detailed fund view for the fund detail panel.
+ */
+export type FundDetail = { fund_id: string, name: string, fund_type: string, nav_per_share: number, total_aum: number, manager_name: string, manager_vip_id: string, manager_trait: string, shares_outstanding: bigint, ytd_return: number, leverage_ratio: number, management_fee: number, performance_fee: number, top_holdings: Array<[string, number]>, portfolio_holdings: Array<[string, bigint, number]>, };
+
+/**
+ * Phase 57: Fund row for the investment funds UI.
+ */
+export type FundRow = { fund_id: string, name: string, fund_type: string, nav_per_share: number, total_aum: number, manager_name: string, manager_vip_id: string, manager_trait: string, shares_outstanding: bigint, ytd_return: number, top_holdings: Array<[string, number]>, };
+
+/**
  * Phase 42: A single entry in the Central Bank's FX reserves basket.
  */
 export type FxBasketEntry = { currency: string, amount: number, exchange_rate: number, };
@@ -163,6 +198,11 @@ export type FxBasketEntry = { currency: string, amount: number, exchange_rate: n
  * Response for the get_game_status command.
  */
 export type GameStatus = { has_game: boolean, turn: number, year: number, processing: boolean, countries: Array<string>, };
+
+/**
+ * Phase 55: Governance detail for a company (board, succession, financial metrics).
+ */
+export type GovernanceDetail = { company_id: string, company_name: string, is_listed: boolean, shares_count: bigint, share_price: number, market_cap: number, eps: number, pe_ratio: number, dividend_yield: number, open_price: number, close_price: number, board_members: Array<BoardMemberRow>, has_board: boolean, board_independence: number, is_family_business: boolean, successor_generation: number, heir_count: number, succession_crisis: boolean, heirs: Array<BoardMemberRow>, };
 
 /**
  * Government tab data.
@@ -192,9 +232,29 @@ export type InfrastructureRow = { link_id: string, condition: number, capacity: 
 export type KioAppealRow = { id: string, appellant: string, status: string, };
 
 /**
+ * Phase 57: KNF audit finding row for the regulatory UI.
+ */
+export type KnfFindingRow = { entity_id: string, entity_name: string, violation_type: string, severity: number, turn: number, description: string, penalty: number, };
+
+/**
  * Labor market summary.
  */
 export type LaborSummary = { unemployment_rate: number, employed_total: number, unemployed: number, workforce: number, average_wage: number, };
+
+/**
+ * Phase 56: Detailed market view for a single listed company.
+ */
+export type ListedCompanyDetail = { company_id: string, name: string, sector: string, share_price: number, market_cap: number, pe_ratio: number, dividend_yield: number, eps: number, open_price: number, close_price: number, spread: number, volume: bigint, shares_count: bigint, free_float: number, recent_trades: Array<TradeRow>, };
+
+/**
+ * Phase 56: Paginated listed company page response.
+ */
+export type ListedCompanyPageResponse = { rows: Array<ListedCompanyRow>, total_count: number, };
+
+/**
+ * Phase 56: Listed company row for the stock exchange table.
+ */
+export type ListedCompanyRow = { company_id: string, name: string, sector: string, share_price: number, change_pct: number, market_cap: number, pe_ratio: number, dividend_yield: number, volume: bigint, open_price: number, close_price: number, spread: number, ceo_name: string | null, ceo_vip_id: string | null, };
 
 /**
  * Response for the get_macro_indicators command.
@@ -205,6 +265,11 @@ export type MacroIndicatorsResponse = { gdp: number, gdp_per_capita: number, pop
  * Summary of an unfunded mandate for the region drill-down.
  */
 export type MandateSummary = { description: string, required_spending: number, central_funding: number, funding_gap: number, status: string, };
+
+/**
+ * Phase 56: Market index snapshot for the stock exchange UI.
+ */
+export type MarketIndexSnapshot = { value: number, change_pct: number, history: Array<number>, total_market_cap: number, total_volume: bigint, advancing: number, declining: number, volatility: number, };
 
 /**
  * Phase 53: Megaregion drill-down data for the Regions tab.
@@ -302,6 +367,11 @@ export type RoleOption = { value: string, label: string, };
 export type RoyalDynastySnapshot = { dynasty_name: string, current_monarch_id: string | null, current_monarch_name: string, current_regent_id: string | null, current_regent_name: string, regency_active: boolean, members: Array<DynastyMemberRow>, };
 
 /**
+ * Phase 56: Sector index snapshot.
+ */
+export type SectorIndexSnapshot = { sector: string, value: number, history: Array<number>, };
+
+/**
  * Per-sector aggregation for the Sector Overview table.
  */
 export type SectorRow = { sector_name: string, company_count: number, 
@@ -334,6 +404,11 @@ wage_tot: number | null, };
  * Shadow economy summary.
  */
 export type ShadowEconomySummary = { total_hidden_fte: number, total_pit_evaded: number, shadow_gdp: number, };
+
+/**
+ * Phase 56: Full stock exchange response for the securities UI.
+ */
+export type StockExchangeResponse = { main_index: MarketIndexSnapshot, sector_indices: Array<SectorIndexSnapshot>, listed_companies: Array<ListedCompanyRow>, recent_trades: Array<TradeRow>, trading_halted: boolean, commodity_spot: Array<CommoditySpotRow>, commodity_futures: Array<CommodityFuturesRow>, };
 
 /**
  * ToT (Turn-over-Turn) and YoY (Year-over-Year) percentage deltas
@@ -429,6 +504,11 @@ value: number, status: string, awarded: boolean,
  * Phase 40: Contractor company ID (if awarded).
  */
 contractor: string, };
+
+/**
+ * Phase 56: Recent trade row for the stock exchange UI.
+ */
+export type TradeRow = { instrument_id: string, buyer_id: string, seller_id: string, quantity: bigint, price: number, turn: number, };
 
 /**
  * Treasury fields for the Finance tab.

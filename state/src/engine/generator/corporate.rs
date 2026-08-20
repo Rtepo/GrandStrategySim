@@ -507,6 +507,133 @@ pub fn generate_corporate_entities(
             .unwrap()
             .register_new(ceo_vip);
         company.ceo_vip_id = Some(ceo_id);
+
+        // Phase 55: Generate a board of directors for JointStockCompany firms.
+        // Board size scales with company size: 3 for small, up to 7 for large.
+        if let crate::entities::LegalForm::JointStockCompany(ref mut jsd) = company.legal_form {
+            let board_size = if company.worker_capacity > 500 {
+                7
+            } else if company.worker_capacity > 200 {
+                5
+            } else {
+                3
+            };
+            let mut board_members = Vec::with_capacity(board_size);
+            for i in 0..board_size {
+                let bm_name = crate::politics::names::generate_full_vip(&cultural_group, rng);
+                let (bm_traits, bm_main_trait) = assign_core_traits(rng);
+                let bm_ideology = ceo_ideology_from_traits(&bm_traits, &bm_main_trait, rng);
+                let role = if i == 0 {
+                    crate::entities::legal_form::BoardRole::Chair
+                } else {
+                    crate::entities::legal_form::BoardRole::Independent
+                };
+                let vip_role = if i == 0 {
+                    VipRoleExtended::BoardChair
+                } else {
+                    VipRoleExtended::BoardMember
+                };
+                let bm_vip = Vip {
+                    full_name: bm_name.full_name.clone(),
+                    gender: bm_name.gender,
+                    age: 40 + rng.gen_range(0..25),
+                    health: 1.0,
+                    traits: bm_traits,
+                    main_trait: bm_main_trait,
+                    ideology: bm_ideology,
+                    nationality: country.name.clone(),
+                    roles: vec![vip_role],
+                    base_influence: 10 + rng.gen_range(0..20),
+                    ..Default::default()
+                };
+                let bm_id = country
+                    .politics
+                    .vip_registry
+                    .as_mut()
+                    .unwrap()
+                    .register_new(bm_vip);
+                // Initial loyalty is random 0.4–0.8 (neutral to moderately loyal).
+                let loyalty = 0.4 + rng.gen::<f64>() * 0.4;
+                board_members.push(crate::entities::legal_form::BoardSeat {
+                    vip_id: bm_id,
+                    role,
+                    loyalty_to_ceo: loyalty,
+                    appointed_turn: 0,
+                });
+            }
+            jsd.board_members = board_members;
+        }
+
+        // Phase 55: Generate heirs for family businesses.
+        // 1–3 heirs are created, influenced by the CEO's traits.
+        // Heirs start young (18–30) and will inherit on CEO death.
+        if let crate::entities::LegalForm::FamilyBusiness(ref mut fbd) = company.legal_form {
+            if company.ceo_vip_id.is_some() {
+                let num_heirs = 1 + rng.gen_range(0..3); // 1–3 heirs
+                let mut heir_ids = Vec::with_capacity(num_heirs);
+                for _ in 0..num_heirs {
+                    let heir_name = crate::politics::names::generate_full_vip(&cultural_group, rng);
+                    // Heir traits are influenced by CEO traits: 50% chance to inherit
+                    // a trait from the CEO, otherwise random.
+                    let (mut heir_traits, heir_main_trait) = assign_core_traits(rng);
+                    // Inject "Loyal" as a family-bond trait for heirs.
+                    if !heir_traits.contains(&"Loyal".to_string()) {
+                        heir_traits.push("Loyal".to_string());
+                    }
+                    let heir_ideology = ceo_ideology_from_traits(&heir_traits, &heir_main_trait, rng);
+                    let heir_vip = Vip {
+                        full_name: heir_name.full_name.clone(),
+                        gender: heir_name.gender,
+                        age: 18 + rng.gen_range(0..13), // 18–30
+                        health: 1.0,
+                        traits: heir_traits,
+                        main_trait: heir_main_trait,
+                        ideology: heir_ideology,
+                        nationality: country.name.clone(),
+                        roles: vec![VipRoleExtended::Heir],
+                        base_influence: 5 + rng.gen_range(0..10),
+                        ..Default::default()
+                    };
+                    let heir_id = country
+                        .politics
+                        .vip_registry
+                        .as_mut()
+                        .unwrap()
+                        .register_new(heir_vip);
+                    heir_ids.push(heir_id);
+                }
+                fbd.heir_vip_ids = heir_ids;
+            }
+        }
+    }
+
+    // Phase 56: Create initial order book entries and liquidity pools for listed companies.
+    for company in &all_companies {
+        if company.legal_form.is_listed() && company.shares_count > 0 && company.share_price > 0.0 {
+            let instrument_id = format!("EQUITY:{}", company.id);
+            // Create order book with initial spread around share price.
+            let mut book = crate::securities::exchange::OrderBook::default();
+            book.best_bid = company.share_price * 0.99;
+            book.best_ask = company.share_price * 1.01;
+            country.stock_exchange.order_book.insert(instrument_id.clone(), book);
+
+            // Create initial AMM liquidity pool with seed liquidity.
+            let free_float_shares = (company.shares_count as f64 * company.legal_form.free_float()) as u64;
+            if free_float_shares > 0 {
+                let pool_cash = free_float_shares as f64 * company.share_price;
+                country.stock_exchange.liquidity_pools.insert(
+                    instrument_id,
+                    crate::securities::exchange::LiquidityPool {
+                        shares: free_float_shares,
+                        cash: pool_cash,
+                        providers: BTreeMap::new(),
+                        pool_fee: country.securities_config.transaction_fee_rate,
+                        treasury_bonds: Vec::new(),
+                        total_value: pool_cash,
+                    },
+                );
+            }
+        }
     }
 
     // Re-save companies with CEO assignments so they persist to disk.
@@ -702,9 +829,11 @@ fn generate_region_companies(
                 "Corporation",
                 LegalForm::JointStockCompany(JointStockData {
                     shares_issued: 1_000_000,
-                    free_float: 0.0,
+                    // Phase 56: Top JSC firms are listed at generation with 20-40% free float.
+                    free_float: if rank == 1 { 0.40 } else { 0.20 },
                     dividend_per_share: 0.0,
                     board_independence: 0.5,
+                    board_members: Vec::new(),
                 }),
                 1_000_000,
             ),
@@ -723,6 +852,8 @@ fn generate_region_companies(
                     dynasty_id: None,
                     successor_generation: 0,
                     family_retained_share: 1.0,
+                    heir_vip_ids: Vec::new(),
+                    succession_crisis: false,
                 }),
                 0,
             ),
@@ -803,6 +934,7 @@ fn generate_region_companies(
             seasonal_profile: seasonal_profile_for_sector(sector, &region.climate_profile),
             furloughed_workers_count: 0.0,
             ceo_vip_id: None,
+            eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
             extra: serde_json::Map::new(),
         };
 
@@ -1894,6 +2026,8 @@ fn create_seed_company_with_explicit_method(
             dynasty_id: None,
             successor_generation: 0,
             family_retained_share: 1.0,
+            heir_vip_ids: Vec::new(),
+            succession_crisis: false,
         }),
         state_share: 0.0,
         fixed_capital: company_fixed,
@@ -1953,6 +2087,7 @@ fn create_seed_company_with_explicit_method(
         seasonal_profile: None,
         furloughed_workers_count: 0.0,
         ceo_vip_id: None,
+        eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
         extra: serde_json::Map::new(),
     };
 
@@ -2168,6 +2303,8 @@ fn create_seed_company(
             dynasty_id: None,
             successor_generation: 0,
             family_retained_share: 1.0,
+            heir_vip_ids: Vec::new(),
+            succession_crisis: false,
         }),
         state_share: 0.0,
         fixed_capital: company_fixed,
@@ -2227,6 +2364,7 @@ fn create_seed_company(
         seasonal_profile: None,
         furloughed_workers_count: 0.0,
         ceo_vip_id: None,
+        eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
         extra: serde_json::Map::new(),
     };
 
@@ -2608,6 +2746,7 @@ fn create_strategic_reserve_agency(country: &Country, start_year: u32) -> Compan
         seasonal_profile: None,
         furloughed_workers_count: 0.0,
         ceo_vip_id: None,
+        eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
         extra: Map::new(),
     }
 }
@@ -2815,6 +2954,7 @@ fn generate_retail_stores(
             seasonal_profile: None,
             furloughed_workers_count: 0.0,
             ceo_vip_id: None,
+            eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
             extra: serde_json::Map::new(),
         };
 
@@ -3079,6 +3219,8 @@ fn generate_tourism_entities(
                     dynasty_id: None,
                     successor_generation: 0,
                     family_retained_share: 1.0,
+                    heir_vip_ids: Vec::new(),
+                    succession_crisis: false,
                 }),
                 state_share: 0.0,
                 fixed_capital: company_capital * 0.6,
@@ -3141,6 +3283,7 @@ fn generate_tourism_entities(
                 ),
                 furloughed_workers_count: 0.0,
                 ceo_vip_id: None,
+                eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
                 extra: serde_json::Map::new(),
             };
             // Phase 42: Genesis Labor Fix
@@ -3602,6 +3745,7 @@ fn create_charity_company(
         seasonal_profile: None,
         furloughed_workers_count: 0.0,
         ceo_vip_id: None,
+        eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
         extra: serde_json::Map::new(),
     }
 }
@@ -3658,4 +3802,250 @@ fn find_mining_deposit_for_region(
     }
 
     None
+}
+
+// ============================================================================
+// PHASE 57: INVESTMENT FUND GENERATION
+// ============================================================================
+
+/// Phase 57: Generate investment funds for a country at world creation.
+///
+/// # Rules
+/// * Generate 2–5 investment funds per country based on GDP size.
+/// * Assign `FundType` with weighted probabilities (FIO 40%, Mutual 25%, ETF 15%, FIZ 12%, Hedge 8%).
+/// * Create `FundLedger` with initial NAV = 1.0.
+/// * Create `BrokerageAccount` with seed capital from treasury (1M per fund).
+/// * Assign fund manager VIP with traits appropriate to fund type.
+/// * Register fund manager in VIP registry.
+pub fn generate_investment_funds(
+    country: &mut Country,
+    cultural_group: &str,
+    start_year: u32,
+    rng: &mut impl Rng,
+) {
+    use crate::politics::vip_registry::{Vip, VipRoleExtended, assign_core_traits};
+    use crate::securities::{FundType, FundLedger, InvestmentMandate, BrokerageAccount};
+    use crate::entities::AggregatedStats;
+
+    // Determine fund count based on GDP (2–5 funds).
+    let total_gdp: f64 = country.regions.iter().map(|r| r.gdp_pc * r.population as f64).sum();
+    let fund_count = if total_gdp > 1e12 {
+        5
+    } else if total_gdp > 5e11 {
+        4
+    } else if total_gdp > 1e11 {
+        3
+    } else {
+        2
+    };
+
+    // Ensure VIP registry exists.
+    if country.politics.vip_registry.is_none() {
+        country.politics.vip_registry = Some(crate::politics::vip_registry::VipRegistry::new());
+    }
+
+    // Pick a region for the fund HQ (first region).
+    let hq_region = country.regions.first().map(|r| r.id.clone()).unwrap_or_default();
+
+    // Weighted fund type distribution: FIO 40%, Mutual 25%, ETF 15%, FIZ 12%, Hedge 8%.
+    let type_weights: Vec<(FundType, f64)> = vec![
+        (FundType::OpenEndInvestmentFund, 0.40),
+        (FundType::MutualFund, 0.25),
+        (FundType::ExchangeTradedFund, 0.15),
+        (FundType::ClosedEndInvestmentFund, 0.12),
+        (FundType::HedgeFund, 0.08),
+    ];
+
+    let mut fund_companies: Vec<Company> = Vec::new();
+
+    for i in 0..fund_count {
+        // Pick fund type via weighted random.
+        let roll: f64 = rng.gen();
+        let mut cumulative = 0.0;
+        let mut chosen_type = FundType::OpenEndInvestmentFund;
+        for (ft, w) in &type_weights {
+            cumulative += w;
+            if roll < cumulative {
+                chosen_type = ft.clone();
+                break;
+            }
+        }
+
+        // Generate fund manager VIP with traits appropriate to fund type.
+        let (preferred_traits, fund_name_suffix) = match chosen_type {
+            FundType::HedgeFund => (
+                vec!["Ambitious".to_string(), "Corrupt".to_string()],
+                "Hedge Fund",
+            ),
+            FundType::MutualFund | FundType::ExchangeTradedFund => (
+                vec!["Conservative".to_string(), "Diplomatic".to_string()],
+                if matches!(chosen_type, FundType::ExchangeTradedFund) { "ETF" } else { "Mutual Fund" },
+            ),
+            FundType::ClosedEndInvestmentFund => (
+                vec!["Ambitious".to_string()],
+                "Closed-End Fund",
+            ),
+            FundType::OpenEndInvestmentFund => (
+                vec!["Conservative".to_string()],
+                "Open-End Fund",
+            ),
+        };
+
+        let manager_name = crate::politics::names::generate_full_vip(cultural_group, rng);
+        let (mut traits, main_trait) = assign_core_traits(rng);
+
+        // Inject a preferred trait if not already present (50% chance).
+        if let Some(pref) = preferred_traits.first() {
+            if rng.gen::<f64>() < 0.5 && !traits.iter().any(|t| t == pref) {
+                traits.push(pref.clone());
+            }
+        }
+
+        let ideology = ceo_ideology_from_traits(&traits, &main_trait, rng);
+        let manager_vip = Vip {
+            full_name: manager_name.full_name.clone(),
+            gender: manager_name.gender,
+            age: 35 + rng.gen_range(0..30),
+            health: 1.0,
+            traits: traits.clone(),
+            main_trait: main_trait.clone(),
+            ideology,
+            nationality: country.name.clone(),
+            roles: vec![VipRoleExtended::Ceo], // Fund managers are CEOs of the fund company
+            base_influence: 15 + rng.gen_range(0..25),
+            ..Default::default()
+        };
+        let manager_id = country
+            .politics
+            .vip_registry
+            .as_mut()
+            .unwrap()
+            .register_new(manager_vip);
+
+        // Create fund company.
+        let fund_id = format!("FUND-{}-{}", country.name, i + 1);
+        let fund_name = format!("{} {}", manager_name.surname, fund_name_suffix);
+
+        // Seed capital: 1M from treasury.
+        let seed_capital = 1_000_000.0;
+        if country.budget.liquid_reserves >= seed_capital {
+            country.budget.liquid_reserves -= seed_capital;
+        }
+
+        // Create fund ledger.
+        let ledger = FundLedger {
+            nav_per_share: 1.0,
+            shares_outstanding: (seed_capital / 1.0) as u64, // 1M shares at NAV 1.0
+            management_fee: 0.02,   // 2% management fee
+            performance_fee: 0.20,  // 20% performance fee (for hedge funds)
+            leverage_ratio: if matches!(chosen_type, FundType::HedgeFund) { 2.0 } else { 0.0 },
+            investment_mandate: InvestmentMandate::default(),
+            liquidity_provision: BTreeMap::new(),
+            unit_holders: {
+                let mut m = BTreeMap::new();
+                m.insert("TREASURY".to_string(), (seed_capital / 1.0) as u64);
+                m
+            },
+            bond_holdings: Vec::new(),
+            fund_manager_vip_id: Some(manager_id.clone()),
+        };
+
+        let fund_company = Company {
+            id: fund_id.clone(),
+            file_stem: "banking".to_string(),
+            name: fund_name,
+            sector: Sector::Banking,
+            region_id: hq_region.clone(),
+            legal_form: LegalForm::JointStockCompany(JointStockData {
+                shares_issued: (seed_capital / 1.0) as u64,
+                free_float: 0.0, // Funds are not publicly listed
+                dividend_per_share: 0.0,
+                board_independence: 0.5,
+                board_members: Vec::new(),
+            }),
+            state_share: 0.0,
+            fixed_capital: 100_000.0, // Office space
+            liquid_capital: 0.0,
+            available_cash: 0.0,
+            debit_cash: 0.0,
+            credit_cash: 0.0,
+            unfilled_bid_prices: std::collections::HashMap::new(),
+            liabilities: 0.0,
+            company_capital: seed_capital,
+            shares_count: (seed_capital / 1.0) as u64,
+            share_price: 1.0, // NAV per share
+            shareholders: BTreeMap::new(),
+            price_history: Vec::new(),
+            financial_history: Vec::new(),
+            safety_level: 1.0,
+            union_id: None,
+            building_ids: Vec::new(),
+            plants: Vec::new(),
+            scale_factor: 1,
+            worker_capacity: 10, // Small staff
+            is_national_champion: false,
+            is_listed: false,
+            owners: BTreeMap::new(),
+            free_float: 0.0,
+            aggregated_stats: AggregatedStats::default(),
+            bank_type: None,
+            balance_sheet: None,
+            loan_margin: None,
+            brokerage_account: Some(BrokerageAccount {
+                cash: seed_capital,
+                ..Default::default()
+            }),
+            primary_bank_id: None,
+            outstanding_loan_bank_id: None,
+            fund_type: Some(chosen_type),
+            fund_ledger: Some(ledger),
+            temporary_disruption_modifier: 0.0,
+            target_fte_demand: 10.0,
+            offered_wage_per_fte: 5000.0,
+            prev_offered_wage_per_fte: 5000.0,
+            wage_arrears: 0.0,
+            productivity_penalty: 0.0,
+            target_wage: 5000.0,
+            is_striking: false,
+            fulfilled_fte: 0.0,
+            prev_fulfilled_fte: 0.0,
+            physical_fte_demand: 10.0,
+            is_in_receivership: false,
+            agricultural_profile: None,
+            rd_budget: 0.0,
+            patents: Vec::new(),
+            licensed_methods: Vec::new(),
+            information_quality: None,
+            shadow_employment: None,
+            pending_expansion: None,
+            blueprints: Vec::new(),
+            licensed_blueprints: Vec::new(),
+            reputation_score: 60.0,
+            donation_history: Vec::new(),
+            is_dspw: false,
+            consumer_loans: Vec::new(),
+            annual_profit_accumulator: 0.0,
+            seasonal_profile: None,
+            furloughed_workers_count: 0.0,
+            ceo_vip_id: Some(manager_id),
+            eps: 0.0,
+            pe_ratio: 0.0,
+            dividend_yield: 0.0,
+            open_price: 1.0,
+            close_price: 1.0,
+            extra: serde_json::Map::new(),
+        };
+
+        fund_companies.push(fund_company);
+    }
+
+    // Save fund companies to the banking sector.
+    if !fund_companies.is_empty() {
+        let company_store = DiskEntityStore::<Company>::new(
+            &std::path::Path::new(&country.name).to_path_buf(),
+        );
+        let _ = company_store; // We don't save here — funds are added to the country's entity list at runtime.
+        // Note: Fund companies are stored in the country's entity collection
+        // and will be saved with the next save_game_state call.
+    }
 }

@@ -9,6 +9,8 @@
 
 pub mod banking;
 pub mod central_bank;
+/// Phase 55: Capital gains tax system for securities and commodities.
+pub mod capital_gains_tax;
 /// Climate configuration and seasonal modifiers (Phase 6.1)
 pub mod climate;
 pub mod currency;
@@ -23,6 +25,7 @@ pub mod tax;
 pub mod treasury;
 
 pub use banking::{Bank, BankBalanceSheet, BankType, InterbankMarket, Loan, LoanStatus, LoanType as BankingLoanType, InterestType, BfgFund, SobkScheme, BankResolution, BankTax, process_banking_turn, BankingTurnResult};
+pub use capital_gains_tax::{CapitalGainsTaxRegistry, EntityGainsAccrual};
 pub use crate::securities::BrokerageAccount;
 pub use central_bank::{CentralBank, CentralBankIndependence, MonetaryMandate, MonetaryPolicyCouncil, RppInterestRates};
 pub use climate::{SeasonalModifiers, ClimateConfig};
@@ -348,6 +351,10 @@ pub struct Country {
     /// Phase D.4: Financial Supervision Authority (KNF).
     #[serde(default)]
     pub knf: crate::securities::KNF,
+    /// Phase 55: Capital gains tax registry for securities and commodities.
+    /// Tracks per-entity accrued gains/losses and settles tax at fiscal year-end.
+    #[serde(default)]
+    pub capital_gains_tax: crate::state::capital_gains_tax::CapitalGainsTaxRegistry,
     /// Phase D.5: Sovereign default status - turns remaining in default.
     #[serde(default)]
     pub sovereign_default_turns_remaining: u32,
@@ -556,6 +563,7 @@ impl Country {
             stock_exchange: crate::securities::StockExchange::default(),
             dividend_queue: Vec::new(), ipo_queue: Vec::new(), bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(), demolition_queue: Vec::new(), halt_queue: Vec::new(),
             knf: crate::securities::KNF::default(),
+            capital_gains_tax: crate::state::capital_gains_tax::CapitalGainsTaxRegistry::default(),
             sovereign_default_turns_remaining: 0,
             foreign_debt: 0.0,
             minimum_wage: None,
@@ -857,6 +865,7 @@ impl CountryBuilder {
             stock_exchange: crate::securities::StockExchange::default(),
             dividend_queue: Vec::new(), ipo_queue: Vec::new(), bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(), demolition_queue: Vec::new(), halt_queue: Vec::new(),
             knf: crate::securities::KNF::default(),
+            capital_gains_tax: crate::state::capital_gains_tax::CapitalGainsTaxRegistry::default(),
             sovereign_default_turns_remaining: 0,
             foreign_debt: 0.0,
             minimum_wage: None,

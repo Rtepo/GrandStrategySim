@@ -12,6 +12,7 @@ mod corporate;
 use crate::international::generate_diplomacy;
 use crate::io::save_manager::{save_game_state, save_named_map};
 use crate::engine::generator::corporate::generate_corporate_entities;
+use crate::engine::generator::corporate::generate_investment_funds;
 use crate::politics::Politics;
 use crate::registries::enums::{Commodity, Sector, WealthBracket};
 use crate::registries::Registries;
@@ -190,6 +191,16 @@ pub fn generate_world(
         generate_corporate_entities(data_dir, country, &regions, _registries, options.start_year as u32, &mut rng)?;
     }
 
+    // Phase 57: Generate investment funds for each country.
+    for country in state.countries.values_mut() {
+        let cultural_group = if country.macro_indicators.cultural_group.is_empty() {
+            "slavic".to_string()
+        } else {
+            country.macro_indicators.cultural_group.clone()
+        };
+        generate_investment_funds(country, &cultural_group, options.start_year as u32, &mut rng);
+    }
+
     save_game_state(data_dir, &state)?;
     save_named_map(&data_dir.join("diplomacy.json"), &diplomacy)?;
     save_named_map(&data_dir.join("land_registry.json"), &land_registry)?;
@@ -290,6 +301,7 @@ fn generate_country(
         stock_exchange: crate::securities::StockExchange::default(),
         dividend_queue: Vec::new(), ipo_queue: Vec::new(), bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(), demolition_queue: Vec::new(), halt_queue: Vec::new(),
         knf: crate::securities::KNF::default(),
+        capital_gains_tax: crate::state::capital_gains_tax::CapitalGainsTaxRegistry::default(),
         sovereign_default_turns_remaining: 0,
         foreign_debt: 0.0,
         minimum_wage: None,

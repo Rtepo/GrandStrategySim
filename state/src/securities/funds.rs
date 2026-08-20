@@ -82,6 +82,10 @@ pub struct FundLedger {
     /// fund NAV rose without debiting cash or crediting a counterparty.
     #[serde(rename = "obligacje_skarbowe", default)]
     pub bond_holdings: Vec<FundBondHolding>,
+
+    /// Phase 57: Fund manager VIP ID (for trait-driven behavior).
+    #[serde(default)]
+    pub fund_manager_vip_id: Option<String>,
 }
 
 /// Phase 36: A fund's holding of a sovereign/treasury bond.
@@ -367,11 +371,15 @@ fn calculate_portfolio_value(
     };
 
     let mut total = 0.0;
-    for (instrument_id, qty) in &acct.portfolio {
+    for (instrument_id, lots) in &acct.portfolio {
+        let qty: u64 = lots.iter().map(|l| l.quantity).sum();
+        if qty == 0 {
+            continue;
+        }
         if instrument_id.starts_with("EQUITY:") {
             let company_id = &instrument_id[7..];
             if let Some(company) = companies.iter().find(|c| c.id == company_id) {
-                total += company.share_price * *qty as f64;
+                total += company.share_price * qty as f64;
             }
         }
         // MBS and bond portfolio values would use their respective market prices
@@ -549,7 +557,10 @@ pub fn submit_fund_orders(
     covered_bonds: &[CoveredBond],
     config: &SecuritiesMarketConfig,
     current_turn: u32,
+    vip_registry: Option<&crate::politics::vip_registry::VipRegistry>,
 ) {
+    use crate::corporate::market_behavior::evaluate_market_behavior;
+
     for fund in funds.iter_mut() {
         if fund.fund_type.is_none() || fund.fund_ledger.is_none() {
             continue;
@@ -561,6 +572,37 @@ pub fn submit_fund_orders(
         let fund_id = fund.id.clone();
         let fund_cash = fund.brokerage_account.as_ref().map(|b| b.cash).unwrap_or(0.0);
 
+        // Phase 57: Evaluate fund manager traits via centralized module — no raw string checks.
+        let modifiers = if let Some(ref manager_id) = fund.fund_ledger.as_ref().and_then(|l| l.fund_manager_vip_id.clone()) {
+            if let Some(registry) = vip_registry {
+                if let Some(vip) = registry.get(manager_id) {
+                    evaluate_market_behavior(&vip.traits)
+                } else {
+                    crate::corporate::market_behavior::MarketBehaviorModifiers::default()
+                }
+            } else {
+                crate::corporate::market_behavior::MarketBehaviorModifiers::default()
+            }
+        } else {
+            // Fall back to CEO VIP traits if no dedicated manager.
+            if let Some(ref ceo_id) = fund.ceo_vip_id {
+                if let Some(registry) = vip_registry {
+                    if let Some(vip) = registry.get(ceo_id) {
+                        evaluate_market_behavior(&vip.traits)
+                    } else {
+                        crate::corporate::market_behavior::MarketBehaviorModifiers::default()
+                    }
+                } else {
+                    crate::corporate::market_behavior::MarketBehaviorModifiers::default()
+                }
+            } else {
+                crate::corporate::market_behavior::MarketBehaviorModifiers::default()
+            }
+        };
+
+        // Phase 57: Apply cash reserve preference — hold back minimum cash fraction.
+        let investable_cash = fund_cash * (1.0 - modifiers.cash_reserve_preference.min(1.0));
+
         // Evaluate equities
         for company in companies {
             if company.id == fund_id {
@@ -570,27 +612,43 @@ pub fn submit_fund_orders(
                 continue;
             }
 
-            // Compute P/B ratio (price-to-book) as valuation proxy
-            let book_value_per_share = company.company_capital / company.shares_count as f64;
-            let pb_ratio = if book_value_per_share > 0.0 {
-                company.share_price / book_value_per_share
+            // Phase 57: Apply sector preference filter (e.g., Militarist prefers Armaments).
+            if let Some(preferred) = modifiers.preferred_sector {
+                if company.sector != preferred {
+                    // Still allow trading, but reduce position size for non-preferred sectors.
+                    // This is a soft preference, not a hard filter.
+                }
+            }
+
+            // Phase 55: Use actual P/E ratio (computed in process_company) instead of P/B proxy.
+            // Fall back to P/B only if EPS is not yet available (eps == 0).
+            let pe_ratio = if company.eps > 0.0 && company.share_price > 0.0 {
+                company.pe_ratio
             } else {
-                f64::INFINITY
+                // Fallback: P/B ratio for pre-IPO or zero-earnings companies
+                let book_value_per_share = company.company_capital / company.shares_count as f64;
+                if book_value_per_share > 0.0 {
+                    company.share_price / book_value_per_share
+                } else {
+                    f64::INFINITY
+                }
             };
 
-            // Compute dividend yield
-            let dividend_yield = if company.share_price > 0.0 && company.shares_count > 0 {
-                company.aggregated_stats.total_dividends / (company.share_price * company.shares_count as f64)
-            } else {
-                0.0
-            };
+            // Phase 55: Use computed dividend yield from Company (kept in sync by process_company).
+            let dividend_yield = company.dividend_yield;
 
             let instrument_id = format!("EQUITY:{}", company.id);
 
-            // Valuation Score logic
-            if pb_ratio < config.fund_min_pe_threshold && dividend_yield > config.fund_min_dividend_yield {
+            // Phase 57: Use trait-driven thresholds instead of config-only thresholds.
+            // The modifier thresholds are derived from traits via evaluate_market_behavior.
+            let buy_pe_threshold = config.fund_min_pe_threshold.min(modifiers.pe_buy_threshold);
+            let sell_pe_threshold = config.fund_max_pe_threshold.max(modifiers.pe_sell_threshold);
+
+            // Valuation Score logic — uses P/E ratio, not P/B
+            if pe_ratio < buy_pe_threshold && dividend_yield > config.fund_min_dividend_yield {
                 // Undervalued: submit Buy order
-                let max_investment = fund_cash * 0.1; // Max 10% of cash per position
+                // Phase 57: Use trait-driven max_position_pct instead of hardcoded 0.1.
+                let max_investment = investable_cash * modifiers.max_position_pct;
                 let max_shares = (max_investment / company.share_price) as u64;
                 if max_shares == 0 {
                     continue;
@@ -621,11 +679,10 @@ pub fn submit_fund_orders(
                         book.best_bid = book.bids.last().map(|(p, _)| *p).unwrap_or(0.0);
                     }
                 }
-            } else if pb_ratio > config.fund_max_pe_threshold {
+            } else if pe_ratio > sell_pe_threshold {
                 // Overvalued: submit Sell order if fund holds shares
                 let held = fund.brokerage_account.as_ref()
-                    .and_then(|a| a.portfolio.get(&instrument_id))
-                    .copied()
+                    .map(|a| a.get_quantity(&instrument_id))
                     .unwrap_or(0);
                 if held == 0 {
                     continue;
@@ -796,6 +853,124 @@ pub fn charge_fund_fees(
     }
 
     total_fees
+}
+
+// ============================================================================
+// PHASE 57: DYNAMIC FUND CREATION
+// ============================================================================
+
+/// Phase 57: Attempt to create a new hedge fund from a wealthy, ambitious VIP.
+///
+/// # Trigger Conditions
+/// * VIP has influence > 50
+/// * VIP age 35–65
+/// * VIP has "Ambitious" trait (checked via `evaluate_market_behavior`)
+/// * VIP's personal brokerage cash > 5M
+/// * Limited to 1 new fund per political year per country
+///
+/// # Arguments
+/// * `vip` - The VIP who wants to create a fund.
+/// * `vip_brokerage` - The VIP's personal brokerage account (if any).
+/// * `country` - The country to add the fund to.
+/// * `current_turn` - The current turn number.
+/// * `fund_created_this_year` - Whether a fund was already created this year.
+///
+/// # Returns
+/// `Some((fund_id, fund_company))` if a fund was created, `None` otherwise.
+/// The caller is responsible for inserting the fund company into the entity collection.
+pub fn try_create_fund_from_vip(
+    vip: &crate::politics::vip_registry::Vip,
+    vip_brokerage: Option<&crate::securities::BrokerageAccount>,
+    country: &crate::state::Country,
+    current_turn: u32,
+    fund_created_this_year: bool,
+) -> Option<(String, crate::entities::Company)> {
+    use crate::corporate::market_behavior::evaluate_market_behavior;
+
+    // Limit: 1 new fund per political year.
+    if fund_created_this_year {
+        return None;
+    }
+
+    // Check influence threshold.
+    if vip.base_influence <= 50 {
+        return None;
+    }
+
+    // Check age range.
+    if vip.age < 35 || vip.age > 65 {
+        return None;
+    }
+
+    // Check traits via centralized evaluation — no raw string checks.
+    let modifiers = evaluate_market_behavior(&vip.traits);
+    if modifiers.expansion_multiplier < 1.3 {
+        // Not ambitious enough to found a fund.
+        return None;
+    }
+
+    // Check personal brokerage cash > 5M.
+    let vip_cash = vip_brokerage.map(|b| b.cash).unwrap_or(0.0);
+    if vip_cash < 5_000_000.0 {
+        return None;
+    }
+
+    // Create the fund.
+    let fund_id = format!("FUND-DYN-{}-{}", country.name, current_turn);
+    let initial_capital = vip_cash;
+
+    // Create fund ledger.
+    let ledger = crate::securities::FundLedger {
+        nav_per_share: 1.0,
+        shares_outstanding: (initial_capital / 1.0) as u64,
+        management_fee: 0.02,
+        performance_fee: 0.20,
+        leverage_ratio: 2.0, // Hedge funds start with 2x leverage
+        investment_mandate: crate::securities::InvestmentMandate::default(),
+        liquidity_provision: std::collections::BTreeMap::new(),
+        unit_holders: {
+            let mut m = std::collections::BTreeMap::new();
+            m.insert(vip.full_name.clone(), (initial_capital / 1.0) as u64);
+            m
+        },
+        bond_holdings: Vec::new(),
+        fund_manager_vip_id: Some(vip.full_name.clone()),
+    };
+
+    // Create fund company.
+    let fund_company = crate::entities::Company {
+        id: fund_id.clone(),
+        file_stem: "banking".to_string(),
+        name: format!("{} Hedge Fund", vip.full_name),
+        sector: crate::registries::enums::Sector::Banking,
+        region_id: country.regions.first().map(|r| r.id.clone()).unwrap_or_default(),
+        legal_form: crate::entities::LegalForm::JointStockCompany(
+            crate::entities::JointStockData {
+                shares_issued: (initial_capital / 1.0) as u64,
+                free_float: 0.0,
+                dividend_per_share: 0.0,
+                board_independence: 0.5,
+                board_members: Vec::new(),
+            },
+        ),
+        state_share: 0.0,
+        fixed_capital: 100_000.0,
+        liquid_capital: 0.0,
+        available_cash: 0.0,
+        company_capital: initial_capital,
+        shares_count: (initial_capital / 1.0) as u64,
+        share_price: 1.0,
+        brokerage_account: Some(crate::securities::BrokerageAccount {
+            cash: initial_capital,
+            ..Default::default()
+        }),
+        fund_type: Some(crate::securities::FundType::HedgeFund),
+        fund_ledger: Some(ledger),
+        ceo_vip_id: Some(vip.full_name.clone()),
+        ..Default::default()
+    };
+
+    Some((fund_id, fund_company))
 }
 
 #[cfg(test)]

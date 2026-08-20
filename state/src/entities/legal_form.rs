@@ -33,6 +33,15 @@ pub struct FamilyBusinessData {
     /// Fraction of profit the family retains rather than distributing.
     #[serde(default)]
     pub family_retained_share: f64,
+    /// Phase 55: VIP IDs of designated heirs (in priority order).
+    /// When the current CEO dies, the first living heir of age (≥18)
+    /// inherits the company.
+    #[serde(default)]
+    pub heir_vip_ids: Vec<String>,
+    /// Phase 55: Whether the company is currently in a succession crisis
+    /// (no living heirs, awaiting external appointment).
+    #[serde(default)]
+    pub succession_crisis: bool,
 }
 
 /// Data for a worker or consumer cooperative.
@@ -47,6 +56,37 @@ pub struct CooperativeData {
     /// Optional higher-level cooperative federation this cooperative belongs to.
     #[serde(default)]
     pub federation_id: Option<String>,
+}
+
+/// Role of a board member within a joint-stock company's board.
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum BoardRole {
+    #[default]
+    /// Independent director with no operational role.
+    Independent,
+    /// Chairperson of the board (leads board meetings, sets agenda).
+    Chair,
+    /// Founder or family representative retaining a board seat.
+    Founder,
+}
+
+/// A single seat on a joint-stock company's board of directors.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+pub struct BoardSeat {
+    /// VIP ID of the board member (references the global VIP registry).
+    #[serde(default)]
+    pub vip_id: String,
+    /// Role of this board member within the board.
+    #[serde(default)]
+    pub role: BoardRole,
+    /// Loyalty to the current CEO (0.0 = hostile, 1.0 = fully loyal).
+    /// Derived from trait compatibility and historical voting alignment.
+    #[serde(default)]
+    pub loyalty_to_ceo: f64,
+    /// Turn when this board member was appointed.
+    #[serde(default)]
+    pub appointed_turn: u32,
 }
 
 /// Data for a joint-stock company.
@@ -64,6 +104,10 @@ pub struct JointStockData {
     /// Board independence from family/state pressure, 0..1.
     #[serde(default)]
     pub board_independence: f64,
+    /// Phase 55: Board of directors — VIPs who vote on CEO proposals
+    /// and can fire the CEO if loyalty collapses.
+    #[serde(default)]
+    pub board_members: Vec<BoardSeat>,
 }
 
 /// Data for a consortium or holding structure.
@@ -496,6 +540,15 @@ impl LegalForm {
         )
     }
 
+    /// Phase 56: Returns the free float fraction (0.0–1.0) for this legal form.
+    /// Non-JSC forms return 0.0.
+    pub fn free_float(&self) -> f64 {
+        match self {
+            LegalForm::JointStockCompany(data) => data.free_float,
+            _ => 0.0,
+        }
+    }
+
     /// Returns `true` if the form can issue public shares.
     pub fn can_go_public(&self) -> bool {
         matches!(self, LegalForm::JointStockCompany(_))
@@ -706,6 +759,7 @@ impl LegalFormTransition for LegalForm {
                     free_float,
                     dividend_per_share: 0.0,
                     board_independence: 0.5,
+                    board_members: Vec::new(),
                 };
                 Ok(LegalForm::JointStockCompany(new))
             }
@@ -738,6 +792,7 @@ impl LegalFormTransition for LegalForm {
                     free_float: 0.4,
                     dividend_per_share: 0.0,
                     board_independence: 0.3,
+                    board_members: Vec::new(),
                 };
                 Ok(LegalForm::JointStockCompany(new))
             }

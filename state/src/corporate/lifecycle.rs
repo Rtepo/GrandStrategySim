@@ -246,6 +246,8 @@ impl CompanyLifecycle {
                 dynasty_id: None,
                 successor_generation: 0,
                 family_retained_share: 1.0,
+                heir_vip_ids: Vec::new(),
+                succession_crisis: false,
             });
             let new_company = Company::new(
                 company_id.clone(),

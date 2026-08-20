@@ -217,6 +217,7 @@ pub fn spawn_rebel_proto_state(
         stock_exchange: crate::securities::StockExchange::default(), // New stock exchange
         dividend_queue: Vec::new(), ipo_queue: Vec::new(), bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(), demolition_queue: Vec::new(), halt_queue: Vec::new(), // Phase 24A.6
         knf: crate::securities::KNF::default(), // New KNF
+        capital_gains_tax: crate::state::capital_gains_tax::CapitalGainsTaxRegistry::default(),
         sovereign_default_turns_remaining: 0, // No default initially
         foreign_debt: 0.0, // No foreign debt initially
         minimum_wage: mother_country.minimum_wage, // Inherit minimum wage policy

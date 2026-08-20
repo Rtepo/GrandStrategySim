@@ -11,6 +11,7 @@ use crate::registries::enums::Sector;
 use crate::state::macro_data::LaborMarket;
 use crate::state::treasury::{SectorShare, StockMarket};
 use crate::state::Country;
+use crate::corporate::market_behavior::MarketBehaviorModifiers;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -39,6 +40,8 @@ pub struct CorporateDecisionCtx<'a> {
     pub gross_profit: f64,
     /// Net profit after overhead, interest and tax.
     pub net_profit: f64,
+    /// Phase 57: Trait-driven behavior modifiers (no raw trait string checks).
+    pub behavior_modifiers: MarketBehaviorModifiers,
 }
 
 /// Actions a company can choose.
@@ -114,6 +117,70 @@ pub enum FinanceSource {
     BondIssue(f64),
     /// Capital raised by an IPO.
     IpoProceeds(f64),
+}
+
+/// Phase 55: Outcome of a board vote on a CEO-proposed action.
+#[derive(Debug, Clone, PartialEq)]
+pub enum BoardDecision {
+    /// Board approves the proposed action — CEO may proceed.
+    Approve,
+    /// Board blocks the proposed action — CEO must take `Idle` or `Restructure`.
+    Block,
+    /// Board fires the CEO — a new CEO must be appointed externally.
+    FireCeo,
+}
+
+/// Phase 55: Evaluate a board's response to a CEO-proposed action.
+///
+/// The board votes based on each member's `loyalty_to_ceo` and the nature
+/// of the proposed action. A simple majority is required to approve.
+/// If the average loyalty is below 0.3 AND the company is unprofitable,
+/// the board fires the CEO.
+///
+/// # Arguments
+/// * `board_members` - The board seats of the joint-stock company.
+/// * `proposed_action` - The action the CEO wants to take.
+/// * `is_profitable` - Whether the company was profitable this turn.
+///
+/// # Returns
+/// The board's decision: `Approve`, `Block`, or `FireCeo`.
+pub fn evaluate_board_conflict(
+    board_members: &[crate::entities::legal_form::BoardSeat],
+    proposed_action: &CorporateAction,
+    is_profitable: bool,
+) -> BoardDecision {
+    if board_members.is_empty() {
+        // No board — CEO has unchecked power.
+        return BoardDecision::Approve;
+    }
+
+    let avg_loyalty: f64 = board_members.iter().map(|s| s.loyalty_to_ceo).sum::<f64>()
+        / board_members.len() as f64;
+
+    // Fire CEO if loyalty is critically low and company is bleeding.
+    if avg_loyalty < 0.3 && !is_profitable {
+        return BoardDecision::FireCeo;
+    }
+
+    // Each member votes: loyalty > 0.5 = approve, < 0.5 = block.
+    // Expansions and IPOs require higher loyalty (risk-averse board).
+    let is_risky = matches!(
+        proposed_action,
+        CorporateAction::Expand { .. } | CorporateAction::Ipo { .. }
+    );
+
+    let threshold = if is_risky { 0.6 } else { 0.5 };
+
+    let approve_votes = board_members
+        .iter()
+        .filter(|s| s.loyalty_to_ceo >= threshold)
+        .count();
+
+    if approve_votes * 2 > board_members.len() {
+        BoardDecision::Approve
+    } else {
+        BoardDecision::Block
+    }
 }
 
 /// Trait for all company strategies.  Concrete ownership forms implement

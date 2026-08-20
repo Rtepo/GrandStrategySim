@@ -21,6 +21,13 @@ import type {
   GovernmentSnapshot,
   RegionOption,
   RoleOption,
+  StockExchangeResponse,
+  ListedCompanyPageResponse,
+  ListedCompanyDetail,
+  FundRow,
+  FundDetail,
+  KnfFindingRow,
+  CapitalGainsTaxSummary,
 } from "../types/api";
 
 export async function getGameStatus(): Promise<GameStatus> {
@@ -131,6 +138,42 @@ export async function getParliament(country: string): Promise<ParliamentResponse
 
 export async function getGovernment(country: string): Promise<GovernmentSnapshot> {
   return invoke<GovernmentSnapshot>("get_government", { country });
+}
+
+// Phase 56/57: Securities & Fund commands
+export async function getStockExchange(country: string): Promise<StockExchangeResponse> {
+  return invoke<StockExchangeResponse>("get_stock_exchange", { country });
+}
+
+export async function getListedCompanies(
+  country: string,
+  offset: number,
+  limit: number,
+  sectorFilter?: string,
+): Promise<ListedCompanyPageResponse> {
+  return invoke<ListedCompanyPageResponse>("get_listed_companies", {
+    country, offset, limit, sectorFilter: sectorFilter ?? null,
+  });
+}
+
+export async function getCompanyMarketDetail(country: string, companyId: string): Promise<ListedCompanyDetail | null> {
+  return invoke<ListedCompanyDetail | null>("get_company_market_detail", { country, companyId });
+}
+
+export async function getFunds(country: string): Promise<FundRow[]> {
+  return invoke<FundRow[]>("get_funds", { country });
+}
+
+export async function getFundDetail(country: string, fundId: string): Promise<FundDetail | null> {
+  return invoke<FundDetail | null>("get_fund_detail", { country, fundId });
+}
+
+export async function getKnfFindings(country: string): Promise<KnfFindingRow[]> {
+  return invoke<KnfFindingRow[]>("get_knf_findings", { country });
+}
+
+export async function getCapitalGainsSummary(country: string): Promise<CapitalGainsTaxSummary> {
+  return invoke<CapitalGainsTaxSummary>("get_capital_gains_summary", { country });
 }
 
 export interface SectorOption {

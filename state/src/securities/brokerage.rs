@@ -10,6 +10,24 @@ use serde_json::Value;
 use crate::securities::exchange::Order;
 use crate::securities::derivatives::FuturesContract;
 
+/// Phase 55: A single position lot in a brokerage portfolio.
+///
+/// Each lot records the acquisition cost basis and turn, enabling
+/// accurate FIFO capital gains computation. Sells consume the oldest
+/// lots first (FIFO matching).
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+pub struct PositionLot {
+    /// Number of shares/units in this lot.
+    #[serde(default)]
+    pub quantity: u64,
+    /// Average acquisition price per share for this lot.
+    #[serde(default)]
+    pub cost_basis: f64,
+    /// Turn when this lot was acquired (for holding-period tracking).
+    #[serde(default)]
+    pub acquisition_turn: u32,
+}
+
 /// Margin account for derivative trading.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 #[serde(rename = "rachunek_marżowy")]
@@ -53,10 +71,15 @@ pub struct BrokerageAccount {
     #[serde(rename = "saldo_dewizowe", default)]
     pub fx_balances: HashMap<String, f64>,
     
-    /// Portfolio: Maps company_id -> share count.
-    /// This is the source of truth for ownership.
+    /// Portfolio: Maps instrument_id -> list of position lots (FIFO order).
+    /// Each lot tracks its own cost basis and acquisition turn for
+    /// accurate capital gains computation.
+    /// Phase 55: Breaking schema change from `BTreeMap<String, u64>`.
+    /// Old saves with bare u64 values will fail to deserialize — this is
+    /// intentional to avoid zero-cost-basis migration that would create
+    /// false taxable gains.
     #[serde(rename = "portfel")]
-    pub portfolio: BTreeMap<String, u64>,
+    pub portfolio: BTreeMap<String, Vec<PositionLot>>,
     
     /// Pending orders: Maps order_id -> Order.
     #[serde(rename = "zlecenia_oczekujące")]
@@ -84,6 +107,103 @@ impl BrokerageAccount {
     /// Ensures cash + frozen_cash never goes negative.
     pub fn validate_cash_invariant(&self) -> bool {
         self.cash >= 0.0 && self.frozen_cash >= 0.0
+    }
+
+    /// Phase 55: Get the total quantity held for an instrument (sum of all lots).
+    pub fn get_quantity(&self, instrument_id: &str) -> u64 {
+        self.portfolio
+            .get(instrument_id)
+            .map(|lots| lots.iter().map(|l| l.quantity).sum())
+            .unwrap_or(0)
+    }
+
+    /// Phase 55: Add a new position lot for an instrument (buy/acquire).
+    pub fn add_lot(&mut self, instrument_id: &str, quantity: u64, cost_basis: f64, turn: u32) {
+        if quantity == 0 {
+            return;
+        }
+        let lots = self.portfolio.entry(instrument_id.to_string()).or_default();
+        // Merge with the last lot if it has the same cost basis and turn.
+        if let Some(last) = lots.last_mut() {
+            if (last.cost_basis - cost_basis).abs() < 1e-6 && last.acquisition_turn == turn {
+                last.quantity += quantity;
+                return;
+            }
+        }
+        lots.push(PositionLot {
+            quantity,
+            cost_basis,
+            acquisition_turn: turn,
+        });
+    }
+
+    /// Phase 55: Sell shares using FIFO lot matching.
+    ///
+    /// Consumes the oldest lots first and returns the realized gain/loss
+    /// (sale proceeds - cost basis of consumed lots).
+    ///
+    /// # Arguments
+    /// * `instrument_id` - The instrument to sell.
+    /// * `quantity` - Number of shares to sell.
+    /// * `sale_price` - Price per share.
+    ///
+    /// # Returns
+    /// `Some((gain_or_loss, shares_sold))` if successful, `None` if insufficient holdings.
+    /// `gain_or_loss` is positive for gains, negative for losses.
+    pub fn sell_fifo(
+        &mut self,
+        instrument_id: &str,
+        quantity: u64,
+        sale_price: f64,
+    ) -> Option<(f64, u64)> {
+        let lots = self.portfolio.get_mut(instrument_id)?;
+        let mut remaining = quantity;
+        let mut total_cost = 0.0;
+        let mut total_sold = 0u64;
+
+        while remaining > 0 {
+            if lots.is_empty() {
+                break;
+            }
+            let front = &mut lots[0];
+            if front.quantity == 0 {
+                lots.remove(0);
+                continue;
+            }
+            let sell_from_lot = front.quantity.min(remaining);
+            total_cost += sell_from_lot as f64 * front.cost_basis;
+            front.quantity -= sell_from_lot;
+            remaining -= sell_from_lot;
+            total_sold += sell_from_lot;
+            if front.quantity == 0 {
+                lots.remove(0);
+            }
+        }
+
+        if total_sold == 0 {
+            return None;
+        }
+
+        let proceeds = total_sold as f64 * sale_price;
+        let gain_or_loss = proceeds - total_cost;
+        Some((gain_or_loss, total_sold))
+    }
+
+    /// Phase 55: Get the weighted average cost basis for an instrument.
+    pub fn get_average_cost_basis(&self, instrument_id: &str) -> f64 {
+        let lots = match self.portfolio.get(instrument_id) {
+            Some(l) if !l.is_empty() => l,
+            _ => return 0.0,
+        };
+        let total_qty: u64 = lots.iter().map(|l| l.quantity).sum();
+        if total_qty == 0 {
+            return 0.0;
+        }
+        let total_cost: f64 = lots
+            .iter()
+            .map(|l| l.quantity as f64 * l.cost_basis)
+            .sum();
+        total_cost / total_qty as f64
     }
     
     /// Freezes cash for an order.

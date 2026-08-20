@@ -14,12 +14,18 @@ interface GameStore {
   turnNonce: number;
   /** Phase 54: VIP ID to auto-open a dossier for (from relational links). */
   pendingVipId: string | null;
+  /** Phase 57: Selected fund ID for detail panel. */
+  selectedFundId: string | null;
+  /** Phase 57: Selected listed company ID for detail panel. */
+  selectedListedCompanyId: string | null;
   setSelectedCountry: (country: string | null) => void;
   refreshStatus: () => Promise<void>;
   setLoading: (loading: boolean) => void;
   setGenerating: (generating: boolean) => void;
   setProcessing: (processing: boolean) => void;
   setPendingVipId: (id: string | null) => void;
+  setSelectedFundId: (id: string | null) => void;
+  setSelectedListedCompanyId: (id: string | null) => void;
   bumpTurn: () => void;
   resetStore: () => void;
 }
@@ -32,11 +38,15 @@ export const useGameStore = create<GameStore>((set) => ({
   processing: false,
   turnNonce: 0,
   pendingVipId: null,
+  selectedFundId: null,
+  selectedListedCompanyId: null,
   setSelectedCountry: (country) => set({ selectedCountry: country }),
   setLoading: (loading) => set({ loading }),
   setGenerating: (generating) => set({ generating }),
   setProcessing: (processing) => set({ processing }),
   setPendingVipId: (id) => set({ pendingVipId: id }),
+  setSelectedFundId: (id) => set({ selectedFundId: id }),
+  setSelectedListedCompanyId: (id) => set({ selectedListedCompanyId: id }),
   bumpTurn: () => set((s) => ({ turnNonce: s.turnNonce + 1 })),
   resetStore: () => set({
     selectedCountry: null,
@@ -46,6 +56,8 @@ export const useGameStore = create<GameStore>((set) => ({
     processing: false,
     turnNonce: 0,
     pendingVipId: null,
+    selectedFundId: null,
+    selectedListedCompanyId: null,
   }),
   refreshStatus: async () => {
     try {

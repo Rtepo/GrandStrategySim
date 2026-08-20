@@ -13,6 +13,7 @@ pub mod development;
 pub mod bounded_rationality;
 pub mod capital_intensity;
 pub mod bankruptcy;
+pub mod market_behavior;
 
 pub use lifecycle::CompanyLifecycle;
 pub use manager::{apply_seasonal_furlough_all, process_companies, process_company, set_wage_offers};
@@ -22,3 +23,4 @@ pub use development::{PropertyDeveloper, MarketOpportunity, publish_developer_te
 pub use bounded_rationality::{InformationQuality, determine_information_quality, try_upgrade_to_predictive, apply_estimation_error};
 pub use capital_intensity::{CapitalIntensity, sector_capital_intensity, minimum_capital_for_sector};
 pub use bankruptcy::{BankruptcyAuctionPool, RestructuringPlan, Syndic};
+pub use market_behavior::{MarketBehaviorModifiers, evaluate_market_behavior};

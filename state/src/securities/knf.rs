@@ -120,6 +120,15 @@ pub enum ViolationType {
     /// Market manipulation detected in trading activities.
     #[serde(rename = "manipulacja_rynkiem")]
     MarketManipulation,
+    /// Phase 57: Accounting fraud — profit diversion by corrupt CEO/manager.
+    #[serde(rename = "oszustwo_księgowe")]
+    AccountingFraud,
+    /// Phase 57: Fund leverage exceeded regulatory limits.
+    #[serde(rename = "nadmierna_dźwignia_funduszu")]
+    FundLeverageExceeded,
+    /// Phase 57: Insider trading — fund manager trading on companies where they're CEO or board member.
+    #[serde(rename = "handel_niejawny")]
+    InsiderTrading,
 }
 
 /// Reason for freezing a brokerage account.
@@ -374,6 +383,181 @@ pub fn process_knf_compliance(
     }
 
     new_findings
+}
+
+// ============================================================================
+// PHASE 57: KNF REGULATORY ENFORCEMENT EXPANSION
+// ============================================================================
+
+/// Phase 57: Detect accounting fraud based on behavior modifiers.
+///
+/// Uses `modifiers.fraud_probability` (no raw trait string checks).
+/// Severity scales with `modifiers.profit_diversion_rate` × profit.
+///
+/// # Arguments
+/// * `company` - The company being audited.
+/// * `modifiers` - The CEO's behavior modifiers (from `evaluate_market_behavior`).
+/// * `current_turn` - The current turn number.
+///
+/// # Returns
+/// `Some(AuditFinding)` if fraud is detected, `None` otherwise.
+pub fn detect_accounting_fraud(
+    company: &Company,
+    modifiers: &crate::corporate::market_behavior::MarketBehaviorModifiers,
+    current_turn: u32,
+) -> Option<AuditFinding> {
+    if modifiers.fraud_probability <= 0.0 {
+        return None;
+    }
+
+    // Determine if fraud occurred this turn (probability check).
+    // Use a deterministic check based on company ID hash + turn for reproducibility.
+    let hash = company.id.chars().map(|c| c as u32).sum::<u32>();
+    let pseudo_random = ((hash.wrapping_mul(current_turn)) % 100) as f64 / 100.0;
+
+    if pseudo_random < modifiers.fraud_probability {
+        // Severity scales with profit diversion rate × profit magnitude.
+        let profit = company.annual_profit_accumulator.max(0.0);
+        let diverted = profit * modifiers.profit_diversion_rate;
+        let severity = ((diverted / 1_000_000.0).min(10.0) as u8).max(1);
+
+        Some(AuditFinding {
+            bank_id: company.id.clone(),
+            violation_type: ViolationType::AccountingFraud,
+            severity,
+            turn: current_turn,
+        })
+    } else {
+        None
+    }
+}
+
+/// Phase 57: Regulate fund leverage — hedge funds exceeding leverage limit are penalized.
+///
+/// # Arguments
+/// * `fund` - The fund company being audited.
+/// * `config` - Securities market config (for penalty multiplier).
+/// * `current_turn` - The current turn number.
+///
+/// # Returns
+/// `Some(AuditFinding)` if leverage exceeds limits, `None` otherwise.
+pub fn regulate_fund_leverage(
+    fund: &Company,
+    config: &crate::securities::config::SecuritiesMarketConfig,
+    current_turn: u32,
+) -> Option<AuditFinding> {
+    let ledger = fund.fund_ledger.as_ref()?;
+    let leverage = ledger.leverage_ratio;
+
+    // Hedge funds can have up to 3x leverage; other funds up to 1.5x.
+    let max_leverage = match fund.fund_type {
+        Some(crate::securities::FundType::HedgeFund) => 3.0,
+        _ => 1.5,
+    };
+
+    if leverage > max_leverage {
+        let severity = ((leverage - max_leverage) * 3.0).min(10.0) as u8;
+        Some(AuditFinding {
+            bank_id: fund.id.clone(),
+            violation_type: ViolationType::FundLeverageExceeded,
+            severity,
+            turn: current_turn,
+        })
+    } else {
+        None
+    }
+}
+
+/// Phase 57: Check for insider trading — fund manager trading on companies
+/// where they're also CEO or board member.
+///
+/// # Arguments
+/// * `fund_manager_vip_id` - The VIP ID of the fund manager.
+/// * `fund_trades` - Recent trades by the fund.
+/// * `companies` - All companies (to check CEO/board membership).
+/// * `current_turn` - The current turn number.
+///
+/// # Returns
+/// `Some(AuditFinding)` if insider trading is detected, `None` otherwise.
+pub fn check_insider_trading(
+    fund_manager_vip_id: &str,
+    fund_trades: &[crate::securities::exchange::Trade],
+    companies: &[Company],
+    current_turn: u32,
+) -> Option<AuditFinding> {
+    // Find companies where the fund manager is CEO or board member.
+    let connected_companies: Vec<&str> = companies
+        .iter()
+        .filter(|c| {
+            // Check if the VIP is the CEO.
+            if c.ceo_vip_id.as_deref() == Some(fund_manager_vip_id) {
+                return true;
+            }
+            // Check if the VIP is a board member.
+            if let crate::entities::LegalForm::JointStockCompany(ref jsd) = c.legal_form {
+                return jsd.board_members.iter().any(|m| m.vip_id == fund_manager_vip_id);
+            }
+            false
+        })
+        .map(|c| c.id.as_str())
+        .collect();
+
+    if connected_companies.is_empty() {
+        return None;
+    }
+
+    // Check if the fund traded any connected company's equity.
+    for trade in fund_trades {
+        if trade.instrument_id.starts_with("EQUITY:") {
+            let company_id = &trade.instrument_id[7..];
+            if connected_companies.contains(&company_id) {
+                return Some(AuditFinding {
+                    bank_id: company_id.to_string(),
+                    violation_type: ViolationType::InsiderTrading,
+                    severity: 8, // Insider trading is a severe violation
+                    turn: current_turn,
+                });
+            }
+        }
+    }
+
+    None
+}
+
+/// Phase 57: Check if the market index drop should trigger a trading halt.
+///
+/// # Arguments
+/// * `knf` - The KNF regulator.
+/// * `current_index` - Current market index value.
+/// * `previous_index` - Previous market index value.
+/// * `current_turn` - The current turn number.
+///
+/// # Returns
+/// `true` if a trading halt was triggered, `false` otherwise.
+pub fn check_market_halt(
+    knf: &mut KNF,
+    current_index: f64,
+    previous_index: f64,
+    current_turn: u32,
+) -> bool {
+    if previous_index <= 0.0 {
+        return false;
+    }
+    let change_pct = (current_index - previous_index) / previous_index;
+    // Halt if index drops more than 10% in one turn.
+    if change_pct < -0.10 {
+        knf.trigger_market_halt();
+        // Record the halt.
+        knf.audit_findings.push(AuditFinding {
+            bank_id: "MARKET".to_string(),
+            violation_type: ViolationType::MarketManipulation,
+            severity: 10,
+            turn: current_turn,
+        });
+        true
+    } else {
+        false
+    }
 }
 
 #[cfg(test)]

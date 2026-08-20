@@ -128,6 +128,13 @@ pub enum VipRoleExtended {
     RoyalHeir,
     /// Regent (acting ruler during minority/incapacity).
     Regent,
+    // ── Corporate governance ──
+    /// Phase 55: Board member of a joint-stock company.
+    BoardMember,
+    /// Phase 55: Board chairperson (leads board meetings).
+    BoardChair,
+    /// Phase 55: Heir to a family business (in line for CEO succession).
+    Heir,
 }
 
 impl VipRoleExtended {
@@ -176,6 +183,9 @@ impl VipRoleExtended {
             VipRoleExtended::RoyalConsort => "Royal Consort",
             VipRoleExtended::RoyalHeir => "Royal Heir",
             VipRoleExtended::Regent => "Regent",
+            VipRoleExtended::BoardMember => "Board Member",
+            VipRoleExtended::BoardChair => "Board Chair",
+            VipRoleExtended::Heir => "Heir",
         }
     }
 
@@ -199,6 +209,9 @@ impl VipRoleExtended {
             VipRoleExtended::RoyalConsort,
             VipRoleExtended::RoyalHeir,
             VipRoleExtended::Regent,
+            VipRoleExtended::BoardMember,
+            VipRoleExtended::BoardChair,
+            VipRoleExtended::Heir,
         ]
     }
 }

@@ -766,6 +766,245 @@ pub struct CompanyDetail {
 }
 
 // ============================================================================
+// PHASE 55: GOVERNANCE & OWNERSHIP DTOs
+// ============================================================================
+
+/// Phase 55: Board member row for governance display.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct BoardMemberRow {
+    pub vip_id: String,
+    pub name: String,
+    pub role: String,
+    pub loyalty_to_ceo: f64,
+    pub appointed_turn: u32,
+    pub age: u32,
+    pub main_trait: String,
+}
+
+/// Phase 55: Governance detail for a company (board, succession, financial metrics).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct GovernanceDetail {
+    pub company_id: String,
+    pub company_name: String,
+    pub is_listed: bool,
+    pub shares_count: u64,
+    pub share_price: f64,
+    pub market_cap: f64,
+    pub eps: f64,
+    pub pe_ratio: f64,
+    pub dividend_yield: f64,
+    pub open_price: f64,
+    pub close_price: f64,
+    pub board_members: Vec<BoardMemberRow>,
+    pub has_board: bool,
+    pub board_independence: f64,
+    pub is_family_business: bool,
+    pub successor_generation: u32,
+    pub heir_count: u32,
+    pub succession_crisis: bool,
+    pub heirs: Vec<BoardMemberRow>,
+}
+
+// ============================================================================
+// PHASE 56: STOCK EXCHANGE DTOs
+// ============================================================================
+
+/// Phase 56: Market index snapshot for the stock exchange UI.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct MarketIndexSnapshot {
+    pub value: f64,
+    pub change_pct: f64,
+    pub history: Vec<f64>,
+    pub total_market_cap: f64,
+    pub total_volume: u64,
+    pub advancing: u32,
+    pub declining: u32,
+    pub volatility: f64,
+}
+
+/// Phase 56: Sector index snapshot.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct SectorIndexSnapshot {
+    pub sector: String,
+    pub value: f64,
+    pub history: Vec<f64>,
+}
+
+/// Phase 56: Listed company row for the stock exchange table.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct ListedCompanyRow {
+    pub company_id: String,
+    pub name: String,
+    pub sector: String,
+    pub share_price: f64,
+    pub change_pct: f64,
+    pub market_cap: f64,
+    pub pe_ratio: f64,
+    pub dividend_yield: f64,
+    pub volume: u64,
+    pub open_price: f64,
+    pub close_price: f64,
+    pub spread: f64,
+    pub ceo_name: Option<String>,
+    pub ceo_vip_id: Option<String>,
+}
+
+/// Phase 56: Recent trade row for the stock exchange UI.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct TradeRow {
+    pub instrument_id: String,
+    pub buyer_id: String,
+    pub seller_id: String,
+    pub quantity: u64,
+    pub price: f64,
+    pub turn: u32,
+}
+
+/// Phase 56: Commodity spot price row.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CommoditySpotRow {
+    pub commodity_id: String,
+    pub spot_price: f64,
+    pub open_interest: u64,
+    pub history: Vec<f64>,
+}
+
+/// Phase 56: Commodity futures row.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CommodityFuturesRow {
+    pub commodity_id: String,
+    pub delivery_turn: u32,
+    pub futures_price: f64,
+    pub spot_price: f64,
+    pub basis: f64,
+}
+
+/// Phase 56: Full stock exchange response for the securities UI.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct StockExchangeResponse {
+    pub main_index: MarketIndexSnapshot,
+    pub sector_indices: Vec<SectorIndexSnapshot>,
+    pub listed_companies: Vec<ListedCompanyRow>,
+    pub recent_trades: Vec<TradeRow>,
+    pub trading_halted: bool,
+    pub commodity_spot: Vec<CommoditySpotRow>,
+    pub commodity_futures: Vec<CommodityFuturesRow>,
+}
+
+/// Phase 56: Paginated listed company page response.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct ListedCompanyPageResponse {
+    pub rows: Vec<ListedCompanyRow>,
+    pub total_count: usize,
+}
+
+/// Phase 56: Detailed market view for a single listed company.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct ListedCompanyDetail {
+    pub company_id: String,
+    pub name: String,
+    pub sector: String,
+    pub share_price: f64,
+    pub market_cap: f64,
+    pub pe_ratio: f64,
+    pub dividend_yield: f64,
+    pub eps: f64,
+    pub open_price: f64,
+    pub close_price: f64,
+    pub spread: f64,
+    pub volume: u64,
+    pub shares_count: u64,
+    pub free_float: f64,
+    pub recent_trades: Vec<TradeRow>,
+}
+
+// ============================================================================
+// PHASE 57: FUND & KNF DTOs
+// ============================================================================
+
+/// Phase 57: Fund row for the investment funds UI.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct FundRow {
+    pub fund_id: String,
+    pub name: String,
+    pub fund_type: String,
+    pub nav_per_share: f64,
+    pub total_aum: f64,
+    pub manager_name: String,
+    pub manager_vip_id: String,
+    pub manager_trait: String,
+    pub shares_outstanding: u64,
+    pub ytd_return: f64,
+    pub top_holdings: Vec<(String, f64)>,
+}
+
+/// Phase 57: Detailed fund view for the fund detail panel.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct FundDetail {
+    pub fund_id: String,
+    pub name: String,
+    pub fund_type: String,
+    pub nav_per_share: f64,
+    pub total_aum: f64,
+    pub manager_name: String,
+    pub manager_vip_id: String,
+    pub manager_trait: String,
+    pub shares_outstanding: u64,
+    pub ytd_return: f64,
+    pub leverage_ratio: f64,
+    pub management_fee: f64,
+    pub performance_fee: f64,
+    pub top_holdings: Vec<(String, f64)>,
+    pub portfolio_holdings: Vec<(String, u64, f64)>,
+}
+
+/// Phase 57: KNF audit finding row for the regulatory UI.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct KnfFindingRow {
+    pub entity_id: String,
+    pub entity_name: String,
+    pub violation_type: String,
+    pub severity: u8,
+    pub turn: u32,
+    pub description: String,
+    pub penalty: f64,
+}
+
+/// Phase 57: Capital gains tax summary row.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CapitalGainsTaxRow {
+    pub entity_id: String,
+    pub realized_gains: f64,
+    pub realized_losses: f64,
+    pub tax_owed: f64,
+    pub carried_forward_losses: f64,
+}
+
+/// Phase 57: Capital gains tax summary response.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CapitalGainsTaxSummary {
+    pub rows: Vec<CapitalGainsTaxRow>,
+    pub total_tax_collected: f64,
+    pub annual_tax_history: Vec<f64>,
+}
+
+// ============================================================================
 // PHASE 49: REGION DETAIL (DRILL-DOWN)
 // ============================================================================
 

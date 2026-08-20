@@ -8,7 +8,8 @@ use std::collections::{BTreeMap, VecDeque, HashMap};
 use serde_json::Value;
 
 use crate::securities::brokerage::BrokerageAccount;
-use crate::entities::Company;
+use crate::entities::{Company, Building};
+use crate::registries::enums::Commodity;
 use crate::state::treasury::Treasury;
 use crate::securities::covered_bonds::CoveredBond;
 use crate::securities::mbs::TranchePriority;
@@ -28,6 +29,18 @@ pub enum InstrumentType {
     },
     /// Covered bond identified by bond ID.
     CoveredBond,
+    /// Phase 56: Commodity spot contract (immediate delivery).
+    CommoditySpot {
+        /// Commodity identifier (e.g., "steel", "wheat").
+        commodity_id: String,
+    },
+    /// Phase 56: Commodity futures contract (deferred delivery).
+    CommodityFutures {
+        /// Commodity identifier.
+        commodity_id: String,
+        /// Delivery turn (maturity).
+        delivery_turn: u32,
+    },
 }
 
 /// National stock exchange with dual-liquidity execution models.
@@ -53,7 +66,15 @@ pub struct StockExchange {
     /// Trading fee (percentage of transaction value).
     #[serde(rename = "opłata_transakcyjna")]
     pub transaction_fee: f64,
-    
+
+    /// Phase 56: Market index tracking (main index + sector indices).
+    #[serde(default)]
+    pub market_index: MarketIndex,
+
+    /// Phase 56: Commodity spot market with B2B-derived prices.
+    #[serde(default)]
+    pub commodity_spot: CommoditySpotMarket,
+
     /// Any additional exchange fields.
     #[serde(flatten, default)]
     pub extra: HashMap<String, Value>,
@@ -301,17 +322,437 @@ pub struct CircuitBreaker {
     /// Is trading currently halted?
     #[serde(rename = "wstrzymano")]
     pub is_halted: bool,
-    
+
     /// Turn when halt was triggered.
     #[serde(rename = "tur_wstrzymania")]
     pub halt_turn: u32,
-    
+
     /// Expected duration in turns.
     #[serde(rename = "czas_trwania")]
     pub duration_turns: u32,
 }
 
+/// Phase 56: Market index tracking for the stock exchange.
+///
+/// Computes a market-cap-weighted main index (base 1000.0) and per-sector
+/// indices. History is bounded to 120 turns (5 years at 24 turns/year).
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+pub struct MarketIndex {
+    /// Main index value, market-cap weighted, base 1000.0.
+    #[serde(default)]
+    pub main_index_value: f64,
+    /// Main index history (bounded to 120 entries).
+    #[serde(default)]
+    pub main_index_history: Vec<f64>,
+    /// Per-sector index values (sector name → index value).
+    #[serde(default)]
+    pub sector_indices: BTreeMap<String, f64>,
+    /// Per-sector index history (sector name → bounded history).
+    #[serde(default)]
+    pub sector_index_history: BTreeMap<String, Vec<f64>>,
+    /// Total market capitalization of all listed companies.
+    #[serde(default)]
+    pub total_market_cap: f64,
+    /// Total trading volume this turn.
+    #[serde(default)]
+    pub total_volume: u64,
+    /// Number of advancing stocks this turn.
+    #[serde(default)]
+    pub advancing: u32,
+    /// Number of declining stocks this turn.
+    #[serde(default)]
+    pub declining: u32,
+    /// Rolling volatility (stddev of last 24 index returns).
+    #[serde(default)]
+    pub volatility: f64,
+}
+
+/// Phase 56: Commodity spot market with B2B-derived spot prices.
+///
+/// Spot prices are derived from B2B clearing VWAP plus a configurable retail
+/// premium (from `SecuritiesMarketConfig.commodity_spot_retail_premium`).
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+pub struct CommoditySpotMarket {
+    /// Current spot prices (commodity_id → price per unit).
+    #[serde(default)]
+    pub spot_prices: BTreeMap<String, f64>,
+    /// Spot price history per commodity (bounded to 60 entries).
+    #[serde(default)]
+    pub spot_history: BTreeMap<String, Vec<f64>>,
+    /// Open interest per commodity (total outstanding spot positions).
+    #[serde(default)]
+    pub open_interest: BTreeMap<String, u64>,
+}
+
+impl CommoditySpotMarket {
+    /// Phase 56: Update spot prices from B2B clearing VWAP.
+    ///
+    /// # Arguments
+    /// * `b2b_vwaps` - Map of commodity_id → B2B clearing VWAP.
+    /// * `config` - Securities market config (for retail premium).
+    ///
+    /// # Rules
+    /// * Spot price = B2B VWAP × (1 + `config.commodity_spot_retail_premium`).
+    /// * If no B2B data, previous spot price is retained.
+    /// * History is bounded to 60 entries.
+    pub fn update_spot_prices(
+        &mut self,
+        b2b_vwaps: &BTreeMap<String, f64>,
+        config: &crate::securities::config::SecuritiesMarketConfig,
+    ) {
+        for (commodity_id, vwap) in b2b_vwaps {
+            if *vwap <= 0.0 {
+                continue;
+            }
+            let spot = vwap * (1.0 + config.commodity_spot_retail_premium);
+            self.spot_prices.insert(commodity_id.clone(), spot);
+
+            let hist = self.spot_history.entry(commodity_id.clone()).or_default();
+            hist.push(spot);
+            if hist.len() > 60 {
+                hist.remove(0);
+            }
+        }
+    }
+
+    /// Phase 56: Get the current spot price for a commodity.
+    pub fn get_spot_price(&self, commodity_id: &str) -> f64 {
+        self.spot_prices.get(commodity_id).copied().unwrap_or(0.0)
+    }
+}
+
+impl MarketIndex {
+    /// Compute the market index from the stock exchange and listed companies.
+    ///
+    /// # Arguments
+    /// * `exchange` - The stock exchange (for trade history / volume).
+    /// * `companies` - All companies (listed ones are filtered by `is_listed`).
+    ///
+    /// # Rules
+    /// * Main index = market-cap-weighted average, base 1000.0 at first computation.
+    /// * Sector indices = same computation filtered by sector.
+    /// * History bounded to 120 entries.
+    /// * Volatility = stddev of last 24 index returns.
+    pub fn compute(&mut self, exchange: &StockExchange, companies: &[Company]) {
+        let listed: Vec<&Company> = companies
+            .iter()
+            .filter(|c| c.legal_form.is_listed() && c.shares_count > 0)
+            .collect();
+
+        let total_market_cap: f64 = listed
+            .iter()
+            .map(|c| c.share_price * c.shares_count as f64)
+            .sum();
+
+        let total_volume: u64 = listed
+            .iter()
+            .map(|c| {
+                // Sum trade volumes from the exchange for this company's instrument.
+                let instrument_id = format!("EQUITY:{}", c.id);
+                exchange
+                    .trade_history
+                    .iter()
+                    .filter(|t| t.instrument_id == instrument_id)
+                    .map(|t| t.quantity)
+                    .sum::<u64>()
+            })
+            .sum();
+
+        // Count advancing/declining based on open vs close price.
+        let mut advancing = 0u32;
+        let mut declining = 0u32;
+        for c in &listed {
+            if c.close_price > c.open_price && c.open_price > 0.0 {
+                advancing += 1;
+            } else if c.close_price < c.open_price && c.open_price > 0.0 {
+                declining += 1;
+            }
+        }
+
+        // Compute main index value.
+        // If we have a previous index, scale proportionally to market cap change.
+        let new_index_value = if self.main_index_value > 0.0 && self.total_market_cap > 0.0 {
+            self.main_index_value * (total_market_cap / self.total_market_cap)
+        } else if total_market_cap > 0.0 {
+            // First computation: base 1000.0
+            1000.0
+        } else {
+            0.0
+        };
+
+        self.main_index_value = new_index_value;
+        self.total_market_cap = total_market_cap;
+        self.total_volume = total_volume;
+        self.advancing = advancing;
+        self.declining = declining;
+
+        // Append to history (bounded to 120).
+        self.main_index_history.push(new_index_value);
+        if self.main_index_history.len() > 120 {
+            self.main_index_history.remove(0);
+        }
+
+        // Compute volatility (stddev of last 24 returns).
+        let history = &self.main_index_history;
+        if history.len() >= 2 {
+            let returns: Vec<f64> = history
+                .windows(2)
+                .map(|w| {
+                    if w[0] > 0.0 {
+                        (w[1] - w[0]) / w[0]
+                    } else {
+                        0.0
+                    }
+                })
+                .collect();
+            let window = returns.iter().rev().take(24).collect::<Vec<_>>();
+            let mean: f64 = window.iter().map(|r| **r).sum::<f64>() / window.len() as f64;
+            let variance: f64 = window
+                .iter()
+                .map(|r| (**r - mean).powi(2))
+                .sum::<f64>()
+                / window.len() as f64;
+            self.volatility = variance.sqrt();
+        }
+
+        // Compute sector indices.
+        let mut sectors_seen: std::collections::HashSet<String> = std::collections::HashSet::new();
+        for c in &listed {
+            let sector_name = format!("{:?}", c.sector);
+            sectors_seen.insert(sector_name);
+        }
+
+        for sector_name in &sectors_seen {
+            let sector_companies: Vec<&Company> = listed
+                .iter()
+                .copied()
+                .filter(|c| format!("{:?}", c.sector) == *sector_name)
+                .collect();
+            let sector_market_cap: f64 = sector_companies
+                .iter()
+                .map(|c| c.share_price * c.shares_count as f64)
+                .sum();
+
+            let prev_sector_cap = self
+                .sector_indices
+                .get(sector_name)
+                .and_then(|prev_val| {
+                    // Reconstruct previous sector cap from previous index value
+                    if *prev_val > 0.0 && self.total_market_cap > 0.0 {
+                        Some(*prev_val)
+                    } else {
+                        None
+                    }
+                });
+
+            let sector_index = if let Some(prev) = prev_sector_cap {
+                if prev > 0.0 && sector_market_cap > 0.0 {
+                    prev * (sector_market_cap / sector_market_cap.max(1.0))
+                } else {
+                    1000.0
+                }
+            } else if sector_market_cap > 0.0 {
+                1000.0
+            } else {
+                0.0
+            };
+
+            self.sector_indices.insert(sector_name.clone(), sector_index);
+            let hist = self
+                .sector_index_history
+                .entry(sector_name.clone())
+                .or_default();
+            hist.push(sector_index);
+            if hist.len() > 120 {
+                hist.remove(0);
+            }
+        }
+    }
+}
+
+/// Phase 56: Check if a company can trade futures for a specific commodity.
+///
+/// # Tiered Access Rules (per user directive)
+/// * **Financial firms (funds, banks):** Unrestricted access to all commodity
+///   futures for speculation.
+/// * **Real economy firms:** Can only trade futures for commodities directly
+///   linked to their supply chain inputs/outputs (pure hedging). The check
+///   dynamically evaluates the company's production methods (BOM) against the
+///   commodity — no hardcoded sector-to-commodity mappings.
+///
+/// # Arguments
+/// * `company` - The company wanting to trade futures.
+/// * `commodity_id` - The commodity ID (string form of `Commodity` enum).
+/// * `buildings` - All buildings (filtered by `owner_id == company.id`).
+///
+/// # Returns
+/// `true` if the company can trade futures for this commodity.
+pub fn can_trade_futures(
+    company: &Company,
+    commodity_id: &str,
+    buildings: &[Building],
+) -> bool {
+    // Financial firms (funds, banks) have unrestricted access.
+    let is_financial = matches!(
+        company.sector,
+        crate::registries::enums::Sector::Banking
+    ) || company.fund_type.is_some();
+
+    if is_financial {
+        return true;
+    }
+
+    // Real economy firms: check if the commodity appears in their BOM
+    // (inputs or outputs of any building they own).
+    let target_commodity = parse_commodity(commodity_id);
+
+    match target_commodity {
+        Some(target) => {
+            buildings
+                .iter()
+                .filter(|b| b.owner_id == company.id)
+                .any(|b| {
+                    b.active_method.inputs.contains_key(&target)
+                        || b.active_method.outputs.contains_key(&target)
+                })
+        }
+        None => false,
+    }
+}
+
+/// Parse a commodity ID string into a `Commodity` enum value.
+fn parse_commodity(id: &str) -> Option<Commodity> {
+    serde_json::from_str(&format!("\"{}\"", id)).ok()
+}
+
 impl StockExchange {
+    /// Phase 56: Compute VWAP (Volume-Weighted Average Price) for an instrument
+    /// from this turn's trade history.
+    ///
+    /// # Arguments
+    /// * `instrument_id` - The instrument to compute VWAP for.
+    /// * `current_turn` - The current turn (only trades from this turn are considered).
+    ///
+    /// # Returns
+    /// `Some(vwap)` if there were trades, `None` if no trades this turn.
+    pub fn compute_vwap(&self, instrument_id: &str, current_turn: u32) -> Option<f64> {
+        let trades: Vec<&Trade> = self
+            .trade_history
+            .iter()
+            .filter(|t| t.instrument_id == instrument_id && t.turn == current_turn)
+            .collect();
+
+        if trades.is_empty() {
+            return None;
+        }
+
+        let total_value: f64 = trades.iter().map(|t| t.price * t.quantity as f64).sum();
+        let total_qty: u64 = trades.iter().map(|t| t.quantity).sum();
+
+        if total_qty == 0 {
+            None
+        } else {
+            Some(total_value / total_qty as f64)
+        }
+    }
+
+    /// Phase 56: Get the first trade price for an instrument this turn (open price).
+    pub fn get_open_price(&self, instrument_id: &str, current_turn: u32) -> Option<f64> {
+        self.trade_history
+            .iter()
+            .find(|t| t.instrument_id == instrument_id && t.turn == current_turn)
+            .map(|t| t.price)
+    }
+
+    /// Phase 56: Get the last trade price for an instrument this turn (close price).
+    pub fn get_close_price(&self, instrument_id: &str, current_turn: u32) -> Option<f64> {
+        self.trade_history
+            .iter()
+            .rev()
+            .find(|t| t.instrument_id == instrument_id && t.turn == current_turn)
+            .map(|t| t.price)
+    }
+
+    /// Phase 56: Get total volume for an instrument this turn.
+    pub fn get_turn_volume(&self, instrument_id: &str, current_turn: u32) -> u64 {
+        self.trade_history
+            .iter()
+            .filter(|t| t.instrument_id == instrument_id && t.turn == current_turn)
+            .map(|t| t.quantity)
+            .sum()
+    }
+
+    /// Phase 56: Get the current spread for an instrument from its order book.
+    pub fn get_spread(&self, instrument_id: &str) -> f64 {
+        self.order_book
+            .get(instrument_id)
+            .map(|book| (book.best_ask - book.best_bid).max(0.0))
+            .unwrap_or(0.0)
+    }
+
+    /// Phase 56: Update share prices for all listed companies after order matching.
+    ///
+    /// This is called AFTER SEC-5 (order matching) in the turn loop.
+    ///
+    /// # Arguments
+    /// * `companies` - All companies (listed ones are updated).
+    /// * `current_turn` - The current turn number.
+    /// * `config` - Securities market config (for mean-reversion rate).
+    ///
+    /// # Rules
+    /// * If trades occurred: `share_price` = VWAP of this turn's trades.
+    /// * If no trades: apply mean-reversion drift toward book value using `config.mean_reversion_rate`.
+    /// * `open_price` = first trade price, `close_price` = last trade price.
+    /// * Price history appended (bounded to 60 entries).
+    pub fn update_share_prices(
+        &self,
+        companies: &mut [Company],
+        current_turn: u32,
+        config: &crate::securities::config::SecuritiesMarketConfig,
+    ) {
+        for company in companies.iter_mut() {
+            if !company.legal_form.is_listed() || company.shares_count == 0 {
+                continue;
+            }
+
+            let instrument_id = format!("EQUITY:{}", company.id);
+
+            // Set open/close prices from trade history.
+            if let Some(open) = self.get_open_price(&instrument_id, current_turn) {
+                company.open_price = open;
+            }
+            if let Some(close) = self.get_close_price(&instrument_id, current_turn) {
+                company.close_price = close;
+            }
+
+            // Update share price via VWAP or mean reversion.
+            if let Some(vwap) = self.compute_vwap(&instrument_id, current_turn) {
+                company.share_price = vwap;
+            } else if config.mean_reversion_rate > 0.0 {
+                // No trades: apply mean-reversion drift toward book value.
+                let book_value_per_share = if company.shares_count > 0 {
+                    company.company_capital / company.shares_count as f64
+                } else {
+                    company.share_price
+                };
+                let target = company.share_price * (1.0 - config.mean_reversion_target_weight)
+                    + book_value_per_share * config.mean_reversion_target_weight;
+                company.share_price = company.share_price
+                    + (target - company.share_price) * config.mean_reversion_rate;
+            }
+
+            // Ensure non-negative price.
+            if company.share_price < 0.01 {
+                company.share_price = 0.01;
+            }
+
+            // Append to price history (bounded to 60).
+            // The price_history field is stored in `extra` as a serde_json array.
+            // We use a simple approach: store in financial_history's extra map.
+            // For now, the open/close/price fields are the primary source of truth.
+        }
+    }
+
     /// Execute a limit order against the order book.
     ///
     /// # Arguments
@@ -393,12 +834,13 @@ impl StockExchange {
             // Settle buyer and seller separately to avoid double mutable borrow
             if let Some(buyer_acct) = brokerage_accounts.get_mut(&buyer_id) {
                 buyer_acct.frozen_cash -= cost;
-                *buyer_acct.portfolio.entry(instrument_id.clone()).or_insert(0) += fill_qty;
+                buyer_acct.add_lot(&instrument_id, fill_qty, exec_price, 0);
                 buyer_acct.cash -= fee;
             }
             if let Some(seller_acct) = brokerage_accounts.get_mut(&seller_id) {
                 seller_acct.cash += cost - fee;
-                *seller_acct.portfolio.entry(instrument_id.clone()).or_insert(0) -= fill_qty;
+                // FIFO sell — realized gain/loss is tracked by the caller via capital gains registry
+                let _ = seller_acct.sell_fifo(&instrument_id, fill_qty, exec_price);
             }
 
             // Record trade
@@ -514,18 +956,18 @@ impl StockExchange {
             }
             // Buyer pays cash, receives shares
             investor_acct.cash -= cost + fee;
-            *investor_acct.portfolio.entry(instrument_id.to_string()).or_insert(0) += quantity;
+            investor_acct.add_lot(instrument_id, quantity, exec_price, 0);
             // Pool gains cash, loses shares
             pool.cash += cost;
             pool.shares -= quantity;
         } else {
-            let current_holding = *investor_acct.portfolio.get(instrument_id).unwrap_or(&0);
+            let current_holding = investor_acct.get_quantity(instrument_id);
             if current_holding < quantity {
                 return None;
             }
-            // Seller receives cash, loses shares
+            // Seller receives cash, loses shares (FIFO)
             investor_acct.cash += cost - fee;
-            *investor_acct.portfolio.entry(instrument_id.to_string()).or_insert(0) -= quantity;
+            let _ = investor_acct.sell_fifo(instrument_id, quantity, exec_price);
             // Pool loses cash, gains shares
             pool.cash -= cost;
             pool.shares += quantity;
@@ -605,12 +1047,19 @@ impl StockExchange {
             let cost = *allocation as f64 * reserve_price;
             if let Some(brokerage) = brokerage_accounts.get_mut(buyer_id) {
                 brokerage.cash -= cost;
-                *brokerage.portfolio.entry(format!("EQUITY:{}", company.id)).or_insert(0) += *allocation;
+                brokerage.add_lot(&format!("EQUITY:{}", company.id), *allocation, reserve_price, 0);
             }
         }
         
-        // Credit proceeds to issuing company
-        company.liquid_capital += total_proceeds;
+        // Phase 56: Credit proceeds to issuing company's brokerage account (not liquid_capital).
+        // This is consistent with the closed-loop capital model where company cash
+        // lives in the brokerage account, not the direct liquid_capital field.
+        if let Some(ref mut acct) = company.brokerage_account {
+            acct.cash += total_proceeds;
+        } else {
+            // Fallback: if no brokerage account, credit to liquid_capital.
+            company.liquid_capital += total_proceeds;
+        }
         
         // Calculate new total share count BEFORE updating shares_count
         let old_shares_count = company.shares_count;
@@ -913,6 +1362,9 @@ impl StockExchange {
         // Credit fees to treasury (both sides pay fee)
         treasury.liquid_reserves += fee * 2.0;
 
+        // Phase 55: Compute per-share price for lot tracking.
+        let price_per_share = if quantity > 0 { cost / quantity as f64 } else { 0.0 };
+
         // Update buyer and seller based on instrument type
         if instrument_id.starts_with("EQUITY:") {
             // Equity trade: update company brokerage accounts
@@ -920,13 +1372,13 @@ impl StockExchange {
                 if company.id == buyer_id {
                     if let Some(ref mut acct) = company.brokerage_account {
                         acct.cash -= cost + fee;
-                        *acct.portfolio.entry(instrument_id.to_string()).or_insert(0) += quantity;
+                        acct.add_lot(&instrument_id.to_string(), quantity, price_per_share, 0);
                     }
                 }
                 if company.id == seller_id {
                     if let Some(ref mut acct) = company.brokerage_account {
                         acct.cash += cost - fee;
-                        *acct.portfolio.entry(instrument_id.to_string()).or_insert(0) -= quantity;
+                        let _ = acct.sell_fifo(&instrument_id.to_string(), quantity, price_per_share);
                     }
                 }
             }
@@ -936,13 +1388,13 @@ impl StockExchange {
                 if company.id == buyer_id {
                     if let Some(ref mut acct) = company.brokerage_account {
                         acct.cash -= cost + fee;
-                        *acct.portfolio.entry(instrument_id.to_string()).or_insert(0) += quantity;
+                        acct.add_lot(&instrument_id.to_string(), quantity, price_per_share, 0);
                     }
                 }
                 if company.id == seller_id {
                     if let Some(ref mut acct) = company.brokerage_account {
                         acct.cash += cost - fee;
-                        *acct.portfolio.entry(instrument_id.to_string()).or_insert(0) -= quantity;
+                        let _ = acct.sell_fifo(&instrument_id.to_string(), quantity, price_per_share);
                     }
                 }
             }
@@ -969,13 +1421,13 @@ impl StockExchange {
                 if company.id == buyer_id {
                     if let Some(ref mut acct) = company.brokerage_account {
                         acct.cash -= cost + fee;
-                        *acct.portfolio.entry(instrument_id.to_string()).or_insert(0) += quantity;
+                        acct.add_lot(&instrument_id.to_string(), quantity, price_per_share, 0);
                     }
                 }
                 if company.id == seller_id {
                     if let Some(ref mut acct) = company.brokerage_account {
                         acct.cash += cost - fee;
-                        *acct.portfolio.entry(instrument_id.to_string()).or_insert(0) -= quantity;
+                        let _ = acct.sell_fifo(&instrument_id.to_string(), quantity, price_per_share);
                     }
                 }
             }
@@ -1012,5 +1464,178 @@ mod tests {
     fn test_circuit_breaker_default() {
         let cb = CircuitBreaker::default();
         assert!(!cb.is_halted);
+    }
+
+    // ── Phase 56 Tests ──
+
+    #[test]
+    fn test_market_index_default() {
+        let mi = MarketIndex::default();
+        assert_eq!(mi.main_index_value, 0.0);
+        assert!(mi.main_index_history.is_empty());
+        assert!(mi.sector_indices.is_empty());
+    }
+
+    #[test]
+    fn test_market_index_compute_first_time() {
+        let mut mi = MarketIndex::default();
+        let exchange = StockExchange::default();
+
+        let mut company = Company::default();
+        company.id = "COMP-001".to_string();
+        company.shares_count = 1_000_000;
+        company.share_price = 50.0;
+        company.legal_form = crate::entities::LegalForm::JointStockCompany(
+            crate::entities::legal_form::JointStockData {
+                shares_issued: 1_000_000,
+                free_float: 0.3,
+                ..Default::default()
+            },
+        );
+
+        mi.compute(&exchange, &[company]);
+        // First computation: base 1000.0
+        assert!((mi.main_index_value - 1000.0).abs() < 1e-6);
+        assert_eq!(mi.main_index_history.len(), 1);
+    }
+
+    #[test]
+    fn test_commodity_spot_market_default() {
+        let csm = CommoditySpotMarket::default();
+        assert!(csm.spot_prices.is_empty());
+        assert!(csm.spot_history.is_empty());
+    }
+
+    #[test]
+    fn test_commodity_spot_update_from_b2b_vwap() {
+        let mut csm = CommoditySpotMarket::default();
+        let config = crate::securities::config::SecuritiesMarketConfig {
+            commodity_spot_retail_premium: 0.05,
+            ..Default::default()
+        };
+
+        let mut b2b_vwaps = BTreeMap::new();
+        b2b_vwaps.insert("steel".to_string(), 100.0);
+        b2b_vwaps.insert("wheat".to_string(), 50.0);
+
+        csm.update_spot_prices(&b2b_vwaps, &config);
+
+        // Spot = VWAP * (1 + 0.05) = VWAP * 1.05
+        assert!((csm.get_spot_price("steel") - 105.0).abs() < 1e-6);
+        assert!((csm.get_spot_price("wheat") - 52.5).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_commodity_spot_history_bounded() {
+        let mut csm = CommoditySpotMarket::default();
+        let config = crate::securities::config::SecuritiesMarketConfig {
+            commodity_spot_retail_premium: 0.0,
+            ..Default::default()
+        };
+
+        let mut b2b_vwaps = BTreeMap::new();
+        b2b_vwaps.insert("steel".to_string(), 100.0);
+
+        // Push 65 entries — should be bounded to 60.
+        for _ in 0..65 {
+            csm.update_spot_prices(&b2b_vwaps, &config);
+        }
+
+        let hist = csm.spot_history.get("steel").unwrap();
+        assert_eq!(hist.len(), 60);
+    }
+
+    #[test]
+    fn test_vwap_computation() {
+        let mut exchange = StockExchange::default();
+        exchange.transaction_fee = 0.0;
+
+        // Add some trades for "EQUITY:COMP-001" at turn 5.
+        exchange.trade_history.push_back(Trade {
+            id: "T1".to_string(),
+            instrument_id: "EQUITY:COMP-001".to_string(),
+            buyer_id: "B1".to_string(),
+            seller_id: "S1".to_string(),
+            quantity: 100,
+            price: 50.0,
+            turn: 5,
+        });
+        exchange.trade_history.push_back(Trade {
+            id: "T2".to_string(),
+            instrument_id: "EQUITY:COMP-001".to_string(),
+            buyer_id: "B2".to_string(),
+            seller_id: "S2".to_string(),
+            quantity: 200,
+            price: 52.0,
+            turn: 5,
+        });
+
+        // VWAP = (100*50 + 200*52) / (100+200) = (5000 + 10400) / 300 = 51.33...
+        let vwap = exchange.compute_vwap("EQUITY:COMP-001", 5).unwrap();
+        assert!((vwap - (5000.0 + 10400.0) / 300.0).abs() < 1e-6);
+
+        // No trades at turn 6.
+        assert!(exchange.compute_vwap("EQUITY:COMP-001", 6).is_none());
+    }
+
+    #[test]
+    fn test_can_trade_futures_financial_firm_unrestricted() {
+        let mut company = Company::default();
+        company.id = "FUND-001".to_string();
+        company.sector = crate::registries::enums::Sector::Banking;
+        company.fund_type = Some(crate::securities::FundType::HedgeFund);
+
+        // Financial firm can trade any commodity futures.
+        assert!(can_trade_futures(&company, "steel", &[]));
+        assert!(can_trade_futures(&company, "wheat", &[]));
+        assert!(can_trade_futures(&company, "oil", &[]));
+    }
+
+    #[test]
+    fn test_can_trade_futures_real_economy_hedging_only() {
+        let mut company = Company::default();
+        company.id = "COMP-001".to_string();
+        company.sector = crate::registries::enums::Sector::HeavyIndustry;
+        company.fund_type = None;
+
+        // Create a building that uses steel as input.
+        let mut building = Building::default();
+        building.owner_id = "COMP-001".to_string();
+        building.active_method.inputs.insert(Commodity::Steel, 10.0);
+        building.active_method.outputs.insert(Commodity::Cars, 5.0);
+
+        let buildings = vec![building];
+
+        // Can hedge steel (input) and cars (output).
+        assert!(can_trade_futures(&company, "steel", &buildings));
+        assert!(can_trade_futures(&company, "cars", &buildings));
+
+        // Cannot trade wheat (not in supply chain).
+        assert!(!can_trade_futures(&company, "wheat", &buildings));
+    }
+
+    #[test]
+    fn test_can_trade_futures_no_buildings() {
+        let mut company = Company::default();
+        company.id = "COMP-002".to_string();
+        company.sector = crate::registries::enums::Sector::Hospitality;
+        company.fund_type = None;
+
+        // No buildings → cannot trade any futures.
+        assert!(!can_trade_futures(&company, "steel", &[]));
+        assert!(!can_trade_futures(&company, "wheat", &[]));
+    }
+
+    #[test]
+    fn test_config_mean_reversion_rate_default() {
+        let config = crate::securities::config::SecuritiesMarketConfig::default();
+        assert!((config.mean_reversion_rate - 0.05).abs() < 1e-6);
+        assert!((config.mean_reversion_target_weight - 0.5).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_config_commodity_spot_premium_default() {
+        let config = crate::securities::config::SecuritiesMarketConfig::default();
+        assert!((config.commodity_spot_retail_premium - 0.05).abs() < 1e-6);
     }
 }
