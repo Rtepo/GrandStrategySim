@@ -16,11 +16,11 @@ pub enum StateStructure {
     /// local taxes; the rest goes to the central budget. Regions cannot pass
     /// their own law variations.
     #[default]
-    #[serde(rename = "unitary")]
+
     Unitary,
     /// Federation: regions retain a large percentage of taxes and gain the
     /// ability to pass regional variations of certain laws.
-    #[serde(rename = "federation")]
+
     Federation,
     /// Totalitarian / Absolute: 100% of tax revenue goes to the central
     /// treasury; JSTs only survive on central grants.
@@ -29,7 +29,7 @@ pub enum StateStructure {
     /// Autonomous Republic: a specific regional designation for areas with
     /// distinct cultures/nationalities. Has its own VIP Premier and a high
     /// risk of separatist provocations if unrest grows.
-    #[serde(rename = "autonomous_republic")]
+
     AutonomousRepublic,
 }
 

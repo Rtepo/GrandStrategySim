@@ -38,40 +38,40 @@ pub enum ConservationPolicyType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ConservationPolicy {
     /// Unique policy ID
-    #[serde(rename = "id_polityki")]
+
     pub id: String,
     /// Policy name
-    #[serde(rename = "nazwa")]
+
     pub name: String,
     /// Country implementing the policy
-    #[serde(rename = "kraj")]
+
     pub country: String,
     /// Policy type
-    #[serde(rename = "typ_polityki")]
+
     pub policy_type: ConservationPolicyType,
     /// Region where policy applies
-    #[serde(rename = "region_id")]
+
     pub region_id: String,
     /// Zoning rules enforced
-    #[serde(rename = "regulacje_planistyczne", default)]
+    #[serde(default)]
     pub zoning_rules: Vec<ZoningRule>,
     /// Tourism boost multiplier
-    #[serde(rename = "wzrost_turystyki")]
+
     pub tourism_boost: f64,
     /// Capitalist discontent generated
-    #[serde(rename = "niezadowolenie_kapitalistów")]
+
     pub capitalist_discontent: f64,
     /// Enforcement level 0-1
-    #[serde(rename = "poziom_egzekwowania")]
+
     pub enforcement_level: f64,
     /// Maintenance cost per turn
-    #[serde(rename = "koszt_utrzymania")]
+
     pub maintenance_cost: f64,
     /// Valid from turn
-    #[serde(rename = "ważny_od")]
+
     pub valid_from: u32,
     /// Valid until turn
-    #[serde(rename = "ważny_do")]
+
     pub valid_until: u32,
 }
 
@@ -134,40 +134,40 @@ impl ConservationPolicy {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct NationalPark {
     /// Unique park ID
-    #[serde(rename = "id_parku")]
+
     pub id: String,
     /// Park name
-    #[serde(rename = "nazwa")]
+
     pub name: String,
     /// Country managing the park
-    #[serde(rename = "kraj")]
+
     pub country: String,
     /// Region where park is located
-    #[serde(rename = "region_id")]
+
     pub region_id: String,
     /// Total area in hectares
-    #[serde(rename = "obszar_całkowity")]
+
     pub total_area: f64,
     /// Protected area in hectares
-    #[serde(rename = "obszar_chroniony")]
+
     pub protected_area: f64,
     /// Zoning rules (strict: no industrial expansion)
-    #[serde(rename = "regulacje_planistyczne", default)]
+    #[serde(default)]
     pub zoning_rules: Vec<ZoningRule>,
     /// Tourism revenue multiplier
-    #[serde(rename = "mnożnik_przychodu_turystycznego")]
+
     pub tourism_revenue_multiplier: f64,
     /// Capitalist discontent per turn
-    #[serde(rename = "niezadowolenie_kapitalistów_na_turn")]
+
     pub capitalist_discontent_per_turn: f64,
     /// Ecological health 0-1
-    #[serde(rename = "zdrowie_ekologiczne")]
+
     pub ecological_health: f64,
     /// Visitor capacity
-    #[serde(rename = "pojemność_odwiedzających")]
+
     pub visitor_capacity: f64,
     /// Management cost per turn
-    #[serde(rename = "koszt_zarządzania")]
+
     pub management_cost: f64,
 }
 
@@ -196,40 +196,40 @@ impl NationalPark {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct LandscapePark {
     /// Unique park ID
-    #[serde(rename = "id_parku")]
+
     pub id: String,
     /// Park name
-    #[serde(rename = "nazwa")]
+
     pub name: String,
     /// Country managing the park
-    #[serde(rename = "kraj")]
+
     pub country: String,
     /// Region where park is located
-    #[serde(rename = "region_id")]
+
     pub region_id: String,
     /// Total area in hectares
-    #[serde(rename = "obszar_całkowity")]
+
     pub total_area: f64,
     /// Protected area in hectares
-    #[serde(rename = "obszar_chroniony")]
+
     pub protected_area: f64,
     /// Zoning rules (moderate: limited industrial expansion)
-    #[serde(rename = "regulacje_planistyczne", default)]
+    #[serde(default)]
     pub zoning_rules: Vec<ZoningRule>,
     /// Tourism revenue multiplier
-    #[serde(rename = "mnożnik_przychodu_turystycznego")]
+
     pub tourism_revenue_multiplier: f64,
     /// Capitalist discontent per turn
-    #[serde(rename = "niezadowolenie_kapitalistów_na_turn")]
+
     pub capitalist_discontent_per_turn: f64,
     /// Ecological health 0-1
-    #[serde(rename = "zdrowie_ekologiczne")]
+
     pub ecological_health: f64,
     /// Visitor capacity
-    #[serde(rename = "pojemność_odwiedzających")]
+
     pub visitor_capacity: f64,
     /// Management cost per turn
-    #[serde(rename = "koszt_zarządzania")]
+
     pub management_cost: f64,
 }
 

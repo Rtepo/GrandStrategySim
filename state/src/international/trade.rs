@@ -178,7 +178,7 @@ pub fn balance_global_trade(
                 match d.as_str() {
                     "Merkantylizm" => comp *= 1.3,
                     "Wolny handel" => comp *= 1.1,
-                    "Autarkia" => comp *= 0.7,
+                    "Autarky" => comp *= 0.7,
                     _ => {}
                 }
             }

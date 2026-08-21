@@ -361,7 +361,7 @@ mod tests {
         let bg = generate_cultural_background("TestCountry");
         // Check that no Polish labels remain
         for key in bg.ethnic_composition.keys() {
-            assert!(!key.contains("mniejszości"), "Ethnic label '{}' must not be Polish", key);
+            assert!(!key.contains("minority"), "Ethnic label '{}' must not be Polish", key);
         }
         for key in bg.religious_composition.keys() {
             assert!(!key.contains("Niezadeklarowani"), "Religious label '{}' must not be Polish", key);

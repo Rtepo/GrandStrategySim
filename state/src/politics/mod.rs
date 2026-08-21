@@ -63,7 +63,7 @@ pub use conservation::{ConservationPolicy, ConservationPolicyType, ZoningRule, N
 pub use chaos_config::ChaosConfig;
 pub use mass_movements::{MassMovement, MassMovementType, MassMovementStatus, check_mass_movement_spawn, apply_mass_movement_disruption, suppress_mass_movement, process_union_strike_fund, process_mass_movements_turn, SuppressionError, SuppressionResult, MovementError};
 pub use traits::{LeaderTrait, TraitModifier, ModifierType, TraitRegistry, apply_leader_modifiers, process_leader_traits_turn};
-pub use ministries::{GovernmentCompetency, BudgetPriorities, IdeologyBudgetPriorities, Ministry, MinistryAllocation, MinistryConfig, MinistrySpendingAction, form_government, allocate_cash_to_ministries, calculate_budget_needs, sum_ministry_allocations, prepare_minister_strategies, process_minister_post_clearing, migrate_legacy_budget};
+pub use ministries::{GovernmentCompetency, BudgetPriorities, IdeologyBudgetPriorities, Ministry, MinistryAllocation, MinistryConfig, MinistrySpendingAction, form_government, allocate_cash_to_ministries, calculate_budget_needs, sum_ministry_allocations, prepare_minister_strategies, process_minister_post_clearing};
 pub use budget_lifecycle::{BudgetBill, BudgetAmendment, BudgetBillStage, process_budget_lifecycle, process_budget_amendments, draft_budget_bill, apply_budget_failure_consequence, BudgetFailureConsequence};
 pub use laws::{HealthcareLaw, EducationLaw, LawType, enact_law, MigrationLaw, DeportationPolicy, BorderState, CustomsState, MigrationFlow, MigrationReason, InspectorateState, Violation, ViolationType};
 pub use free_speech::{FreeSpeechLaw, FreeSpeechLevel, AssemblyRights, PressFreedom};

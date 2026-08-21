@@ -76,7 +76,7 @@ pub struct MaritimeInfrastructure {
     #[serde(default)]
     pub docks: Vec<Dock>,
     /// Cash reserve for maritime maintenance and construction
-    #[serde(rename = "rezerwa_morska", default)]
+    #[serde(default)]
     pub available_cash: f64,
 }
 
@@ -98,25 +98,25 @@ pub enum ShipType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ShipConstructionProject {
     /// Unique project ID
-    #[serde(rename = "id_projektu")]
+
     pub id: String,
     /// Type of ship being built
-    #[serde(rename = "typ_statku")]
+
     pub ship_type: ShipType,
     /// Progress 0-1
-    #[serde(rename = "postęp")]
+
     pub progress: f64,
     /// Total cost
-    #[serde(rename = "koszt_całkowity")]
+
     pub total_cost: f64,
     /// Cost spent so far
-    #[serde(rename = "koszt_wydany")]
+
     pub cost_spent: f64,
     /// Duration in turns
-    #[serde(rename = "czas_trwania")]
+
     pub duration_turns: u32,
     /// Turns completed
-    #[serde(rename = "turny_ukończone")]
+
     pub turns_completed: u32,
 }
 
@@ -141,22 +141,22 @@ impl ShipConstructionProject {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct Shipyard {
     /// Unique shipyard ID
-    #[serde(rename = "id_stoczni")]
+
     pub id: String,
     /// Region where shipyard is located
-    #[serde(rename = "region_id")]
+
     pub region_id: String,
     /// Maximum concurrent construction projects
-    #[serde(rename = "maksymalne_projekty")]
+
     pub max_concurrent_projects: u32,
     /// Active construction projects
-    #[serde(rename = "projekty_budowlane", default)]
+    #[serde(default)]
     pub construction_projects: Vec<ShipConstructionProject>,
     /// Construction capacity per turn
-    #[serde(rename = "pojemność_budowlana")]
+
     pub construction_capacity: f64,
     /// Maintenance cost per turn
-    #[serde(rename = "koszt_utrzymania")]
+
     pub maintenance_cost: f64,
 }
 
@@ -224,25 +224,25 @@ impl Shipyard {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct Port {
     /// Unique port ID
-    #[serde(rename = "id Portu")]
+
     pub id: String,
     /// Region where port is located
-    #[serde(rename = "region_id")]
+
     pub region_id: String,
     /// Cargo throughput capacity (tons per turn)
-    #[serde(rename = "przepustowość_ładunku")]
+
     pub cargo_throughput: f64,
     /// Loading speed (tons per ship per turn)
-    #[serde(rename = "prędkość_załadunku")]
+
     pub loading_speed: f64,
     /// Number of berths
-    #[serde(rename = "liczba_berthów")]
+
     pub berth_count: u32,
     /// Utilization 0-1
-    #[serde(rename = "wykorzystanie")]
+
     pub utilization: f64,
     /// Maintenance cost per turn
-    #[serde(rename = "koszt_utrzymania")]
+
     pub maintenance_cost: f64,
 }
 
@@ -268,25 +268,25 @@ impl Port {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct Dock {
     /// Unique dock ID
-    #[serde(rename = "id_doku")]
+
     pub id: String,
     /// Region where dock is located
-    #[serde(rename = "region_id")]
+
     pub region_id: String,
     /// Maximum ship capacity
-    #[serde(rename = "pojemność_maksymalna")]
+
     pub max_capacity: u32,
     /// Ships currently docked (ship IDs)
-    #[serde(rename = "statki_zadokowane", default)]
+    #[serde(default)]
     pub docked_ships: Vec<String>,
     /// Ships under repair (ship IDs with repair progress)
-    #[serde(rename = "statki_w_naprawie", default)]
+    #[serde(default)]
     pub ships_under_repair: BTreeMap<String, f64>, // ship_id -> repair_progress
     /// Repair capacity per turn
-    #[serde(rename = "pojemność_naprawcza")]
+
     pub repair_capacity: f64,
     /// Maintenance cost per turn
-    #[serde(rename = "koszt_utrzymania")]
+
     pub maintenance_cost: f64,
 }
 

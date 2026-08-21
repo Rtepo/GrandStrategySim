@@ -215,7 +215,7 @@ pub struct ParcelChunk {
     pub zoning_change_turn: u32,
     /// Whether this parcel is in a border zone (national security restriction)
     pub is_border_zone: bool,
-    /// Phase 61.4: Land use tag for endowment classification (e.g., "StateForest",
+    /// Phase 61.4: Land use tag for endowment classification (e.g., "forest_district",
     /// "MunicipalReserve", "PrivateEstate", "StateAgricultural"). Empty = unclassified.
     #[serde(default)]
     pub land_use_tag: String,
@@ -773,32 +773,6 @@ pub const SOIL_CLASSES: [&str; 6] = [
     "Class_VI",
 ];
 
-/// Migrate a Polish soil class key to English.
-/// Returns the English key if the input is a recognized Polish key,
-/// otherwise returns the input unchanged (it may already be English).
-pub fn migrate_soil_key(polish_or_english: &str) -> String {
-    match polish_or_english {
-        "I_Klasa" => "Class_I",
-        "II_Klasa" => "Class_II",
-        "III_Klasa" => "Class_III",
-        "IV_Klasa" => "Class_IV",
-        "V_Klasa" => "Class_V",
-        "VI_Klasa" => "Class_VI",
-        other => other,
-    }
-    .to_string()
-}
-
-/// Migrate all keys in a `BTreeMap<String, V>` from Polish to English soil classes.
-pub fn migrate_soil_keys_map<V>(map: &BTreeMap<String, V>) -> BTreeMap<String, V>
-where
-    V: Clone,
-{
-    map.iter()
-        .map(|(k, v)| (migrate_soil_key(k), v.clone()))
-        .collect()
-}
-
 // ============================================================================
 // PARCEL GENERATION
 // ============================================================================
@@ -859,7 +833,7 @@ pub fn generate_cadastre(
             .clamp(0.05, 0.6);
 
             // Initial zoning — state forests get ProtectedNatural, others use soil-based zoning
-            let zoning = if land_use_tag == "StateForest" {
+            let zoning = if land_use_tag == "forest_district" {
                 ZoningDesignation::ProtectedNatural
             } else if land_use_tag == "MunicipalReserve" {
                 ZoningDesignation::Unplanned
@@ -880,7 +854,7 @@ pub fn generate_cadastre(
             } else {
                 WaterAccessType::None
             };
-            let is_forest = land_use_tag == "StateForest" || rng.gen_range(0.0..1.0) < 0.15;
+            let is_forest = land_use_tag == "forest_district" || rng.gen_range(0.0..1.0) < 0.15;
             let is_natural_wonder = rng.gen_range(0.0..1.0) < 0.02;
             let topography = ParcelTopography {
                 water_access,
@@ -1080,7 +1054,7 @@ fn pick_owner(
     if index < total / 3 {
         // 40% of state land is forest, 60% is agricultural
         if rng.gen_range(0.0..1.0) < 0.4 {
-            return (ParcelOwnerType::State, "TREASURY".to_string(), "StateForest".to_string());
+            return (ParcelOwnerType::State, "TREASURY".to_string(), "forest_district".to_string());
         }
         return (ParcelOwnerType::State, "TREASURY".to_string(), "StateAgricultural".to_string());
     }
@@ -2553,30 +2527,6 @@ mod tests {
     }
 
     #[test]
-    fn test_soil_key_migration() {
-        assert_eq!(migrate_soil_key("I_Klasa"), "Class_I");
-        assert_eq!(migrate_soil_key("II_Klasa"), "Class_II");
-        assert_eq!(migrate_soil_key("III_Klasa"), "Class_III");
-        assert_eq!(migrate_soil_key("IV_Klasa"), "Class_IV");
-        assert_eq!(migrate_soil_key("V_Klasa"), "Class_V");
-        assert_eq!(migrate_soil_key("VI_Klasa"), "Class_VI");
-        // Already English → unchanged
-        assert_eq!(migrate_soil_key("Class_I"), "Class_I");
-        assert_eq!(migrate_soil_key("custom_key"), "custom_key");
-    }
-
-    #[test]
-    fn test_soil_key_map_migration() {
-        let mut polish_map = BTreeMap::new();
-        polish_map.insert("I_Klasa".to_string(), 100i64);
-        polish_map.insert("III_Klasa".to_string(), 50i64);
-        let english_map = migrate_soil_keys_map(&polish_map);
-        assert_eq!(english_map.get("Class_I"), Some(&100));
-        assert_eq!(english_map.get("Class_III"), Some(&50));
-        assert!(!english_map.contains_key("I_Klasa"));
-    }
-
-    #[test]
     fn test_no_polish_soil_keys_in_constants() {
         for class in SOIL_CLASSES.iter() {
             assert!(!class.contains("Klasa"), "Polish key found: {}", class);
@@ -3304,13 +3254,13 @@ mod tests {
             owner_type: ParcelOwnerType::State,
             owner_id: "TREASURY".to_string(),
             zoning: ZoningDesignation::ProtectedNatural,
-            land_use_tag: "StateForest".to_string(),
+            land_use_tag: "forest_district".to_string(),
             size_hectares: 500.0,
             ..Default::default()
         });
         let parcel = cadastre.parcels.values().next().unwrap();
         assert_eq!(parcel.zoning, ZoningDesignation::ProtectedNatural);
-        assert_eq!(parcel.land_use_tag, "StateForest");
+        assert_eq!(parcel.land_use_tag, "forest_district");
         assert_eq!(parcel.owner_type, ParcelOwnerType::State);
     }
 
@@ -3351,7 +3301,7 @@ mod tests {
         assert!(!state_parcels.is_empty(), "Should have state-owned parcels");
         // Should have at least one state forest with ProtectedNatural zoning
         let state_forests: Vec<_> = state_parcels.iter()
-            .filter(|p| p.land_use_tag == "StateForest")
+            .filter(|p| p.land_use_tag == "forest_district")
             .collect();
         // State forests may or may not appear due to randomness, but if they do, they must have ProtectedNatural
         for sf in state_forests {
@@ -3390,13 +3340,13 @@ mod tests {
         let mut cadastre = Cadastre::default();
         let id = cadastre.insert(ParcelChunk {
             size_hectares: 200.0,
-            land_use_tag: "StateForest".to_string(),
+            land_use_tag: "forest_district".to_string(),
             acquisition_price: 100_000.0,
             ..Default::default()
         });
         let split_id = cadastre.split_parcel(id, 80.0, 5).unwrap();
         let split = cadastre.get(split_id).unwrap();
-        assert_eq!(split.land_use_tag, "StateForest", "land_use_tag should persist through split");
+        assert_eq!(split.land_use_tag, "forest_district", "land_use_tag should persist through split");
     }
 
     // ========================================================================

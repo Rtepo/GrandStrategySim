@@ -9,7 +9,7 @@
 //! `MacroData.labor_market` and updates `MacroData.average_wage`.
 
 use crate::economy::CountryTurnCtx;
-use crate::state::macro_data::ImmigrantCohort;
+use crate::state::macro_data::{annual_to_per_turn_rate, ImmigrantCohort};
 use serde_json::{Map, Value};
 use std::collections::BTreeMap;
 
@@ -44,10 +44,10 @@ fn set_nested_f64(extra: &mut Map<String, Value>, outer: &str, inner: &str, valu
 /// Returns the fertility multiplier implied by the emancipation law.
 fn fertility_multiplier(prawo_emancypacji: &str) -> f64 {
     match prawo_emancypacji {
-        "Tradycjonalizm" => 1.25,
-        "Prawa Majątkowe" => 1.10,
-        "Ograniczone Głosowanie" => 0.90,
-        "Pełna Emancypacja" => 0.75,
+        "Traditionalism" => 1.25,
+        "Property Rights" => 1.10,
+        "Limited Suffrage" => 0.90,
+        "Full Emancipation" => 0.75,
         _ => 1.0,
     }
 }
@@ -55,10 +55,10 @@ fn fertility_multiplier(prawo_emancypacji: &str) -> f64 {
 /// Returns the emancipation-driven participation modifier for each tier.
 fn emancipation_modifiers(prawo_emancypacji: &str) -> (f64, f64, f64) {
     match prawo_emancypacji {
-        "Tradycjonalizm" => (0.55, 0.65, 0.85),
-        "Prawa Majątkowe" => (0.70, 0.80, 0.90),
-        "Ograniczone Głosowanie" => (0.85, 0.95, 1.0),
-        "Pełna Emancypacja" => (1.0, 1.0, 1.0),
+        "Traditionalism" => (0.55, 0.65, 0.85),
+        "Property Rights" => (0.70, 0.80, 0.90),
+        "Limited Suffrage" => (0.85, 0.95, 1.0),
+        "Full Emancipation" => (1.0, 1.0, 1.0),
         _ => (1.0, 1.0, 1.0),
     }
 }
@@ -66,8 +66,8 @@ fn emancipation_modifiers(prawo_emancypacji: &str) -> (f64, f64, f64) {
 /// Returns the minimum-wage coefficient implied by labor law.
 fn wsk_min(prawo_pracy: &str) -> f64 {
     match prawo_pracy {
-        "Sztywna Płaca Minimalna" => 0.70,
-        "Ochrona Pracowników" => 0.45,
+        "Rigid Minimum Wage" => 0.70,
+        "Worker Protection" => 0.45,
         _ => 0.0,
     }
 }
@@ -83,7 +83,7 @@ fn wsk_min(prawo_pracy: &str) -> f64 {
 /// * Age groups, gender split, immigrant cohorts, and ethnic composition are
 ///   recomputed deterministically.
 /// * Labor supply is derived from education shares and emancipation modifiers.
-/// * Wages are built from `średnia_płaca`, the labor law, social-program budget,
+/// * Wages are built from `average_wage`, the labor law, social-program budget,
 ///   energy-shield status and a dynamic friction term when unemployment is
 ///   above its frictional floor.
 /// * `MacroData.average_wage` is updated to the weighted average of the tier
@@ -127,8 +127,8 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
     let polityka = macro_indicators.extra.get("polityka").cloned().unwrap_or_else(|| Value::Object(Map::new()));
     let przestepczosc = macro_indicators.extra.get("przestepczosc").cloned().unwrap_or_else(|| Value::Object(Map::new()));
 
-    let prawo_emancypacji = string_from_value(polityka.get("prawo_emancypacji"), "Tradycjonalizm");
-    let prawo_obywatelskie = string_from_value(polityka.get("prawo_obywatelskie"), "Asymilacja 5 lat");
+    let prawo_emancypacji = string_from_value(polityka.get("prawo_emancypacji"), "Traditionalism");
+    let prawo_obywatelskie = string_from_value(polityka.get("prawo_obywatelskie"), "5-Year Assimilation");
     let prawo_pracy = string_from_value(polityka.get("prawo_pracy"), "Wolny Rynek");
     let agencja_aktywna = bool_from_value(polityka.get("agencja_pracy_aktywna"), false);
     let tarcza_energetyczna = bool_from_value(polityka.get("tarcza_energetyczna"), false);
@@ -156,9 +156,16 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
             migracja_wsk -= ucieczka_strachu;
         }
 
-        let births = population * birth_rate_index;
-        let natural_deaths = population * winter_death_rate;
-        let migrants = population * migracja_wsk;
+        // Phase 74: Convert annual rates to compound per-turn rates.
+        // Birth/death/migration rates are annual fractions that compound over time.
+        // Using the annual rate directly per turn caused 24× drift.
+        let per_turn_birth_rate = annual_to_per_turn_rate(birth_rate_index);
+        let per_turn_death_rate = annual_to_per_turn_rate(winter_death_rate);
+        let per_turn_migration_rate = annual_to_per_turn_rate(migracja_wsk.abs()) * migracja_wsk.signum();
+
+        let births = population * per_turn_birth_rate;
+        let natural_deaths = population * per_turn_death_rate;
+        let migrants = population * per_turn_migration_rate;
         let population_change = births - natural_deaths - zgony_w_pracy + migrants;
         let new_population = (population + population_change).max(1.0).floor() as u64;
 

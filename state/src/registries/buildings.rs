@@ -4,14 +4,14 @@
 //! `economy/production/buildings/registry.py` (108 building kinds). The typed
 //! [`BuildingTemplate`] plus [`load_building_registry`] deserialize the bulk
 //! set from JSON; [`state_apparatus_templates`] natively encodes the four
-//! security/justice buildings that Target 0's production methods depend on.
+//! security/justice buildings that Stage 0's production methods depend on.
 
 use crate::registries::enums::Sector;
 use crate::registries::tech_tree::TechId;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-/// Name of a building kind, e.g. `"Baza Wojskowa"`. Kept as a string newtype
+/// Name of a building kind, e.g. `"military_base"`. Kept as a string newtype
 /// rather than a 108-variant enum to keep the registry data-driven.
 pub type BuildingKind = String;
 
@@ -19,35 +19,35 @@ pub type BuildingKind = String;
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BuildingTemplate {
     /// GDP sector this building belongs to (`"sektor_pkb"`).
-    #[serde(rename = "sektor_pkb")]
+
     pub sector: Sector,
 
     /// One-time construction cost in currency units (`"koszt_budowy"`).
-    #[serde(rename = "koszt_budowy")]
+
     pub build_cost: u64,
 
     /// Construction time in turns (`"czas_budowy"`).
-    #[serde(rename = "czas_budowy")]
+
     pub build_time_turns: u32,
 
     /// Maximum number of workers employed (`"pojemnosc_pracownikow"`).
-    #[serde(rename = "pojemnosc_pracownikow")]
+
     pub worker_capacity: u32,
 
     /// Earliest year the building may be constructed (`"min_year"`).
-    #[serde(rename = "min_year")]
+
     pub min_year: u32,
 
     /// Technology required to unlock, if any (`"required_tech"`).
-    #[serde(rename = "required_tech", default)]
+    #[serde(default)]
     pub required_tech: Option<TechId>,
 
     /// The tier this building upgrades from, if any (`"lower_tier"`).
-    #[serde(rename = "lower_tier", default)]
+    #[serde(default)]
     pub lower_tier: Option<BuildingKind>,
 
     /// Land footprint in hectares (`"powierzchnia_ha"`).
-    #[serde(rename = "powierzchnia_ha")]
+
     pub area_ha: u32,
 }
 
@@ -101,13 +101,13 @@ pub fn load_building_registry(
 /// [`crate::registries::production_methods::state_building_methods`].
 ///
 /// # Rules
-/// * All four belong to the `usługi_publiczne` ([`Sector::PublicServices`])
+/// * All four belong to the `public_services` ([`Sector::PublicServices`])
 ///   sector and require no technology.
-/// * Values mirror the `APARAT PAŃSTWA` block of the Python `BUILDING_REGISTRY`.
+/// * Values mirror the `STATE_APPARATUS` block of the Python `BUILDING_REGISTRY`.
 pub fn state_apparatus_templates() -> HashMap<BuildingKind, BuildingTemplate> {
     HashMap::from([
         (
-            "Baza Wojskowa".to_string(),
+            "military_base".to_string(),
             BuildingTemplate {
                 sector: Sector::PublicServices,
                 build_cost: 800_000,
@@ -120,7 +120,7 @@ pub fn state_apparatus_templates() -> HashMap<BuildingKind, BuildingTemplate> {
             },
         ),
         (
-            "Komisariat".to_string(),
+            "police_station".to_string(),
             BuildingTemplate {
                 sector: Sector::PublicServices,
                 build_cost: 250_000,
@@ -133,7 +133,7 @@ pub fn state_apparatus_templates() -> HashMap<BuildingKind, BuildingTemplate> {
             },
         ),
         (
-            "Sąd".to_string(),
+            "courthouse".to_string(),
             BuildingTemplate {
                 sector: Sector::PublicServices,
                 build_cost: 350_000,
@@ -146,7 +146,7 @@ pub fn state_apparatus_templates() -> HashMap<BuildingKind, BuildingTemplate> {
             },
         ),
         (
-            "Siedziba Służb".to_string(),
+            "intelligence_hq".to_string(),
             BuildingTemplate {
                 sector: Sector::PublicServices,
                 build_cost: 600_000,
@@ -159,7 +159,7 @@ pub fn state_apparatus_templates() -> HashMap<BuildingKind, BuildingTemplate> {
             },
         ),
         (
-            "Więzienie".to_string(),
+            "prison".to_string(),
             BuildingTemplate {
                 sector: Sector::PublicServices,
                 build_cost: 400_000,
@@ -183,13 +183,13 @@ pub fn state_apparatus_templates() -> HashMap<BuildingKind, BuildingTemplate> {
 /// * Marketplace: Historical open-air stalls, low cost, low capacity
 /// * Wholesaler: Distribution center, high capacity, requires logistics
 /// * RetailStore: Small independent store, low cost, low capacity
-/// * Supermarket: Modern self-service, medium cost, medium capacity
+/// * supermarket: Modern self-service, medium cost, medium capacity
 /// * DepartmentStore: Multi-category, high cost, high capacity
 /// * ShoppingCenter: Enclosed mall, very high cost, very high capacity
 pub fn retail_building_templates() -> HashMap<BuildingKind, BuildingTemplate> {
     HashMap::from([
         (
-            "Targ".to_string(),
+            "marketplace".to_string(),
             BuildingTemplate {
                 sector: Sector::LocalServices,
                 build_cost: 50_000,
@@ -202,7 +202,7 @@ pub fn retail_building_templates() -> HashMap<BuildingKind, BuildingTemplate> {
             },
         ),
         (
-            "Hurtownia".to_string(),
+            "wholesale".to_string(),
             BuildingTemplate {
                 sector: Sector::TransportLogistics,
                 build_cost: 500_000,
@@ -215,7 +215,7 @@ pub fn retail_building_templates() -> HashMap<BuildingKind, BuildingTemplate> {
             },
         ),
         (
-            "Sklep Detaliczny".to_string(),
+            "retail_shop".to_string(),
             BuildingTemplate {
                 sector: Sector::LocalServices,
                 build_cost: 100_000,
@@ -228,7 +228,7 @@ pub fn retail_building_templates() -> HashMap<BuildingKind, BuildingTemplate> {
             },
         ),
         (
-            "Supermarket".to_string(),
+            "supermarket".to_string(),
             BuildingTemplate {
                 sector: Sector::LocalServices,
                 build_cost: 300_000,
@@ -236,12 +236,12 @@ pub fn retail_building_templates() -> HashMap<BuildingKind, BuildingTemplate> {
                 worker_capacity: 50,
                 min_year: 1950,
                 required_tech: None,
-                lower_tier: Some("Sklep Detaliczny".to_string()),
+                lower_tier: Some("retail_shop".to_string()),
                 area_ha: 5,
             },
         ),
         (
-            "Dom Towarowy".to_string(),
+            "department_store".to_string(),
             BuildingTemplate {
                 sector: Sector::LocalServices,
                 build_cost: 800_000,
@@ -249,12 +249,12 @@ pub fn retail_building_templates() -> HashMap<BuildingKind, BuildingTemplate> {
                 worker_capacity: 150,
                 min_year: 1900,
                 required_tech: None,
-                lower_tier: Some("Supermarket".to_string()),
+                lower_tier: Some("supermarket".to_string()),
                 area_ha: 15,
             },
         ),
         (
-            "Centrum Handlowe".to_string(),
+            "shopping_mall".to_string(),
             BuildingTemplate {
                 sector: Sector::LocalServices,
                 build_cost: 2_000_000,
@@ -262,7 +262,7 @@ pub fn retail_building_templates() -> HashMap<BuildingKind, BuildingTemplate> {
                 worker_capacity: 500,
                 min_year: 1970,
                 required_tech: None,
-                lower_tier: Some("Dom Towarowy".to_string()),
+                lower_tier: Some("department_store".to_string()),
                 area_ha: 50,
             },
         ),
@@ -283,7 +283,7 @@ pub fn retail_building_templates() -> HashMap<BuildingKind, BuildingTemplate> {
 pub fn education_building_templates() -> HashMap<BuildingKind, BuildingTemplate> {
     HashMap::from([
         (
-            "Szkoła Podstawowa".to_string(),
+            "primary_school".to_string(),
             BuildingTemplate {
                 sector: Sector::EducationalServices,
                 build_cost: 200_000,
@@ -296,7 +296,7 @@ pub fn education_building_templates() -> HashMap<BuildingKind, BuildingTemplate>
             },
         ),
         (
-            "Liceum".to_string(),
+            "high_school".to_string(),
             BuildingTemplate {
                 sector: Sector::EducationalServices,
                 build_cost: 400_000,
@@ -304,12 +304,12 @@ pub fn education_building_templates() -> HashMap<BuildingKind, BuildingTemplate>
                 worker_capacity: 150,
                 min_year: 1850,
                 required_tech: None,
-                lower_tier: Some("Szkoła Podstawowa".to_string()),
+                lower_tier: Some("primary_school".to_string()),
                 area_ha: 15,
             },
         ),
         (
-            "Uniwersytet".to_string(),
+            "university".to_string(),
             BuildingTemplate {
                 sector: Sector::EducationalServices,
                 build_cost: 2_000_000,
@@ -322,7 +322,7 @@ pub fn education_building_templates() -> HashMap<BuildingKind, BuildingTemplate>
             },
         ),
         (
-            "Uniwersytet Medyczny".to_string(),
+            "university Medyczny".to_string(),
             BuildingTemplate {
                 sector: Sector::MedicalServices,
                 build_cost: 3_000_000,
@@ -335,7 +335,7 @@ pub fn education_building_templates() -> HashMap<BuildingKind, BuildingTemplate>
             },
         ),
         (
-            "Politechnika".to_string(),
+            "technical_university".to_string(),
             BuildingTemplate {
                 sector: Sector::EducationalServices,
                 build_cost: 2_500_000,
@@ -362,7 +362,7 @@ pub fn education_building_templates() -> HashMap<BuildingKind, BuildingTemplate>
 pub fn healthcare_building_templates() -> HashMap<BuildingKind, BuildingTemplate> {
     HashMap::from([
         (
-            "Przychodnia".to_string(),
+            "clinic".to_string(),
             BuildingTemplate {
                 sector: Sector::MedicalServices,
                 build_cost: 300_000,
@@ -375,7 +375,7 @@ pub fn healthcare_building_templates() -> HashMap<BuildingKind, BuildingTemplate
             },
         ),
         (
-            "Szpital".to_string(),
+            "hospital".to_string(),
             BuildingTemplate {
                 sector: Sector::MedicalServices,
                 build_cost: 1_500_000,
@@ -383,12 +383,12 @@ pub fn healthcare_building_templates() -> HashMap<BuildingKind, BuildingTemplate
                 worker_capacity: 300,
                 min_year: 1850,
                 required_tech: None,
-                lower_tier: Some("Przychodnia".to_string()),
+                lower_tier: Some("clinic".to_string()),
                 area_ha: 30,
             },
         ),
         (
-            "Szpital Badawczy".to_string(),
+            "research_hospital".to_string(),
             BuildingTemplate {
                 sector: Sector::MedicalServices,
                 build_cost: 4_000_000,
@@ -396,7 +396,7 @@ pub fn healthcare_building_templates() -> HashMap<BuildingKind, BuildingTemplate
                 worker_capacity: 500,
                 min_year: 1950,
                 required_tech: None,
-                lower_tier: Some("Szpital".to_string()),
+                lower_tier: Some("hospital".to_string()),
                 area_ha: 70,
             },
         ),
@@ -428,7 +428,7 @@ pub fn municipal_building_templates() -> HashMap<BuildingKind, BuildingTemplate>
             },
         ),
         (
-            "Ujęcie Wody".to_string(),
+            "water_intake".to_string(),
             BuildingTemplate {
                 sector: Sector::PublicServices,
                 build_cost: 1_000_000,
@@ -441,7 +441,7 @@ pub fn municipal_building_templates() -> HashMap<BuildingKind, BuildingTemplate>
             },
         ),
         (
-            "Oczyszczalnia Ścieków".to_string(),
+            "wastewater_treatment".to_string(),
             BuildingTemplate {
                 sector: Sector::PublicServices,
                 build_cost: 800_000,
@@ -472,7 +472,7 @@ mod tests {
     #[test]
     fn availability_respects_year_and_tech() {
         let reg = state_apparatus_templates();
-        let hq = &reg["Siedziba Służb"];
+        let hq = &reg["intelligence_hq"];
         assert!(!hq.is_available(1899, &[]));
         assert!(hq.is_available(1900, &[]));
     }
@@ -480,19 +480,19 @@ mod tests {
     #[test]
     fn json_loader_parses_tech_gated_building() {
         let json = r#"{
-            "Kopalnia Uranu": {
-                "sektor_pkb": "mining",
-                "koszt_budowy": 500000,
-                "czas_budowy": 5,
-                "pojemnosc_pracownikow": 1500,
+            "Uranium Mine": {
+                "sector": "mining",
+                "build_cost": 500000,
+                "build_time_turns": 5,
+                "worker_capacity": 1500,
                 "min_year": 1945,
                 "required_tech": "tech_046",
-                "lower_tier": "Kopalnia Odkrywkowa",
-                "powierzchnia_ha": 50
+                "lower_tier": "Open Pit Mine",
+                "area_ha": 50
             }
         }"#;
         let reg = load_building_registry(json).unwrap();
-        let mine = &reg["Kopalnia Uranu"];
+        let mine = &reg["Uranium Mine"];
         assert_eq!(mine.sector, Sector::Mining);
         assert_eq!(mine.required_tech.as_deref(), Some("tech_046"));
         assert!(!mine.is_available(1945, &[]));

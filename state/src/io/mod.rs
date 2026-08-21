@@ -1,4 +1,4 @@
-//! Input/output: the serde interop bridge to the Python engine's save files.
+//! Input/output: save file serialization and entity persistence.
 
 pub mod entity_store;
 pub mod save_manager;
@@ -8,5 +8,5 @@ pub use entity_store::{
     DiskEntityStore, Entity, EntityStore, EntityStoreError, MemoryEntityStore,
 };
 pub use save_manager::{
-    load_country_data, load_game_state, load_named_map, save_named_map, SaveError,
+    load_game_state, load_named_map, save_named_map, SaveError,
 };

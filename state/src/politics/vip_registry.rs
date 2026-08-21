@@ -106,7 +106,7 @@ pub enum VipRoleExtended {
     // ── Regional political ──
     /// Regional governor (megaregion level).
     RegionalGovernor,
-    /// Mayor / Wójt (region level).
+    /// Mayor / Village Head (region level).
     Mayor,
     /// Regional councilor.
     RegionalCouncilor,

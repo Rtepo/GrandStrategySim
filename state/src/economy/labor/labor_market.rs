@@ -20,7 +20,7 @@ pub struct LaborConfig {
     /// Suitability matrix: class_id -> (sector -> multiplier)
     /// Multipliers represent class suitability for specific sectors
     /// Missing keys default to 1.0 (neutral suitability)
-    #[serde(rename = "macierz_przydatności")]
+
     pub suitability_matrix: HashMap<String, HashMap<Sector, f64>>,
 }
 

@@ -174,9 +174,9 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
         }
         // Translate Polish economic school strings
         match party.economic_school.as_str() {
-            "Monetarystyczna" => party.economic_school = "Monetarist".to_string(),
-            "Klasyczna" => party.economic_school = "Classical".to_string(),
-            "Keynesowska" => party.economic_school = "Keynesian".to_string(),
+            "Monetarist" => party.economic_school = "Monetarist".to_string(),
+            "Classical" => party.economic_school = "Classical".to_string(),
+            "Keynesian" => party.economic_school = "Keynesian".to_string(),
             _ => {}
         }
     }
@@ -191,8 +191,8 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
     {
         use interest_groups::{ClassToGroupMapping, RuralClassConfig};
         let mut mapping = ClassToGroupMapping::default();
-        mapping.default_group = "Drobna Burżuazja".to_string();
-        mapping.trade_union_group = "Związki Zawodowe".to_string();
+        mapping.default_group = "Petty Bourgeoisie".to_string();
+        mapping.trade_union_group = "Trade Unions".to_string();
         // Rural class mappings
         mapping.rural_class_mapping.insert("FreePeasant".to_string(), RuralClassConfig {
             interest_group: "Agrykolanie".to_string(),
@@ -200,7 +200,7 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
             voting_weight: 1.0,
         });
         mapping.rural_class_mapping.insert("LandlessLaborer".to_string(), RuralClassConfig {
-            interest_group: "Związki Zawodowe".to_string(),
+            interest_group: "Trade Unions".to_string(),
             land_value_per_capita: 0.0,
             voting_weight: 1.0,
         });
@@ -210,33 +210,33 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
             voting_weight: 1.0,
         });
         // Urban class mappings
-        mapping.urban_class_mapping.insert("Worker".to_string(), "Związki Zawodowe".to_string());
-        mapping.urban_class_mapping.insert("Bourgeoisie".to_string(), "Drobna Burżuazja".to_string());
+        mapping.urban_class_mapping.insert("Worker".to_string(), "Trade Unions".to_string());
+        mapping.urban_class_mapping.insert("Bourgeoisie".to_string(), "Petty Bourgeoisie".to_string());
         // Education mappings
         let mut no_edu = std::collections::HashMap::new();
-        no_edu.insert("Związki Zawodowe".to_string(), 0.7);
+        no_edu.insert("Trade Unions".to_string(), 0.7);
         no_edu.insert("Agrykolanie".to_string(), 0.3);
         mapping.education_mapping.insert("brak".to_string(), no_edu);
         let mut basic_edu = std::collections::HashMap::new();
-        basic_edu.insert("Związki Zawodowe".to_string(), 0.5);
-        basic_edu.insert("Drobna Burżuazja".to_string(), 0.3);
+        basic_edu.insert("Trade Unions".to_string(), 0.5);
+        basic_edu.insert("Petty Bourgeoisie".to_string(), 0.3);
         basic_edu.insert("Agrykolanie".to_string(), 0.2);
         mapping.education_mapping.insert("podstawowe".to_string(), basic_edu);
         let mut sec_edu = std::collections::HashMap::new();
-        sec_edu.insert("Drobna Burżuazja".to_string(), 0.4);
-        sec_edu.insert("Związki Zawodowe".to_string(), 0.3);
-        sec_edu.insert("Rzemieślnicy".to_string(), 0.3);
+        sec_edu.insert("Petty Bourgeoisie".to_string(), 0.4);
+        sec_edu.insert("Trade Unions".to_string(), 0.3);
+        sec_edu.insert("Artisans".to_string(), 0.3);
         mapping.education_mapping.insert("srednie".to_string(), sec_edu);
         let mut higher_edu = std::collections::HashMap::new();
-        higher_edu.insert("Specjaliści".to_string(), 0.4);
+        higher_edu.insert("Specialists".to_string(), 0.4);
         higher_edu.insert("Inteligencja".to_string(), 0.3);
-        higher_edu.insert("Drobna Burżuazja".to_string(), 0.3);
+        higher_edu.insert("Petty Bourgeoisie".to_string(), 0.3);
         mapping.education_mapping.insert("wyzsze".to_string(), higher_edu);
         // Company form mappings
-        mapping.company_form_mapping.insert("JointStockCompany".to_string(), "Kapitaliści".to_string());
-        mapping.company_form_mapping.insert("SoleProprietorship".to_string(), "Drobna Burżuazja".to_string());
+        mapping.company_form_mapping.insert("JointStockCompany".to_string(), "Capitalists".to_string());
+        mapping.company_form_mapping.insert("SoleProprietorship".to_string(), "Petty Bourgeoisie".to_string());
         mapping.company_form_mapping.insert("StateMonopoly".to_string(), "Biurokraci".to_string());
-        mapping.company_form_mapping.insert("Cooperative".to_string(), "Związki Zawodowe".to_string());
+        mapping.company_form_mapping.insert("Cooperative".to_string(), "Trade Unions".to_string());
 
         country.politics.class_group_mapping = mapping;
     }
@@ -398,7 +398,7 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
 
     // 3. Regime safety check for democracies.
     if form.is_democratic()
-        && (country.politics.election_method == "None" || country.politics.election_method == "Brak" || country.politics.parliament.is_empty())
+        && (country.politics.election_method == "None" || country.politics.election_method == "None" || country.politics.parliament.is_empty())
     {
         messages.push("[REGIME REPAIR] Democratic mechanisms restored.".to_string());
         country.politics.election_method = "D'Hondt".to_string();
@@ -1111,8 +1111,7 @@ pub fn run_election_if_due(country: &mut Country, unrest: f64, current_turn: u32
     }
 
     // Phase 40: Reform government ministries with the new coalition.
-    // Previously, form_government was only called in migrate_legacy_budget,
-    // so post-election ministries kept the old composition and 0.0 budgets.
+    // Form a new government after elections to update ministry composition.
     let active_parties = country.politics.active_parties.clone();
     let new_config = super::ministries::form_government(
         country,
@@ -1650,7 +1649,7 @@ fn random_dynasty(rng: &mut impl Rng) -> String {
         "Habsburg", "Romanow", "Piast", "Jagiellon", "Waz", "Bourbon", "Hohenzollern",
         "Sask", "Braganza", "Savoja", "Hanower", "Oldenburg", "Bernadotte", "Glücksburg",
         "Wittelsbach", "Gryfit", "Wettin", "Otton", "Norman", "Kapetyng", "Karoling",
-        "Sachsen-Coburg-Gotha", "Holsztyn-Gottorp", "Burbon-Parmeński", "Wittelsbach",
+        "Sachsen-Coburg-Gotha", "Holsztyn-Gottorp", "Bourbon-Parma", "Wittelsbach",
     ];
     DYNASTIES[rng.gen_range(0..DYNASTIES.len())].to_string()
 }

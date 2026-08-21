@@ -28,19 +28,19 @@ pub enum CulturalBuildingType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct CulturalTemplate {
     /// Type of building
-    #[serde(rename = "typ_obiektu")]
+
     pub building_type: CulturalBuildingType,
 
     /// Base capacity per turn
-    #[serde(rename = "pojemność_bazowa")]
+
     pub base_capacity: f64,
 
     /// Can own land (Monasteries only)
-    #[serde(rename = "możliwość_posiadania_ziemi")]
+
     pub can_own_land: bool,
 
     /// Funding model
-    #[serde(rename = "finansowanie")]
+
     pub funding_model: CulturalFunding,
 }
 
@@ -168,13 +168,13 @@ pub struct CulturalBuilding {
     #[serde(default)]
     pub region_id: String,
     /// Liquid cash held by this institution (alms box / reserve fund)
-    #[serde(rename = "rezerwa_gotówka", default)]
+    #[serde(default)]
     pub available_cash: f64,
     /// Total donations collected this turn
-    #[serde(rename = "datki_turnus", default)]
+    #[serde(default)]
     pub donations_collected_this_turn: f64,
     /// Total relief distributed this turn
-    #[serde(rename = "pomoc_turnus", default)]
+    #[serde(default)]
     pub relief_distributed_this_turn: f64,
     /// Operational capacity (e.g. worship seats, monastic cells)
     #[serde(default)]
@@ -190,10 +190,10 @@ pub struct CulturalBuilding {
     pub is_heritage_site: bool,
     /// Monastery land endowment: owned agricultural company shares
     /// Maps company_id -> share fraction (0.0-1.0)
-    #[serde(rename = "posiadane_udziały", default)]
+    #[serde(default)]
     pub owned_company_shares: BTreeMap<String, f64>,
     /// For monasteries that directly own latifundia (not via company shares)
-    #[serde(rename = "latyfundium", default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub owned_latifundium: Option<LatifundiumData>,
     /// Phase 17C: Active production method engine key (e.g., "monastery_scriptorium").
     #[serde(default, skip_serializing_if = "Option::is_none")]

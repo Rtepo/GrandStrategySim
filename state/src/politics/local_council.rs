@@ -8,39 +8,39 @@ use std::collections::BTreeMap;
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct LocalCouncil {
     /// Unique identifier for the council
-    #[serde(rename = "id_rady", default)]
+    #[serde(default)]
     pub id: String,
     
     /// Total number of seats (dynamic, scales with population)
-    #[serde(rename = "liczba_miejsc", default)]
+    #[serde(default)]
     pub total_seats: u32,
     
     /// Councilors by class and faction
-    #[serde(rename = "radni", default)]
+    #[serde(default)]
     pub councilors: Vec<Councilor>,
     
     /// Faction distribution (Populares, Moderates, Optimates)
-    #[serde(rename = "rozdzial_frakcyjny", default)]
+    #[serde(default)]
     pub faction_distribution: FactionDistribution,
     
     /// Election system in use
-    #[serde(rename = "system_wyborczy", default)]
+    #[serde(default)]
     pub election_system: LocalElectionSystem,
     
     /// Election configuration (varies by system)
-    #[serde(rename = "konfiguracja_wyborcza", default)]
+    #[serde(default)]
     pub election_config: ElectionConfig,
     
     /// Last election year
-    #[serde(rename = "ostatnie_wybory", default)]
+    #[serde(default)]
     pub last_election_year: u32,
     
     /// Years until next election
-    #[serde(rename = "lata_do_wyborow", default)]
+    #[serde(default)]
     pub years_to_next_election: u32,
     
     /// Council approval rating (0-100)
-    #[serde(rename = "zgoda_spoleczna", default)]
+    #[serde(default)]
     pub approval_rating: f64,
     
     /// Any additional council fields
@@ -52,47 +52,47 @@ pub struct LocalCouncil {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct Councilor {
     /// Councilor identifier
-    #[serde(rename = "id_radnego", default)]
+    #[serde(default)]
     pub id: String,
     
     /// Name
-    #[serde(rename = "imie_nazwisko", default)]
+    #[serde(default)]
     pub name: String,
     
     /// Class represented (Aristocracy, Burghers, Peasants, etc.)
-    #[serde(rename = "klasa_representowana", default)]
+    #[serde(default)]
     pub represented_class: String,
     
     /// Faction alignment
-    #[serde(rename = "frakcja", default)]
+    #[serde(default)]
     pub faction: Faction,
     
     /// Years in office
-    #[serde(rename = "lata_w_urzedzie", default)]
+    #[serde(default)]
     pub years_in_office: u32,
     
     /// Political influence (0-100)
-    #[serde(rename = "wpływ_polityczny", default)]
+    #[serde(default)]
     pub political_influence: f64,
     
     /// Hidden/active trait affecting voting behavior
-    #[serde(rename = "cecha_ukryta", default)]
+    #[serde(default)]
     pub hidden_trait: CouncilorTrait,
     
     /// Whether trait is revealed to other actors
-    #[serde(rename = "cecha_ujawniona", default)]
+    #[serde(default)]
     pub trait_revealed: bool,
     
     /// Blackmail material (if corrupt)
-    #[serde(rename = "material_kompromitujacy", skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub blackmail_material: Option<String>,
     
     /// Party affiliation (for discipline and wealth effects in voting)
-    #[serde(rename = "partia", default)]
+    #[serde(default)]
     pub party: String,
     
     // PHASE 4: Corruption risk (0-1) - for tracking bribery exposure
-    #[serde(rename = "ryzyko_korupcji", default)]
+    #[serde(default)]
     pub corruption_risk: f64,
 }
 
@@ -138,19 +138,19 @@ pub enum CouncilorTrait {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct FactionDistribution {
     /// Populares seat count
-    #[serde(rename = "liczba_populares", default)]
+    #[serde(default)]
     pub populares_count: u32,
     
     /// Moderates seat count
-    #[serde(rename = "liczba_moderates", default)]
+    #[serde(default)]
     pub moderates_count: u32,
     
     /// Optimates seat count
-    #[serde(rename = "liczba_optimates", default)]
+    #[serde(default)]
     pub optimates_count: u32,
     
     /// Faction stability (0-1, higher = less faction switching)
-    #[serde(rename = "stabilnosc_frakcyjna", default)]
+    #[serde(default)]
     pub faction_stability: f64,
 }
 
@@ -205,15 +205,15 @@ impl Default for ElectionConfig {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct CurialConfiguration {
     /// Seat allocation by class (class_name -> seat_count)
-    #[serde(rename = "alokacja_miejsc", default)]
+    #[serde(default)]
     pub seat_allocation: BTreeMap<String, u32>,
     
     /// Hereditary vs appointed ratio (0 = all appointed, 1 = all hereditary)
-    #[serde(rename = "udzial_dziedziczny", default)]
+    #[serde(default)]
     pub hereditary_ratio: f64,
     
     /// Aristocratic veto power (true = aristocracy can veto decisions)
-    #[serde(rename = "weto_arystokracji", default)]
+    #[serde(default)]
     pub aristocratic_veto: bool,
 }
 
@@ -221,15 +221,15 @@ pub struct CurialConfiguration {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct CensusConfiguration {
     /// Minimum tax contribution to qualify for voting
-    #[serde(rename = "prog_podatkowy", default)]
+    #[serde(default)]
     pub tax_threshold: f64,
     
     /// Vote weight multiplier based on wealth
-    #[serde(rename = "waga_glosu_bogactwo", default)]
+    #[serde(default)]
     pub wealth_weight_multiplier: f64,
     
     /// Property qualification for candidacy
-    #[serde(rename = "kwalifikacja_majatkowa", default)]
+    #[serde(default)]
     pub property_qualification: f64,
 }
 
@@ -237,23 +237,23 @@ pub struct CensusConfiguration {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct DemocraticConfiguration {
     /// Voting age
-    #[serde(rename = "wiek_glosowania", default)]
+    #[serde(default)]
     pub voting_age: u32,
     
     /// Candidacy age
-    #[serde(rename = "wiek_kandydowania", default)]
+    #[serde(default)]
     pub candidacy_age: u32,
     
     /// Term length in years
-    #[serde(rename = "dlugosc_kadencji", default)]
+    #[serde(default)]
     pub term_length: u32,
     
     /// Term limits (0 = no limit)
-    #[serde(rename = "limity_kadencji", default)]
+    #[serde(default)]
     pub term_limits: u32,
     
     /// Proportional representation (true) vs first-past-the-post (false)
-    #[serde(rename = "reprezentacja_proporcjonalna", default)]
+    #[serde(default)]
     pub proportional_representation: bool,
 }
 

@@ -1,12 +1,9 @@
-//! Economic turn simulation (Target 2 and onward).
+//! Economic turn simulation.
 //!
-//! This module will host the deterministic per-country economy step that the
-//! Python engine currently performs in `engine.turn_engine` and the
-//! `economy.indicators.*` modules. The public API is intentionally tiny and
-//! explicit so that it can be driven by the golden-master parity harness.
+//! This module hosts the deterministic per-country economy step, including
+//! GDP share updates, infrastructure effects, and market clearing.
 //!
-//! Phase 24B: Files have been reorganized into subdirectories. Backward-compatible
-//! `pub use` re-exports preserve all existing `crate::economy::<file>::...` paths.
+//! Phase 24B: Files have been reorganized into subdirectories.
 
 // Subdirectory declarations (Phase 24B)
 pub mod config;
@@ -52,7 +49,7 @@ pub use clearing::resolve_market_prices;
 pub use corporate_config::CorporateTechConfig;
 pub use corporate_rd::{allocate_corporate_rd_budget, check_patent_expiration, evaluate_licensing_opportunities, execute_corporate_method_research};
 pub use fishing_config::FishingConfig;
-pub use indicators::{run_economic_turn, update_gdp_shares_from_employment, ParityResult};
+pub use indicators::{run_economic_turn, update_gdp_shares_from_employment};
 pub use infrastructure::{allocate_owner_infrastructure_funding, execute_infrastructure_production, submit_infrastructure_procurement_orders};
 pub use infrastructure_config::InfrastructureConfig;
 pub use innovation_config::InnovationConfig;
@@ -78,7 +75,7 @@ pub use osp::{process_osp_volunteer_allocation, is_osp};
 pub use migration::{sum_border_enforcement_capacity, calculate_migration_pressure, calculate_emigrants, collect_migration_flows, apply_migration_flows, process_deportations};
 pub use smuggling::{sum_customs_capacity, process_smuggling_turn, process_customs_evasion_recovery, SmugglingTurnResult};
 pub use inspectorates::{process_inspectorates_turn, InspectorateTurnResult};
-pub use state_forests::{process_state_forests_turn, create_default_state_forests, StateForestState, StateForestTract, StateForestTurnResult};
+pub use state_forests::{process_state_forests_turn, create_default_state_forests, forest_districtState, forest_districtTract, forest_districtTurnResult};
 pub use assimilation::{process_assimilation_turn, process_religious_conversion_turn, AssimilationTurnResult, ConversionTurnResult};
 pub use religious_economy::{process_see_remittance, process_church_fund, process_see_reinvestment, process_monastery_production, ApostolicSeeConfig, SeeRemittanceResult, ChurchFundResult, SeeReinvestmentResult};
 pub use ethnic_violence::{check_pogrom_triggers, PogromConfig, PogromResult};
@@ -117,7 +114,7 @@ use std::collections::HashMap;
 /// * `market_prices` maps commodity to the cleared local price.
 #[derive(Debug)]
 pub struct CountryTurnCtx<'a> {
-    /// Canonical country name, used for golden-master trace labels.
+    /// Canonical country name, used for trace labels.
     pub country_name: String,
     /// Zero-based turn counter.
     pub turn: u32,

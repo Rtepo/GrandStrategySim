@@ -28,7 +28,7 @@ impl CitizenshipLaw {
     pub fn from_polish(s: &str) -> Self {
         match s {
             "Segregacja" => CitizenshipLaw::Segregation,
-            "Asymilacja 5 lat" | "Asymilacja 10 lat" => CitizenshipLaw::CulturalAssimilation,
+            "5-Year Assimilation" | "Asymilacja 10 lat" => CitizenshipLaw::CulturalAssimilation,
             _ => CitizenshipLaw::OpenCitizenship,
         }
     }
@@ -124,7 +124,7 @@ mod tests {
     fn test_from_polish() {
         assert_eq!(CitizenshipLaw::from_polish("Segregacja"), CitizenshipLaw::Segregation);
         assert_eq!(
-            CitizenshipLaw::from_polish("Asymilacja 5 lat"),
+            CitizenshipLaw::from_polish("5-Year Assimilation"),
             CitizenshipLaw::CulturalAssimilation
         );
         assert_eq!(

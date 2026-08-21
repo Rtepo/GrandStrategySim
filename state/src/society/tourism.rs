@@ -34,34 +34,34 @@ pub enum WonderType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct NaturalWonder {
     /// Unique wonder ID
-    #[serde(rename = "id_cudu")]
+
     pub id: String,
     /// Wonder name
-    #[serde(rename = "nazwa")]
+
     pub name: String,
     /// Type of wonder
-    #[serde(rename = "typ_cudu")]
+
     pub wonder_type: WonderType,
     /// Region where wonder is located
-    #[serde(rename = "region_id")]
+
     pub region_id: String,
     /// Health 0-1 (degrades from pollution)
-    #[serde(rename = "zdrowie")]
+
     pub health: f64,
     /// Recreation value 0-1 (tourism attractiveness)
-    #[serde(rename = "wartość_rekreacyjna")]
+
     pub recreation_value: f64,
     /// Visitor capacity per turn
-    #[serde(rename = "pojemność_odwiedzających")]
+
     pub visitor_capacity: f64,
     /// Current visitors
-    #[serde(rename = "aktualni_odwiedzający")]
+
     pub current_visitors: f64,
     /// Pollution sensitivity 0-1 (how quickly health degrades)
-    #[serde(rename = "wrażliwość_na_zanieczyszczenia")]
+
     pub pollution_sensitivity: f64,
     /// Restoration cost per turn
-    #[serde(rename = "koszt_odnowy")]
+
     pub restoration_cost: f64,
 }
 
@@ -109,31 +109,31 @@ impl NaturalWonder {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct TourismDestination {
     /// Unique destination ID
-    #[serde(rename = "id_destynacji")]
+
     pub id: String,
     /// Region ID
-    #[serde(rename = "region_id")]
+
     pub region_id: String,
     /// Destination name
-    #[serde(rename = "nazwa")]
+
     pub name: String,
     /// Natural wonders in this destination
-    #[serde(rename = "cuda_naturalne", default)]
+    #[serde(default)]
     pub natural_wonders: Vec<String>,
     /// Forest areas (hectares)
-    #[serde(rename = "obszary_leśne")]
+
     pub forest_area: f64,
     /// Infrastructure quality 0-1
-    #[serde(rename = "jakość_infrastruktury")]
+
     pub infrastructure_quality: f64,
     /// Accommodation capacity
-    #[serde(rename = "pojemność_noclegowa")]
+
     pub accommodation_capacity: f64,
     /// Visitor satisfaction 0-1
-    #[serde(rename = "zadowolenie_odwiedzających")]
+
     pub visitor_satisfaction: f64,
     /// Marketing budget
-    #[serde(rename = "budżet_marketingowy")]
+
     pub marketing_budget: f64,
 }
 
@@ -173,22 +173,22 @@ impl TourismDestination {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct TourismIndustry {
     /// Country operating the tourism industry
-    #[serde(rename = "kraj")]
+
     pub country: String,
     /// Tourism destinations
-    #[serde(rename = "destynacje", default)]
+    #[serde(default)]
     pub destinations: BTreeMap<String, TourismDestination>,
     /// Total recreation consumed
-    #[serde(rename = "rekreacja_skonsumowana")]
+
     pub recreation_consumed: f64,
     /// Revenue generated
-    #[serde(rename = "przychód")]
+
     pub revenue: f64,
     /// Citizen satisfaction boost
-    #[serde(rename = "wzrost_zadowolenia_obywateli")]
+
     pub citizen_satisfaction_boost: f64,
     /// Employment in tourism sector
-    #[serde(rename = "zatrudnienie_w_turystyce")]
+
     pub employment: u32,
 }
 

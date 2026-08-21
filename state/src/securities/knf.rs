@@ -16,30 +16,30 @@ use crate::state::central_bank::CentralBank;
 /// Komisja Nadzoru Finansowego - Financial Supervision Authority.
 /// Sovereign watchdog for banking and securities markets.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[serde(rename = "komisja_nadzoru_finansowego")]
+
 pub struct KNF {
     /// Circuit breaker threshold (percentage index move).
-    #[serde(rename = "próg_wyłącznika_obwodu")]
+
     pub circuit_breaker_threshold: f64,
     
     /// Current market volatility index (0-100).
-    #[serde(rename = "indeks_zmienności")]
+
     pub volatility_index: f64,
     
     /// Minimum Tier 1 capital ratio for banks (e.g., 8%).
-    #[serde(rename = "minimalny_kapitał_tier_1")]
+
     pub min_tier_1_ratio: f64,
     
     /// Banks currently under dividend restriction.
-    #[serde(rename = "banki_z_ograniczeniem_dywidend")]
+
     pub dividend_restricted_banks: BTreeSet<String>,
     
     /// Trading halt status per company.
-    #[serde(rename = "wstrzymanie_handlu")]
+
     pub trading_halts: BTreeMap<String, TradingHalt>,
     
     /// Audit findings and enforcement actions.
-    #[serde(rename = "znaleziska_audytu")]
+
     pub audit_findings: Vec<AuditFinding>,
     
     /// Any additional KNF fields.
@@ -49,100 +49,100 @@ pub struct KNF {
 
 /// Trading halt status for a specific company.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(rename = "wstrzymanie_handlu")]
+
 pub struct TradingHalt {
     /// Company ID.
-    #[serde(rename = "firma_id")]
+
     pub company_id: String,
     
     /// Reason for halt.
-    #[serde(rename = "powód")]
+
     pub reason: HaltReason,
     
     /// Turn when halt was triggered.
-    #[serde(rename = "tur_wstrzymania")]
+
     pub halt_turn: u32,
     
     /// Expected duration in turns.
-    #[serde(rename = "czas_trwania")]
+
     pub duration_turns: u32,
 }
 
 /// Reason for a trading halt.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(rename = "powód")]
+
 pub enum HaltReason {
     /// Market volatility exceeded threshold.
-    #[serde(rename = "duża_zmienność")]
+
     HighVolatility,
     /// Company failed to disclose required information.
-    #[serde(rename = "niewłaściwe_wyjawienie")]
+
     ImproperDisclosure,
     /// Suspected fraudulent activity.
-    #[serde(rename = "podejrzenie_oszustwa")]
+
     FraudSuspected,
 }
 
 /// Audit finding record for regulatory violations.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(rename = "znalezisko_audytu")]
+
 pub struct AuditFinding {
     /// Bank ID.
-    #[serde(rename = "bank_id")]
+
     pub bank_id: String,
     
     /// Type of violation.
-    #[serde(rename = "typ_naruszenia")]
+
     pub violation_type: ViolationType,
     
     /// Severity (1-10).
-    #[serde(rename = "ciężar")]
+
     pub severity: u8,
     
     /// Turn of finding.
-    #[serde(rename = "tur_znaleziska")]
+
     pub turn: u32,
 }
 
 /// Type of regulatory violation detected during audit.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(rename = "typ_naruszenia")]
+
 pub enum ViolationType {
     /// Bank's Tier 1 capital ratio fell below minimum requirement.
-    #[serde(rename = "niski_kapitał_tier_1")]
+
     LowTier1Capital,
     /// Bank's leverage ratio exceeded regulatory limits.
-    #[serde(rename = "nadmierna_dźwignia")]
+
     ExcessiveLeverage,
     /// Bank failed to maintain proper loan loss reserves.
-    #[serde(rename = "niewłaściwe_rezerwowanie")]
+
     ImproperReserving,
     /// Market manipulation detected in trading activities.
-    #[serde(rename = "manipulacja_rynkiem")]
+
     MarketManipulation,
     /// Phase 57: Accounting fraud — profit diversion by corrupt CEO/manager.
-    #[serde(rename = "oszustwo_księgowe")]
+
     AccountingFraud,
     /// Phase 57: Fund leverage exceeded regulatory limits.
-    #[serde(rename = "nadmierna_dźwignia_funduszu")]
+
     FundLeverageExceeded,
     /// Phase 57: Insider trading — fund manager trading on companies where they're CEO or board member.
-    #[serde(rename = "handel_niejawny")]
+
     InsiderTrading,
 }
 
 /// Reason for freezing a brokerage account.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(rename = "powód_zamrożenia")]
+
 pub enum FreezeReason {
     /// Market manipulation detected.
-    #[serde(rename = "manipulacja_rynkiem")]
+
     MarketManipulation,
     /// Severe audit violation.
-    #[serde(rename = "naruszenie_audytu")]
+
     AuditViolation,
     /// Suspected fraudulent activity.
-    #[serde(rename = "podejrzenie_oszustwa")]
+
     FraudSuspected,
 }
 
@@ -584,6 +584,6 @@ mod tests {
         // Test that ViolationType enum variants serialize correctly
         let violation = ViolationType::LowTier1Capital;
         let serialized = serde_json::to_string(&violation).unwrap();
-        assert!(serialized.contains("niski_kapitał_tier_1"));
+        assert!(serialized.contains("LowTier1Capital"));
     }
 }

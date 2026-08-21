@@ -261,7 +261,7 @@ pub fn process_diplomacy_turn(
 
                 // Host country counter-intelligence: justice coverage reduces spy success
                 let host_justice = c2.budget.extra
-                    .get("pokrycie_wymiaru_sprawiedliwości")
+                    .get("justice_coverage")
                     .and_then(|v| v.as_f64())
                     .unwrap_or(50.0) / 100.0;
 

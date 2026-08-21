@@ -99,8 +99,8 @@ impl InMemoryTurnContext {
             let mut buildings = load_buildings(data_dir, name)?;
             // Migrate legacy Polish building names to English.
             for b in &mut buildings {
-                if b.name == "Nadleśnictwo" {
-                    b.name = "StateForest".to_string();
+                if b.name == "forest_district" {
+                    b.name = "forest_district".to_string();
                 }
             }
             let mut unions = load_unions(data_dir, name)?;
@@ -759,7 +759,7 @@ fn save_commercial_buildings(data_dir: &Path, country: &str, commercial_building
             CommercialBuildingType::Marketplace => "retail",
             CommercialBuildingType::Wholesaler => "retail",
             CommercialBuildingType::RetailStore => "retail",
-            CommercialBuildingType::Supermarket => "retail",
+            CommercialBuildingType::supermarket => "retail",
             CommercialBuildingType::DepartmentStore => "retail",
             CommercialBuildingType::ShoppingCenter => "retail",
             CommercialBuildingType::Hotel => "hotel",

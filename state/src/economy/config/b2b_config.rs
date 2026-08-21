@@ -14,48 +14,48 @@ use serde::{Deserialize, Serialize};
 pub struct B2bOrderConfig {
     /// Maximum fraction of available_cash to encumber for input purchases.
     /// Default 0.8 (80% of available cash).
-    #[serde(rename = "maks_obciążenie_gotówki", default = "default_max_cash_encumbrance")]
+    #[serde(default = "default_max_cash_encumbrance")]
     pub max_cash_encumbrance_ratio: f64,
 
     /// Minimum markup when inventory is at maximum capacity (fire sale).
     /// Default 0.0 (sell at cost).
-    #[serde(rename = "minimalna_marża", default = "default_min_markup")]
+    #[serde(default = "default_min_markup")]
     pub min_markup_ratio: f64,
 
     /// Maximum markup when inventory is empty (scarcity premium).
     /// Default 2.0 (3x cost).
-    #[serde(rename = "maksymalna_marża", default = "default_max_markup")]
+    #[serde(default = "default_max_markup")]
     pub max_markup_ratio: f64,
 
     /// Inventory utilization threshold above which fire-sale pricing kicks in.
     /// Default 0.8 (80% full).
-    #[serde(rename = "próg_wyprzedaży", default = "default_fire_sale_threshold")]
+    #[serde(default = "default_fire_sale_threshold")]
     pub fire_sale_threshold: f64,
 
     /// Inventory utilization threshold below which scarcity pricing kicks in.
     /// Default 0.2 (20% full).
-    #[serde(rename = "próg_niedoboru", default = "default_scarcity_threshold")]
+    #[serde(default = "default_scarcity_threshold")]
     pub scarcity_threshold: f64,
 
     /// Maximum inventory capacity per building (tons units).
     /// Default 10000.0.
-    #[serde(rename = "pojemność_magazynu_budynku", default = "default_max_building_inventory")]
+    #[serde(default = "default_max_building_inventory")]
     pub max_building_inventory: f64,
 
     /// Storage fee per ton per turn for warehouse overflow.
     /// Default 1.0.
-    #[serde(rename = "opłata_magazynowa_za_tonę", default = "default_warehouse_storage_fee")]
+    #[serde(default = "default_warehouse_storage_fee")]
     pub warehouse_storage_fee_per_ton: f64,
 
     /// Small premium added to reference price when submitting Buy Bids.
     /// Default 0.05 (5% above reference price).
-    #[serde(rename = "premia_za_zakup", default = "default_buy_premium")]
+    #[serde(default = "default_buy_premium")]
     pub buy_premium_ratio: f64,
 
     /// Phase 25: Fraction of the commodity encumbrance reserved for freight costs.
     /// When a company encumbers cash for a B2B buy bid, it also reserves this
     /// fraction extra to cover freight procurement. Default 0.30 (30% extra).
-    #[serde(rename = "rezerwa_koszty_frachtu", default = "default_freight_reserve")]
+    #[serde(default = "default_freight_reserve")]
     pub freight_cost_reserve_ratio: f64,
 }
 

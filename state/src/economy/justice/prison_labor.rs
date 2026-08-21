@@ -210,7 +210,7 @@ fn process_cohort_releases(country: &mut Country, justice_state: &mut JusticeSys
 ///
 /// # Arguments
 /// * `country` - Mutable country for unrest updates
-/// * `buildings` - All buildings (to find Więzienie and assess security)
+/// * `buildings` - All buildings (to find prison and assess security)
 /// * `justice_state` - Mutable justice state for security level storage
 ///
 /// # Returns
@@ -227,7 +227,7 @@ fn process_prison_escapes(
     let mut total_escaped = 0_i64;
     let mut unrest_from_escapes = 0.0_f64;
 
-    for building in buildings.iter().filter(|b| b.name == "Więzienie") {
+    for building in buildings.iter().filter(|b| b.name == "prison") {
         let guard_fte = building.current_employment as f64;
         let target_guard_fte = building.worker_capacity as f64;
         let guard_ratio = if target_guard_fte > 0.0 {
@@ -446,7 +446,7 @@ fn generate_new_cohorts(
 ///
 /// # Arguments
 /// * `country` - Mutable country state (for Treasury, demographics, justice_state)
-/// * `buildings` - All buildings (to find Więzienie buildings and count prisoners)
+/// * `buildings` - All buildings (to find prison buildings and count prisoners)
 /// * `companies` - All companies (to inject FTEs for PrivateLaborCamps)
 ///
 /// # Returns
@@ -474,10 +474,10 @@ pub fn process_prison_labor_turn(
         None => return result,
     };
 
-    // Count total prisoners from Więzienie buildings
+    // Count total prisoners from prison buildings
     let total_prisoners: i64 = buildings
         .iter()
-        .filter(|b| b.name == "Więzienie")
+        .filter(|b| b.name == "prison")
         .map(|b| b.worker_capacity as i64)
         .sum();
 

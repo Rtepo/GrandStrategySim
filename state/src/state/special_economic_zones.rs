@@ -17,63 +17,63 @@ use std::collections::HashMap;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct SpecialEconomicZone {
     /// Zone identifier (e.g., "[SSE-WAR-001]")
-    #[serde(rename = "id_strefy", default)]
+    #[serde(default)]
     pub id: String,
     
     /// Zone name (e.g., "Warsaw Technology Park")
-    #[serde(rename = "nazwa", default)]
+    #[serde(default)]
     pub name: String,
     
     /// Region where zone is located
-    #[serde(rename = "region_id", default)]
+    #[serde(default)]
     pub region_id: String,
     
     /// Zone type (technology, manufacturing, logistics)
-    #[serde(rename = "typ_strefy", default)]
+    #[serde(default)]
     pub zone_type: SpecialEconomicZoneType,
     
     /// Corporate income tax discount (e.g., 0.5 = 50% reduction)
-    #[serde(rename = "zniżka_podatku_dochodowego", default)]
+    #[serde(default)]
     pub corporate_income_tax_discount: f64,
     
     /// Property tax discount (e.g., 0.8 = 80% reduction)
-    #[serde(rename = "zniżka_podatku_nieruchomości", default)]
+    #[serde(default)]
     pub property_tax_discount: f64,
     
     /// VAT exemption (true = exempt from VAT)
-    #[serde(rename = "zwolnienie_z_vat", default)]
+    #[serde(default)]
     pub vat_exemption: bool,
     
     /// Minimum fixed capital requirement for eligibility
-    #[serde(rename = "wymóg_kapitału_trwałego", default)]
+    #[serde(default)]
     pub minimum_fixed_capital: f64,
     
     /// Minimum employment requirement
-    #[serde(rename = "wymóg_zatrudnienia", default)]
+    #[serde(default)]
     pub minimum_employment: u32,
     
     /// Eligible companies (by company_id)
-    #[serde(rename = "firmy_uprawnione", default)]
+    #[serde(default)]
     pub eligible_companies: Vec<String>,
     
     /// Turn when zone was established
-    #[serde(rename = "turn_powstania", default)]
+    #[serde(default)]
     pub establishment_turn: u32,
     
     /// Turn when zone expires (0 = permanent)
-    #[serde(rename = "turn_wygaśnięcia", default)]
+    #[serde(default)]
     pub expiration_turn: u32,
     
     /// PHASE 4 ADVANCED: Annual budget funded by Treasury
-    #[serde(rename = "budżet", default)]
+    #[serde(default)]
     pub budget: f64,
     
     /// PHASE 4 ADVANCED: Investment subventions granted to companies
-    #[serde(rename = "dotacje_inwestycyjne", default)]
+    #[serde(default)]
     pub investment_subventions: Vec<InvestmentSubvention>,
     
     /// PHASE 4 ADVANCED: Minimum operation turns before clawback
-    #[serde(rename = "minimalna_liczba_tur", default)]
+    #[serde(default)]
     pub minimum_operation_turns: u32,
     
     /// Any additional fields
@@ -85,31 +85,31 @@ pub struct SpecialEconomicZone {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct InvestmentSubvention {
     /// Subvention ID
-    #[serde(rename = "id_dotacji", default)]
+    #[serde(default)]
     pub id: String,
     
     /// Receiving company ID
-    #[serde(rename = "firma", default)]
+    #[serde(default)]
     pub company_id: String,
     
     /// Amount granted
-    #[serde(rename = "kwota", default)]
+    #[serde(default)]
     pub amount: f64,
     
     /// Turn when subvention was granted
-    #[serde(rename = "turn_przyznania", default)]
+    #[serde(default)]
     pub granted_turn: u32,
     
     /// Turn when company must convert to fixed_capital
-    #[serde(rename = "turn_konwersji", default)]
+    #[serde(default)]
     pub conversion_deadline: u32,
     
     /// Whether subvention was converted to fixed_capital
-    #[serde(rename = "skonwertowany", default)]
+    #[serde(default)]
     pub converted: bool,
     
     /// Whether clawback was triggered
-    #[serde(rename = "odzyskany", default)]
+    #[serde(default)]
     pub clawed_back: bool,
     
     /// Any additional fields
@@ -120,19 +120,19 @@ pub struct InvestmentSubvention {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum SpecialEconomicZoneType {
     #[default]
-    #[serde(rename = "technologiczna")]
+
     Technology,  // Technology park / innovation hub
     
-    #[serde(rename = "przemysłowa")]
+
     Industrial,  // Manufacturing zone
     
-    #[serde(rename = "logistyczna")]
+
     Logistics,  // Logistics / transport hub
     
-    #[serde(rename = "finansowa")]
+
     Financial,  // Financial services zone
     
-    #[serde(rename = "turystyczna")]
+
     Tourism,  // Tourism / entertainment zone
 }
 
@@ -326,7 +326,7 @@ pub fn process_subvention_conversions(
                     subvention.converted = true;
                     
                     messages.push(format!(
-                        "[SSE] Firma {} skonwertowała dotację {} na kapitał trwały",
+                        "[SEZ] Company {} converted subsidy {} to fixed capital",
                         company.id, subvention.id
                     ));
                 } else {
@@ -334,7 +334,7 @@ pub fn process_subvention_conversions(
                     execute_clawback(company, subvention, treasury);  // NO zone parameter
                     companies_to_remove.push(company.id.clone());
                     messages.push(format!(
-                        "[SSE] Firma {} nie skonwertowała dotacji {} - odzyskano środki",
+                        "[SEZ] Company {} did not convert subsidy {} - funds recovered",
                         company.id, subvention.id
                     ));
                 }
@@ -392,7 +392,7 @@ pub fn check_zone_eligibility_for_clawback(
                 execute_clawback(company, subvention, treasury);  // NO zone parameter
                 companies_to_remove.push(company.id.clone());
                 messages.push(format!(
-                    "[SSE] Firma {} opuściła strefę przed minimalnym okresem - odzyskano dotację {}",
+                    "[SEZ] Company {} left zone before minimum period - subsidy {} recovered",
                     company.id, subvention.id
                 ));
             }
@@ -406,7 +406,7 @@ pub fn check_zone_eligibility_for_clawback(
                 execute_clawback(company, subvention, treasury);  // NO zone parameter
                 companies_to_remove.push(company.id.clone());
                 messages.push(format!(
-                    "[SSE] Firma {} nie spełniła minimalnego okresu operacji - odzyskano dotację {}",
+                    "[SEZ] Company {} did not meet minimum operating period - subsidy {} recovered",
                     company.id, subvention.id
                 ));
             }
@@ -445,7 +445,7 @@ pub fn fund_sse_budgets(
         zone.budget += budget_per_zone;
         
         messages.push(format!(
-            "[SSE] Strefa {} otrzymała limit alokacji: {:.2}",
+            "[SEZ] Zone {} received allocation limit: {:.2}",
             zone.name, budget_per_zone
         ));
     }

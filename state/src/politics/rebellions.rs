@@ -25,23 +25,23 @@ pub enum RebellionType {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct RebellionTrigger {
     /// Minimum social unrest threshold (0-100)
-    #[serde(rename = "prog_niepokojow", default)]
+    #[serde(default)]
     pub unrest_threshold: f64,
     
     /// Maximum tax burden threshold (0-1)
-    #[serde(rename = "prog_podatkowy", default)]
+    #[serde(default)]
     pub tax_burden_threshold: f64,
     
     /// Minimum war exhaustion threshold (0-100)
-    #[serde(rename = "prog_zmeczenia_wojennego", default)]
+    #[serde(default)]
     pub war_exhaustion_threshold: f64,
     
     /// Minimum region poverty rate (0-1)
-    #[serde(rename = "prog_biedy", default)]
+    #[serde(default)]
     pub poverty_threshold: f64,
     
     /// Minimum support from specific rural class
-    #[serde(rename = "poparcie_klasy", default)]
+    #[serde(default)]
     pub class_support_threshold: f64,
 }
 
@@ -257,7 +257,7 @@ pub fn spawn_rebel_proto_state(
         social_programs: Vec::new(),
         weather_state: crate::economy::weather::WeatherState::default(),
         maintenance_config: crate::economy::maintenance::MaintenanceConfig::default(),
-        state_forest_state: crate::economy::state_forests::StateForestState::default(),
+        state_forest_state: crate::economy::state_forests::forest_districtState::default(),
         religious_authority_state: crate::society::religious_authority::ReligiousAuthorityState::default(),
         generative_goods_config: crate::economy::generative_goods_config::GenerativeGoodsConfig::default(),
         geological_formations: Vec::new(),
@@ -367,7 +367,7 @@ pub fn process_rebellion_spawning(
             let goals = vec![
                 match rebellion_type {
                     RebellionType::PeasantUprising => "Reforma rolna".to_string(),
-                    RebellionType::Separatist => "Niepodległość".to_string(),
+                    RebellionType::Separatist => "Independence".to_string(),
                     RebellionType::IdeologicalRevolution => "Zmiana ustroju".to_string(),
                     RebellionType::MilitaryCoup => "Stabilizacja".to_string(),
                     RebellionType::ReligiousFundamentalist => "Prawo boskie".to_string(),
@@ -376,7 +376,7 @@ pub fn process_rebellion_spawning(
             
             let rebel = spawn_rebel_proto_state(country, region.clone(), rebellion_type.clone(), goals);
             messages.push(format!(
-                "[POWSTANIE] Powstanie typu {:?} wybuchło w regionie {}",
+                "[REBELLION] Rebellion of type {:?} erupted in region {}",
                 rebellion_type, region.id
             ));
             spawned_rebels.push(rebel);

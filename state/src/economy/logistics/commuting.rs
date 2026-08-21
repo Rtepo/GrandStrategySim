@@ -201,7 +201,6 @@ mod tests {
             is_capital: false,
             node_type: NodeType::LandRegion,
             edges,
-            adjacency: Vec::new(),
             land_distribution: BTreeMap::new(),
             class_demographics: Default::default(),
             governance: None,

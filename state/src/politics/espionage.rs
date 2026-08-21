@@ -7,27 +7,27 @@ use std::collections::HashMap;
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct EspionageOperation {
     /// Operation ID
-    #[serde(rename = "id_operacji", default)]
+    #[serde(default)]
     pub id: String,
     
     /// Target councilor
-    #[serde(rename = "cel", default)]
+    #[serde(default)]
     pub target_councilor_id: String,
     
     /// Budget allocated to operation
-    #[serde(rename = "budzet", default)]
+    #[serde(default)]
     pub budget: f64,
     
     /// Operation type
-    #[serde(rename = "typ")]
+
     pub operation_type: EspionageType,
     
     /// Turn when operation completes
-    #[serde(rename = "turn_zakonczenia")]
+
     pub completion_turn: u32,
     
     /// Success probability (0-1)
-    #[serde(rename = "prawdopodobienstwo", default)]
+    #[serde(default)]
     pub success_probability: f64,
 }
 
@@ -48,19 +48,19 @@ pub enum EspionageType {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct EspionageState {
     /// Active operations by ID
-    #[serde(rename = "operacje_aktywne", default)]
+    #[serde(default)]
     pub active_operations: HashMap<String, EspionageOperation>,
     
     /// Total espionage budget allocated this turn
-    #[serde(rename = "budzet_szpiegowski", default)]
+    #[serde(default)]
     pub espionage_budget: f64,
     
     /// Number of successful operations
-    #[serde(rename = "operacje_udane", default)]
+    #[serde(default)]
     pub successful_operations: u32,
     
     /// Number of failed operations
-    #[serde(rename = "operacje_nieudane", default)]
+    #[serde(default)]
     pub failed_operations: u32,
 }
 
@@ -152,7 +152,7 @@ impl EspionageState {
                 } else {
                     self.failed_operations += 1;
                     messages.push(format!(
-                        "[SZPIGOSTWO] Operacja {} nie powiodła się przeciwko radnemu {}",
+                        "[ESPIONAGE] Operation {} failed against councilor {}",
                         operation.id, operation.target_councilor_id
                     ));
                 }
@@ -181,33 +181,33 @@ impl EspionageState {
                     // Reveal Corrupt trait if present
                     if councilor.hidden_trait == crate::politics::local_council::CouncilorTrait::Corrupt {
                         councilor.trait_revealed = true;
-                        councilor.blackmail_material = Some(format!("Material kompromitujący z operacji {}", operation.id));
+                        councilor.blackmail_material = Some(format!("Compromising material from operation {}", operation.id));
                         messages.push(format!(
-                            "[SZPIGOSTWO] Ujawniono korupcję radnego {} (materiał kompromitujący)",
+                            "[ESPIONAGE] Councilor {} corruption exposed (compromising material)",
                             councilor.name
                         ));
                     } else {
                         messages.push(format!(
-                            "[SZPIGOSTWO] Nadzór nad radnym {} nie wykazał korupcji",
+                            "[ESPIONAGE] Surveillance of councilor {} revealed no corruption",
                             councilor.name
                         ));
                     }
                 }
                 EspionageType::Bribery => {
                     messages.push(format!(
-                        "[SZPIGOSTWO] Pomyślnie przekupiono radnego {} za {} budżetu",
+                        "[ESPIONAGE] Successfully bribed councilor {} for {} of budget",
                         councilor.name, operation.budget
                     ));
                 }
                 EspionageType::Blackmail => {
                     if councilor.blackmail_material.is_some() {
                         messages.push(format!(
-                            "[SZPIGOSTWO] Pomyślnie szantażowano radnego {}",
+                            "[ESPIONAGE] Successfully blackmailed councilor {}",
                             councilor.name
                         ));
                     } else {
                         messages.push(format!(
-                            "[SZPIGOSTWO] Próba szantażu radnego {} nie powiodła się (brak materiału)",
+                            "[ESPIONAGE] Blackmail attempt on councilor {} failed (no material)",
                             councilor.name
                         ));
                     }

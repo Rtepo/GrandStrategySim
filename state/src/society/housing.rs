@@ -43,19 +43,19 @@ pub enum HousingType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct HousingSlots {
     /// Total capacity (number of households)
-    #[serde(rename = "pojemność_całkowita", default)]
+    #[serde(default)]
     pub total_capacity: u32,
     
     /// Currently occupied slots
-    #[serde(rename = "sloty_zajęte", default)]
+    #[serde(default)]
     pub occupied_slots: u32,
     
     /// Target class for these slots
-    #[serde(rename = "klasa_docelowa")]
+
     pub target_class: Option<RuralClass>,
     
     /// Rent per slot (if applicable)
-    #[serde(rename = "czynsz_za_slot", default)]
+    #[serde(default)]
     pub rent_per_slot: f64,
 }
 
@@ -63,23 +63,23 @@ pub struct HousingSlots {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct UtilityConnections {
     /// Surface water connected (liters per turn)
-    #[serde(rename = "woda_powierzchniowa", default)]
+    #[serde(default)]
     pub surface_water_capacity: f64,
     
     /// Groundwater connected (liters per turn)
-    #[serde(rename = "woda_podziemna", default)]
+    #[serde(default)]
     pub groundwater_capacity: f64,
     
     /// Sewage treatment connected (liters per turn)
-    #[serde(rename = "ścieki_przetwarzanie", default)]
+    #[serde(default)]
     pub sewage_treatment_capacity: f64,
     
     /// District heating connected (GJ per turn)
-    #[serde(rename = "ciepło_systemowe", default)]
+    #[serde(default)]
     pub district_heating_capacity: f64,
     
     /// Electricity connected (kWh per turn)
-    #[serde(rename = "energia_elektryczna", default)]
+    #[serde(default)]
     pub electricity_capacity: f64,
 }
 
@@ -87,47 +87,47 @@ pub struct UtilityConnections {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct HousingBuilding {
     /// Unique building ID
-    #[serde(rename = "id_budynku", default)]
+    #[serde(default)]
     pub id: String,
     
     /// Housing type
-    #[serde(rename = "typ_mieszkania")]
+
     pub housing_type: HousingType,
     
     /// Micro-region where building is located
-    #[serde(rename = "mikroregion_id", default)]
+    #[serde(default)]
     pub micro_region_id: String,
     
     /// Owner (LegalForm ID or individual)
-    #[serde(rename = "właściciel", default)]
+    #[serde(default)]
     pub owner: String,
     
     /// Primary housing slots (for designated class)
-    #[serde(rename = "sloty_podstawowe", default)]
+    #[serde(default)]
     pub primary_slots: HousingSlots,
     
     /// Sublet slots (for landless laborers - huts only)
-    #[serde(rename = "sloty_podnajmu")]
+
     pub sublet_slots: Option<HousingSlots>,
     
     /// Living standard 0-1 (affects health/satisfaction)
-    #[serde(rename = "standard_życia", default)]
+    #[serde(default)]
     pub living_standard: f64,
     
     /// Construction cost
-    #[serde(rename = "koszt_budowy", default)]
+    #[serde(default)]
     pub construction_cost: f64,
     
     /// Maintenance cost per turn
-    #[serde(rename = "koszt_utrzymania", default)]
+    #[serde(default)]
     pub maintenance_cost: f64,
     
     /// Current condition 0-1
-    #[serde(rename = "stan", default)]
+    #[serde(default)]
     pub condition: f64,
     
     /// Utility connections
-    #[serde(rename = "połączenia_utilitarne", default)]
+    #[serde(default)]
     pub utility_connections: UtilityConnections,
 }
 
@@ -151,7 +151,7 @@ pub enum CommercialBuildingType {
     /// Phase 6.5: Small independent retail store
     RetailStore,
     /// Phase 6.5: Modern supermarket (self-service, refrigerated)
-    Supermarket,
+    supermarket,
     /// Phase 6.5: Department store (multi-category, large footprint)
     DepartmentStore,
     /// Phase 6.5: Shopping center (enclosed mall with multiple tenants)
@@ -187,31 +187,31 @@ pub enum StorageType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct InventoryBatch {
     /// Quantity of goods in this batch
-    #[serde(rename = "ilość")]
+
     pub quantity: f64,
     
     /// Turn number when this batch was stored
-    #[serde(rename = "turn_przechowywania")]
+
     pub storage_turn: u32,
     
     /// Original owner company ID (producer retains ownership)
-    #[serde(rename = "id_właściciela")]
+
     pub owner_id: String,
     
     /// Accumulated storage fees owed to LogisticsCompany
-    #[serde(rename = "nakładane_opłaty", default)]
+    #[serde(default)]
     pub accumulated_fees: f64,
     
     /// Warehouse ID where this batch is stored
-    #[serde(rename = "id_magazynu")]
+
     pub warehouse_id: String,
     
     /// Fire-sale discount (0.0-1.0) for aging batches
-    #[serde(rename = "wyprzedaż", default)]
+    #[serde(default)]
     pub fire_sale_discount: f64,
     
     /// Phase 6.5: Acquisition cost per unit (for retail pricing)
-    #[serde(rename = "koszt_zakupu_jednostki", default)]
+    #[serde(default)]
     pub acquisition_cost_per_unit: f64,
 }
 
@@ -255,51 +255,51 @@ pub enum RetailUpgrade {
     Advertising,
 }
 
-/// Phase 6.5: Retail profile for storefronts (RetailStore, Supermarket, DepartmentStore)
+/// Phase 6.5: Retail profile for storefronts (RetailStore, supermarket, DepartmentStore)
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct RetailProfile {
     /// Store profile types (e.g., Grocery, Butcher, Bakery)
-    #[serde(rename = "profile_sklepu", default)]
+    #[serde(default)]
     pub profiles: std::collections::BTreeSet<StoreProfile>,
     
     /// Base attractiveness from building template
-    #[serde(rename = "atrakcyjność_podstawowa", default)]
+    #[serde(default)]
     pub base_attractiveness: f64,
     
     /// Installed upgrades
-    #[serde(rename = "ulepszenia", default)]
+    #[serde(default)]
     pub upgrades: std::collections::BTreeSet<RetailUpgrade>,
     
     /// Effective attractiveness (recomputed each turn in R2)
-    #[serde(rename = "atrakcyjność_efektywna", default)]
+    #[serde(default)]
     pub effective_attractiveness: f64,
     
     /// Markup ratio set by R3 pricing
-    #[serde(rename = "marża", default)]
+    #[serde(default)]
     pub markup_ratio: f64,
     
     /// Landlord building ID if tenant of ShoppingCenter
-    #[serde(rename = "wynajmujący_id", skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub landlord_building_id: Option<String>,
     
     /// Leased square meters
-    #[serde(rename = "wynajęte_metry", default)]
+    #[serde(default)]
     pub leased_sqm: f64,
     
     /// Units sold last turn per commodity
-    #[serde(rename = "sprzedane_jednostki_ostatni_turn", default)]
+    #[serde(default)]
     pub units_sold_last_turn: std::collections::BTreeMap<Commodity, f64>,
     
     /// Unmet demand last turn per commodity
-    #[serde(rename = "niespełniony_popyt_ostatni_turn", default)]
+    #[serde(default)]
     pub unmet_demand_last_turn: std::collections::BTreeMap<Commodity, f64>,
     
     /// Phase 6.5: Market share last turn per commodity (for consumer inertia)
-    #[serde(rename = "udział_rynku_ostatni_turn", default)]
+    #[serde(default)]
     pub market_share_last_turn: std::collections::BTreeMap<Commodity, f64>,
     
     /// Phase 6.5: First active turn (for newcomer grace period)
-    #[serde(rename = "pierwszy_aktywny_turn", default)]
+    #[serde(default)]
     pub first_active_turn: u32,
 }
 
@@ -307,15 +307,15 @@ pub struct RetailProfile {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct ShoppingCenterProfile {
     /// Tenant building IDs (stores in this mall)
-    #[serde(rename = "najemcy_id", default)]
+    #[serde(default)]
     pub tenant_building_ids: Vec<String>,
     
     /// Diversity bonus (0-1) for having varied store types
-    #[serde(rename = "bonus_różnorodności", default)]
+    #[serde(default)]
     pub diversity_bonus: f64,
     
     /// Anchor tenant (major store driving traffic)
-    #[serde(rename = "kotwica_najemca", skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub anchor_tenant: Option<String>,
 }
 
@@ -323,23 +323,23 @@ pub struct ShoppingCenterProfile {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct WholesaleProfile {
     /// Served micro-region IDs
-    #[serde(rename = "obsługiwane_mikroregiony", default)]
+    #[serde(default)]
     pub served_micro_regions: std::collections::BTreeSet<String>,
     
     /// Consolidation capacity tons per turn
-    #[serde(rename = "pojemność_konsolidacji", default)]
+    #[serde(default)]
     pub consolidation_capacity_tons: f64,
     
     /// Committed tons this turn
-    #[serde(rename = "zobowiązane_tony", default)]
+    #[serde(default)]
     pub committed_tons_this_turn: f64,
     
     /// Phase 6.5: Units sold to retailers last turn per commodity
-    #[serde(rename = "sprzedane_detalistom_ostatni_turn", default)]
+    #[serde(default)]
     pub units_sold_to_retailers_last_turn: std::collections::BTreeMap<Commodity, f64>,
     
     /// Phase 6.5: Consecutive turns commodity has sat above stock target
-    #[serde(rename = "stare_turny", default)]
+    #[serde(default)]
     pub stale_turns: std::collections::BTreeMap<Commodity, u32>,
 }
 
@@ -347,23 +347,23 @@ pub struct WholesaleProfile {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct RetailLease {
     /// Tenant company ID
-    #[serde(rename = "najemca_id")]
+
     pub tenant_id: String,
     
     /// Leased square meters
-    #[serde(rename = "wynajęte_metry")]
+
     pub leased_sqm: f64,
     
     /// Rent per sq meter
-    #[serde(rename = "czynz_za_metr")]
+
     pub rent_per_sqm: f64,
     
     /// Lease start turn
-    #[serde(rename = "turn_początku")]
+
     pub start_turn: u32,
     
     /// Lease duration in turns
-    #[serde(rename = "czas_trwania")]
+
     pub duration_turns: u32,
 }
 
@@ -371,77 +371,77 @@ pub struct RetailLease {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct CommercialBuilding {
     /// Unique building ID
-    #[serde(rename = "id_budynku", default)]
+    #[serde(default)]
     pub id: String,
 
     /// Building type
-    #[serde(rename = "typ_budynku")]
+
     pub building_type: CommercialBuildingType,
 
     /// Micro-region location
-    #[serde(rename = "mikroregion_id", default)]
+    #[serde(default)]
     pub micro_region_id: String,
 
     /// Owner company ID (Phase 6.3.5 - for asset transfer during liquidation)
-    #[serde(rename = "właściciel", default)]
+    #[serde(default)]
     pub owner_id: String,
 
     /// Office space capacity (sq meters)
-    #[serde(rename = "pojemność_biura", default)]
+    #[serde(default)]
     pub office_capacity: f64,
 
     /// Retail space capacity (sq meters)
-    #[serde(rename = "pojemność_detaliczna", default)]
+    #[serde(default)]
     pub retail_capacity: f64,
 
     /// Currently leased by companies
-    #[serde(rename = "najemcy", default)]
+    #[serde(default)]
     pub tenants: Vec<String>, // Company IDs
 
     /// Rent per sq meter
-    #[serde(rename = "czynz_za_metr", default)]
+    #[serde(default)]
     pub rent_per_sqm: f64,
 
     /// Utility connections
-    #[serde(rename = "połączenia_utilitarne", default)]
+    #[serde(default)]
     pub utility_connections: UtilityConnections,
 
     /// Phase 5: Storage capacity (for warehouses)
-    #[serde(rename = "pojemność_magazynowa", default)]
+    #[serde(default)]
     pub storage_capacity: f64,
 
     /// Phase 5.5: Current inventory stored in this building (batched for FEFO)
-    #[serde(rename = "aktualny_inwentarz", default)]
+    #[serde(default)]
     pub current_inventory: std::collections::BTreeMap<String, Vec<InventoryBatch>>,
 
     /// Phase 5: Storage type (for warehouses)
-    #[serde(rename = "typ_magazynowania", default)]
+    #[serde(default)]
     pub storage_type: StorageType,
 
     /// Phase 5: Utilization rate (0-1) for storage
-    #[serde(rename = "wskaźnik_wykorzystania", default)]
+    #[serde(default)]
     pub utilization_rate: f64,
 
-    /// Phase 6.5: Retail profile (for RetailStore, Supermarket, DepartmentStore)
-    #[serde(rename = "profil_detaliczny", skip_serializing_if = "Option::is_none")]
+    /// Phase 6.5: Retail profile (for RetailStore, supermarket, DepartmentStore)
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub retail_profile: Option<RetailProfile>,
 
     /// Phase 6.5: Shopping center profile (for ShoppingCenter)
-    #[serde(rename = "profil_centrum_handlowego", skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub shopping_center_profile: Option<ShoppingCenterProfile>,
 
     /// Phase 6.5: Wholesale profile (for Wholesaler)
-    #[serde(rename = "profil_hurtowy", skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub wholesale_profile: Option<WholesaleProfile>,
 
     /// Phase 6.5: Active retail leases (for ShoppingCenter landlords)
-    #[serde(rename = "umowy_najmu", default)]
+    #[serde(default)]
     pub retail_leases: Vec<RetailLease>,
 
     /// Phase 19B: Fixed-asset cohorts (retail fixtures, shelving, cold counters)
     /// installed in this commercial building. Empty = no fixtures. Cohorts are
     /// aggregated by blueprint+acquire turn+condition for RAM predictability.
-    #[serde(rename = "aktywa_trwałe", default)]
+    #[serde(default)]
     pub fixed_assets: Vec<crate::economy::fixed_assets::FixedAssetCohort>,
 }
 
@@ -449,7 +449,7 @@ pub struct CommercialBuilding {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct HousingInventory {
     /// Housing buildings in this micro-region
-    #[serde(rename = "budynki_mieszkalne", default)]
+    #[serde(default)]
     pub buildings: Vec<HousingBuilding>,
 }
 
@@ -457,7 +457,7 @@ pub struct HousingInventory {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct CommercialInventory {
     /// Commercial buildings in this micro-region
-    #[serde(rename = "budynki_komercyjne", default)]
+    #[serde(default)]
     pub buildings: Vec<CommercialBuilding>,
 }
 

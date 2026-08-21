@@ -7,7 +7,7 @@
 //! - Death penalty execution: permanent population removal.
 //! - Community service: source-level wage garnishment (handled in labor_market.rs).
 //! - Administrative courts: block illegal state actions.
-//! - Ombudsman (RPO): detect rights violations and generate unrest.
+//! - Ombudsman (Ombudsman): detect rights violations and generate unrest.
 //! - Vigilante justice: summary executions in low-capacity regions.
 
 use crate::economy::disasters::{DisasterEvent, DisasterType};
@@ -124,7 +124,7 @@ pub struct AdministrativeCourtState {
     pub rulings_overturned: u32,
 }
 
-/// Ombudsman (RPO) state — monitors rights violations.
+/// Ombudsman (Ombudsman) state — monitors rights violations.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct OmbudsmanState {
     /// Active complaints currently under investigation.

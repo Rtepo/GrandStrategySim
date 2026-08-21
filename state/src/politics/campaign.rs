@@ -10,25 +10,25 @@ use crate::state::treasury::Treasury;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum ElectionState {
     #[default]
-    #[serde(rename = "bez_kampanii")]
+
     Idle,
     
-    #[serde(rename = "przed_kampanią")]
+
     PreCampaign {
         turns_until_start: u32,
         registration_deadline: u32,
     },
     
-    #[serde(rename = "kampania_aktywna")]
+
     ActiveCampaign {
         turns_remaining: u32,
         current_turn: u32,
     },
     
-    #[serde(rename = "dzień_wyborów")]
+
     ElectionDay,
     
-    #[serde(rename = "po_wyborach")]
+
     PostElectionResolution {
         turn: u32,
     },
@@ -38,62 +38,62 @@ pub enum ElectionState {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct ElectoralCommission {
     /// Legal spending limit per party (scaled to GDP)
-    #[serde(rename = "limit_wydatków", default)]
+    #[serde(default)]
     pub spending_limit: f64,
     
     /// Current audit status
-    #[serde(rename = "status_audytu", default)]
+    #[serde(default)]
     pub audit_status: AuditStatus,
     
     /// Parties currently under investigation
-    #[serde(rename = "pod_inwigilacją", default)]
+    #[serde(default)]
     pub parties_under_investigation: Vec<String>,
     
     /// Fines imposed this campaign cycle
-    #[serde(rename = "kary", default)]
+    #[serde(default)]
     pub fines_imposed: HashMap<String, f64>,
     
     /// Outstanding debts owed by parties (receivable assets for state)
-    #[serde(rename = "niezapłacone_długi", default)]
+    #[serde(default)]
     pub outstanding_party_debts: HashMap<String, PartyDebt>,
     
     /// Commission budget (for enforcement)
-    #[serde(rename = "budżet_komisji", default)]
+    #[serde(default)]
     pub commission_budget: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct PartyDebt {
     /// Total debt owed to Electoral Commission
-    #[serde(rename = "kwota", default)]
+    #[serde(default)]
     pub amount: f64,
     
     /// Turn when debt was incurred
-    #[serde(rename = "turn_zadłużenia", default)]
+    #[serde(default)]
     pub incurrence_turn: u32,
     
     /// Demographic classes liable for debt (member liability)
-    #[serde(rename = "klasy_odpowiedzialne", default)]
+    #[serde(default)]
     pub liable_classes: Vec<String>,
     
     /// Whether asset liquidation has been triggered
-    #[serde(rename = "likwidacja_aktywów", default)]
+    #[serde(default)]
     pub asset_liquidation_triggered: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum AuditStatus {
     #[default]
-    #[serde(rename = "brak")]
+
     None,
     
-    #[serde(rename = "w_trakcie")]
+
     InProgress {
         target_party: String,
         turns_remaining: u32,
     },
     
-    #[serde(rename = "zakończony")]
+
     Complete {
         target_party: String,
         findings: AuditFindings,
@@ -102,16 +102,16 @@ pub enum AuditStatus {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum AuditFindings {
-    #[serde(rename = "brak_nieprawidłowości")]
+
     Clean,
     
-    #[serde(rename = "przekroczenie_limitu")]
+
     Overspending {
         amount: f64,
         penalty_multiplier: f64,
     },
     
-    #[serde(rename = "nielegalne_finansowanie")]
+
     IllegalFinancing {
         black_money_detected: f64,
         severity: CorruptionSeverity,
@@ -127,23 +127,23 @@ impl Default for AuditFindings {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum CorruptionSeverity {
     #[default]
-    #[serde(rename = "niski")]
+
     Low,
     
-    #[serde(rename = "średni")]
+
     Medium,
     
-    #[serde(rename = "wysoki")]
+
     High,
     
-    #[serde(rename = "katastrofalny")]
+
     Catastrophic,
 }
 
 /// Campaign action options that parties can execute.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum CampaignAction {
-    #[serde(rename = "kampania_narodowa")]
+
     NationalAdCampaign {
         cost: f64,
         support_boost: f64,
@@ -151,7 +151,7 @@ pub enum CampaignAction {
         duration_turns: u32,
     },
     
-    #[serde(rename = "miting_regionalny")]
+
     RegionalRally {
         target_region: String,
         cost: f64,
@@ -159,21 +159,21 @@ pub enum CampaignAction {
         mobilization_boost: f64,
     },
     
-    #[serde(rename = "kampania_telewizyjna")]
+
     TelevisionCampaign {
         cost: f64,
         support_boost: f64,
         reach_factor: f64,
     },
     
-    #[serde(rename = "kampania_internetowa")]
+
     DigitalCampaign {
         cost: f64,
         support_boost: f64,
         youth_targeting: bool,
     },
     
-    #[serde(rename = "darczyńcy_korporacyjni")]
+
     CorporateDonors {
         cost: f64,
         support_boost: f64,
@@ -194,55 +194,55 @@ impl Default for CampaignAction {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct CampaignExecution {
-    #[serde(rename = "partia")]
+
     pub party_id: String,
     
-    #[serde(rename = "akcja")]
+
     pub action: CampaignAction,
     
-    #[serde(rename = "turn_wykonania")]
+
     pub execution_turn: u32,
     
-    #[serde(rename = "czy_czarne_pieniądze")]
+
     pub is_black_money: bool,
     
-    #[serde(rename = "transakcja_zaksięgowana")]
+
     pub transaction_recorded: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct BlackMoneyPool {
     /// Illicit funds not recorded in official treasury
-    #[serde(rename = "nielegalne_fundusze", default)]
+    #[serde(default)]
     pub illicit_funds: f64,
     
     /// Source of black money (for scandal context)
-    #[serde(rename = "źródło", default)]
+    #[serde(default)]
     pub source: BlackMoneySource,
     
     /// Risk factor for discovery (0-1)
-    #[serde(rename = "ryzyko_odkrycia", default)]
+    #[serde(default)]
     pub discovery_risk: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum BlackMoneySource {
-    #[serde(rename = "brak")]
+
     None,
     
-    #[serde(rename = "lobbing_korporacyjny")]
+
     CorporateLobbying {
         company_id: String,
         amount: f64,
     },
     
-    #[serde(rename = "przestępczość_organizowana")]
+
     OrganizedCrime {
         syndicate_id: String,
         amount: f64,
     },
     
-    #[serde(rename = "pranie_pieniędzy")]
+
     MoneyLaundering {
         shell_company_id: String,
         amount: f64,
@@ -257,13 +257,13 @@ impl Default for BlackMoneySource {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum CampaignError {
-    #[serde(rename = "brak_funduszy")]
+
     InsufficientFunds,
     
-    #[serde(rename = "firma_nie_znaleziona")]
+
     CompanyNotFound,
     
-    #[serde(rename = "błąd_transakcji")]
+
     TransactionError,
 }
 
@@ -309,7 +309,7 @@ pub fn resolve_scandal(
                         asset_liquidation_triggered: false,
                     }
                 );
-                messages.push(format!("[SKANDAL] Partia {} ukarana. Zebrano: {:.2}, Niespłacone: {:.2} (dług partii)", party.id, collected, unpaid));
+                messages.push(format!("[SCANDAL] Party {} penalized. Collected: {:.2}, Unpaid: {:.2} (party debt)", party.id, collected, unpaid));
             } else {
                 messages.push(format!("[SKANDAL] Partia {} ukarana za nielegalne finansowanie. Kara: {:.2}", party.id, fine));
             }
@@ -336,9 +336,9 @@ pub fn resolve_scandal(
                         asset_liquidation_triggered: false,
                     }
                 );
-                messages.push(format!("[SKANDAL] Partia {} pogrążona. Zebrano: {:.2}, Niespłacone: {:.2} (dług partii)", party.id, collected, unpaid));
+                messages.push(format!("[SCANDAL] Party {} doomed. Collected: {:.2}, Unpaid: {:.2} (party debt)", party.id, collected, unpaid));
             } else {
-                messages.push(format!("[SKANDAL] Partia {} pogrążona w aferze korupcyjnej. Kara: {:.2}", party.id, fine));
+                messages.push(format!("[SCANDAL] Party {} engulfed in corruption scandal. Fine: {:.2}", party.id, fine));
             }
             
             party.support *= 0.75;
@@ -364,9 +364,9 @@ pub fn resolve_scandal(
                         asset_liquidation_triggered: false,
                     }
                 );
-                messages.push(format!("[SKANDAL] Partia {} dotkliwie ukarana. Zebrano: {:.2}, Niespłacone: {:.2} (dług partii)", party.id, collected, unpaid));
+                messages.push(format!("[SCANDAL] Party {} severely penalized. Collected: {:.2}, Unpaid: {:.2} (party debt)", party.id, collected, unpaid));
             } else {
-                messages.push(format!("[SKANDAL] Partia {} dotkliwie ukarana za systemową korupcję. Kara: {:.2}", party.id, fine));
+                messages.push(format!("[SCANDAL] Party {} severely penalized for systemic corruption. Fine: {:.2}", party.id, fine));
             }
             
             party.support *= 0.5;
@@ -382,7 +382,7 @@ pub fn resolve_scandal(
             
             party.support = 0.0;
             party.organization.cohesion = 0.0;
-            messages.push(format!("[KATASTROFA] Partia {} rozwiązana za powszechną korupcję. Skonfiskowano: {:.2}. Lider aresztowany.", party.id, collected));
+            messages.push(format!("[CATASTROPHE] Party {} dissolved for rampant corruption. Confiscated: {:.2}. Leader arrested.", party.id, collected));
         }
     }
     
@@ -434,7 +434,7 @@ pub fn process_party_debt_liquidation(
             treasury.liquid_reserves += asset_value;
             debt.amount -= asset_value;
             
-            messages.push(format!("[LIKWIDACJA] Aktywa partii {} zlikwidowane. Wartość: {:.2}", party.id, asset_value));
+            messages.push(format!("[LIQUIDATION] Party {} assets liquidated. Value: {:.2}", party.id, asset_value));
             
             if debt.amount > 0.0 {
                 let remaining_debt = debt.amount;
@@ -475,10 +475,10 @@ pub fn process_party_debt_liquidation(
                 let uncollectible = remaining_debt - total_extracted;
                 
                 if uncollectible > 0.01 {
-                    messages.push(format!("[STRATA] Nieściągalny dług partii {} zapisany jako strata: {:.2}", party.id, uncollectible));
+                    messages.push(format!("[LOSS] Uncollectible party {} debt written off as loss: {:.2}", party.id, uncollectible));
                 }
                 
-                messages.push(format!("[ODPOWIEDZIALNOŚĆ] Członkowie partii {} spłacili: {:.2}, Strata: {:.2}", party.id, total_extracted, uncollectible));
+                messages.push(format!("[ACCOUNTABILITY] Party {} members paid: {:.2}, Loss: {:.2}", party.id, total_extracted, uncollectible));
                 debt.amount = 0.0;
                 commission.outstanding_party_debts.remove(&party.id);
             }

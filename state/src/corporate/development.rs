@@ -15,27 +15,27 @@ use crate::society::housing::{HousingType, HousingInventory};
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct PropertyDeveloper {
     /// Company ID
-    #[serde(rename = "id_firmy", default)]
+    #[serde(default)]
     pub company_id: String,
     
     /// Risk tolerance 0-1
-    #[serde(rename = "tolerancja_ryzyka", default)]
+    #[serde(default)]
     pub risk_tolerance: f64,
     
     /// Capital reserve for construction
-    #[serde(rename = "kapitał_budowlany", default)]
+    #[serde(default)]
     pub construction_capital: f64,
     
     /// Preferred project types
-    #[serde(rename = "typy_projektów_preferowanych", default)]
+    #[serde(default)]
     pub preferred_types: Vec<ConstructionProjectType>,
     
     /// Minimum ROI threshold for project initiation
-    #[serde(rename = "próg_roi", default)]
+    #[serde(default)]
     pub min_roi_threshold: f64,
     
     /// Down payment percentage required
-    #[serde(rename = "procent_zaliczki", default)]
+    #[serde(default)]
     pub down_payment_percentage: f64,
 }
 
@@ -43,23 +43,23 @@ pub struct PropertyDeveloper {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct MarketOpportunity {
     /// Housing shortage by type
-    #[serde(rename = "niedobór_mieszkal", default)]
+    #[serde(default)]
     pub housing_shortage: BTreeMap<String, f64>,
     
     /// Commercial vacancy rate
-    #[serde(rename = "stopa_wakatów_komercyjnych", default)]
+    #[serde(default)]
     pub commercial_vacancy_rate: f64,
     
     /// Expected ROI for new construction
-    #[serde(rename = "oczekiwany_roi", default)]
+    #[serde(default)]
     pub expected_roi: f64,
     
     /// Recommended project type
-    #[serde(rename = "zalecany_typ_projektu")]
+
     pub recommended_project_type: Option<ConstructionProjectType>,
     
     /// Recommended housing type (if residential)
-    #[serde(rename = "zalecany_typ_mieszkania")]
+
     pub recommended_housing_type: Option<HousingType>,
 }
 

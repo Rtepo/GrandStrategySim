@@ -87,7 +87,7 @@ pub struct RppInterestRates {
 // MONETARY POLICY COUNCIL (RPP) STRUCTURE
 // ============================================================================
 
-/// Monetary Policy Council (Rada Polityki Pieniężnej) - sets interest rates.
+/// Monetary Policy Council (Monetary Policy Council) - sets interest rates.
 /// In independent models, this is a separate political body. In dependent models,
 /// the CB handles rate decisions directly but the council structure exists for record-keeping.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]

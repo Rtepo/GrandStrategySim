@@ -13,31 +13,31 @@ use crate::state::Season;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct UtilityDemand {
     /// Surface water demand (liters per turn) - from rivers/lakes
-    #[serde(rename = "zapotrzebowanie_woda_powierzchniowa", default)]
+    #[serde(default)]
     pub surface_water_demand: f64,
     
     /// Groundwater demand (liters per turn) - from wells/pumps
-    #[serde(rename = "zapotrzebowanie_woda_podziemna", default)]
+    #[serde(default)]
     pub groundwater_demand: f64,
     
     /// Sewage generation (liters per turn)
-    #[serde(rename = "generacja_ścieków", default)]
+    #[serde(default)]
     pub sewage_generation: f64,
     
     /// Heating demand (GJ per turn)
-    #[serde(rename = "zapotrzebowanie_ciepło", default)]
+    #[serde(default)]
     pub heating_demand: f64,
     
     /// Electricity demand (kWh per turn)
-    #[serde(rename = "zapotrzebowanie_energia", default)]
+    #[serde(default)]
     pub electricity_demand: f64,
     
     /// Waste generation (tons per turn)
-    #[serde(rename = "generacja_odpadów", default)]
+    #[serde(default)]
     pub waste_generation: f64,
     
     /// Recyclable waste fraction (0-1)
-    #[serde(rename = "frakcja_odpadów_recyklingowalnych", default)]
+    #[serde(default)]
     pub recyclable_fraction: f64,
 }
 
@@ -254,8 +254,8 @@ impl UtilityDemand {
                 waste_generation: 1.5 * retail_sqm / 100.0,
                 recyclable_fraction: 0.6,
             },
-            // Phase 6.5: Supermarket (higher electricity for refrigeration)
-            CommercialBuildingType::Supermarket => UtilityDemand {
+            // Phase 6.5: supermarket (higher electricity for refrigeration)
+            CommercialBuildingType::supermarket => UtilityDemand {
                 surface_water_demand: 35.0 * retail_sqm / 100.0,
                 groundwater_demand: 12.0 * retail_sqm / 100.0,
                 sewage_generation: 28.0 * retail_sqm / 100.0,
@@ -264,7 +264,7 @@ impl UtilityDemand {
                 waste_generation: 2.0 * retail_sqm / 100.0,
                 recyclable_fraction: 0.65,
             },
-            // Phase 6.5: DepartmentStore (similar to Supermarket but larger footprint)
+            // Phase 6.5: DepartmentStore (similar to supermarket but larger footprint)
             CommercialBuildingType::DepartmentStore => UtilityDemand {
                 surface_water_demand: 35.0 * retail_sqm / 100.0,
                 groundwater_demand: 12.0 * retail_sqm / 100.0,

@@ -193,21 +193,15 @@ fn test_building_land_hectares_field() {
     assert_eq!(building.land_hectares, 5.0);
 }
 
-/// Test that the production methods registry has both Polish and English keys.
+/// Test that the production methods registry has English keys.
 #[test]
 fn test_production_methods_registry_has_aliases() {
     use sim_engine::registries::Registries;
     let reg = Registries::native_only();
 
-    // Polish key should exist
-    assert!(
-        reg.production_methods.contains_key("Baza Wojskowa"),
-        "Polish key 'Baza Wojskowa' should exist"
-    );
-
-    // English alias should also exist
+    // English key should exist
     assert!(
         reg.production_methods.contains_key("military_base"),
-        "English alias 'military_base' should exist"
+        "English key 'military_base' should exist"
     );
 }

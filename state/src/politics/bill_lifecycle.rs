@@ -144,16 +144,16 @@ pub fn process_floor_vote(
     let passed = votes_for >= majority_threshold;
     
     messages.push(format!(
-        "[GŁOSOWANIE] Ustawa {}: {} za, {} przeciw (wymagane: {})",
+        "[VOTE] Bill {}: {} for, {} against (required: {})",
         bill.title, votes_for, votes_against, majority_threshold
     ));
     
     if passed {
         bill.advance_stage(current_turn);
-        messages.push(format!("[USTAWA] Ustawa {} przeszła głosowanie", bill.title));
+        messages.push(format!("[BILL] Bill {} passed the vote", bill.title));
     } else {
         bill.reject();
-        messages.push(format!("[USTAWA] Ustawa {} została odrzucona", bill.title));
+        messages.push(format!("[BILL] Bill {} was rejected", bill.title));
     }
     
     (bill, passed, messages)
@@ -222,16 +222,16 @@ pub fn process_bicameral_review(
     let passed = initiator_seats >= majority_threshold;
     
     messages.push(format!(
-        "[IZBA WYŻSZA] Ustawa {}: {} miejsc (wymagane: {})",
+        "[UPPER CHAMBER] Bill {}: {} seats (required: {})",
         bill.title, initiator_seats, majority_threshold
     ));
     
     if passed {
         bill.advance_stage(current_turn);
-        messages.push(format!("[USTAWA] Ustawa {} przeszła izbę wyższą", bill.title));
+        messages.push(format!("[BILL] Bill {} passed the upper chamber", bill.title));
     } else {
         bill.reject();
-        messages.push(format!("[USTAWA] Ustawa {} została odrzucona przez izbę wyższą", bill.title));
+        messages.push(format!("[BILL] Bill {} was rejected by the upper chamber", bill.title));
     }
     
     (bill, passed, messages)
@@ -270,10 +270,10 @@ pub fn process_executive_review(
     
     if vetoed {
         bill.reject();
-        messages.push(format!("[WETO] Ustawa {} została zawetowana przez głowę państwa", bill.title));
+        messages.push(format!("[VETO] Bill {} was vetoed by the head of state", bill.title));
     } else {
         bill.advance_stage(current_turn);
-        messages.push(format!("[USTAWA] Ustawa {} została podpisana przez głowę państwa", bill.title));
+        messages.push(format!("[BILL] Bill {} was signed by the head of state", bill.title));
     }
     
     (bill, !vetoed, messages)
@@ -313,7 +313,7 @@ pub fn process_bill_lifecycle(
             let (processed_bill, _) = process_committee_stage(current_bill, committee, current_turn, initiator_is_ruling);
             current_bill = processed_bill;
             all_messages.push(format!(
-                "[KOMISJA] Ustawa {} skierowana do komisji {} (czas przeglądu: {} tur)",
+                "[COMMITTEE] Bill {} sent to committee {} (review time: {} turns)",
                 current_bill.title,
                 committee.name,
                 current_bill.committee_completion_turn.unwrap_or(current_turn) - current_turn

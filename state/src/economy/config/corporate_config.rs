@@ -13,27 +13,27 @@ use serde::{Deserialize, Serialize};
 pub struct CorporateTechConfig {
     /// Ratio of operating expenses that must be available in cash before R&D allocation.
     /// Default 2.0 (200% of operating expenses).
-    #[serde(rename = "próg_alokacji_rd", default = "default_rd_threshold")]
+    #[serde(default = "default_rd_threshold")]
     pub rd_allocation_threshold_ratio: f64,
 
     /// Percentage of excess cash allocated to R&D budget.
     /// Default 0.10 (10% of excess cash).
-    #[serde(rename = "procent_alokacji_rd", default = "default_rd_percentage")]
+    #[serde(default = "default_rd_percentage")]
     pub rd_allocation_percentage: f64,
 
     /// Minimum net benefit threshold for licensing a patented method.
     /// Companies only license if (current_cost - new_cost - royalty) > this threshold.
-    #[serde(rename = "próg_korzyści_licencji", default = "default_licensing_threshold")]
+    #[serde(default = "default_licensing_threshold")]
     pub licensing_benefit_threshold: f64,
 
     /// State patent royalty rate charged to ALL companies (state-owned + private).
     /// Default 0.03 (3% of output commodity VWAP).
-    #[serde(rename = "stawka_royalty_państwa", default = "default_state_patent_royalty")]
+    #[serde(default = "default_state_patent_royalty")]
     pub state_patent_royalty_ratio: f64,
 
     /// Maximum R&D budget as fraction of company_capital.
     /// Default 0.2 (20% of company capital).
-    #[serde(rename = "maks_budżet_rd", default = "default_max_rd_budget_ratio")]
+    #[serde(default = "default_max_rd_budget_ratio")]
     pub max_rd_budget_ratio: f64,
 }
 

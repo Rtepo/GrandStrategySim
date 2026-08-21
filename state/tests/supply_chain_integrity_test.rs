@@ -157,15 +157,15 @@ fn fixed_asset_output_coverage() {
     }
 }
 
-/// Test 6: Legacy alias test — "grains" and "vegetables" should deserialize
-/// to Cereal and Vegetable respectively.
+/// Test 6: English key deserialization — "cereal" and "vegetable" should
+/// deserialize to Cereal and Vegetable respectively.
 #[test]
 fn legacy_alias_deserialization() {
-    let grains: Commodity = serde_json::from_str("\"grains\"").unwrap();
-    assert_eq!(grains, Commodity::Cereal);
+    let cereal: Commodity = serde_json::from_str("\"cereal\"").unwrap();
+    assert_eq!(cereal, Commodity::Cereal);
 
-    let vegetables: Commodity = serde_json::from_str("\"vegetables\"").unwrap();
-    assert_eq!(vegetables, Commodity::Vegetable);
+    let vegetable: Commodity = serde_json::from_str("\"vegetable\"").unwrap();
+    assert_eq!(vegetable, Commodity::Vegetable);
 }
 
 /// Test 7: Commodity count — the `all()` array should have the correct size.
@@ -318,18 +318,13 @@ fn assimilation_capacity_from_integration_centers_not_schools() {
     );
 }
 
-/// Test 15: Phase 20 Final Audit — is_active() returns false for deprecated variants.
+/// Test 15: Phase 75 — deprecated variant filter removed; all commodities are valid.
 #[test]
-fn is_active_filters_deprecated_variants() {
-    // Active commodities
-    assert!(Commodity::Steel.is_active(), "Steel should be active");
-    assert!(Commodity::Energy.is_active(), "Energy should be active");
-    assert!(Commodity::Heat.is_active(), "Heat should be active");
-
-    // Deprecated commodities
-    assert!(!Commodity::Battleships.is_active(), "Battleships should be deprecated");
-    assert!(!Commodity::Pistols.is_active(), "Pistols should be deprecated");
-    assert!(!Commodity::MarketResearch.is_active(), "MarketResearch should be deprecated");
+fn all_commodities_are_valid() {
+    // All commodity variants are now considered valid schema members.
+    // The is_active() filter was removed as part of the backward-compatibility purge.
+    let all = Commodity::all();
+    assert_eq!(all.len(), 140, "Commodity::all() must return exactly 140 variants");
 }
 
 /// Test 16: Phase 20 Final Audit — every sector has at least 3 Automation

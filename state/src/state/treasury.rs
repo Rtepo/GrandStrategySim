@@ -68,17 +68,17 @@ pub struct TaxHistoryEntry {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct StockMarket {
     /// Headline index level.
-    #[serde(alias = "indeks")]
+    
     pub index: f64,
     /// Investor confidence, 0–100.
-    #[serde(alias = "zaufanie")]
+    
     pub confidence: f64,
     /// Change recorded on the previous turn.
-    #[serde(alias = "ostatnia_zmiana")]
+    
     pub last_change: f64,
     /// Per-industry sub-indices; kept as a raw JSON
     /// value to losslessly preserve its evolving shape.
-    #[serde(default, alias = "indeksy_branzowe")]
+    #[serde(default)]
     pub sector_indices: Value,
     /// Any additional keys not explicitly modeled.
     #[serde(flatten, default)]
@@ -98,35 +98,35 @@ impl Default for StockMarket {
 }
 
 /// Government spending allocation as fractions of the budget that sum to `1.0`
-/// (was: budżet).
+///.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct BudgetAllocations {
     /// Industry.
-    #[serde(alias = "Przemysł")]
+    
     pub industry: f64,
     /// Education & propaganda.
-    #[serde(alias = "Edukacja i Propaganda")]
+    
     pub education_propaganda: f64,
     /// Healthcare.
-    #[serde(alias = "Służba Zdrowia")]
+    
     pub healthcare: f64,
     /// Infrastructure & transport.
-    #[serde(alias = "Infrastruktura i Transport")]
+    
     pub infrastructure_transport: f64,
     /// Social programs.
-    #[serde(alias = "Programy Socjalne")]
+    
     pub social_programs: f64,
     /// Agriculture & rural economy.
-    #[serde(alias = "Rolnictwo i Gospodarka Wiejska")]
+    
     pub agriculture_rural: f64,
     /// Armed forces.
-    #[serde(alias = "Siły Zbrojne")]
+    
     pub armed_forces: f64,
     /// Justice system (courts, police, prisons) — Phase 14.
-    #[serde(default, skip_serializing_if = "is_zero_f64", alias = "Wymiar Sprawiedliwości")]
+    #[serde(default, skip_serializing_if = "is_zero_f64")]
     pub justice: f64,
     /// Public administration (tax offices, civil service) — Phase 14.
-    #[serde(default, skip_serializing_if = "is_zero_f64", alias = "Administracja Publiczna")]
+    #[serde(default, skip_serializing_if = "is_zero_f64")]
     pub public_administration: f64,
     /// Any additional allocation categories.
     #[serde(flatten, default)]
@@ -154,13 +154,13 @@ impl Default for BudgetAllocations {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct ProductionMethodChoice {
     /// Automation method.
-    #[serde(alias = "automatyzacja")]
+    
     pub automation: String,
     /// Production method.
-    #[serde(alias = "produkcja")]
+    
     pub production: String,
     /// Organization method.
-    #[serde(alias = "organizacja")]
+    
     pub organization: String,
     /// Any additional method slots.
     #[serde(flatten, default)]
@@ -173,20 +173,20 @@ pub struct ProductionMethodChoice {
 /// # Rules
 /// * Only `gdp_share` is guaranteed present across all sectors; other fields
 ///   are optional because service/state sectors (e.g. `transport_i_logistyka`,
-///   `usługi_publiczne`) omit them. Runtime fields (`pmi`, `placa`,
+///   `public_services`) omit them. Runtime fields (`pmi`, `placa`,
 ///   `zatrudnienie`, ...) are preserved through `extra`.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct SectorShare {
     /// Share of GDP in `[0.0, 1.0]`.
-    #[serde(alias = "udział_PKB")]
+    #[serde(default)]
     pub gdp_share: f64,
     /// Crisis vulnerability coefficient, absent for
     /// some service sectors.
-    #[serde(default, skip_serializing_if = "Option::is_none", alias = "podatność_na_kryzys")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub crisis_vulnerability: Option<f64>,
     /// Currently selected production methods, absent for
     /// some service sectors.
-    #[serde(default, skip_serializing_if = "Option::is_none", alias = "aktywna_metoda")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub active_method: Option<ProductionMethodChoice>,
     /// Runtime-computed fields (`pmi`, `placa`, `oferta`, `zatrudnienie`,
     /// `srednia_placa`, `wykorzystanie_mocy`, ...).
@@ -198,16 +198,16 @@ pub struct SectorShare {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ScienceState {
     /// Accumulated innovation points.
-    #[serde(alias = "punkty_innowacji")]
+    
     pub innovation_points: f64,
     /// Technology currently being researched, if any.
-    #[serde(default, alias = "badana_technologia")]
+    #[serde(default)]
     pub researching: Option<TechId>,
     /// Technologies already discovered.
-    #[serde(default, alias = "odkryte_tech")]
+    #[serde(default)]
     pub discovered: Vec<TechId>,
     /// Baseline innovativeness.
-    #[serde(alias = "innowacyjnosc_bazowa")]
+    
     pub base_innovativeness: f64,
     /// Any additional science fields.
     #[serde(flatten, default)]
@@ -254,7 +254,7 @@ pub struct Treasury {
     /// Stock-market state.
     pub stock_market: StockMarket,
     /// Budget allocation fractions.
-    #[serde(alias = "budżet")]
+    
     pub allocations: BudgetAllocations,
     /// Hidden black-ops fund; never surfaced in
     /// public fiscal reports.
@@ -267,7 +267,7 @@ pub struct Treasury {
     #[serde(default)]
     pub sectors: HashMap<Sector, SectorShare>,
     /// National science / R&D state.
-    #[serde(default, alias = "nauka")]
+    #[serde(default)]
     pub science: ScienceState,
     // STAGE C: Tax Office Company IDs (NOT custom structs)
     /// Tax Office Company IDs for budget allocation.
@@ -289,13 +289,13 @@ pub struct Treasury {
     #[serde(default, skip_serializing_if = "is_default_wage_cap")]
     pub max_public_wage_multiplier: f64,
     /// PHASE 4: Outstanding corporate debts from SSE clawbacks (receivable assets)
-    #[serde(rename = "długi_korporacyjne", default)]
+    #[serde(default)]
     pub outstanding_corporate_debts: HashMap<String, f64>,
     /// Phase 6.3: Emergency liquidation expenses (wages funded by State for bankrupt companies)
-    #[serde(rename = "wydatki_upadłościowe", default)]
+    #[serde(default)]
     pub liquidation_expenses: f64,
     /// Phase 6.3.5: Placeholder logistics revenue from transport fees
-    #[serde(rename = "przychód_logistyczny", default)]
+    #[serde(default)]
     pub logistics_revenue: f64,
     /// All other runtime-added keys, preserved losslessly.
     #[serde(flatten, default)]
@@ -354,14 +354,14 @@ mod tests {
         "sectors": {
             "agriculture": {
                 "gdp_share": 0.12, "crisis_vulnerability": 0.2,
-                "active_method": {"automation": "Ciągniki Spalinowe", "production": "Trójpolówka", "organization": "Gospodarstwa Chłopskie"},
+                "active_method": {"automation": "Combustion Tractors", "production": "Three-Field System", "organization": "Peasant Farms"},
                 "capacity_utilization": 0.0, "wage": 660.6, "employment": 2146400, "pmi": 33.9
             },
             "public_services": { "gdp_share": 0.03, "capacity_utilization": 0.0, "pmi": 50.0, "employment": 1000 }
         },
         "science": { "innovation_points": 0.0, "researching": null, "discovered": ["tech_001","tech_002"], "base_innovativeness": 0.0 },
         "last_balance_log": "",
-        "zasoby": {"węgiel": 999},
+        "resources": {"coal": 999},
         "magazyny": {"zboze": 42.0}
     }"#;
 
@@ -373,7 +373,7 @@ mod tests {
         assert_eq!(t.stock_market.index, 1000.0);
         assert!((t.allocations.industry - 0.18).abs() < 1e-9);
         // Runtime-only top-level keys land in `extra`.
-        assert!(t.extra.contains_key("zasoby"));
+        assert!(t.extra.contains_key("resources"));
         assert!(t.extra.contains_key("magazyny"));
     }
 
@@ -387,7 +387,7 @@ mod tests {
 
         let agri = &t.sectors[&Sector::Agriculture];
         assert_eq!(agri.crisis_vulnerability, Some(0.2));
-        assert_eq!(agri.active_method.as_ref().unwrap().production, "Trójpolówka");
+        assert_eq!(agri.active_method.as_ref().unwrap().production, "Three-Field System");
     }
 
     #[test]

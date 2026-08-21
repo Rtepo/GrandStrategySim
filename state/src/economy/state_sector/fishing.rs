@@ -11,25 +11,25 @@ use std::collections::BTreeMap;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct FishStock {
     /// Unique fish stock ID
-    #[serde(rename = "id_zapasu")]
+
     pub id: String,
     /// Water body/region ID
-    #[serde(rename = "region_id")]
+
     pub region_id: String,
     /// Total biomass in tons
-    #[serde(rename = "biomasa_całkowita")]
+
     pub total_biomass: f64,
     /// Health 0-1 (affects regeneration)
-    #[serde(rename = "zdrowie")]
+
     pub health: f64,
     /// Regeneration rate per turn (percentage of biomass)
-    #[serde(rename = "tempo_regeneracji")]
+
     pub regeneration_rate: f64,
     /// Maximum sustainable biomass
-    #[serde(rename = "biomasa_maksymalna")]
+
     pub max_biomass: f64,
     /// Species distribution (species -> percentage)
-    #[serde(rename = "dystrybucja_gatunków", default)]
+    #[serde(default)]
     pub species_distribution: BTreeMap<String, f64>,
 }
 
@@ -75,28 +75,28 @@ impl FishStock {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct FishingQuota {
     /// Unique quota ID
-    #[serde(rename = "id_limitu")]
+
     pub id: String,
     /// Region ID
-    #[serde(rename = "region_id")]
+
     pub region_id: String,
     /// Country issuing the quota
-    #[serde(rename = "kraj_wydający")]
+
     pub issuing_country: String,
     /// Maximum catch per turn (tons)
-    #[serde(rename = "maksymalny_połów")]
+
     pub max_catch: f64,
     /// Current catch this turn
-    #[serde(rename = "aktualny_połów")]
+
     pub current_catch: f64,
     /// Quota type
-    #[serde(rename = "typ_limitu")]
+
     pub quota_type: FishingQuotaType,
     /// Valid from turn
-    #[serde(rename = "ważny_od")]
+
     pub valid_from: u32,
     /// Valid until turn
-    #[serde(rename = "ważny_do")]
+
     pub valid_until: u32,
 }
 
@@ -153,22 +153,22 @@ impl FishingQuota {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct FishingPolicy {
     /// Country implementing the policy
-    #[serde(rename = "kraj")]
+
     pub country: String,
     /// Policy type
-    #[serde(rename = "typ_polityki")]
+
     pub policy_type: FishingPolicyType,
     /// Restriction level 0-1 (0 = no restriction, 1 = total ban)
-    #[serde(rename = "poziom_ograniczenia")]
+
     pub restriction_level: f64,
     /// Minimum fish stock health required
-    #[serde(rename = "minimalne_zdrowie_zapasu")]
+
     pub min_stock_health: f64,
     /// Penalty for overfishing (percentage of catch value)
-    #[serde(rename = "kara_za_nadmierny_połów")]
+
     pub overfishing_penalty: f64,
     /// Subsidy for sustainable fishing (percentage of costs)
-    #[serde(rename = "subwencja_za_zrównoważony_połów")]
+
     pub sustainable_fishing_subsidy: f64,
 }
 
@@ -219,31 +219,31 @@ impl FishingPolicy {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct FishingTreaty {
     /// Unique treaty ID
-    #[serde(rename = "id_traktatu")]
+
     pub id: String,
     /// Treaty name
-    #[serde(rename = "nazwa")]
+
     pub name: String,
     /// Signatory countries
-    #[serde(rename = "sygnatariusze", default)]
+    #[serde(default)]
     pub signatories: Vec<String>,
     /// Region/water body covered
-    #[serde(rename = "region_objęty")]
+
     pub covered_region: String,
     /// Total allowable catch for all signatories
-    #[serde(rename = "całkowity_dopuszczalny_połów")]
+
     pub total_allowable_catch: f64,
     /// Country quotas (country -> tons)
-    #[serde(rename = "limity_krajów", default)]
+    #[serde(default)]
     pub country_quotas: BTreeMap<String, f64>,
     /// Enforcement level 0-1
-    #[serde(rename = "poziom_egzekwowania")]
+
     pub enforcement_level: f64,
     /// Valid from turn
-    #[serde(rename = "ważny_od")]
+
     pub valid_from: u32,
     /// Valid until turn
-    #[serde(rename = "ważny_do")]
+
     pub valid_until: u32,
 }
 
@@ -286,34 +286,34 @@ impl FishingTreaty {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct FishFarm {
     /// Unique fish farm ID
-    #[serde(rename = "id_fermry")]
+
     pub id: String,
     /// Region where farm is located
-    #[serde(rename = "region_id")]
+
     pub region_id: String,
     /// Owner (company or state)
-    #[serde(rename = "właściciel")]
+
     pub owner: String,
     /// Farm type
-    #[serde(rename = "typ_fermry")]
+
     pub farm_type: FishFarmType,
     /// Production capacity (tons per turn)
-    #[serde(rename = "pojemność_produkcji")]
+
     pub production_capacity: f64,
     /// Current production
-    #[serde(rename = "aktualna_produkcja")]
+
     pub current_production: f64,
     /// Operating cost per turn
-    #[serde(rename = "koszt_operacyjny")]
+
     pub operating_cost: f64,
     /// Feed cost per ton
-    #[serde(rename = "koszt_karmy")]
+
     pub feed_cost: f64,
     /// Water quality 0-1
-    #[serde(rename = "jakość_wody")]
+
     pub water_quality: f64,
     /// Disease risk 0-1
-    #[serde(rename = "ryzyko_choroby")]
+
     pub disease_risk: f64,
 }
 

@@ -7,23 +7,23 @@ use std::collections::HashMap;
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct Committee {
     /// Committee ID
-    #[serde(rename = "id_komisji", default)]
+    #[serde(default)]
     pub id: String,
 
     /// Committee name
-    #[serde(rename = "nazwa", default)]
+    #[serde(default)]
     pub name: String,
 
     /// Committee type
-    #[serde(rename = "typ")]
+
     pub committee_type: CommitteeType,
 
     /// Members by party
-    #[serde(rename = "czlonkowie", default)]
+    #[serde(default)]
     pub members: HashMap<String, u32>,
 
     /// Chair party
-    #[serde(rename = "przewodniczacy", default)]
+    #[serde(default)]
     pub chair: String,
 
     /// Phase 48: Chair VIP ID (references the global VIP registry).
@@ -32,11 +32,11 @@ pub struct Committee {
     pub chair_vip_id: Option<String>,
 
     /// Partisan bias (-1.0 to 1.0, negative = opposition, positive = government)
-    #[serde(rename = "uprzedzenie_partii", default)]
+    #[serde(default)]
     pub partisan_bias: f64,
 
     /// Bills currently under review (bill IDs)
-    #[serde(rename = "ustawy_w_przeglądzie", default)]
+    #[serde(default)]
     pub bills_under_review: Vec<String>,
 }
 
@@ -106,7 +106,7 @@ impl Committee {
         // Ruling coalition always secures the Chairmanship
         let chair = ruling_coalition
             .first()
-            .unwrap_or(&"Niezależni".to_string())
+            .unwrap_or(&"Independents".to_string())
             .clone();
         
         // Calculate partisan bias based on committee type
@@ -260,11 +260,11 @@ impl Committee {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct CommitteeSystem {
     /// Active committees by ID
-    #[serde(rename = "komisje_aktywne", default)]
+    #[serde(default)]
     pub committees: HashMap<String, Committee>,
     
     /// Committee assignments for bill types
-    #[serde(rename = "przypisania_komisji", default)]
+    #[serde(default)]
     pub bill_type_assignments: HashMap<String, String>,
 }
 
@@ -529,16 +529,16 @@ fn most_distant_clause(clauses: &[Clause], ideology: &IdeologyCompass) -> usize 
 /// Uses a fixed faction-to-opposition lookup table.
 fn build_unpopular_rider(faction: &str) -> BillProvision {
     match faction {
-        "Kapitaliści" | "Drobna Burżuazja" => BillProvision::TaxRateChange {
+        "Capitalists" | "Petty Bourgeoisie" => BillProvision::TaxRateChange {
             income_tax: Some(0.45),
             vat: None,
             corporate_tax: Some(0.35),
         },
-        "Związki Zawodowe" | "Robotnicy" => BillProvision::Deregulation {
+        "Trade Unions" | "Robotnicy" => BillProvision::Deregulation {
             sector: "HeavyIndustry".to_string(),
             scope: "labor_protections".to_string(),
         },
-        "Agrykolanie" | "Chłopi" => BillProvision::TaxRateChange {
+        "Agrykolanie" | "Peasants" => BillProvision::TaxRateChange {
             income_tax: None,
             vat: Some(0.25),
             corporate_tax: None,
@@ -667,7 +667,7 @@ mod phase48_tests {
 
     #[test]
     fn test_build_unpopular_rider_capitalists() {
-        let rider = build_unpopular_rider("Kapitaliści");
+        let rider = build_unpopular_rider("Capitalists");
         match rider {
             BillProvision::TaxRateChange { income_tax, corporate_tax, .. } => {
                 assert!(income_tax.is_some(), "Capitalist rider should raise income tax");
@@ -679,7 +679,7 @@ mod phase48_tests {
 
     #[test]
     fn test_build_unpopular_rider_unions() {
-        let rider = build_unpopular_rider("Związki Zawodowe");
+        let rider = build_unpopular_rider("Trade Unions");
         match rider {
             BillProvision::Deregulation { sector, .. } => {
                 assert_eq!(sector, "HeavyIndustry");

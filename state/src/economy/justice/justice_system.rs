@@ -448,10 +448,10 @@ pub fn process_justice_turn(
         js.fines_collected = fine_result.total_collected;
     }
 
-    // 11. Phase 14.5: Process intelligence capacity from Siedziba Służb buildings
+    // 11. Phase 14.5: Process intelligence capacity from intelligence_hq buildings
     let intel_capacity: f64 = buildings
         .iter()
-        .filter(|b| b.name == "Siedziba Służb")
+        .filter(|b| b.name == "intelligence_hq")
         .map(|b| b.last_production.get(&Commodity::IntelligenceCapacity).copied().unwrap_or(0.0))
         .sum();
 

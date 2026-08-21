@@ -3,29 +3,6 @@ use rand::Rng;
 use rand::seq::SliceRandom;
 use crate::politics::system::OrganizationType;
 
-/// Phase 35: Maps old Polish ideology names to new English names for
-/// backward compatibility with saves created before Phase 35.
-fn polish_to_english(name: &str) -> Option<&'static str> {
-    match name {
-        "Ortodoksyjny Marksizm" => Some("Orthodox Marxism"),
-        "Marksizm-Leninizm" => Some("Marxism-Leninism"),
-        "Maoizm" => Some("Maoism"),
-        "Socjaldemokracja" => Some("Social Democracy"),
-        "Zielona Polityka" => Some("Green Politics"),
-        "Klasyczny Liberalizm" => Some("Classical Liberalism"),
-        "Socjalliberalizm" => Some("Social Liberalism"),
-        "Agraryzm" => Some("Agrarianism"),
-        "Chrześcijańska Demokracja" => Some("Christian Democracy"),
-        "Konserwatyzm Społeczny" => Some("Social Conservatism"),
-        "Neokonserwatyzm" => Some("Neoconservatism"),
-        "Neoliberalizm" => Some("Neoliberalism"),
-        "Konserwatyzm Narodowy" => Some("National Conservatism"),
-        "Anarchokapitalizm" => Some("Anarcho-Capitalism"),
-        "Faszyzm" => Some("Fascism"),
-        _ => None,
-    }
-}
-
 /// A three-dimensional ideological compass.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Default)]
 pub struct IdeologyCompass {
@@ -51,11 +28,9 @@ pub struct IdeologyPreferences {
     pub emancipation: &'static str,
 }
 
-/// A political ideology from the Python `IDEOLOGIES` registry.
+/// A political ideology from the registry.
 ///
-/// Phase 35: All serde renames and `as_str()` outputs are now in English.
-/// A `polish_to_english` fallback in `from_name` ensures old saves with
-/// Polish ideology names still load correctly.
+/// All serde renames and `as_str()` outputs are in English.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
 pub enum Ideology {
     #[serde(rename = "Orthodox Marxism")]
@@ -92,16 +67,9 @@ pub enum Ideology {
 }
 
 impl Ideology {
-    /// Returns the ideology matching an English (or legacy Polish) name.
-    /// Phase 35: Tries English serde rename first, then falls back to
-    /// Polish-to-English mapping for backward compatibility with old saves.
+    /// Returns the ideology matching an English name.
     pub fn from_name(name: &str) -> Option<Self> {
-        // Try English serde rename first
-        if let Ok(ideology) = serde_json::from_str::<Self>(&format!("\"{name}\"")) {
-            return Some(ideology);
-        }
-        // Phase 35: Polish fallback for old saves
-        polish_to_english(name).and_then(|en| serde_json::from_str(&format!("\"{en}\"")).ok())
+        serde_json::from_str::<Self>(&format!("\"{name}\"")).ok()
     }
 
     /// Returns the canonical English name for this ideology.
@@ -176,94 +144,94 @@ impl Ideology {
     pub fn preferences(self) -> IdeologyPreferences {
         match self {
             Ideology::OrthodoxMarxism => IdeologyPreferences {
-                religion: "Laicyzm", citizenship: "Asymilacja 5 lat", electoral_system: "Hare-Niemeyer",
-                trade_doctrine: "Protekcjonizm", labor_law: "Ochrona Pracowników", health_service: "Publiczna",
-                sanitation: "Restrykcyjny", union_law: "Wolne", strike_law: "Dozwolone",
-                education_model: "Publiczny Bezpłatny", school_system: "Gimnazjalny", emancipation: "Pełna Emancypacja",
+                religion: "Secularism", citizenship: "5-Year Assimilation", electoral_system: "Hare-Niemeyer",
+                trade_doctrine: "Protectionism", labor_law: "Worker Protection", health_service: "Public",
+                sanitation: "Restrictive", union_law: "Free", strike_law: "Permitted",
+                education_model: "Free Public", school_system: "Gymnasium", emancipation: "Full Emancipation",
             },
             Ideology::MarxismLeninism => IdeologyPreferences {
-                religion: "Państwowy Ateizm", citizenship: "Asymilacja 5 lat", electoral_system: "Brak",
-                trade_doctrine: "Autarkia", labor_law: "Ochrona Pracowników", health_service: "Publiczna",
-                sanitation: "Restrykcyjny", union_law: "Państwowe", strike_law: "Zakazane",
-                education_model: "Publiczny Bezpłatny", school_system: "8-klasowy", emancipation: "Pełna Emancypacja",
+                religion: "State Atheism", citizenship: "5-Year Assimilation", electoral_system: "None",
+                trade_doctrine: "Autarky", labor_law: "Worker Protection", health_service: "Public",
+                sanitation: "Restrictive", union_law: "State", strike_law: "Banned",
+                education_model: "Free Public", school_system: "8-grade", emancipation: "Full Emancipation",
             },
             Ideology::Maoism => IdeologyPreferences {
-                religion: "Państwowy Ateizm", citizenship: "Asymilacja 10 lat", electoral_system: "Brak",
-                trade_doctrine: "Autarkia", labor_law: "Ochrona Pracowników", health_service: "Publiczna",
-                sanitation: "Restrykcyjny", union_law: "Państwowe", strike_law: "Zakazane",
-                education_model: "Publiczny Bezpłatny", school_system: "8-klasowy", emancipation: "Pełna Emancypacja",
+                religion: "State Atheism", citizenship: "Asymilacja 10 lat", electoral_system: "None",
+                trade_doctrine: "Autarky", labor_law: "Worker Protection", health_service: "Public",
+                sanitation: "Restrictive", union_law: "State", strike_law: "Banned",
+                education_model: "Free Public", school_system: "8-grade", emancipation: "Full Emancipation",
             },
             Ideology::SocialDemocracy => IdeologyPreferences {
-                religion: "Laicyzm", citizenship: "Ziemia 3 lata", electoral_system: "Sainte-Laguë",
-                trade_doctrine: "Wolny Handel", labor_law: "Ochrona Pracowników", health_service: "Publiczna",
-                sanitation: "Standardowy", union_law: "Wolne", strike_law: "Dozwolone",
-                education_model: "Publiczny Bezpłatny", school_system: "Gimnazjalny", emancipation: "Pełna Emancypacja",
+                religion: "Secularism", citizenship: "Ziemia 3 lata", electoral_system: "Sainte-Laguë",
+                trade_doctrine: "Free Trade", labor_law: "Worker Protection", health_service: "Public",
+                sanitation: "Standardowy", union_law: "Free", strike_law: "Permitted",
+                education_model: "Free Public", school_system: "Gymnasium", emancipation: "Full Emancipation",
             },
             Ideology::GreenPolitics => IdeologyPreferences {
-                religion: "Laicyzm", citizenship: "Ziemia 3 lata", electoral_system: "Sainte-Laguë",
-                trade_doctrine: "Wolny Handel", labor_law: "Ochrona Pracowników", health_service: "Publiczna",
-                sanitation: "Restrykcyjny", union_law: "Wolne", strike_law: "Dozwolone",
-                education_model: "Publiczny Bezpłatny", school_system: "Gimnazjalny", emancipation: "Pełna Emancypacja",
+                religion: "Secularism", citizenship: "Ziemia 3 lata", electoral_system: "Sainte-Laguë",
+                trade_doctrine: "Free Trade", labor_law: "Worker Protection", health_service: "Public",
+                sanitation: "Restrictive", union_law: "Free", strike_law: "Permitted",
+                education_model: "Free Public", school_system: "Gymnasium", emancipation: "Full Emancipation",
             },
             Ideology::ClassicalLiberalism => IdeologyPreferences {
                 religion: "Tolerancja", citizenship: "Ziemia 5 lat", electoral_system: "D'Hondt",
-                trade_doctrine: "Wolny Handel", labor_law: "Elastyczne", health_service: "Prywatna",
-                sanitation: "Luźny", union_law: "Wolne", strike_law: "Ograniczone",
-                education_model: "Prywatny", school_system: "8-klasowy", emancipation: "Prawa Majątkowe",
+                trade_doctrine: "Free Trade", labor_law: "Flexible", health_service: "Private",
+                sanitation: "Lax", union_law: "Free", strike_law: "Restricted",
+                education_model: "Prywatny", school_system: "8-grade", emancipation: "Property Rights",
             },
             Ideology::SocialLiberalism => IdeologyPreferences {
-                religion: "Laicyzm", citizenship: "Ziemia 5 lat", electoral_system: "D'Hondt",
-                trade_doctrine: "Wolny Handel", labor_law: "Elastyczne", health_service: "Składkowa",
-                sanitation: "Standardowy", union_law: "Wolne", strike_law: "Dozwolone",
-                education_model: "Publiczny Mieszany", school_system: "Gimnazjalny", emancipation: "Pełna Emancypacja",
+                religion: "Secularism", citizenship: "Ziemia 5 lat", electoral_system: "D'Hondt",
+                trade_doctrine: "Free Trade", labor_law: "Flexible", health_service: "Insurance-based",
+                sanitation: "Standardowy", union_law: "Free", strike_law: "Permitted",
+                education_model: "Publiczny Mieszany", school_system: "Gymnasium", emancipation: "Full Emancipation",
             },
             Ideology::Agrarianism => IdeologyPreferences {
                 religion: "Tolerancja", citizenship: "Krew", electoral_system: "D'Hondt",
-                trade_doctrine: "Protekcjonizm", labor_law: "Ochrona Pracowników", health_service: "Składkowa",
-                sanitation: "Luźny", union_law: "Wolne", strike_law: "Dozwolone",
-                education_model: "Publiczny Mieszany", school_system: "8-klasowy", emancipation: "Prawa Majątkowe",
+                trade_doctrine: "Protectionism", labor_law: "Worker Protection", health_service: "Insurance-based",
+                sanitation: "Lax", union_law: "Free", strike_law: "Permitted",
+                education_model: "Publiczny Mieszany", school_system: "8-grade", emancipation: "Property Rights",
             },
             Ideology::ChristianDemocracy => IdeologyPreferences {
-                religion: "Państwowa", citizenship: "Krew", electoral_system: "D'Hondt",
-                trade_doctrine: "Protekcjonizm", labor_law: "Ochrona Pracowników", health_service: "Składkowa",
-                sanitation: "Luźny", union_law: "Wolne", strike_law: "Dozwolone",
-                education_model: "Publiczny Mieszany", school_system: "8-klasowy", emancipation: "Prawa Majątkowe",
+                religion: "State", citizenship: "Krew", electoral_system: "D'Hondt",
+                trade_doctrine: "Protectionism", labor_law: "Worker Protection", health_service: "Insurance-based",
+                sanitation: "Lax", union_law: "Free", strike_law: "Permitted",
+                education_model: "Publiczny Mieszany", school_system: "8-grade", emancipation: "Property Rights",
             },
             Ideology::SocialConservatism => IdeologyPreferences {
-                religion: "Państwowa", citizenship: "Krew", electoral_system: "D'Hondt",
-                trade_doctrine: "Protekcjonizm", labor_law: "Elastyczne", health_service: "Składkowa",
-                sanitation: "Standardowy", union_law: "Ograniczone", strike_law: "Ograniczone",
-                education_model: "Publiczny Mieszany", school_system: "8-klasowy", emancipation: "Tradycjonalizm",
+                religion: "State", citizenship: "Krew", electoral_system: "D'Hondt",
+                trade_doctrine: "Protectionism", labor_law: "Flexible", health_service: "Insurance-based",
+                sanitation: "Standardowy", union_law: "Restricted", strike_law: "Restricted",
+                education_model: "Publiczny Mieszany", school_system: "8-grade", emancipation: "Traditionalism",
             },
             Ideology::Neoconservatism => IdeologyPreferences {
                 religion: "Tolerancja", citizenship: "Ziemia 5 lat", electoral_system: "D'Hondt",
-                trade_doctrine: "Wolny Handel", labor_law: "Elastyczne", health_service: "Prywatna",
-                sanitation: "Standardowy", union_law: "Wolne", strike_law: "Ograniczone",
-                education_model: "Prywatny Mieszany", school_system: "Gimnazjalny", emancipation: "Prawa Majątkowe",
+                trade_doctrine: "Free Trade", labor_law: "Flexible", health_service: "Private",
+                sanitation: "Standardowy", union_law: "Free", strike_law: "Restricted",
+                education_model: "Prywatny Mieszany", school_system: "Gymnasium", emancipation: "Property Rights",
             },
             Ideology::Neoliberalism => IdeologyPreferences {
-                religion: "Laicyzm", citizenship: "Ziemia 3 lata", electoral_system: "D'Hondt",
-                trade_doctrine: "Wolny Handel", labor_law: "Elastyczne", health_service: "Prywatna",
-                sanitation: "Luźny", union_law: "Wolne", strike_law: "Ograniczone",
-                education_model: "Prywatny", school_system: "Gimnazjalny", emancipation: "Pełna Emancypacja",
+                religion: "Secularism", citizenship: "Ziemia 3 lata", electoral_system: "D'Hondt",
+                trade_doctrine: "Free Trade", labor_law: "Flexible", health_service: "Private",
+                sanitation: "Lax", union_law: "Free", strike_law: "Restricted",
+                education_model: "Prywatny", school_system: "Gymnasium", emancipation: "Full Emancipation",
             },
             Ideology::NationalConservatism => IdeologyPreferences {
-                religion: "Państwowa", citizenship: "Krew", electoral_system: "D'Hondt",
-                trade_doctrine: "Protekcjonizm", labor_law: "Elastyczne", health_service: "Składkowa",
-                sanitation: "Standardowy", union_law: "Ograniczone", strike_law: "Zakazane",
-                education_model: "Publiczny Mieszany", school_system: "8-klasowy", emancipation: "Tradycjonalizm",
+                religion: "State", citizenship: "Krew", electoral_system: "D'Hondt",
+                trade_doctrine: "Protectionism", labor_law: "Flexible", health_service: "Insurance-based",
+                sanitation: "Standardowy", union_law: "Restricted", strike_law: "Banned",
+                education_model: "Publiczny Mieszany", school_system: "8-grade", emancipation: "Traditionalism",
             },
             Ideology::AnarchoCapitalism => IdeologyPreferences {
-                religion: "Laicyzm", citizenship: "Brak", electoral_system: "Brak",
-                trade_doctrine: "Wolny Handel", labor_law: "Elastyczne", health_service: "Prywatna",
-                sanitation: "Luźny", union_law: "Wolne", strike_law: "Dozwolone",
-                education_model: "Prywatny", school_system: "Gimnazjalny", emancipation: "Pełna Emancypacja",
+                religion: "Secularism", citizenship: "None", electoral_system: "None",
+                trade_doctrine: "Free Trade", labor_law: "Flexible", health_service: "Private",
+                sanitation: "Lax", union_law: "Free", strike_law: "Permitted",
+                education_model: "Prywatny", school_system: "Gymnasium", emancipation: "Full Emancipation",
             },
             Ideology::Fascism => IdeologyPreferences {
-                religion: "Państwowa", citizenship: "Krew", electoral_system: "Brak",
-                trade_doctrine: "Autarkia", labor_law: "Państwowe", health_service: "Publiczna",
-                sanitation: "Restrykcyjny", union_law: "Państwowe", strike_law: "Zakazane",
-                education_model: "Państwowy Ideologiczny", school_system: "8-klasowy", emancipation: "Tradycjonalizm",
+                religion: "State", citizenship: "Krew", electoral_system: "None",
+                trade_doctrine: "Autarky", labor_law: "State", health_service: "Public",
+                sanitation: "Restrictive", union_law: "State", strike_law: "Banned",
+                education_model: "State Ideological", school_system: "8-grade", emancipation: "Traditionalism",
             },
         }
     }
@@ -271,14 +239,14 @@ impl Ideology {
     /// The economic school attached to this ideology.
     pub fn economic_school(self) -> &'static str {
         match self {
-            Ideology::OrthodoxMarxism | Ideology::MarxismLeninism | Ideology::Maoism => "Marksistowska",
-            Ideology::ClassicalLiberalism => "Klasyczna",
-            Ideology::SocialDemocracy | Ideology::SocialLiberalism | Ideology::GreenPolitics => "Keynesowska",
-            Ideology::Agrarianism | Ideology::Neoconservatism => "Interwencjonizm Państwowy",
+            Ideology::OrthodoxMarxism | Ideology::MarxismLeninism | Ideology::Maoism => "Marxist",
+            Ideology::ClassicalLiberalism => "Classical",
+            Ideology::SocialDemocracy | Ideology::SocialLiberalism | Ideology::GreenPolitics => "Keynesian",
+            Ideology::Agrarianism | Ideology::Neoconservatism => "State Interventionism",
             Ideology::ChristianDemocracy | Ideology::SocialConservatism | Ideology::NationalConservatism => "Narodowy Solidaryzm",
-            Ideology::Neoliberalism => "Austriacka",
-            Ideology::AnarchoCapitalism => "Monetarystyczna",
-            Ideology::Fascism => "Marksistowska",
+            Ideology::Neoliberalism => "Austrian",
+            Ideology::AnarchoCapitalism => "Monetarist",
+            Ideology::Fascism => "Marxist",
         }
     }
 
@@ -317,21 +285,21 @@ impl Ideology {
     /// Weighted electorate base groups for this ideology.
     pub fn base_weights(self) -> &'static [(&'static str, f64)] {
         match self {
-            Ideology::OrthodoxMarxism => &[("Związki Zawodowe", 0.5), ("Studenci", 0.3)],
-            Ideology::MarxismLeninism => &[("Związki Zawodowe", 0.4), ("Biurokraci", 0.3), ("Siły Zbrojne", 0.2)],
-            Ideology::Maoism => &[("Agrykolanie", 0.6), ("Związki Zawodowe", 0.2)],
-            Ideology::SocialDemocracy => &[("Związki Zawodowe", 0.5), ("Specjaliści", 0.3), ("Inteligencja", 0.2)],
-            Ideology::GreenPolitics => &[("Studenci", 0.5), ("Inteligencja", 0.3), ("Specjaliści", 0.2)],
-            Ideology::ClassicalLiberalism => &[("Kapitaliści", 0.5), ("Drobna Burżuazja", 0.3), ("Specjaliści", 0.2)],
-            Ideology::SocialLiberalism => &[("Specjaliści", 0.4), ("Inteligencja", 0.3), ("Drobna Burżuazja", 0.3)],
-            Ideology::Agrarianism => &[("Agrykolanie", 0.7), ("Rzemieślnicy", 0.3)],
-            Ideology::ChristianDemocracy => &[("Duchowieństwo", 0.5), ("Rzemieślnicy", 0.3), ("Agrykolanie", 0.2)],
-            Ideology::SocialConservatism => &[("Arystokracja", 0.4), ("Duchowieństwo", 0.4), ("Siły Zbrojne", 0.2)],
-            Ideology::Neoconservatism => &[("Kapitaliści", 0.4), ("Siły Zbrojne", 0.3), ("Drobna Burżuazja", 0.3)],
-            Ideology::Neoliberalism => &[("Kapitaliści", 0.6), ("Specjaliści", 0.3), ("Drobna Burżuazja", 0.1)],
-            Ideology::NationalConservatism => &[("Siły Zbrojne", 0.4), ("Arystokracja", 0.3), ("Rzemieślnicy", 0.3)],
-            Ideology::AnarchoCapitalism => &[("Kapitaliści", 0.5), ("Drobna Burżuazja", 0.5)],
-            Ideology::Fascism => &[("Biurokraci", 0.4), ("Siły Zbrojne", 0.3), ("Drobna Burżuazja", 0.3)],
+            Ideology::OrthodoxMarxism => &[("Trade Unions", 0.5), ("Studenci", 0.3)],
+            Ideology::MarxismLeninism => &[("Trade Unions", 0.4), ("Biurokraci", 0.3), ("Armed Forces", 0.2)],
+            Ideology::Maoism => &[("Agrykolanie", 0.6), ("Trade Unions", 0.2)],
+            Ideology::SocialDemocracy => &[("Trade Unions", 0.5), ("Specialists", 0.3), ("Inteligencja", 0.2)],
+            Ideology::GreenPolitics => &[("Studenci", 0.5), ("Inteligencja", 0.3), ("Specialists", 0.2)],
+            Ideology::ClassicalLiberalism => &[("Capitalists", 0.5), ("Petty Bourgeoisie", 0.3), ("Specialists", 0.2)],
+            Ideology::SocialLiberalism => &[("Specialists", 0.4), ("Inteligencja", 0.3), ("Petty Bourgeoisie", 0.3)],
+            Ideology::Agrarianism => &[("Agrykolanie", 0.7), ("Artisans", 0.3)],
+            Ideology::ChristianDemocracy => &[("Clergy", 0.5), ("Artisans", 0.3), ("Agrykolanie", 0.2)],
+            Ideology::SocialConservatism => &[("Arystokracja", 0.4), ("Clergy", 0.4), ("Armed Forces", 0.2)],
+            Ideology::Neoconservatism => &[("Capitalists", 0.4), ("Armed Forces", 0.3), ("Petty Bourgeoisie", 0.3)],
+            Ideology::Neoliberalism => &[("Capitalists", 0.6), ("Specialists", 0.3), ("Petty Bourgeoisie", 0.1)],
+            Ideology::NationalConservatism => &[("Armed Forces", 0.4), ("Arystokracja", 0.3), ("Artisans", 0.3)],
+            Ideology::AnarchoCapitalism => &[("Capitalists", 0.5), ("Petty Bourgeoisie", 0.5)],
+            Ideology::Fascism => &[("Biurokraci", 0.4), ("Armed Forces", 0.3), ("Petty Bourgeoisie", 0.3)],
         }
     }
 
@@ -350,11 +318,11 @@ impl Ideology {
         }
         let school = self.economic_school();
         let mut multiplier = 1.0;
-        if year < 1930 && school == "Klasyczna" {
+        if year < 1930 && school == "Classical" {
             multiplier = 1.5;
-        } else if (1930..1970).contains(&year) && matches!(school, "Keynesowska" | "Neo-Keynesowska" | "Interwencjonizm Państwowy") {
+        } else if (1930..1970).contains(&year) && matches!(school, "Keynesian" | "Neo-Keynesian" | "State Interventionism") {
             multiplier = 1.8;
-        } else if year >= 1970 && matches!(school, "Monetarystyczna" | "Austriacka") {
+        } else if year >= 1970 && matches!(school, "Monetarist" | "Austrian") {
             multiplier = 2.0;
         }
         if self == Ideology::Fascism {

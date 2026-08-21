@@ -355,6 +355,7 @@ pub fn generate_corporate_entities(
                 },
                 active_blueprint: None,
                 extra: Map::new(),
+                ..Default::default()
             },
             accidents_last_year: 0,
             strike: false,
@@ -1203,6 +1204,7 @@ fn method_from_ratios(
         active_methods: Default::default(),
         active_blueprint: None,
         extra: Map::new(),
+        ..Default::default()
     }
 }
 
@@ -2465,7 +2467,7 @@ fn create_seed_company(
 /// # Rules
 /// * Machinery-type sectors get the machinery they produce (self-supply).
 /// * Non-machinery sectors get IndustrialMachinery as a generic capital good.
-/// * Cohorts are legacy (no blueprint), quality 0.8, condition 0.7Ă˘â‚¬â€ś1.0.
+/// * Cohorts are legacy (no blueprint), quality 0.8, condition 0.7-1.0.
 fn seed_fixed_assets(
     sector: Sector,
     start_year: u32,
@@ -2757,7 +2759,7 @@ fn create_strategic_reserve_agency(country: &Country, start_year: u32) -> Compan
 fn state_building_recipe(name: &str, start_year: u32) -> (String, ActiveProductionMethod) {
     let year = start_year.saturating_sub(1);
     match name {
-        "Baza Wojskowa" => (
+        "military_base" => (
             name.to_string(),
             method_from_ratios(
                 0.15,
@@ -2774,7 +2776,7 @@ fn state_building_recipe(name: &str, start_year: u32) -> (String, ActiveProducti
                 year,
             ),
         ),
-        "Komisariat" => (
+        "police_station" => (
             name.to_string(),
             method_from_ratios(
                 0.10,
@@ -3495,7 +3497,7 @@ fn generate_housing(
 /// * One NGO per region (secular, serves all demographics).
 /// * One Church per region per dominant religion (religious, serves co-religionists).
 /// * Capital is minimal (micro-scale, funded by donations at runtime).
-/// * Worker capacity is small (5Ă˘â‚¬â€ś10 FTE for NGOs, 3Ă˘â‚¬â€ś8 for churches).
+/// * Worker capacity is small (5-10 FTE for NGOs, 3-8 for churches).
 /// * Entities are saved to `entities/<country>/ngo.json` and `religion.json`.
 fn generate_charity_entities(
     data_dir: &Path,

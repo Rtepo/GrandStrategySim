@@ -23,51 +23,51 @@ use std::collections::{HashMap, BTreeMap};
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct LobbyingGroup {
     /// Unique identifier (e.g., "[LOB-IND-001]")
-    #[serde(rename = "id_lobbisty", default)]
+    #[serde(default)]
     pub id: String,
     
     /// Group name (e.g., "Polish Chamber of Commerce")
-    #[serde(rename = "nazwa", default)]
+    #[serde(default)]
     pub name: String,
     
     /// Group type (sectoral, regional, ideological)
-    #[serde(rename = "typ_grupy", default)]
+    #[serde(default)]
     pub group_type: LobbyingGroupType,
     
     /// Brokerage account for pooled capital
-    #[serde(rename = "rachunek_maklerski", default)]
+    #[serde(default)]
     pub brokerage_account: Option<BrokerageAccount>,
     
     /// Member companies (by company_id)
-    #[serde(rename = "firmy_członkowskie", default)]
+    #[serde(default)]
     pub member_companies: Vec<String>,
     
     /// Membership dues structure (percentage of company liquid capital)
-    #[serde(rename = "składki_członkowskie", default)]
+    #[serde(default)]
     pub membership_dues_rate: f64,
     
     /// Target sectors for influence (empty = all sectors)
-    #[serde(rename = "sektory_celowe", default)]
+    #[serde(default)]
     pub target_sectors: Vec<Sector>,
     
     /// Target regions for influence (empty = national)
-    #[serde(rename = "regiony_celowe", default)]
+    #[serde(default)]
     pub target_regions: Vec<String>,
     
     /// Political alignment (ideology vector)
-    #[serde(rename = "wyrównanie_polityczne", default)]
+    #[serde(default)]
     pub political_alignment: HashMap<String, f64>,
     
     /// Influence power (derived from pooled capital + member count)
-    #[serde(rename = "moc_wplywu", default)]
+    #[serde(default)]
     pub influence_power: f64,
     
     /// Active lobbying operations
-    #[serde(rename = "operacje_lobbingowe", default)]
+    #[serde(default)]
     pub active_lobbies: Vec<LobbyingOperation>,
     
     /// Turn when group was founded
-    #[serde(rename = "turn_powstania", default)]
+    #[serde(default)]
     pub founding_turn: u32,
     
     /// Any additional fields
@@ -78,16 +78,16 @@ pub struct LobbyingGroup {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum LobbyingGroupType {
     #[default]
-    #[serde(rename = "sektorowy")]
+
     Sectoral,  // Industry association (e.g., Mining Association)
     
-    #[serde(rename = "regionalny")]
+
     Regional,  // Regional chamber of commerce
     
-    #[serde(rename = "ideologiczny")]
+
     Ideological,  // Think tank / advocacy group
     
-    #[serde(rename = "zawodowy")]
+
     Professional,  // Professional association (e.g., Medical Association)
 }
 
@@ -95,43 +95,43 @@ pub enum LobbyingGroupType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct LobbyingOperation {
     /// Operation ID
-    #[serde(rename = "id_operacji", default)]
+    #[serde(default)]
     pub id: String,
     
     /// Initiating lobbying group
-    #[serde(rename = "grupa_lobbistyczna", default)]
+    #[serde(default)]
     pub lobbying_group_id: String,
     
     /// Target type (Bill, Councilor, Party)
-    #[serde(rename = "typ_celu", default)]
+    #[serde(default)]
     pub target_type: LobbyingTarget,
     
     /// Target identifier (bill_id, councilor_id, or party_id)
-    #[serde(rename = "cel", default)]
+    #[serde(default)]
     pub target_id: String,
     
     /// Operation type (legal lobbying, illicit bribery)
-    #[serde(rename = "typ_operacji", default)]
+    #[serde(default)]
     pub operation_type: LobbyingOperationType,
     
     /// Amount spent
-    #[serde(rename = "kwota", default)]
+    #[serde(default)]
     pub amount: f64,
     
     /// Expected influence modifier (-0.5 to +0.5)
-    #[serde(rename = "modyfikator_wplywu", default)]
+    #[serde(default)]
     pub influence_modifier: f64,
     
     /// Turn when operation was initiated
-    #[serde(rename = "turn_inicjacji", default)]
+    #[serde(default)]
     pub initiation_turn: u32,
     
     /// Operation status
-    #[serde(rename = "status", default)]
+    #[serde(default)]
     pub status: LobbyingStatus,
     
     /// Discovery risk (0-1, for illicit operations)
-    #[serde(rename = "ryzyko_odkrycia", default)]
+    #[serde(default)]
     pub discovery_risk: f64,
     
     /// Any additional fields
@@ -142,42 +142,42 @@ pub struct LobbyingOperation {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum LobbyingTarget {
     #[default]
-    #[serde(rename = "ustawa")]
+
     Bill,  // Target a specific Bill in parliament
     
-    #[serde(rename = "radny")]
+
     Councilor,  // Target a specific LocalCouncil councilor
     
-    #[serde(rename = "partia")]
+
     Party,  // Target a specific Party (campaign contribution)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum LobbyingOperationType {
     #[default]
-    #[serde(rename = "lobbing_prawny")]
+
     LegalLobbying,  // Legal campaign contribution / advocacy
     
-    #[serde(rename = "łapownictwo")]
+
     Bribery,  // Illicit direct payment to individual
     
-    #[serde(rename = "finansowanie_czarnych_pieniędzy")]
+
     BlackMoneyFinancing,  // Illicit party funding (triggers Phase 3 mechanics)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum LobbyingStatus {
     #[default]
-    #[serde(rename = "w_toku")]
+
     InProgress,
     
-    #[serde(rename = "zakończony_sukcesem")]
+
     Success,
     
-    #[serde(rename = "zakończony_porażką")]
+
     Failed,
     
-    #[serde(rename = "odkryty")]
+
     Discovered,  // Illicit operation exposed
 }
 

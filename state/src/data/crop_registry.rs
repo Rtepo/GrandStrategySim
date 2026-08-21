@@ -100,7 +100,7 @@ pub fn crop_registry() -> &'static HashMap<String, CropDefinition> {
         // Industrial crops
         crops.insert("cotton".to_string(), CropDefinition {
             id: "cotton".to_string(),
-            name: "Bawełna".to_string(),
+            name: "Cotton".to_string(),
             category: CropCategory::Industrial,
             land_type: LandType::Plantation,
             compatible_climates: vec![ClimateProfile::Tropical, ClimateProfile::Coastal],

@@ -46,7 +46,7 @@ use crate::registries::enums::Commodity;
 use crate::registries::enums::Sector;
 use crate::state::{process_banking_turn, process_tax_collection_turn, settle_trade_deficits};
 use crate::politics::process_political_year;
-use crate::politics::ministries::{migrate_legacy_budget, allocate_cash_to_ministries, calculate_budget_needs, sum_ministry_allocations, prepare_minister_strategies_with_parties, process_minister_post_clearing};
+use crate::politics::ministries::{allocate_cash_to_ministries, calculate_budget_needs, sum_ministry_allocations, prepare_minister_strategies_with_parties, process_minister_post_clearing};
 use crate::politics::budget_lifecycle::{draft_budget_bill, process_budget_lifecycle, apply_budget_failure_consequence};
 use crate::politics::fiscal_transfers::{process_regional_taxes, process_fiscal_transfers, check_commissary_administration, process_municipal_debt_service};
 use crate::economy::debt_market::{process_debt_service, clear_arrears, issue_treasury_securities, clear_savings_bonds_b2c, clear_secondary_debt_market};
@@ -947,10 +947,6 @@ pub fn run_turn_in_memory(
         // ministry orders are domestic; tariffs must NOT apply.
         // ═══════════════════════════════════════════════════════════
         tasks.par_iter_mut().for_each(|task| {
-            // Migrate legacy budget if ministry_config is missing
-            if task.ctx.country.politics.ministry_config.is_none() {
-                migrate_legacy_budget(task.ctx.country);
-            }
             // Allocate cash from treasury to ministries
             allocate_cash_to_ministries(task.ctx.country);
 
@@ -2407,7 +2403,8 @@ pub fn run_turn_in_memory(
             let num_regions = task.ctx.country.regions.len();
             for region_idx in 0..num_regions {
                 let region = &mut task.ctx.country.regions[region_idx];
-                let mut consumer_demand = build_consumer_demand(region, turn);
+                let avg_wage = task.ctx.country.macro_indicators.average_wage;
+                let mut consumer_demand = build_consumer_demand(region, turn, &task.ctx.market_prices, avg_wage, &task.housing_buildings);
                 // Phase 44: Net out in-kind deductions from B2C consumer demand.
                 // Serfs (and partially FreePeasants/LandlessLaborers) have their
                 // subsistence needs met in-kind. Their B2C demand for those
@@ -2858,9 +2855,6 @@ pub fn run_turn_in_memory(
         tasks.par_iter_mut().for_each(|task| {
             let current_turn = task.ctx.turn;
 
-            // 0. MIGRATION: Ensure ministry_config exists for pre-Phase 7 saves
-            migrate_legacy_budget(task.ctx.country);
-
             // Phase 40: Calculate budget needs based on GDP and ideology.
             // This runs every turn to ensure ministries always have non-zero
             // allocated_cash (the root cause of the zero-budget bug).
@@ -2978,7 +2972,7 @@ pub fn run_turn_in_memory(
             check_commissary_administration(task.ctx.country);
 
             // Phase 15B: Customs evasion recovery — recover evaded taxes
-            // scaled by CustomsCapacity from Urząd Celny buildings.
+            // scaled by CustomsCapacity from customs_office buildings.
             if tax_result.taxes_evaded > 0.0 {
                 let _recovered = crate::economy::smuggling::process_customs_evasion_recovery(
                     task.ctx.country,
@@ -3471,7 +3465,7 @@ pub fn run_turn_in_memory(
         });
 
         // ═══════════════════════════════════════════════════════════
-        // PHASE 18B: VIGILANTE JUSTICE (SAMOSĄDY) + OMBUDSMAN (RPO)
+        // PHASE 18B: VIGILANTE JUSTICE (VIGILANTE JUSTICE) + OMBUDSMAN (Ombudsman)
         // Vigilante justice: triggers in regions with < 0.15 justice or
         // security coverage AND high unrest. Summary executions reduce
         // population, mutilations reduce available_fte. Creates

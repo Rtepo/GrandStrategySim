@@ -303,7 +303,7 @@ mod tests {
         let config = ProxyWarConfig::default();
         let action = ProxyWarAction::FundSeparatists {
             sponsor_country: "Sponsor".to_string(),
-            target_country: "Target".to_string(),
+            target_country: "target".to_string(),
             target_region: "region_1".to_string(),
             amount: 1000.0,
         };
@@ -324,7 +324,7 @@ mod tests {
         let config = ProxyWarConfig::default();
         let action = ProxyWarAction::FundSeparatists {
             sponsor_country: "Sponsor".to_string(),
-            target_country: "Target".to_string(),
+            target_country: "target".to_string(),
             target_region: "region_1".to_string(),
             amount: 1000.0,
         };
@@ -342,7 +342,7 @@ mod tests {
         let config = ProxyWarConfig::default();
         let action = ProxyWarAction::FundSeparatists {
             sponsor_country: "Sponsor".to_string(),
-            target_country: "Target".to_string(),
+            target_country: "target".to_string(),
             target_region: "region_1".to_string(),
             amount: 1000.0,
         };
@@ -361,7 +361,7 @@ mod tests {
         let config = ProxyWarConfig::default();
         let action = ProxyWarAction::FundSeparatists {
             sponsor_country: "Sponsor".to_string(),
-            target_country: "Target".to_string(),
+            target_country: "target".to_string(),
             target_region: "region_1".to_string(),
             amount: 1000.0,
         };
@@ -378,7 +378,7 @@ mod tests {
         let config = ProxyWarConfig::default();
         let action = ProxyWarAction::ArmRebels {
             sponsor_country: "Sponsor".to_string(),
-            target_country: "Target".to_string(),
+            target_country: "target".to_string(),
             rifles_quantity: 1000.0,
             ammunition_quantity: 50_000.0,
         };
@@ -402,7 +402,7 @@ mod tests {
         let config = ProxyWarConfig::default();
         let action = ProxyWarAction::ArmRebels {
             sponsor_country: "Sponsor".to_string(),
-            target_country: "Target".to_string(),
+            target_country: "target".to_string(),
             rifles_quantity: 1000.0,
             ammunition_quantity: 50_000.0,
         };
@@ -421,7 +421,7 @@ mod tests {
         let config = ProxyWarConfig::default();
         let action = ProxyWarAction::ArmRebels {
             sponsor_country: "Sponsor".to_string(),
-            target_country: "Target".to_string(),
+            target_country: "target".to_string(),
             rifles_quantity: 1000.0,
             ammunition_quantity: 50_000.0,
         };
@@ -438,7 +438,7 @@ mod tests {
         let config = ProxyWarConfig::default();
         let action = ProxyWarAction::ArmRebels {
             sponsor_country: "Sponsor".to_string(),
-            target_country: "Target".to_string(),
+            target_country: "target".to_string(),
             rifles_quantity: 1000.0,
             ammunition_quantity: 50_000.0,
         };
@@ -457,7 +457,7 @@ mod tests {
         // Min = 200 rebels
         let action = ProxyWarAction::ArmRebels {
             sponsor_country: "Sponsor".to_string(),
-            target_country: "Target".to_string(),
+            target_country: "target".to_string(),
             rifles_quantity: 1000.0,
             ammunition_quantity: 10_000.0,
         };
@@ -476,7 +476,7 @@ mod tests {
         let config = ProxyWarConfig::default();
         let action = ProxyWarAction::ArmRebels {
             sponsor_country: "Sponsor".to_string(),
-            target_country: "Target".to_string(),
+            target_country: "target".to_string(),
             rifles_quantity: 1000.0,
             ammunition_quantity: 50_000.0,
         };

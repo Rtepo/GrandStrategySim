@@ -1,4 +1,4 @@
-//! Phase 15A: Volunteer Fire Brigades (OSP — Ochotnicza Straż Pożarna).
+//! Phase 15A: Volunteer Fire Brigades (OSP — Ochotnicza fire_station).
 //!
 //! OSP are `Company` entities with `Sector::NGO` and `LegalForm::NonProfit`.
 //! They are funded through the existing Phase 13 charity infrastructure

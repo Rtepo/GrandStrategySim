@@ -285,7 +285,7 @@ pub enum MinistrySpendingAction {
 pub struct Ministry {
     /// Unique ministry ID (e.g. "MIN-001").
     pub id: String,
-    /// Display name (e.g. "Ministerstwo Przemysłu Ciężkiego").
+    /// Display name (e.g. "Ministry of Heavy Industry").
     pub name: String,
     /// Competencies bundled into this ministry.
     pub competencies: Vec<GovernmentCompetency>,
@@ -1287,96 +1287,6 @@ pub fn process_minister_post_clearing(
             // The trade was already settled during match_orders — cash moved
             // from encumbrance to seller. The spent_cash already reflects this.
         }
-    }
-}
-
-/// Migrates legacy `BudgetAllocations` to the new ministry system.
-///
-/// Called at turn start when `country.politics.ministry_config` is `None`
-/// (i.e., loading a pre-Phase 8 save). Creates a default `MinistryConfig`
-/// from the ruling party's ideology and the legacy budget allocation percentages.
-///
-/// # Arguments
-/// * `country` - Mutable country state to migrate.
-///
-/// # Rules
-/// * Only migrates if `ministry_config` is `None`.
-/// * Uses `form_government()` to create ministries from the ruling party's ideology.
-/// * Maps legacy `BudgetAllocations` percentages to ministry cash targets
-///   based on `nominal_budget`.
-pub fn migrate_legacy_budget(country: &mut Country) {
-    if country.politics.ministry_config.is_some() {
-        return;
-    }
-
-    let coalition = country.politics.coalition.clone();
-    let active_parties = country.politics.active_parties.clone();
-
-    let mut used_names = std::collections::HashSet::new();
-    for party in active_parties.values() {
-        if !party.leader.name.is_empty() {
-            used_names.insert(party.leader.name.clone());
-        }
-    }
-    let mut config = form_government(country, &coalition, &active_parties, 0, &mut used_names);
-
-    // Map legacy BudgetAllocations percentages to ministry allocated_cash
-    let nominal = country.budget.nominal_budget;
-    if nominal > 0.0 {
-        let allocations = &country.budget.allocations;
-        for ministry in &mut config.ministries {
-            let legacy_share: f64 = ministry
-                .competencies
-                .iter()
-                .map(|comp| {
-                    match comp {
-                        GovernmentCompetency::HeavyIndustry | GovernmentCompetency::LightIndustry => allocations.industry,
-                        GovernmentCompetency::Education => allocations.education_propaganda,
-                        GovernmentCompetency::Healthcare => allocations.healthcare,
-                        GovernmentCompetency::Infrastructure | GovernmentCompetency::Transport => allocations.infrastructure_transport,
-                        GovernmentCompetency::SocialWelfare => allocations.social_programs,
-                        GovernmentCompetency::Agriculture => allocations.agriculture_rural,
-                        GovernmentCompetency::Defense => allocations.armed_forces,
-                        GovernmentCompetency::InternalSecurity => allocations.extra.get("bezpieczenstwo_publiczne").and_then(|v| v.as_f64()).unwrap_or(0.05),
-                        _ => 0.0,
-                    }
-                })
-                .sum();
-            ministry.allocated_cash = (nominal * legacy_share).round() / 100.0;
-        }
-    }
-
-    country.politics.ministry_config = Some(config);
-
-    // Convert legacy PublicDebt to a TreasurySecurity with foreign holder
-    let public_debt = &country.tax_rates.public_debt;
-    if public_debt.current_debt > 0.0 {
-        use crate::economy::debt_market::{
-            TreasurySecurity, TreasurySecurityType, SecurityHolder, SecurityHolderType,
-            CouponFrequency,
-        };
-        let security = TreasurySecurity {
-            id: format!("TBOND-LEGACY-{}", country.name),
-            security_type: TreasurySecurityType::TreasuryBond,
-            face_value: public_debt.current_debt,
-            issue_price: public_debt.current_debt,
-            issue_turn: 0,
-            maturity_turns: 48,
-            turns_remaining: 48,
-            coupon_rate: public_debt.interest_rate,
-            coupon_frequency: CouponFrequency::EveryTurn,
-            is_inflation_indexed: false,
-            holders: vec![SecurityHolder {
-                entity_id: "FOREIGN_LEGACY".to_string(),
-                holder_type: SecurityHolderType::ForeignEntity,
-                quantity: public_debt.current_debt,
-                purchase_price: public_debt.current_debt,
-            }],
-            last_coupon_turn: 0,
-            is_matured: false,
-            is_auction_inventory: false,
-        };
-        country.debt_market.outstanding_securities.push(security);
     }
 }
 

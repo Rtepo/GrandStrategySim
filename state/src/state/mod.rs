@@ -54,16 +54,16 @@ use std::collections::{HashMap, BTreeMap};
 #[serde(rename_all = "snake_case")]
 pub enum Season {
     #[default]
-    #[serde(rename = "zima")]
+
     /// Winter season (December, January, February)
     Winter,
-    #[serde(rename = "wiosna")]
+
     /// Spring season (March, April, May)
     Spring,
-    #[serde(rename = "lato")]
+
     /// Summer season (June, July, August)
     Summer,
-    #[serde(rename = "jesień")]
+
     /// Autumn season (September, October, November)
     Autumn,
 }
@@ -72,23 +72,23 @@ pub enum Season {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct Calendar {
     /// Global turn counter (1-indexed, increments each half-month)
-    #[serde(rename = "turn_globalny", default)]
+    #[serde(default)]
     pub global_turn: u32,
     
     /// Current year (derived from global_turn: year = (global_turn - 1) / 24 + 1)
-    #[serde(rename = "rok", default)]
+    #[serde(default)]
     pub current_year: u32,
     
     /// Current month within year (1-12, derived from global_turn)
-    #[serde(rename = "miesiąc", default)]
+    #[serde(default)]
     pub current_month: u32,
     
     /// Half-month flag (0 = early month, 1 = late month)
-    #[serde(rename = "pół_miesiąca", default)]
+    #[serde(default)]
     pub half_month: bool,
     
     /// Start year of simulation (e.g., 1925)
-    #[serde(rename = "rok_początku", default)]
+    #[serde(default)]
     pub start_year: u32,
 }
 
@@ -269,10 +269,10 @@ pub struct Country {
     #[serde(default)]
     pub military_fronts: Vec<crate::military::Front>,
     /// Phase 3: Central military arms depot. Filled by B2B procurement deliveries.
-    #[serde(rename = "składnice_wojskowe", default)]
+    #[serde(default)]
     pub military_stockpile: HashMap<crate::registries::enums::Commodity, f64>,
     /// Phase 3: All combat and supply parameters. No magic numbers in logic.
-    #[serde(rename = "konfiguracja_bojowa", default)]
+    #[serde(default)]
     pub military_config: crate::military::config::MilitaryCombatConfig,
     /// Phase 69: War economy state — production decrees, conscription, war bonds.
     /// No serde default — breaks saves per Rule 10.
@@ -281,7 +281,7 @@ pub struct Country {
     pub at_war_with: Vec<String>,
     /// Phase 3: Pending B2B buy orders from Ministry of Defense.
     /// Created in Phase 8, merged into global OrderBook at start of next turn's Phase 6.4.
-    #[serde(rename = "zlecenia_obrony", default)]
+    #[serde(default)]
     pub pending_defense_orders: Vec<crate::economy::order_book::Bid>,
     /// Phase 4: Rationing system for commodity shortages.
     #[serde(default)]
@@ -306,7 +306,7 @@ pub struct Country {
     #[serde(default)]
     pub intelligence_budget: IntelligenceBudget,
     /// PHASE 4: Active lobbying operations
-    #[serde(rename = "aktywne_operacje_lobbingowe", default)]
+    #[serde(default)]
     pub active_lobbying_operations: Vec<crate::politics::lobbying::LobbyingOperation>,
     /// Stage D: Central Bank (one per country, or shared in currency unions).
     #[serde(default)]
@@ -368,13 +368,13 @@ pub struct Country {
     pub foreign_debt: f64,
     /// Phase 6.2: Statutory minimum wage per FTE (currency units)
     /// None = laissez-faire economy (no minimum wage enforcement)
-    #[serde(rename = "płaca_minimalna", skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub minimum_wage: Option<f64>,
     /// Phase 6.4: Economic policy for price interventions and subsidies
     #[serde(default)]
     pub economic_policy: EconomicPolicy,
     /// Phase 8: Advanced debt market (wholesale + retail + secondary).
-    #[serde(rename = "rynek_długu", default)]
+    #[serde(default)]
     pub debt_market: crate::economy::debt_market::DebtMarket,
     /// Resurrection Phase 1: Cultural/religious institutions as economic actors
     #[serde(default)]
@@ -478,7 +478,7 @@ pub struct Country {
     pub maintenance_config: crate::economy::maintenance::MaintenanceConfig,
     /// Phase 15C: State Forests timber management state.
     #[serde(default)]
-    pub state_forest_state: crate::economy::state_forests::StateForestState,
+    pub state_forest_state: crate::economy::state_forests::forest_districtState,
     /// Phase 17A: Religious authority scores per religion.
     #[serde(default)]
     pub religious_authority_state: crate::society::religious_authority::ReligiousAuthorityState,
@@ -646,7 +646,7 @@ impl Country {
             social_programs: Vec::new(),
             weather_state: crate::economy::weather::WeatherState::default(),
             maintenance_config: crate::economy::maintenance::MaintenanceConfig::default(),
-            state_forest_state: crate::economy::state_forests::StateForestState::default(),
+            state_forest_state: crate::economy::state_forests::forest_districtState::default(),
             religious_authority_state: crate::society::religious_authority::ReligiousAuthorityState::default(),
             generative_goods_config: crate::economy::generative_goods_config::GenerativeGoodsConfig::default(),
             geological_formations: Vec::new(),
@@ -701,11 +701,11 @@ impl Country {
 /// Root of the simulation world.
 ///
 /// # Rules
-/// * Target 1 populates only [`GameState::countries`]; shared global systems
+/// * Stage 1 populates only [`GameState::countries`]; shared global systems
 ///   (market, diplomacy, currencies, regions) are preserved in
 ///   [`GameState::extra`] and will be promoted to typed fields in later
 ///   targets.
-/// * Target 5 promotes the currency map (`waluty.json`) to
+/// * Stage 5 promotes the currency map (`waluty.json`) to
 ///   [`GameState::currencies`].
 /// * Phase E.1 adds global Forex and Gold markets.
 /// * Phase F.1 adds save version to invalidate old Polish-keyed saves.
@@ -999,7 +999,7 @@ impl CountryBuilder {
             social_programs: Vec::new(),
             weather_state: crate::economy::weather::WeatherState::default(),
             maintenance_config: crate::economy::maintenance::MaintenanceConfig::default(),
-            state_forest_state: crate::economy::state_forests::StateForestState::default(),
+            state_forest_state: crate::economy::state_forests::forest_districtState::default(),
             religious_authority_state: crate::society::religious_authority::ReligiousAuthorityState::default(),
             generative_goods_config: crate::economy::generative_goods_config::GenerativeGoodsConfig::default(),
             geological_formations: Vec::new(),

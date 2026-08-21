@@ -1,7 +1,7 @@
 //! Production cycle for individual buildings.
 //!
 //! This module ports the core building production loop from
-//! `economy/production/buildings/logic.py`. For Target 3 Part 1 it tallies
+//! `economy/production/buildings/logic.py`. For Stage 3 Part 1 it tallies
 //! input demand and output supply in a [`MarketOrders`] struct; full market
 //! clearing and company-level financial processing are left for later parts.
 
@@ -88,6 +88,7 @@ fn resolve_active_method(
                 outputs: pm.outputs.iter().map(|(&k, &v)| (k, v)).collect(),
                 active_methods: Default::default(),
                 active_blueprint: None,
+                thermal_efficiency: pm.thermal_efficiency,
                 extra: Default::default(),
             };
         }
@@ -103,6 +104,7 @@ fn resolve_active_method(
         outputs: BTreeMap::new(),
         active_methods: Default::default(),
         active_blueprint: None,
+        thermal_efficiency: 0.0,
         extra: Default::default(),
     }
 }
@@ -172,23 +174,117 @@ pub fn process_building_cycle(
     result.wages_paid = wages_paid;
 
     let mut input_costs = 0.0;
-    for (&input_name, amount_per_1k) in &method.inputs {
-        let amount = amount_per_1k * production_scale;
-        let price = price_for(input_name, market_prices, base_wage, true);
-        input_costs += amount * price;
-        result.inputs_consumed.insert(input_name, amount);
-        market_orders.add_buy(input_name, amount);
-    }
-
     let mut output_revenue = 0.0;
     let mut last_production = BTreeMap::new();
-    for (&output_name, amount_per_1k) in &method.outputs {
-        let amount = amount_per_1k * production_scale;
-        let price = price_for(output_name, market_prices, base_wage, false);
-        output_revenue += amount * price;
-        result.outputs_produced.insert(output_name, amount);
-        last_production.insert(output_name, amount);
-        market_orders.add_sell(output_name, amount);
+
+    // Phase 74: Dynamic fuel consumption for energy-producing buildings.
+    // When thermal_efficiency > 0.0, fuel inputs are capacity slots (max fuel
+    // the plant can accept), and actual consumption is computed dynamically
+    // based on the target energy output and the fuel's calorific value.
+    // Non-fuel inputs (Water, MechanicalComponents, etc.) use the fixed-rate path.
+    if method.thermal_efficiency > 0.0 {
+        // Separate fuel inputs from non-fuel inputs
+        let mut fuel_candidates: Vec<(Commodity, f64, f64)> = Vec::new();
+        for (&input_name, &capacity_per_1k) in &method.inputs {
+            if input_name.is_fuel() {
+                let cv = input_name.calorific_value_mj_per_unit();
+                let price = price_for(input_name, market_prices, base_wage, true);
+                // Rational actor (Rule 8): prefer cheapest MJ per currency unit
+                let mj_per_currency = cv / price.max(0.01);
+                fuel_candidates.push((input_name, capacity_per_1k, mj_per_currency));
+            } else {
+                // Non-fuel inputs: fixed-rate consumption (Water, Components, etc.)
+                let amount = capacity_per_1k * production_scale;
+                let price = price_for(input_name, market_prices, base_wage, true);
+                input_costs += amount * price;
+                result.inputs_consumed.insert(input_name, amount);
+                market_orders.add_buy(input_name, amount);
+            }
+        }
+        // Sort fuels by cheapest MJ per currency (descending = best first)
+        fuel_candidates.sort_by(|a, b| b.2.partial_cmp(&a.2).unwrap_or(std::cmp::Ordering::Equal));
+
+        // Determine target energy output (MJ-equivalent) from the method's Energy output
+        let target_energy: f64 = method.outputs.get(&Commodity::Energy).copied().unwrap_or(0.0)
+            * production_scale;
+        // Required fuel energy = target_energy / thermal_efficiency
+        let required_mj = if method.thermal_efficiency > 0.0 {
+            target_energy / method.thermal_efficiency
+        } else {
+            0.0
+        };
+
+        let mut remaining_mj = required_mj;
+        let mut total_fuel_mj = 0.0;
+        for (fuel, capacity_per_1k, _) in &fuel_candidates {
+            if remaining_mj <= 0.0 {
+                break;
+            }
+            let cv = fuel.calorific_value_mj_per_unit();
+            let max_capacity = capacity_per_1k * production_scale;
+            let needed_units = remaining_mj / cv;
+            let consumed = needed_units.min(max_capacity);
+            let mj_provided = consumed * cv;
+            remaining_mj -= mj_provided;
+            total_fuel_mj += mj_provided;
+
+            let price = price_for(*fuel, market_prices, base_wage, true);
+            input_costs += consumed * price;
+            result.inputs_consumed.insert(*fuel, consumed);
+            market_orders.add_buy(*fuel, consumed);
+        }
+
+        // Actual energy output = fuel_mj * thermal_efficiency (may be less than
+        // target if fuel was insufficient — physical conservation, Rule 1)
+        let actual_energy = total_fuel_mj * method.thermal_efficiency;
+        // Waste heat = fuel_mj * (1 - thermal_efficiency)
+        let waste_heat = total_fuel_mj * (1.0 - method.thermal_efficiency);
+
+        // Emit Energy output (actual, not target)
+        if actual_energy > 0.0 {
+            let price = price_for(Commodity::Energy, market_prices, base_wage, false);
+            output_revenue += actual_energy * price;
+            result.outputs_produced.insert(Commodity::Energy, actual_energy);
+            last_production.insert(Commodity::Energy, actual_energy);
+            market_orders.add_sell(Commodity::Energy, actual_energy);
+        }
+        // Emit Heat output (waste heat, if the method produces Heat)
+        if let Some(&heat_target) = method.outputs.get(&Commodity::Heat) {
+            // Heat output is proportional to actual energy vs target energy
+            let heat_ratio = if target_energy > 0.0 {
+                actual_energy / target_energy
+            } else {
+                1.0
+            };
+            let actual_heat = heat_target * production_scale * heat_ratio;
+            if actual_heat > 0.0 {
+                let price = price_for(Commodity::Heat, market_prices, base_wage, false);
+                output_revenue += actual_heat * price;
+                result.outputs_produced.insert(Commodity::Heat, actual_heat);
+                last_production.insert(Commodity::Heat, actual_heat);
+                market_orders.add_sell(Commodity::Heat, actual_heat);
+            }
+        }
+        // Suppress unused variable warning for waste_heat (it's a physical invariant)
+        let _ = waste_heat;
+    } else {
+        // Standard fixed-rate production path (non-energy buildings)
+        for (&input_name, amount_per_1k) in &method.inputs {
+            let amount = amount_per_1k * production_scale;
+            let price = price_for(input_name, market_prices, base_wage, true);
+            input_costs += amount * price;
+            result.inputs_consumed.insert(input_name, amount);
+            market_orders.add_buy(input_name, amount);
+        }
+
+        for (&output_name, amount_per_1k) in &method.outputs {
+            let amount = amount_per_1k * production_scale;
+            let price = price_for(output_name, market_prices, base_wage, false);
+            output_revenue += amount * price;
+            result.outputs_produced.insert(output_name, amount);
+            last_production.insert(output_name, amount);
+            market_orders.add_sell(output_name, amount);
+        }
     }
 
     result.input_costs = input_costs;

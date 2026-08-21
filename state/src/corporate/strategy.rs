@@ -377,6 +377,7 @@ fn evaluate_method_switch(ctx: &CorporateDecisionCtx) -> CorporateAction {
         active_methods: crate::state::treasury::ProductionMethodChoice::default(),
         active_blueprint: None,
         extra: serde_json::Map::new(),
+        ..Default::default()
     };
     
     let alternatives = find_alternative_methods(&dummy_current, ctx.year);

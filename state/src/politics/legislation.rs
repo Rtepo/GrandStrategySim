@@ -9,43 +9,43 @@ use super::ideology::IdeologyCompass;
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct Bill {
     /// Bill ID
-    #[serde(rename = "id_ustawy", default)]
+    #[serde(default)]
     pub id: String,
     
     /// Bill title
-    #[serde(rename = "tytul", default)]
+    #[serde(default)]
     pub title: String,
     
     /// Initiator party
-    #[serde(rename = "iniciator", default)]
+    #[serde(default)]
     pub initiator: String,
     
     /// Core clauses (cannot be removed)
-    #[serde(rename = "klauzule_podstawowe", default)]
+    #[serde(default)]
     pub core_clauses: Vec<Clause>,
     
     /// Concessions (can be added/removed during debate)
-    #[serde(rename = "koncesje", default)]
+    #[serde(default)]
     pub concessions: Vec<Concession>,
     
     /// Current legislative stage
-    #[serde(rename = "etap", default)]
+    #[serde(default)]
     pub stage: LegislativeStage,
     
     /// Committee assignment
-    #[serde(rename = "komisja", skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub committee: Option<String>,
     
     /// Committee recommendation modifier (-0.3 to +0.3)
-    #[serde(rename = "rekomendacja_komisji", default)]
+    #[serde(default)]
     pub committee_modifier: f64,
     
     /// Turn when bill was introduced
-    #[serde(rename = "turn_wprowadzenia", default)]
+    #[serde(default)]
     pub introduction_turn: u32,
     
     /// Turn when bill should complete committee review
-    #[serde(rename = "turn_konca_komisji", skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub committee_completion_turn: Option<u32>,
 }
 
@@ -53,15 +53,15 @@ pub struct Bill {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Clause {
     /// Clause description
-    #[serde(rename = "opis", default)]
+    #[serde(default)]
     pub description: String,
 
     /// Ideological impact vector (economy, liberty, tradition)
-    #[serde(rename = "wektor_ideologiczny")]
+
     pub ideological_vector: IdeologyCompass,
 
     /// Budget impact
-    #[serde(rename = "wplyw_budzetowy", default)]
+    #[serde(default)]
     pub budget_impact: f64,
 
     /// Phase 48: Concrete provision — what this clause actually does when enacted.
@@ -106,19 +106,19 @@ impl Default for Clause {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Concession {
     /// Target councilor/faction
-    #[serde(rename = "cel", default)]
+    #[serde(default)]
     pub target: String,
     
     /// Concession description
-    #[serde(rename = "opis", default)]
+    #[serde(default)]
     pub description: String,
     
     /// Vote probability bonus
-    #[serde(rename = "bonus_glosowania", default)]
+    #[serde(default)]
     pub vote_bonus: f64,
     
     /// Budget cost
-    #[serde(rename = "koszt", default)]
+    #[serde(default)]
     pub cost: f64,
 }
 
@@ -296,19 +296,19 @@ impl Bill {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct LegislativeSession {
     /// Active bills by ID
-    #[serde(rename = "ustawy_aktywne", default)]
+    #[serde(default)]
     pub active_bills: HashMap<String, Bill>,
     
     /// Enacted laws (bill IDs)
-    #[serde(rename = "ustawy_zatwierdzone", default)]
+    #[serde(default)]
     pub enacted_laws: Vec<String>,
     
     /// Rejected bills (bill IDs)
-    #[serde(rename = "ustawy_odrzucone", default)]
+    #[serde(default)]
     pub rejected_bills: Vec<String>,
     
     /// Current session year
-    #[serde(rename = "rok_sesji", default)]
+    #[serde(default)]
     pub session_year: u32,
 }
 
@@ -359,7 +359,7 @@ impl LegislativeSession {
                     if let Some(completion_turn) = bill.committee_completion_turn {
                         if current_turn >= completion_turn {
                             messages.push(format!(
-                                "[KOMISJA] Ustawa {} zakończyła przegląd komisji",
+                                "[COMMITTEE] Bill {} completed committee review",
                                 bill.title
                             ));
                             bill.advance_stage(current_turn);
@@ -368,7 +368,7 @@ impl LegislativeSession {
                 }
                 LegislativeStage::Enacted => {
                     messages.push(format!(
-                        "[USTAWA] Ustawa {} została uchwalona",
+                        "[BILL] Bill {} was passed",
                         bill.title
                     ));
                     self.enacted_laws.push(id.clone());
@@ -376,7 +376,7 @@ impl LegislativeSession {
                 }
                 LegislativeStage::Rejected => {
                     messages.push(format!(
-                        "[USTAWA] Ustawa {} została odrzucona",
+                        "[BILL] Bill {} was rejected",
                         bill.title
                     ));
                     self.rejected_bills.push(id.clone());

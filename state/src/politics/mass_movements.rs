@@ -13,19 +13,19 @@ use std::collections::HashMap;
 #[serde(rename_all = "snake_case")]
 pub enum MassMovementType {
     #[default]
-    #[serde(rename = "strajk")]
+
     IndustrialStrike,  // Workers stop production
     
-    #[serde(rename = "zamieszki")]
+
     Riot,  // Violent unrest, property damage
     
-    #[serde(rename = "protest")]
+
     PeacefulProtest,  // Non-violent demonstration
     
-    #[serde(rename = "okupacja")]
+
     Occupation,  // Physical occupation of facilities
     
-    #[serde(rename = "bojkot")]
+
     Boycott,  // Consumer boycott of specific goods
 }
 
@@ -33,22 +33,22 @@ pub enum MassMovementType {
 #[serde(rename_all = "snake_case")]
 pub enum MassMovementStatus {
     #[default]
-    #[serde(rename = "formowanie")]
+
     Forming,  // Gathering support
     
-    #[serde(rename = "aktywny")]
+
     Active,  // Currently disrupting
     
-    #[serde(rename = "negocjacje")]
+
     Negotiating,  // In talks with government
     
-    #[serde(rename = "zakończony_sukcesem")]
+
     ResolvedSuccess,  // Demands met
     
-    #[serde(rename = "zakończony_porażką")]
+
     ResolvedFailure,  // Suppressed/abandoned
     
-    #[serde(rename = "rozproszony")]
+
     Dispersed,  // Broken up by force
 }
 
@@ -56,59 +56,59 @@ pub enum MassMovementStatus {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct MassMovement {
     /// Movement ID
-    #[serde(rename = "id_ruchu", default)]
+    #[serde(default)]
     pub id: String,
     
     /// Region where movement is active
-    #[serde(rename = "region_id", default)]
+    #[serde(default)]
     pub region_id: String,
     
     /// Movement type
-    #[serde(rename = "typ_ruchu", default)]
+    #[serde(default)]
     pub movement_type: MassMovementType,
     
     /// Demographic class primarily involved
-    #[serde(rename = "klasa_inicjująca", default)]
+    #[serde(default)]
     pub initiating_class: String,
     
     /// Turn when movement started
-    #[serde(rename = "turn_początku", default)]
+    #[serde(default)]
     pub start_turn: u32,
     
     /// Expected duration in turns (0 = indefinite)
-    #[serde(rename = "przewidywany_czas_trwania", default)]
+    #[serde(default)]
     pub expected_duration: u32,
     
     /// Current intensity (0-1, affects disruption magnitude)
-    #[serde(rename = "intensywność", default)]
+    #[serde(default)]
     pub intensity: f64,
     
     /// Participating population count
-    #[serde(rename = "liczba_uczestników", default)]
+    #[serde(default)]
     pub participant_count: i64,
     
     /// Whether movement is union-backed (triggers strike fund mechanics)
-    #[serde(rename = "wspierany_przez_związki", default)]
+    #[serde(default)]
     pub union_backed: bool,
     
     /// Trade union ID providing funding (if union_backed)
-    #[serde(rename = "id_związku", skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub union_id: Option<String>,
     
     /// Strike fund allocation per participant (if union_backed)
-    #[serde(rename = "fund_strajkowy_na_uczestnika", default)]
+    #[serde(default)]
     pub strike_fund_per_participant: f64,
     
     /// Target companies affected by this movement
-    #[serde(rename = "firmy_celowe", default)]
+    #[serde(default)]
     pub target_companies: Vec<String>,
     
     /// Movement status
-    #[serde(rename = "status", default)]
+    #[serde(default)]
     pub status: MassMovementStatus,
     
     /// Demands (list of concessions requested)
-    #[serde(rename = "żądania", default)]
+    #[serde(default)]
     pub demands: Vec<String>,
     
     /// Any additional fields
@@ -119,10 +119,10 @@ pub struct MassMovement {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum SuppressionError {
-    #[serde(rename = "niewystarczające_fundusze")]
+
     InsufficientFunds,  // Treasury cannot afford suppression cost
     
-    #[serde(rename = "ruch_już_zakończony")]
+
     MovementAlreadyResolved,  // Cannot suppress inactive movement
 }
 
@@ -130,23 +130,23 @@ pub enum SuppressionError {
 #[serde(rename_all = "snake_case")]
 pub enum SuppressionResult {
     #[default]
-    #[serde(rename = "sukces")]
+
     Success,  // Movement dispersed, casualties occurred
     
-    #[serde(rename = "porażka")]
+
     Failure,  // Insufficient security power, movement continues
     
-    #[serde(rename = "odwrócenie")]
+
     Backlash,  // Suppression triggered massive radicalization
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum MovementError {
-    #[serde(rename = "niezgodność_związków")]
+
     UnionMismatch,  // Union ID mismatch
     
-    #[serde(rename = "niewystarczający_fund_strajkowy")]
+
     InsufficientStrikeFund,  // Union cannot afford strike payments
 }
 
@@ -257,7 +257,7 @@ pub fn apply_mass_movement_disruption(
         // Record company as target
         if !movement.target_companies.contains(&company.id) {
             messages.push(format!(
-                "[MOVEMENT] Firma {} dotknięta przez {}: modyfikator zakłóceń {:.1}%",
+                "[MOVEMENT] Company {} affected by {}: disruption modifier {:.1}%",
                 company.id,
                 serde_json::to_string(&movement.movement_type).unwrap_or_default(),
                 company.temporary_disruption_modifier * 100.0
@@ -303,7 +303,7 @@ pub fn suppress_mass_movement(
         let mut total_military_power = 0.0_f64;
         
         for building in buildings.iter_mut() {
-            if building.name != "Baza Wojskowa" {
+            if building.name != "military_base" {
                 continue;
             }
             

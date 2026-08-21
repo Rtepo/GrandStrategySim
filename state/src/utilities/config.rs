@@ -14,23 +14,23 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct UtilityPricingConfig {
     /// Price per kWh of electricity.
-    #[serde(rename = "cena_za_kwh", default = "default_price_per_kwh")]
+    #[serde(default = "default_price_per_kwh")]
     pub price_per_kwh: f64,
 
     /// Price per GJ of district heating.
-    #[serde(rename = "cena_za_gj_ciepła", default = "default_price_per_gj_heating")]
+    #[serde(default = "default_price_per_gj_heating")]
     pub price_per_gj_heating: f64,
 
     /// Price per liter of water (surface + groundwater).
-    #[serde(rename = "cena_za_litr_wody", default = "default_price_per_liter_water")]
+    #[serde(default = "default_price_per_liter_water")]
     pub price_per_liter_water: f64,
 
     /// Price per liter of sewage treatment.
-    #[serde(rename = "cena_za_litr_ścieków", default = "default_price_per_liter_sewage")]
+    #[serde(default = "default_price_per_liter_sewage")]
     pub price_per_liter_sewage: f64,
 
     /// Fraction of utility bill covered by Treasury for low-income consumers (0.0 - 1.0).
-    #[serde(rename = "wskaźnik_dopłaty", default = "default_treasury_subsidy_ratio")]
+    #[serde(default = "default_treasury_subsidy_ratio")]
     pub treasury_subsidy_ratio: f64,
 }
 
@@ -75,19 +75,19 @@ fn default_treasury_subsidy_ratio() -> f64 {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct UtilityConfig {
     /// 1 unit Commodity::Energy = X kWh of ElectricitySupply.
-    #[serde(rename = "współczynnik_energia_kwh", default = "default_energy_to_kwh")]
+    #[serde(default = "default_energy_to_kwh")]
     pub energy_to_kwh_factor: f64,
 
     /// 1 unit Commodity::Heat = Y GJ of DistrictHeating.
-    #[serde(rename = "współczynnik_ciepło_gj", default = "default_energy_to_gj_heating")]
+    #[serde(default = "default_energy_to_gj_heating")]
     pub energy_to_gj_heating_factor: f64,
 
     /// Max efficiency loss at full blackout (0.5 = 50% loss).
-    #[serde(rename = "kara_za_blackout", default = "default_blackout_penalty")]
+    #[serde(default = "default_blackout_penalty")]
     pub blackout_efficiency_penalty: f64,
 
     /// Health degradation increase per turn of landfill overflow.
-    #[serde(rename = "kara_za_przepełnienie_wysypiska", default = "default_landfill_overflow_penalty")]
+    #[serde(default = "default_landfill_overflow_penalty")]
     pub landfill_overflow_health_penalty: f64,
 }
 

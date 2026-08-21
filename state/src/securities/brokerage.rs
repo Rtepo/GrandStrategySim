@@ -30,26 +30,26 @@ pub struct PositionLot {
 
 /// Margin account for derivative trading.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[serde(rename = "rachunek_marżowy")]
+
 pub struct MarginAccount {
     /// Initial margin requirement (e.g., 10% of notional).
-    #[serde(rename = "marża_początkowa", default)]
+    #[serde(default)]
     pub initial_margin: f64,
     
     /// Maintenance margin requirement (e.g., 5% of notional).
-    #[serde(rename = "marża_utrzymania", default)]
+    #[serde(default)]
     pub maintenance_margin: f64,
     
     /// Locked margin cash (collateral for open positions).
-    #[serde(rename = "zablokowana_marża", default)]
+    #[serde(default)]
     pub locked_margin: f64,
     
     /// Unrealized P&L from mark-to-market.
-    #[serde(rename = "p&l_nierozliczone", default)]
+    #[serde(default)]
     pub unrealized_pnl: f64,
     
     /// Margin call status (true if below maintenance).
-    #[serde(rename = "wezwanie_do_marży", default)]
+    #[serde(default)]
     pub margin_call_active: bool,
     
     /// Any additional margin fields.
@@ -60,15 +60,15 @@ pub struct MarginAccount {
 /// Individual brokerage account for holding securities and cash.
 /// Attached to Companies, Demographics, and Institutional Investors.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[serde(rename = "rachunek_maklerski")]
+
 pub struct BrokerageAccount {
     /// Cash available for trading (domestic fiat currency only).
-    #[serde(rename = "gotówka")]
+
     pub cash: f64,
     
     /// Phase E.1: Foreign currency balances (currency_code -> amount).
     /// Used for Forex trading - cannot mix PLN and USD in the same scalar field.
-    #[serde(rename = "saldo_dewizowe", default)]
+    #[serde(default)]
     pub fx_balances: HashMap<String, f64>,
     
     /// Portfolio: Maps instrument_id -> list of position lots (FIFO order).
@@ -78,24 +78,24 @@ pub struct BrokerageAccount {
     /// Old saves with bare u64 values will fail to deserialize — this is
     /// intentional to avoid zero-cost-basis migration that would create
     /// false taxable gains.
-    #[serde(rename = "portfel")]
+
     pub portfolio: BTreeMap<String, Vec<PositionLot>>,
     
     /// Pending orders: Maps order_id -> Order.
-    #[serde(rename = "zlecenia_oczekujące")]
+
     pub pending_orders: BTreeMap<String, Order>,
     
     /// Frozen cash (reserved for open orders).
-    #[serde(rename = "zamrożona_gotówka")]
+
     pub frozen_cash: f64,
     
     /// KNF freeze status: when true, cannot place new Buy/Sell orders.
     /// Dividends can still be received (operational preservation).
-    #[serde(rename = "zamrożony_przez_knf")]
+
     pub is_frozen: bool,
     
     /// Phase D.5: Margin account for derivative trading.
-    #[serde(rename = "rachunek_marżowy", skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub margin_account: Option<MarginAccount>,
     
     /// Any additional brokerage fields.

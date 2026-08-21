@@ -13,12 +13,12 @@ use serde::{Deserialize, Serialize};
 pub struct InnovationConfig {
     /// Base market price per Innovation Point (B2B purchase from private universities).
     /// Default 100.0.
-    #[serde(rename = "cena_punktu_innowacji", default = "default_innovation_point_price")]
+    #[serde(default = "default_innovation_point_price")]
     pub innovation_point_price: f64,
 
     /// Default royalty VWAP ratio when a patent doesn't specify one.
     /// Default 0.05 (5% of output commodity VWAP).
-    #[serde(rename = "domyślny_stosunek_royalty", default = "default_royalty_vwap_ratio")]
+    #[serde(default = "default_royalty_vwap_ratio")]
     pub default_royalty_vwap_ratio: f64,
 }
 

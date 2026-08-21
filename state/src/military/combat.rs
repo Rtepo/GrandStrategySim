@@ -185,18 +185,18 @@ pub fn process_wounded(
 
     if capacity_beds >= wounded {
         messages.push(format!(
-            "[SZPITAL] W regionie {} wyleczono {} rannych (pojemność: {})",
+            "[HOSPITAL] In region {} healed {} wounded (capacity: {})",
             region_name, wounded, capacity_beds
         ));
         (wounded, 0, messages)
     } else {
         let untreated = wounded - capacity_beds;
         messages.push(format!(
-            "[SZPITAL] KRYTYCZNE w regionie {}! Brak pojemności: {} rannych bez leczenia (pojemność: {})",
+            "[HOSPITAL] CRITICAL in region {}! No capacity: {} wounded without treatment (capacity: {})",
             region_name, untreated, capacity_beds
         ));
         messages.push(format!(
-            "[NIEPOKOJ] Nieleczeni ranni w {} zwiększają niepokój społeczny",
+            "[UNREST] Untreated wounded in {} increase social unrest",
             region_name
         ));
         (capacity_beds, untreated, messages)
@@ -241,7 +241,7 @@ pub fn process_dead(
     }
 
     messages.push(format!(
-        "[STRATY] W regionie {} poległo {} żołnierzy",
+        "[CASUALTIES] In region {} {} soldiers killed",
         region_name, casualties.dead
     ));
 
@@ -284,11 +284,11 @@ pub fn process_deserters(
     }
 
     messages.push(format!(
-        "[DEZERCJA] W regionie {} zdezerterowało {} żołnierzy (powrót do społeczeństwa)",
+        "[DESERTION] In region {} {} soldiers deserted (return to society)",
         region_name, casualties.deserters
     ));
     messages.push(format!(
-        "[NIEPOKOJ] Dezercja w {} zwiększa niepokój społeczny",
+        "[UNREST] Desertion in {} increases social unrest",
         region_name
     ));
 

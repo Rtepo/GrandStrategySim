@@ -13,22 +13,22 @@ use serde::{Deserialize, Serialize};
 pub struct ServicePricingConfig {
     /// Price per education slot.
     /// Default 50.0.
-    #[serde(rename = "cena_miejsca_edukacji", default = "default_education_price")]
+    #[serde(default = "default_education_price")]
     pub education_price_per_slot: f64,
 
     /// Price per health capacity unit.
     /// Default 75.0.
-    #[serde(rename = "cena_pojemności_zdrowotnej", default = "default_health_price")]
+    #[serde(default = "default_health_price")]
     pub health_price_per_capacity: f64,
 
     /// Default service price for other sectors.
     /// Default 40.0.
-    #[serde(rename = "domyślna_cena_usługi", default = "default_service_price")]
+    #[serde(default = "default_service_price")]
     pub default_service_price: f64,
 
     /// Price per unit of information (media B2C service).
     /// Default 30.0.
-    #[serde(rename = "cena_informacji", default = "default_information_price")]
+    #[serde(default = "default_information_price")]
     pub information_price_per_unit: f64,
 }
 

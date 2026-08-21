@@ -13,22 +13,22 @@ use serde::{Deserialize, Serialize};
 pub struct InfrastructureConfig {
     /// Cost per worker for education buildings.
     /// Default 100.0.
-    #[serde(rename = "koszt_pracownika_edukacji", default = "default_education_cost")]
+    #[serde(default = "default_education_cost")]
     pub education_cost_per_worker: f64,
 
     /// Cost per worker for healthcare buildings.
     /// Default 150.0.
-    #[serde(rename = "koszt_pracownika_zdrowia", default = "default_healthcare_cost")]
+    #[serde(default = "default_healthcare_cost")]
     pub healthcare_cost_per_worker: f64,
 
     /// Cost per worker for municipal/public buildings.
     /// Default 80.0.
-    #[serde(rename = "koszt_pracownika_komunalnego", default = "default_municipal_cost")]
+    #[serde(default = "default_municipal_cost")]
     pub municipal_cost_per_worker: f64,
 
     /// Default cost per worker for other sectors.
     /// Default 50.0.
-    #[serde(rename = "domyślny_koszt_pracownika", default = "default_cost")]
+    #[serde(default = "default_cost")]
     pub default_cost_per_worker: f64,
 }
 

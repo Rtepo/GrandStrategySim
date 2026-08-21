@@ -592,7 +592,7 @@ pub fn calculate_black_ops_budget(country: &Country, registries: &Registries) ->
         let defense = budget.armed_forces;
         let security = budget
             .extra
-            .get("Bezpieczeństwo Publiczne")
+            .get("Public Security")
             .and_then(Value::as_f64)
             .unwrap_or(0.0);
         let official = country.budget.nominal_budget;
@@ -634,7 +634,7 @@ pub fn calculate_black_ops_budget(country: &Country, registries: &Registries) ->
 /// Returns `true` if the current regime is democratic.
 ///
 /// # Rules
-/// * Looks up `polityka.ustrój` in `ctx.registries.government_forms`.
+/// * Looks up `politics.system` in `ctx.registries.government_forms`.
 /// * Defaults to `false` (autocratic) if either the registry entry or the
 ///   political data is missing.
 fn is_democratic(country: &Country, registries: &Registries) -> bool {
@@ -643,7 +643,7 @@ fn is_democratic(country: &Country, registries: &Registries) -> bool {
         .extra
         .get("polityka")
         .and_then(Value::as_object)
-        .and_then(|m| m.get("ustrój"))
+        .and_then(|m| m.get("system"))
         .and_then(Value::as_str);
 
     match regime {

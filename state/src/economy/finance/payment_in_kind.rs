@@ -14,11 +14,11 @@ use std::collections::{BTreeMap, HashMap};
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct InKindLedger {
     /// Company ID → (Commodity → units deducted as in-kind payment)
-    #[serde(rename = "wypłaty_w_naturze")]
+
     pub deductions: BTreeMap<String, BTreeMap<Commodity, f64>>,
 
     /// Company ID → cash wage offset (for FreePeasant/LandlessLaborer)
-    #[serde(rename = "offset_płacy_gotówką")]
+
     pub cash_offsets: BTreeMap<String, f64>,
 
     /// Phase 44: Per-class deductions for B2C demand netting.
@@ -31,12 +31,12 @@ pub struct InKindLedger {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct NutritionalDeficit {
     /// (region_id, demography_type, class_id) → (Commodity → deficit units)
-    #[serde(rename = "deficyty_nutritionalne")]
+
     pub deficits: BTreeMap<(String, DemographyType, String), BTreeMap<Commodity, f64>>,
     
     /// (region_id, demography_type, class_id) → quality penalty (0-1)
     /// Applied when subsistence is met via substitution
-    #[serde(rename = "kara_jakości")]
+
     pub quality_penalties: BTreeMap<(String, DemographyType, String), f64>,
 }
 

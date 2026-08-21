@@ -14,10 +14,10 @@ use std::collections::HashMap;
 /// * `country` - Mutable country whose `trade_policy` will be updated.
 ///
 /// # Rules
-/// * "Protekcjonizm" (Protectionism): 15-25% tariff on manufactured goods,
+/// * "Protectionism" (Protectionism): 15-25% tariff on manufactured goods,
 ///   5-10% on raw materials, 0% on strategic imports.
-/// * "Wolny Handel" (Free Trade): 0-5% across the board.
-/// * "Autarkia" (Autarky): 30-50% on all imports, high export taxes.
+/// * "Free Trade" (Free Trade): 0-5% across the board.
+/// * "Autarky" (Autarky): 30-50% on all imports, high export taxes.
 /// * Existing commodity-specific tariffs are overwritten.
 /// * The exact rates have slight variation based on the specific ideology.
 pub fn set_tariffs_from_doctrine(country: &mut Country) {
@@ -50,7 +50,7 @@ pub fn set_tariffs_from_doctrine(country: &mut Country) {
     ];
 
     match doctrine.as_str() {
-        "Protekcjonizm" => {
+        "Protectionism" => {
             // Protectionism: protect domestic manufacturing and agriculture
             for c in &manufactured_goods {
                 import_tariffs.insert(*c, 0.20); // 20% on manufactured goods
@@ -69,7 +69,7 @@ pub fn set_tariffs_from_doctrine(country: &mut Country) {
                 export_taxes.insert(*c, 0.05);
             }
         }
-        "Wolny Handel" => {
+        "Free Trade" => {
             // Free Trade: minimal tariffs
             for c in &manufactured_goods {
                 import_tariffs.insert(*c, 0.02); // 2% on manufactured goods
@@ -85,7 +85,7 @@ pub fn set_tariffs_from_doctrine(country: &mut Country) {
             }
             // No export taxes
         }
-        "Autarkia" => {
+        "Autarky" => {
             // Autarky: high tariffs on everything, high export taxes
             for c in &manufactured_goods {
                 import_tariffs.insert(*c, 0.40); // 40% on manufactured goods
@@ -183,7 +183,7 @@ mod tests {
 
     #[test]
     fn test_protectionism_sets_nonzero_tariffs() {
-        let mut country = make_country_with_doctrine("Protekcjonizm");
+        let mut country = make_country_with_doctrine("Protectionism");
         set_tariffs_from_doctrine(&mut country);
 
         let steel_tariff = country.trade_policy.import_tariffs.get(&Commodity::Steel).copied().unwrap_or(0.0);
@@ -193,7 +193,7 @@ mod tests {
 
     #[test]
     fn test_free_trade_sets_low_tariffs() {
-        let mut country = make_country_with_doctrine("Wolny Handel");
+        let mut country = make_country_with_doctrine("Free Trade");
         set_tariffs_from_doctrine(&mut country);
 
         let steel_tariff = country.trade_policy.import_tariffs.get(&Commodity::Steel).copied().unwrap_or(0.0);
@@ -202,7 +202,7 @@ mod tests {
 
     #[test]
     fn test_autarky_sets_high_tariffs() {
-        let mut country = make_country_with_doctrine("Autarkia");
+        let mut country = make_country_with_doctrine("Autarky");
         set_tariffs_from_doctrine(&mut country);
 
         let steel_tariff = country.trade_policy.import_tariffs.get(&Commodity::Steel).copied().unwrap_or(0.0);
@@ -215,7 +215,7 @@ mod tests {
 
     #[test]
     fn test_strategic_imports_zero_tariff_under_protectionism() {
-        let mut country = make_country_with_doctrine("Protekcjonizm");
+        let mut country = make_country_with_doctrine("Protectionism");
         set_tariffs_from_doctrine(&mut country);
 
         let uranium_tariff = country.trade_policy.import_tariffs.get(&Commodity::Uranium).copied().unwrap_or(0.0);
@@ -232,7 +232,7 @@ mod tests {
 
     #[test]
     fn test_raw_materials_lower_than_manufactured_under_protectionism() {
-        let mut country = make_country_with_doctrine("Protekcjonizm");
+        let mut country = make_country_with_doctrine("Protectionism");
         set_tariffs_from_doctrine(&mut country);
 
         let steel_tariff = country.trade_policy.import_tariffs.get(&Commodity::Steel).copied().unwrap_or(0.0);

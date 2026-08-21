@@ -5,31 +5,31 @@ use crate::politics::interest_groups::{SuffrageSystem, InterestGroup, ClassToGro
 use crate::securities::BrokerageAccount;
 use crate::state::banking::{Borrower, Loan};
 
-/// Government form as stored in `polityka.ustrój`.
+/// Government form as stored in `politics.system`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
 pub enum GovernmentForm {
     #[default]
-    #[serde(rename = "Demokracja Parlamentarna")]
+
     ParliamentaryDemocracy,
-    #[serde(rename = "Republika Prezydencka")]
+
     PresidentialRepublic,
-    #[serde(rename = "Republika Półprezydencka")]
+
     SemiPresidentialRepublic,
-    #[serde(rename = "Demokracja Dyrektorialna")]
+
     DirectorialDemocracy,
-    #[serde(rename = "Monarchia Konstytucyjna")]
+
     ConstitutionalMonarchy,
-    #[serde(rename = "Monarchia Dualistyczna")]
+
     DualistMonarchy,
-    #[serde(rename = "Monarchia Elekcyjna")]
+
     ElectiveMonarchy,
-    #[serde(rename = "Monarchia Absolutna")]
+
     AbsoluteMonarchy,
-    #[serde(rename = "Państwo Jednopartyjne")]
+
     OnePartyState,
-    #[serde(rename = "Dyktatura Wojskowa")]
+
     MilitaryDictatorship,
-    #[serde(rename = "Teokracja")]
+
     Theocracy,
 }
 
@@ -78,74 +78,74 @@ impl GovernmentForm {
 /// A single political leader.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct Leader {
-    #[serde(default, rename = "imie")]
+    #[serde(default)]
     pub name: String,
-    #[serde(default, rename = "plec")]
+    #[serde(default)]
     pub gender: String,
-    #[serde(default, rename = "wiek")]
+    #[serde(default)]
     pub age: u32,
-    #[serde(default, rename = "stan_zdrowia")]
+    #[serde(default)]
     pub health: String,
-    #[serde(default, rename = "dni_choroby")]
+    #[serde(default)]
     pub days_sick: u32,
-    #[serde(default, rename = "religia")]
+    #[serde(default)]
     pub religion: String,
-    #[serde(default, rename = "narodowosc")]
+    #[serde(default)]
     pub nationality: String,
-    #[serde(default, rename = "poglady")]
+    #[serde(default)]
     pub views: String,
-    #[serde(default, rename = "cechy")]
+    #[serde(default)]
     pub traits: Vec<String>,
-    #[serde(default, rename = "cecha")]
+    #[serde(default)]
     pub main_trait: String,
-    #[serde(default, rename = "dynastia", skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub dynasty: Option<String>,
-    #[serde(default, rename = "wplywy_bazowe")]
+    #[serde(default)]
     pub base_influence: u32,
-    #[serde(default, rename = "frakcja")]
+    #[serde(default)]
     pub faction: String,
 }
 
 /// A political party.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct Party {
-    #[serde(default, rename = "ideologia")]
+    #[serde(default)]
     pub ideology: String,
-    #[serde(default, rename = "profil")]
+    #[serde(default)]
     pub profile: String,
-    #[serde(default, rename = "szkola_ekonomiczna")]
+    #[serde(default)]
     pub economic_school: String,
-    #[serde(default, rename = "poparcie")]
+    #[serde(default)]
     pub support: f64,
-    #[serde(default, rename = "lider")]
+    #[serde(default)]
     pub leader: Leader,
-    #[serde(default, rename = "baza")]
+    #[serde(default)]
     pub base: Vec<String>,
-    #[serde(default, rename = "id")]
+    #[serde(default)]
     pub id: String,
     
     // NEW: Brokerage account for double-entry banking integration
-    #[serde(rename = "rachunek_maklerski", default)]
+    #[serde(default)]
     pub brokerage_account: Option<BrokerageAccount>,
     
     // NEW: Outstanding loans (vector of Loan objects from banking system)
-    #[serde(rename = "kredyty", default)]
+    #[serde(default)]
     pub loans: Vec<Loan>,
     
     // NEW: Internal organization
-    #[serde(rename = "organizacja", default)]
+    #[serde(default)]
     pub organization: PartyOrganization,
     
     // PHASE 3: Black money pool for corruption mechanics
-    #[serde(rename = "czarne_pieniądze", default)]
+    #[serde(default)]
     pub black_money_pool: Option<super::campaign::BlackMoneyPool>,
     
     // PHASE 3: Campaign spending tracked this cycle
-    #[serde(rename = "wydatki_kampanijne", default)]
+    #[serde(default)]
     pub campaign_spending: f64,
     
     // PHASE 4: Annual donations tracked (revenue tracker)
-    #[serde(rename = "datki_roczne", default)]
+    #[serde(default)]
     pub annual_donations: f64,
 }
 
@@ -229,12 +229,12 @@ impl Party {
         
         let party_account = self.brokerage_account.as_mut().unwrap();
         
-        // Collect dues from companies (Kapitaliści, Drobna Burżuazja)
+        // Collect dues from companies (Capitalists, Petty Bourgeoisie)
         for group in base_interest_groups {
             if let Some(ig) = interest_groups.get(group) {
                 let dues_per_entity = match group.as_str() {
-                    "Kapitaliści" => 1000.0 * (ig.total_political_weight / 100.0) * (party_support / 100.0),
-                    "Drobna Burżuazja" => 200.0 * (ig.total_political_weight / 100.0) * (party_support / 100.0),
+                    "Capitalists" => 1000.0 * (ig.total_political_weight / 100.0) * (party_support / 100.0),
+                    "Petty Bourgeoisie" => 200.0 * (ig.total_political_weight / 100.0) * (party_support / 100.0),
                     _ => continue, // Skip non-corporate groups here
                 };
                 
@@ -292,14 +292,14 @@ impl Party {
     /// Total donations collected (transactional transfer)
     /// 
     /// # Rules
-    /// * Only parties with "Kapitaliści" base receive corporate donations
+    /// * Only parties with "Capitalists" base receive corporate donations
     /// * Donations are transferred FROM company brokerage accounts TO party brokerage account
     /// * Company accounts accessed directly from Company objects (no global map lookup)
     pub fn accept_donations(
         &mut self,
         companies: &mut Vec<crate::entities::Company>,
     ) -> f64 {
-        if !self.base.contains(&"Kapitaliści".to_string()) {
+        if !self.base.contains(&"Capitalists".to_string()) {
             return 0.0;
         }
         
@@ -475,27 +475,27 @@ impl OrganizationType {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct PartyOrganization {
     /// Organizational structure type
-    #[serde(rename = "typ_organizacji", default)]
+    #[serde(default)]
     pub organization_type: OrganizationType,
     
     /// Party cohesion (0.0-1.0): How unified the party is internally
-    #[serde(rename = "spójność", default)]
+    #[serde(default)]
     pub cohesion: f64,
     
     /// Party discipline (0.0-1.0): How strictly party line is enforced
-    #[serde(rename = "dyscyplina", default)]
+    #[serde(default)]
     pub discipline: f64,
     
     /// Number of internal factions
-    #[serde(rename = "frakcje", default)]
+    #[serde(default)]
     pub faction_count: u32,
     
     /// Internal factional tension (0.0-1.0): Risk of split
-    #[serde(rename = "napięcie_frakcyjne", default)]
+    #[serde(default)]
     pub factional_tension: f64,
     
     /// Leadership stability (0.0-1.0): Risk of leadership challenge
-    #[serde(rename = "stabilność_przywództwa", default)]
+    #[serde(default)]
     pub leadership_stability: f64,
 }
 
@@ -552,28 +552,28 @@ impl PartyOrganization {
 /// Upper house / senate / house of lords described in a constitution.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct UpperHouse {
-    #[serde(default, rename = "nazwa")]
+    #[serde(default)]
     pub name: String,
-    #[serde(default, rename = "wybory")]
+    #[serde(default)]
     pub elections: String,
-    #[serde(default, rename = "uprawnienia")]
+    #[serde(default)]
     pub powers: String,
 }
 
 /// Judiciary branch described in a constitution.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct Judiciary {
-    #[serde(default, rename = "minister_sprawiedliwosci_i_prokurator_generalny")]
+    #[serde(default)]
     pub minister_and_prosecutor: String,
-    #[serde(default, rename = "wybor_sedziow")]
+    #[serde(default)]
     pub judge_selection: String,
-    #[serde(default, rename = "lawy_przysieglych")]
+    #[serde(default)]
     pub jury_trials: bool,
-    #[serde(default, rename = "sady_wojskowe")]
+    #[serde(default)]
     pub military_courts: bool,
-    #[serde(default, rename = "prawo_laski")]
+    #[serde(default)]
     pub pardon: String,
-    #[serde(default, rename = "specjalne_sady_administracyjne")]
+    #[serde(default)]
     pub admin_courts: bool,
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -582,22 +582,22 @@ pub struct Judiciary {
 /// A constitution.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct Constitution {
-    #[serde(default, rename = "istnieje")]
+    #[serde(default)]
     pub exists: bool,
-    #[serde(default, rename = "trybunal_konstytucyjny")]
+    #[serde(default)]
     pub constitutional_tribunal: String,
-    #[serde(default, rename = "weto_prezydenckie")]
+    #[serde(default)]
     pub presidential_veto: bool,
-    #[serde(default, rename = "izba_wyzsza", skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub upper_house: Option<UpperHouse>,
-    #[serde(default, rename = "zmiana_konstytucji")]
+    #[serde(default)]
     pub change_mechanism: String,
-    #[serde(default, rename = "sadownictwo")]
+    #[serde(default)]
     pub judiciary: Judiciary,
     #[serde(default, rename = "system_suffrage")]
     pub suffrage_system: SuffrageSystem,
     /// Phase 8: Consequence when budget bill fails.
-    #[serde(default, rename = "skutek_kryzysu_budzetowego")]
+    #[serde(default)]
     pub budget_failure_consequence: super::budget_lifecycle::BudgetFailureConsequence,
 }
 
@@ -608,26 +608,26 @@ pub struct Constitution {
 /// Used for tracking time served and applying rehabilitation effects on release.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct PrisonerCohort {
-    /// Demographic class this cohort originated from (e.g., "robotnicy", "chłopi").
-    #[serde(rename = "klasa_pochodzenia", default)]
+    /// Demographic class this cohort originated from (e.g., "workers", "peasants").
+    #[serde(default)]
     pub origin_class_id: String,
     /// Whether from urban (true) or rural (false) demographics.
-    #[serde(rename = "miejskie", default)]
+    #[serde(default)]
     pub origin_is_urban: bool,
     /// Region ID where they were arrested.
-    #[serde(rename = "region_pochodzenia", default)]
+    #[serde(default)]
     pub origin_region_id: String,
     /// Turns remaining until release.
-    #[serde(rename = "pozostały_wyrok", default)]
+    #[serde(default)]
     pub sentence_remaining: u32,
     /// Number of prisoners in this cohort.
-    #[serde(rename = "liczba", default)]
+    #[serde(default)]
     pub count: i64,
     /// Health status at intake (for rehabilitation comparison).
-    #[serde(rename = "zdrowie_przyjęcie", default)]
+    #[serde(default)]
     pub intake_health: crate::society::geography::HealthStatus,
     /// Prison type when sentenced (affects rehabilitation outcome).
-    #[serde(rename = "typ_więzienia_wyrok", default)]
+    #[serde(default)]
     pub sentenced_under: crate::politics::laws::PrisonType,
     /// Phase 18B: Crime severity category for this cohort.
     #[serde(default)]
@@ -644,19 +644,19 @@ pub struct PrisonerCohort {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct PrisonSecurityLevel {
     /// Building ID of the prison.
-    #[serde(rename = "id_budynku", default)]
+    #[serde(default)]
     pub building_id: String,
     /// Security score 0.0–1.0 (1.0 = maximum security).
-    #[serde(rename = "poziom_bezpieczeństwa", default)]
+    #[serde(default)]
     pub security_score: f64,
     /// Number of guards (fulfilled FTE at this building).
-    #[serde(rename = "obsada_strażników", default)]
+    #[serde(default)]
     pub guard_fte: f64,
     /// Target guard FTE (worker_capacity).
-    #[serde(rename = "docelowa_obsada", default)]
+    #[serde(default)]
     pub target_guard_fte: f64,
     /// Building condition (0.0–1.0).
-    #[serde(rename = "stan_budynku", default)]
+    #[serde(default)]
     pub condition: f64,
 }
 
@@ -664,22 +664,22 @@ pub struct PrisonSecurityLevel {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct IntelligenceState {
     /// Total intelligence capacity produced this turn.
-    #[serde(rename = "pojemność_wywiadu", default)]
+    #[serde(default)]
     pub total_capacity: f64,
     /// Dissidents tracked (0.0–1.0 fraction of radical population).
-    #[serde(rename = "pokrycie_inwigilacji", default)]
+    #[serde(default)]
     pub surveillance_coverage: f64,
     /// Active counterintelligence operations.
-    #[serde(rename = "aktywne_operacje", default)]
+    #[serde(default)]
     pub active_operations: u32,
     /// Infiltration level of mass movements (0.0–1.0).
-    #[serde(rename = "infiltracja_ruchów", default)]
+    #[serde(default)]
     pub movement_infiltration: f64,
     /// Phase 18C: Number of terrorist attacks prevented this turn.
-    #[serde(rename = "odparte_zamachy", default)]
+    #[serde(default)]
     pub attacks_prevented: u32,
     /// Phase 18C: Number of terrorist attacks that succeeded this turn.
-    #[serde(rename = "udane_zamachy", default)]
+    #[serde(default)]
     pub attacks_succeeded: u32,
 }
 
@@ -688,290 +688,285 @@ pub struct IntelligenceState {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct JusticeSystemState {
     /// Total justice capacity produced by courthouses this turn.
-    #[serde(rename = "pojemność_sprawiedliwości", default)]
+    #[serde(default)]
     pub total_justice_capacity: f64,
     /// Total security capacity produced by police stations this turn.
-    #[serde(rename = "pojemność_bezpieczeństwa", default)]
+    #[serde(default)]
     pub total_security_capacity: f64,
     /// Dynamic justice demand (scales with poverty, unemployment, unrest, health).
-    #[serde(rename = "popyt_sprawiedliwości", default)]
+    #[serde(default)]
     pub justice_demand: f64,
     /// Dynamic security demand (scales with poverty, unemployment, unrest, health).
-    #[serde(rename = "popyt_bezpieczeństwa", default)]
+    #[serde(default)]
     pub security_demand: f64,
     /// Justice coverage ratio (capacity / demand, 0.0–1.0+).
-    #[serde(rename = "pokrycie_sprawiedliwości", default)]
+    #[serde(default)]
     pub justice_coverage: f64,
     /// Security coverage ratio (capacity / demand, 0.0–1.0+).
-    #[serde(rename = "pokrycie_bezpieczeństwa", default)]
+    #[serde(default)]
     pub security_coverage: f64,
     /// Frozen company cash from unresolved court disputes.
     /// Maps company ID → frozen amount. Reclaimed on bankruptcy.
-    #[serde(rename = "zamrożona_gotówka", default)]
+    #[serde(default)]
     pub frozen_company_cash: HashMap<String, f64>,
     /// Total active prisoners across all prison buildings.
-    #[serde(rename = "aktywni_więźniowie", default)]
+    #[serde(default)]
     pub active_prisoners: i64,
     /// People held in isolation camps (removed from workforce).
-    #[serde(rename = "odosobnieni", default)]
+    #[serde(default)]
     pub isolated_population: i64,
     /// FTEs injected into the labor market from private labor camps.
-    #[serde(rename = "fte_więźniów", default)]
+    #[serde(default)]
     pub prison_labor_allocated_fte: f64,
     /// Phase 14.5: Prisoner cohorts with sentence tracking.
-    #[serde(rename = "kohorty_więźniów", default)]
+    #[serde(default)]
     pub prisoner_cohorts: Vec<PrisonerCohort>,
     /// Phase 14.5: Per-prison security level assessments.
-    #[serde(rename = "poziomy_bezpieczeństwa_więzień", default)]
+    #[serde(default)]
     pub prison_security_levels: Vec<PrisonSecurityLevel>,
     /// Phase 14.5: Total fines collected this turn.
-    #[serde(rename = "zebrane_kary", default)]
+    #[serde(default)]
     pub fines_collected: f64,
 }
 
 /// The whole political subsystem for one country.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct Politics {
-    #[serde(default, rename = "ustrój")]
+    #[serde(default)]
     pub government_form: GovernmentForm,
-    #[serde(default, rename = "konstytucja")]
+    #[serde(default)]
     pub constitution: Constitution,
-    #[serde(default, rename = "partia_rządząca")]
+    #[serde(default)]
     pub ruling_party: String,
-    #[serde(default, rename = "koalicja")]
+    #[serde(default)]
     pub coalition: Vec<String>,
-    #[serde(default, rename = "id_koalicji")]
+    #[serde(default)]
     pub coalition_id: String,
-    #[serde(default, rename = "rzad_mniejszosciowy")]
+    #[serde(default)]
     pub minority_government: bool,
-    #[serde(default, rename = "lata_do_wyborów")]
+    #[serde(default)]
     pub years_to_elections: u32,
-    #[serde(default, rename = "aktywne_partie")]
+    #[serde(default)]
     pub active_parties: HashMap<String, Party>,
-    #[serde(default, rename = "parlament")]
+    #[serde(default)]
     pub parliament: HashMap<String, u32>,
-    #[serde(default, rename = "sklad_izba_wyzsza")]
+    #[serde(default)]
     pub upper_house: HashMap<String, u32>,
-    #[serde(default, rename = "rada_koronna")]
+    #[serde(default)]
     pub royal_council: Map<String, Value>,
-    #[serde(default, rename = "lojalnosc_rady")]
+    #[serde(default)]
     pub council_loyalty: Map<String, Value>,
-    #[serde(default, rename = "poglady_monarchy")]
+    #[serde(default)]
     pub monarchy_views: String,
-    #[serde(default, rename = "dynastia", skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub dynasty: Option<String>,
-    #[serde(default, rename = "glowa_panstwa")]
+    #[serde(default)]
     pub head_of_state: Leader,
-    #[serde(default, rename = "rodzina_krolewska")]
+    #[serde(default)]
     pub royal_family: Map<String, Value>,
-    #[serde(default, rename = "krolowa_matka", skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub queen_mother: Option<Value>,
-    #[serde(default, rename = "elita_wladzy")]
+    #[serde(default)]
     pub power_elite: Vec<Value>,
-    #[serde(default, rename = "nastepca_tronu", skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub heir: Option<Value>,
-    #[serde(default, rename = "regencja")]
+    #[serde(default)]
     pub regency: bool,
-    #[serde(default, rename = "regent", skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub regent: Option<Value>,
-    #[serde(default, rename = "grupy_interesów")]
+    #[serde(default)]
     pub interest_groups: HashMap<String, InterestGroup>,
-    #[serde(default, rename = "mapowanie_klas")]
+    #[serde(default)]
     pub class_group_mapping: ClassToGroupMapping,
-    #[serde(default, rename = "ruchy_masowe")]
+    #[serde(default)]
     pub mass_movements: Vec<crate::politics::mass_movements::MassMovement>,
     // PHASE 3: Election campaign state machine
-    #[serde(rename = "stan_kampanii", default)]
+    #[serde(default)]
     pub election_state: super::campaign::ElectionState,
     // PHASE 3: Electoral Commission (PKW)
-    #[serde(rename = "komisja_wyborcza", default)]
+    #[serde(default)]
     pub electoral_commission: super::campaign::ElectoralCommission,
     // PHASE 3: Campaign duration in turns
-    #[serde(rename = "długość_kampanii", default)]
+    #[serde(default)]
     pub campaign_duration_turns: u32,
     // PHASE 3: Executed campaign actions this cycle
-    #[serde(rename = "wykonane_akcje", default)]
+    #[serde(default)]
     pub campaign_executions: Vec<super::campaign::CampaignExecution>,
     // PHASE 4: Lobbying groups (institutional intermediaries)
-    #[serde(rename = "grupy_lobbistyczne", default)]
+    #[serde(default)]
     pub lobbying_groups: Vec<super::lobbying::LobbyingGroup>,
     // PHASE 4: Special economic zones
-    #[serde(rename = "strefy_ekonomiczne", default)]
+    #[serde(default)]
     pub special_economic_zones: Vec<crate::state::SpecialEconomicZone>,
-    #[serde(default, rename = "historia_wladzy")]
+    #[serde(default)]
     pub history: Vec<Value>,
-    #[serde(default, rename = "prog_wyborczy")]
+    #[serde(default)]
     pub election_threshold: f64,
-    #[serde(default, rename = "ordynacja_wyborcza")]
+    #[serde(default)]
     pub election_method: String,
-    #[serde(default, rename = "twarda_reka")]
+    #[serde(default)]
     pub iron_fist: u32,
-    #[serde(default, rename = "kryzys_budzetowy")]
+    #[serde(default)]
     pub budget_crisis: bool,
-    #[serde(default, rename = "szkola_ekonomiczna_rzadu")]
+    #[serde(default)]
     pub government_economic_school: String,
-    #[serde(default, rename = "doktryna_handlowa")]
+    #[serde(default)]
     pub trade_doctrine: String,
-    #[serde(default, rename = "prawo_wyznaniowe")]
+    #[serde(default)]
     pub religious_law: String,
-    #[serde(default, rename = "polityka_migracyjna")]
+    #[serde(default)]
     pub migration_policy: String,
-    #[serde(default, rename = "prawo_obywatelskie")]
+    #[serde(default)]
     pub civil_rights_law: String,
-    #[serde(default, rename = "prawo_emancypacji")]
+    #[serde(default)]
     pub emancipation_law: String,
-    #[serde(default, rename = "prawo_pracy")]
+    #[serde(default)]
     pub labor_law: String,
-    #[serde(default, rename = "prawo_zwiazkowe")]
+    #[serde(default)]
     pub union_law: String,
-    #[serde(default, rename = "prawo_strajkowe")]
+    #[serde(default)]
     pub strike_law: String,
-    #[serde(default, rename = "sluzba_zdrowia")]
+    #[serde(default)]
     pub health_service: String,
     #[serde(default, rename = "sanepid")]
     pub sanitation_policy: String,
-    #[serde(default, rename = "model_edukacji")]
+    #[serde(default)]
     pub education_model: String,
-    #[serde(default, rename = "ustroj_szkolny")]
+    #[serde(default)]
     pub school_system: String,
     /// Healthcare law configuration (new capacity-based model)
-    #[serde(rename = "prawo_zdrowotne", default)]
+    #[serde(default)]
     pub healthcare_law: Option<crate::politics::laws::HealthcareLaw>,
     /// Education law configuration (new capacity-based model)
-    #[serde(rename = "prawo_edukacyjne", default)]
+    #[serde(default)]
     pub education_law: Option<crate::politics::laws::EducationLaw>,
     /// Justice law configuration (Phase 14).
-    #[serde(rename = "prawo_sprawiedliwości", default)]
+    #[serde(default)]
     pub justice_law: Option<crate::politics::laws::JusticeLaw>,
     /// Prison labor law configuration (Phase 14).
-    #[serde(rename = "prawo_więzienne", default)]
+    #[serde(default)]
     pub prison_labor_law: Option<crate::politics::laws::PrisonLaborLaw>,
     /// Justice system runtime state (Phase 14).
-    #[serde(rename = "stan_sprawiedliwości", default)]
+    #[serde(default)]
     pub justice_state: Option<crate::politics::system::JusticeSystemState>,
     /// Phase 14.5: Domestic intelligence state for surveillance and repression.
-    #[serde(rename = "stan_wywiadu", default)]
+    #[serde(default)]
     pub intelligence_state: Option<crate::politics::system::IntelligenceState>,
     /// Espionage state for covert operations
-    #[serde(rename = "stan_szpiegowski", default)]
+    #[serde(default)]
     pub espionage_state: Option<crate::politics::espionage::EspionageState>,
     /// Legislative session for bill processing
-    #[serde(rename = "sesja_legislacyjna", default)]
+    #[serde(default)]
     pub legislative_session: Option<crate::politics::legislation::LegislativeSession>,
     /// Committee system for bill review
-    #[serde(rename = "system_komisji", default)]
+    #[serde(default)]
     pub committee_system: Option<crate::politics::committees::CommitteeSystem>,
-    #[serde(default, rename = "agencja_pracy_aktywnej")]
+    #[serde(default)]
     pub active_labour_agency: bool,
-    #[serde(default, rename = "ustawa_jadrowa")]
+    #[serde(default)]
     pub nuclear_law: bool,
-    #[serde(default, rename = "tarcza_energetyczna")]
+    #[serde(default)]
     pub energy_shield: bool,
-    #[serde(default, rename = "knf")]
+    #[serde(default)]
     pub knf: Value,
     /// Phase 8: Ministry configuration (government portfolios).
-    #[serde(rename = "rząd_ministrów", default)]
+    #[serde(default)]
     pub ministry_config: Option<super::ministries::MinistryConfig>,
     /// Phase 15B: Migration law configuration.
-    #[serde(rename = "prawo_migracyjne", default)]
+    #[serde(default)]
     pub migration_law: Option<crate::politics::laws::MigrationLaw>,
     /// Phase 15B: Border enforcement runtime state.
-    #[serde(rename = "stan_graniczny", default)]
+    #[serde(default)]
     pub border_state: Option<crate::politics::laws::BorderState>,
     /// Phase 15B: Customs runtime state.
-    #[serde(rename = "stan_celny", default)]
+    #[serde(default)]
     pub customs_state: Option<crate::politics::laws::CustomsState>,
     /// Phase 15C: Inspectorate runtime state.
-    #[serde(rename = "stan_inspekcji", default)]
+    #[serde(default)]
     pub inspectorate_state: Option<crate::politics::laws::InspectorateState>,
     /// Phase 17C: Structured religious law configuration.
-    #[serde(rename = "ustawa_religijna", default)]
+    #[serde(default)]
     pub religious_law_struct: Option<crate::politics::laws::ReligiousLaw>,
     /// Phase 18A: Shadow economy runtime state.
-    #[serde(rename = "stan_gospodarki_cieniowej", default)]
+    #[serde(default)]
     pub shadow_economy_state: Option<crate::economy::legal_status::ShadowEconomyState>,
     /// Phase 18A: Amnesty / legalization program configuration.
-    #[serde(rename = "ustawa_amnestia", default)]
+    #[serde(default)]
     pub amnesty_law: Option<crate::economy::legal_status::AmnestyLaw>,
     /// Phase 18B: Sentencing law configuration (dynamic sentencing, legal dualism).
-    #[serde(rename = "ustawa_wyrokowanie", default)]
+    #[serde(default)]
     pub sentencing_law: Option<crate::economy::sentencing::SentencingLaw>,
     /// Phase 18B: Administrative court state (blocks illegal state actions).
-    #[serde(rename = "sąd_administracyjny", default)]
+    #[serde(default)]
     pub administrative_court: Option<crate::economy::sentencing::AdministrativeCourtState>,
-    /// Phase 18B: Ombudsman (RPO) state (monitors rights violations).
-    #[serde(rename = "rzecznik_praw", default)]
+    /// Phase 18B: Ombudsman (Ombudsman) state (monitors rights violations).
+    #[serde(default)]
     pub ombudsman: Option<crate::economy::sentencing::OmbudsmanState>,
     /// Phase 18C: Media state (tracks information production and state media share).
-    #[serde(rename = "stan Mediów", default)]
+    #[serde(default)]
     pub media_state: Option<crate::economy::propaganda::MediaState>,
     /// Phase 18C: Propaganda campaign configuration.
-    #[serde(rename = "ustawa_propaganda", default)]
+    #[serde(default)]
     pub propaganda_config: Option<crate::economy::propaganda::PropagandaConfig>,
     /// Phase 18C: Free speech / assembly / press freedom law.
-    #[serde(rename = "ustawa_wolność_słowa", default)]
+    #[serde(default)]
     pub free_speech_law: Option<crate::politics::free_speech::FreeSpeechLaw>,
     /// Phase 23C: Transport ownership / subsidy law — affects passenger
     /// transport pricing and commuter affordability.
-    #[serde(rename = "ustawa_transport", default)]
+    #[serde(default)]
     pub transport_law: Option<crate::economy::commuting::TransportLaw>,
     /// Phase 32: Structured Parliament (chambers, clubs, VIPs).
     /// When None, the engine falls back to the legacy flat `parliament` HashMap.
-    #[serde(rename = "parlament_struktura", default)]
+    #[serde(default)]
     pub parliament_struct: Option<crate::politics::parliament::Parliament>,
     /// Phase 32: Constitutional State of Emergency (political, not fiscal).
     /// Distinct from the fiscal `EmergencyPowers` enum on `Country`.
-    #[serde(rename = "stan_wyjatkowy", default)]
+    #[serde(default)]
     pub state_of_emergency: Option<crate::politics::parliament::StateOfEmergency>,
     /// Phase 32: Political capital — spent by the ruling coalition on pork-barrel
     /// offers and agenda control. Regenerated each turn based on ruling party
     /// support and coalition stability.
-    #[serde(rename = "kapital_polityczny", default)]
+    #[serde(default)]
     pub political_capital: f64,
     /// Phase 39: Last turn a snap election was triggered. Used for cooldown
     /// to prevent infinite election loops when election formation fails.
-    #[serde(default, rename = "ostatnie_wyborows_snap")]
+    #[serde(default)]
     pub last_snap_election_turn: u32,
     /// Phase 48: Global VIP registry — tracks all power holders with age,
     /// health, incapacity, traits, and death. See `politics/vip_registry.rs`.
-    #[serde(default, rename = "rejestr_vip")]
+    #[serde(default)]
     pub vip_registry: Option<crate::politics::vip_registry::VipRegistry>,
     /// Phase 48: Active sunset provisions — enacted bill provisions that will
     /// expire at a future turn. See `politics/legislation.rs`.
-    #[serde(default, rename = "postanowienia_z_terminem")]
+    #[serde(default)]
     pub active_sunset_provisions: Vec<crate::politics::legislation::SunsetProvision>,
     /// Phase 48: Active unfunded mandates imposed by the central government
     /// on regional JSTs. See `politics/local_legislation.rs`.
-    #[serde(default, rename = "aktywne_mandaty")]
+    #[serde(default)]
     pub active_mandates: Vec<crate::politics::local_legislation::UnfundedMandate>,
     /// Phase 48: Advisory council for authoritarian/royal regimes.
     /// See `politics/advisory_council.rs`.
-    #[serde(default, rename = "rada_doradcza")]
+    #[serde(default)]
     pub advisory_council: Option<crate::politics::advisory_council::AdvisoryCouncil>,
     /// Phase 48: Royal dynasty tracking for monarchies.
     /// See `politics/succession.rs`.
-    #[serde(default, rename = "dynastia_krolewska")]
+    #[serde(default)]
     pub royal_dynasty: Option<crate::politics::succession::RoyalDynasty>,
     /// Phase 65: State structure (Unitary/Federation/Totalitarian/AutonomousRepublic).
     /// Controls tax retention rates and regional law authority.
-    #[serde(default, rename = "ustrój_państwa")]
+    #[serde(default)]
     pub state_structure: super::state_structure::StateStructure,
     /// Phase 65: State structure configuration with tax retention rates.
-    #[serde(default, rename = "konfiguracja_ustróju")]
+    #[serde(default)]
     pub state_structure_config: super::state_structure::StateStructureConfig,
     /// Phase 65: Regional laws enacted by Federation/AutonomousRepublic regions.
-    #[serde(default, rename = "prawa_regionalne")]
+    #[serde(default)]
     pub regional_laws: Vec<super::state_structure::RegionalLaw>,
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
 }
 
 impl Politics {
-    /// Migrate legacy string fields to new enum-based structures
-    pub fn migrate_legacy_fields(&mut self) {
-        // String fields are kept for backward compatibility
-        // New enum fields are optional and can be initialized from strings when needed
-    }
 }
 
 /// Fiscal transfer configuration (from national Tax & Administrative Law)
@@ -982,19 +977,19 @@ impl Politics {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct FiscalTransferConfig {
     /// Percentage of regional revenue retained locally
-    #[serde(rename = "udzial_lokalny", default)]
+    #[serde(default)]
     pub local_retention: f64, // 0.0-1.0
     
     /// Percentage transferred to Megaregion (if applicable)
-    #[serde(rename = "udzial_megaregionu", default)]
+    #[serde(default)]
     pub megaregion_share: f64, // 0.0-1.0
     
     /// Percentage transferred to Central Budget
-    #[serde(rename = "udzial_centralny", default)]
+    #[serde(default)]
     pub central_share: f64, // 0.0-1.0
     
     /// Minimum local retention (cannot go below this)
-    #[serde(rename = "minimum_lokalne", default)]
+    #[serde(default)]
     pub minimum_local_retention: f64,
 }
 

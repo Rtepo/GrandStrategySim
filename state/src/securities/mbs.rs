@@ -10,16 +10,16 @@ use serde_json::Map;
 
 /// Tranche priority in loss waterfall.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Copy)]
-#[serde(rename = "priorytet_tranchy")]
+
 pub enum TranchePriority {
     /// Senior tranche - absorbs losses last (appears AAA).
-    #[serde(rename = "senior")]
+
     Senior,
     /// Mezzanine tranche - absorbs losses after Junior.
-    #[serde(rename = "mezzanine")]
+
     Mezzanine,
     /// Junior/Equity tranche - absorbs losses first (highest risk).
-    #[serde(rename = "junior")]
+
     Junior,
 }
 
@@ -31,34 +31,34 @@ impl Default for TranchePriority {
 
 /// Single tranche of an MBS.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[serde(rename = "trancha_mbs")]
+
 pub struct MbsTranche {
     /// Tranche ID.
-    #[serde(rename = "id", default)]
+    #[serde(default)]
     pub id: String,
     
     /// Priority level for loss absorption.
-    #[serde(rename = "priorytet", default)]
+    #[serde(default)]
     pub priority: TranchePriority,
     
     /// Notional value of this tranche.
-    #[serde(rename = "wartość_nominalna", default)]
+    #[serde(default)]
     pub notional: f64,
     
     /// Current outstanding balance (decreases as loans amortize).
-    #[serde(rename = "saldo", default)]
+    #[serde(default)]
     pub outstanding_balance: f64,
     
     /// Yield paid to tranche holders (weighted avg of loans - servicing spread).
-    #[serde(rename = "stopa_zwrotu", default)]
+    #[serde(default)]
     pub yield_rate: f64,
     
     /// Current tranche value (mark-to-market based on underlying loan performance).
-    #[serde(rename = "wartość_rynkowa", default)]
+    #[serde(default)]
     pub market_value: f64,
     
     /// Owner of this tranche (fund_id, bank_id, etc.).
-    #[serde(rename = "właściciel", default)]
+    #[serde(default)]
     pub owner_id: String,
     
     /// Any additional tranche fields.
@@ -68,42 +68,42 @@ pub struct MbsTranche {
 
 /// Mortgage-Backed Security - Pooled loans securitized into tranches.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[serde(rename = "papier_wartościowy_zabezpieczony_hipoteką")]
+
 pub struct MortgageBackedSecurity {
     /// MBS ID.
-    #[serde(rename = "id", default)]
+    #[serde(default)]
     pub id: String,
     
     /// Originating bank (created the SPV).
-    #[serde(rename = "bank_początkujący", default)]
+    #[serde(default)]
     pub originator_bank_id: String,
     
     /// SPV Company ID holding the underlying loans.
-    #[serde(rename = "spv_id", default)]
+    #[serde(default)]
     pub spv_id: String,
     
     /// Underlying loan IDs (from BankBalanceSheet.loans_issued).
-    #[serde(rename = "pożyczki_podstawowe", default)]
+    #[serde(default)]
     pub underlying_loan_ids: Vec<String>,
     
     /// Tranches (Senior, Mezzanine, Junior).
-    #[serde(rename = "tranche", default)]
+    #[serde(default)]
     pub tranches: Vec<MbsTranche>,
     
     /// Servicing spread paid to originator (e.g., 0.5%).
-    #[serde(rename = "spread_serwisowy", default)]
+    #[serde(default)]
     pub servicing_spread: f64,
     
     /// Current weighted average yield of underlying loans.
-    #[serde(rename = "średnia_stopa_pożyczek", default)]
+    #[serde(default)]
     pub weighted_avg_loan_rate: f64,
     
     /// Total notional of all underlying loans.
-    #[serde(rename = "wartość_kapitału_podstawowego", default)]
+    #[serde(default)]
     pub total_underlying_notional: f64,
     
     /// Current default rate of underlying loans.
-    #[serde(rename = "stopa_defaultów", default)]
+    #[serde(default)]
     pub current_default_rate: f64,
     
     /// Any additional MBS fields.

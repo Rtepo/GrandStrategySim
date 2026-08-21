@@ -11,19 +11,19 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct HealthcareLaw {
     /// Healthcare system type
-    #[serde(rename = "system_opieki_zdrowotnej")]
+
     pub healthcare_system: HealthcareSystem,
 
     /// Funding configuration
-    #[serde(rename = "finansowanie")]
+
     pub funding: ServiceFundingConfig,
 
     /// Universality level
-    #[serde(rename = "powszechność")]
+
     pub universality: UniversalityLevel,
 
     /// Healthcare priorities
-    #[serde(rename = "priorytety")]
+
     pub priorities: HealthcarePriorities,
 }
 
@@ -32,16 +32,16 @@ pub struct HealthcareLaw {
 #[serde(rename_all = "snake_case")]
 pub enum HealthcareSystem {
     /// Polish NFZ model
-    #[serde(rename = "nfz")]
+
     NationalHealthFund,
     /// Bismarck model
-    #[serde(rename = "ubezpieczenie")]
+
     InsuranceBased,
     /// Beveridge model
-    #[serde(rename = "budżetowy")]
+
     Budgetary,
     /// US-style
-    #[serde(rename = "rynkowy")]
+
     MarketBased,
 }
 
@@ -63,19 +63,19 @@ pub enum UniversalityLevel {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct HealthcarePriorities {
     /// Emergency priority
-    #[serde(rename = "priorytet_emergency")]
+
     pub emergency_priority: bool,
 
     /// Elderly priority
-    #[serde(rename = "priorytet_elderly")]
+
     pub elderly_priority: bool,
 
     /// Children priority
-    #[serde(rename = "priorytet_dzieci")]
+
     pub children_priority: bool,
 
     /// Chronic condition priority
-    #[serde(rename = "priorytet_chroniczni")]
+
     pub chronic_priority: bool,
 }
 
@@ -83,19 +83,19 @@ pub struct HealthcarePriorities {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct EducationLaw {
     /// Education model
-    #[serde(rename = "model_edukacji")]
+
     pub education_model: EducationModel,
 
     /// School system
-    #[serde(rename = "system_szkolny")]
+
     pub school_system: SchoolSystem,
 
     /// Funding configuration
-    #[serde(rename = "finansowanie")]
+
     pub funding: ServiceFundingConfig,
 
     /// Compulsory education configuration
-    #[serde(rename = "obowiązek_szkolny")]
+
     pub compulsory_education: CompulsoryEducationConfig,
 }
 
@@ -104,16 +104,16 @@ pub struct EducationLaw {
 #[serde(rename_all = "snake_case")]
 pub enum EducationModel {
     /// State-run
-    #[serde(rename = "państwowy")]
+
     StateRun,
     /// Private
-    #[serde(rename = "prywatny")]
+
     Private,
     /// Mixed
-    #[serde(rename = "mieszany")]
+
     Mixed,
     /// Religious
-    #[serde(rename = "konfesyjny")]
+
     Religious,
 }
 
@@ -122,16 +122,16 @@ pub enum EducationModel {
 #[serde(rename_all = "snake_case")]
 pub enum SchoolSystem {
     /// Primary 4, Middle 4, High 4
-    #[serde(rename = "4+4+4")]
+
     FourPlusFourPlusFour,
     /// Primary 6, Middle 3, High 3
-    #[serde(rename = "6+3+3")]
+
     SixPlusThreePlusThree,
     /// Primary 8, High 4
-    #[serde(rename = "8+4")]
+
     EightPlusFour,
     /// Direct Primary → High
-    #[serde(rename = "bez_gimnazjum")]
+
     NoMiddleSchool,
 }
 
@@ -139,15 +139,15 @@ pub enum SchoolSystem {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct CompulsoryEducationConfig {
     /// Compulsory years
-    #[serde(rename = "obowiązkowe_lata")]
+
     pub compulsory_years: u32,
 
     /// End age
-    #[serde(rename = "wiek_koniec")]
+
     pub end_age: u32,
 
     /// Enforcement level
-    #[serde(rename = "egzekwowanie")]
+
     pub enforcement: EnforcementLevel,
 }
 
@@ -169,19 +169,19 @@ pub enum EnforcementLevel {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct JusticeLaw {
     /// Whether KRS (National Council of the Judiciary) is independent from executive.
-    #[serde(rename = "krs_oddzielony", default)]
+    #[serde(default)]
     pub krs_separated: bool,
     /// Whether Prosecutor General is separate from Justice Minister.
-    #[serde(rename = "prokurator_oddzielony", default)]
+    #[serde(default)]
     pub prosecutor_general_separated: bool,
     /// Target court processing time category.
-    #[serde(rename = "czas_oczekiwania", default)]
+    #[serde(default)]
     pub court_wait_time_target: CourtWaitTime,
     /// Who holds pardon authority.
-    #[serde(rename = "prawo_łaski", default)]
+    #[serde(default)]
     pub pardon_authority: PardonAuthority,
     /// National corruption index (0.0 = clean, 1.0 = highly corrupt).
-    #[serde(rename = "indeks_korupcji", default)]
+    #[serde(default)]
     pub corruption_index: f64,
 }
 
@@ -224,22 +224,22 @@ pub enum PardonAuthority {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct PrisonLaborLaw {
     /// Type of prison system in effect.
-    #[serde(rename = "typ_więzienia", default)]
+    #[serde(default)]
     pub prison_type: PrisonType,
     /// Per-capita savings accrual rate for voluntary labor prisoners.
-    #[serde(rename = "wynagrodzenie_więźniów", default)]
+    #[serde(default)]
     pub labor_compensation: f64,
     /// Health degradation rate per turn for forced labor / isolation prisoners.
-    #[serde(rename = "degradacja_zdrowia", default)]
+    #[serde(default)]
     pub health_degradation_rate: f64,
     /// Per-capita fee paid by companies to the State for private labor camp prisoners.
-    #[serde(rename = "opłata_transferowa", default)]
+    #[serde(default)]
     pub private_transfer_fee: f64,
-    /// Target demographic class for isolation camps (e.g., "inteligencja", "burżuazja").
-    #[serde(rename = "grupa_celowa", default, skip_serializing_if = "Option::is_none")]
+    /// Target demographic class for isolation camps (e.g., "intelligentsia", "bourgeoisie").
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub target_demographic: Option<String>,
     /// Maximum number of prisoners that can be held in isolation camps.
-    #[serde(rename = "pojemność_odosobnienia", default)]
+    #[serde(default)]
     pub isolation_capacity: i64,
 }
 
@@ -511,7 +511,7 @@ pub struct MigrationFlow {
 /// Border enforcement runtime state (on `Politics`, Phase 15B).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct BorderState {
-    /// Total border enforcement capacity from Straż Graniczna buildings.
+    /// Total border enforcement capacity from border_guard buildings.
     #[serde(default)]
     pub border_guard_capacity: f64,
     /// Value of smuggling intercepted this turn.
@@ -531,7 +531,7 @@ pub struct BorderState {
 /// Customs runtime state (on `Politics`, Phase 15B).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct CustomsState {
-    /// Total customs capacity from Urząd Celny buildings.
+    /// Total customs capacity from customs_office buildings.
     #[serde(default)]
     pub customs_capacity: f64,
     /// Tariff revenue collected this turn.
@@ -551,7 +551,7 @@ pub struct CustomsState {
 /// Type of violation detected by inspectorates (Phase 15C).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum ViolationType {
-    /// Health code violation (Sanepid).
+    /// Health code violation (sanepid).
     HealthCode,
     /// Building code violation (Building Inspectorate).
     BuildingCode,
@@ -579,7 +579,7 @@ pub struct Violation {
 /// Inspectorate runtime state (on `Politics`, Phase 15C).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct InspectorateState {
-    /// Total sanitary inspection capacity from Sanepid buildings.
+    /// Total sanitary inspection capacity from sanepid buildings.
     #[serde(default)]
     pub sanepid_capacity: f64,
     /// Total building inspection capacity from Building Inspectorate buildings.
@@ -645,7 +645,7 @@ impl ReligiousLaw {
     /// Migrate from a Polish string value to structured form.
     ///
     /// # Arguments
-    /// * `raw` - The Polish string (e.g., "Laicyzm", "Państwowa").
+    /// * `raw` - The Polish string (e.g., "Secularism", "State").
     /// * `country_religion` - The country's religion display name (for state religion lookup).
     /// * `religion_engine_key` - The engine key for the country's religion.
     ///
@@ -653,13 +653,13 @@ impl ReligiousLaw {
     /// A `ReligiousLaw` struct with fields populated from the string.
     pub fn from_raw(raw: &str, religion_engine_key: &str) -> Self {
         match raw {
-            "Państwowa" => Self {
+            "State" => Self {
                 state_religion: if religion_engine_key.is_empty() { None } else { Some(religion_engine_key.to_string()) },
                 separation_of_church_and_state: false,
                 church_tax_rate: 0.02,
                 apostolic_remittance_rate: 0.10,
             },
-            "Laicyzm" | _ => Self {
+            "Secularism" | _ => Self {
                 state_religion: None,
                 separation_of_church_and_state: true,
                 church_tax_rate: 0.0,

@@ -1,7 +1,7 @@
 //! Smuggling and grey economy mechanics (Phase 15B).
 //!
 //! Smuggling represents the grey economy: goods crossing borders without
-//! paying tariffs. Border enforcement capacity (from Straż Graniczna buildings)
+//! paying tariffs. Border enforcement capacity (from border_guard buildings)
 //! determines how much smuggling is intercepted. Confiscated goods are added
 //! to the state treasury inventory; recovered tariffs go to the treasury.
 //!

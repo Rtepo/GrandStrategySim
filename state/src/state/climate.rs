@@ -8,27 +8,27 @@ use std::collections::HashMap;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct SeasonalModifiers {
     /// Energy consumption multiplier by season (1.0 = baseline)
-    #[serde(rename = "mnożnik_konsumpcji_energii", default)]
+    #[serde(default)]
     pub energy_multiplier: f64,
     
     /// Agricultural yield multiplier by season (1.0 = baseline)
-    #[serde(rename = "mnożnik_plonów", default)]
+    #[serde(default)]
     pub agriculture_multiplier: f64,
     
     /// Services/tourism multiplier by season (1.0 = baseline)
-    #[serde(rename = "mnożnik_usług", default)]
+    #[serde(default)]
     pub services_multiplier: f64,
 
     /// Phase 6.3: Tourism-specific multiplier (coastal/mountainous regions)
-    #[serde(rename = "mnożnik_turystyczny", default)]
+    #[serde(default)]
     pub tourism_multiplier: f64,
 
     /// Heating demand multiplier (1.0 = baseline)
-    #[serde(rename = "mnożnik_zapotrzebowania_na_ciepło", default)]
+    #[serde(default)]
     pub heating_demand_multiplier: f64,
     
     /// Construction efficiency multiplier (1.0 = baseline)
-    #[serde(rename = "mnożnik_efektywności_budowlanej", default)]
+    #[serde(default)]
     pub construction_multiplier: f64,
     
     /// Any additional fields
@@ -40,7 +40,7 @@ pub struct SeasonalModifiers {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct ClimateConfig {
     /// Mapping: ClimateProfile -> Season -> SeasonalModifiers
-    #[serde(rename = "macierz_klimatyczna", default)]
+    #[serde(default)]
     pub climate_season_matrix: HashMap<(ClimateProfile, Season), SeasonalModifiers>,
     
     /// Any additional fields

@@ -13,15 +13,15 @@ use std::sync::OnceLock;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct CommodityProfile {
     /// Base attractiveness multiplier for this commodity
-    #[serde(rename = "mnożnik_atrakcyjności")]
+
     pub attractiveness_multiplier: f64,
     
     /// Per-unit storage requirements (sq meters per unit)
-    #[serde(rename = "wymogi_magazynowe")]
+
     pub storage_sqm_per_unit: f64,
     
     /// Perishability flag (true = requires cold storage)
-    #[serde(rename = "psuje_się")]
+
     pub perishable: bool,
 }
 
@@ -29,23 +29,23 @@ pub struct CommodityProfile {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct RetailConfig {
     /// Consumer inertia weight (0.0-1.0) for brand loyalty
-    #[serde(rename = "waga_inercji")]
+
     pub inertia_weight: f64,
     
     /// Grace period turns for new stores before inertia applies
-    #[serde(rename = "okres_gracji")]
+
     pub newcomer_grace_turns: u32,
     
     /// Expected turnover rate for capacity amortization
-    #[serde(rename = "wskaźnik_obrotu")]
+
     pub expected_turnover_rate: f64,
     
     /// Minimum throughput units for pricing floor
-    #[serde(rename = "przepust_minimalna")]
+
     pub min_throughput_units: f64,
     
     /// Default markup ratio for new stores
-    #[serde(rename = "marża_domyślna")]
+
     pub default_markup_ratio: f64,
 }
 
@@ -346,7 +346,7 @@ pub struct RetailFormatSpec {
 /// # Selection Logic
 /// - Poor/rural/early-era regions → Marketplace (traditional open-air)
 /// - Mid-development → RetailStore (small independent shop)
-/// - Wealthy/urban/modern-era → Supermarket or DepartmentStore
+/// - Wealthy/urban/modern-era → supermarket or DepartmentStore
 /// - Capital + high development + modern era → ShoppingCenter
 pub fn select_retail_format(
     development_level: f64,
@@ -401,10 +401,10 @@ pub fn select_retail_format(
         };
     }
 
-    // Supermarket: mid development + modern era
+    // supermarket: mid development + modern era
     if development_level >= 0.50 && year >= 1940 && wealth_per_capita >= 500.0 {
         return RetailFormatSpec {
-            building_type: CommercialBuildingType::Supermarket,
+            building_type: CommercialBuildingType::supermarket,
             min_development: 0.50,
             min_year: 1940,
             attractiveness: 1.15,

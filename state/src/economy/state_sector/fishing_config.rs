@@ -13,47 +13,47 @@ use serde::{Deserialize, Serialize};
 pub struct FishingConfig {
     /// Health decay rate when overfishing occurs.
     /// Default 0.95 (5% health loss per overfishing event).
-    #[serde(rename = "współczynnik_przełowienia", default = "default_overfishing_health_decay")]
+    #[serde(default = "default_overfishing_health_decay")]
     pub overfishing_health_decay: f64,
 
     /// Minimum health floor — stock never fully collapses.
     /// Default 0.3 (30% of max biomass).
-    #[serde(rename = "minimalne_zdrowie", default = "default_min_health_floor")]
+    #[serde(default = "default_min_health_floor")]
     pub min_health_floor: f64,
 
     /// Health recovery per turn on sustainable fishing.
     /// Default 0.01 (1% recovery per turn).
-    #[serde(rename = "odnowienie_zdrowia", default = "default_sustainable_health_recovery")]
+    #[serde(default = "default_sustainable_health_recovery")]
     pub sustainable_health_recovery: f64,
 
     /// Fish farm water quality decay per turn.
     /// Default 0.99 (1% decay per turn).
-    #[serde(rename = "spadek_jakości_wody", default = "default_farm_water_quality_decay")]
+    #[serde(default = "default_farm_water_quality_decay")]
     pub farm_water_quality_decay: f64,
 
     /// Fish farm minimum water quality.
     /// Default 0.5 (50%).
-    #[serde(rename = "minimalna_jakość_wody", default = "default_farm_min_water_quality")]
+    #[serde(default = "default_farm_min_water_quality")]
     pub farm_min_water_quality: f64,
 
     /// Fish farm disease risk increase per turn.
     /// Default 0.05.
-    #[serde(rename = "wzrost_ryzyka_chorób", default = "default_farm_disease_increase")]
+    #[serde(default = "default_farm_disease_increase")]
     pub farm_disease_increase: f64,
 
     /// Fish farm disease risk decrease when conditions are good.
     /// Default 0.02.
-    #[serde(rename = "spadek_ryzyka_chorób", default = "default_farm_disease_decrease")]
+    #[serde(default = "default_farm_disease_decrease")]
     pub farm_disease_decrease: f64,
 
     /// Fish farm maximum disease risk.
     /// Default 0.3 (30%).
-    #[serde(rename = "maks_ryzyko_chorób", default = "default_farm_max_disease_risk")]
+    #[serde(default = "default_farm_max_disease_risk")]
     pub farm_max_disease_risk: f64,
 
     /// Initial biomass as fraction of max biomass.
     /// Default 0.8 (80%).
-    #[serde(rename = "początkowa_biomasa", default = "default_initial_biomass_ratio")]
+    #[serde(default = "default_initial_biomass_ratio")]
     pub initial_biomass_ratio: f64,
 }
 

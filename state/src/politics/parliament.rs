@@ -51,9 +51,9 @@ pub struct NamedVip {
 /// The Speaker and Deputy Speakers controlling the legislative agenda.
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct ChamberPresidium {
-    /// Speaker (Marszałek) — named VIP.
+    /// Speaker (Speaker) — named VIP.
     pub speaker: NamedVip,
-    /// Deputy speakers (Wicemarszałkowie).
+    /// Deputy speakers (Deputy Speakers).
     pub deputy_speakers: Vec<NamedVip>,
     /// Party/club of the speaker.
     pub speaker_club: String,

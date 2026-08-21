@@ -20,15 +20,15 @@ pub enum LandfillUpgrade {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct WasteProcessingResult {
     /// Waste destroyed (tons)
-    #[serde(rename = "odpady_zniszczone", default)]
+    #[serde(default)]
     pub waste_destroyed: f64,
     
     /// Commodities recovered (Commodity -> tons)
-    #[serde(rename = "komodity_odzyskane", default)]
+    #[serde(default)]
     pub commodities_recovered: BTreeMap<String, f64>,
     
     /// Pollution generated (0-1)
-    #[serde(rename = "zanieczyszczenie_wygenerowane", default)]
+    #[serde(default)]
     pub pollution_generated: f64,
 }
 
@@ -36,31 +36,31 @@ pub struct WasteProcessingResult {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct Landfill {
     /// Unique landfill ID
-    #[serde(rename = "id_wysypiska", default)]
+    #[serde(default)]
     pub id: String,
     
     /// Micro-region where landfill is located
-    #[serde(rename = "mikroregion_id", default)]
+    #[serde(default)]
     pub micro_region_id: String,
     
     /// Total capacity (tons)
-    #[serde(rename = "pojemność_całkowita", default)]
+    #[serde(default)]
     pub total_capacity: f64,
     
     /// Current waste volume (tons)
-    #[serde(rename = "aktualna_objętość", default)]
+    #[serde(default)]
     pub current_volume: f64,
     
     /// Modular upgrades installed
-    #[serde(rename = "moduły_ulepszeń", default)]
+    #[serde(default)]
     pub upgrades: Vec<LandfillUpgrade>,
     
     /// Processing capacity per turn (tons)
-    #[serde(rename = "pojemność_przetwarzania", default)]
+    #[serde(default)]
     pub processing_capacity: f64,
     
     /// Operating cost per turn
-    #[serde(rename = "koszt_operacyjny", default)]
+    #[serde(default)]
     pub operating_cost: f64,
 }
 
@@ -150,23 +150,23 @@ impl Landfill {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct LandfillData {
     /// Total capacity (tons)
-    #[serde(rename = "pojemność_całkowita", default)]
+    #[serde(default)]
     pub total_capacity: f64,
 
     /// Current waste volume (tons)
-    #[serde(rename = "aktualna_objętość", default)]
+    #[serde(default)]
     pub current_volume: f64,
 
     /// Processing capacity per turn (tons)
-    #[serde(rename = "pojemność_przetwarzania", default)]
+    #[serde(default)]
     pub processing_capacity: f64,
 
     /// Operating cost per turn
-    #[serde(rename = "koszt_operacyjny", default)]
+    #[serde(default)]
     pub operating_cost: f64,
 
     /// Modular upgrades installed
-    #[serde(rename = "moduły_ulepszeń", default)]
+    #[serde(default)]
     pub upgrades: Vec<LandfillUpgrade>,
 }
 

@@ -29,10 +29,10 @@ pub struct CulturalNamingPatterns {
 pub fn get_cultural_patterns(cultural_group: &str) -> CulturalNamingPatterns {
     match cultural_group {
         "slavic" => CulturalNamingPatterns {
-            prefixes: vec!["Narodowy", "Zjednoczony", "Ludowy", "Patriotyczny", "Demokratyczny", "Chrześcijański", "Konserwatywny", "Liberalny", "Postępowy", "Społeczny"],
-            nouns: vec!["Partia", "Front", "Związek", "Ruch", "Liga", "Koalicja", "Sojusz", "Blok", "Inicjatywa", "Platforma"],
-            themes: vec!["Pracy", "Wolności", "Rolników", "Odrodzenia", "Solidarności", "Sprawiedliwości", "Prawdy", "Przyszłości", "Rodziny", "Reformy"],
-            cultural_modifiers: vec!["Słowiański", "Narodowy", "Tradycyjny", "Nowoczesny", "Ludowy"],
+            prefixes: vec!["National", "United", "People's", "Patriotic", "Democratic", "Christian", "Conservative", "Liberal", "Progressive", "Social"],
+            nouns: vec!["Party", "Front", "Union", "Movement", "League", "Coalition", "Alliance", "Bloc", "Initiative", "Platform"],
+            themes: vec!["of Labor", "of Freedom", "of Farmers", "of Rebirth", "of Solidarity", "of Justice", "of Truth", "of the Future", "of Family", "of Reform"],
+            cultural_modifiers: vec!["Slavic", "National", "Traditional", "Modern", "People's"],
         },
         "germanic" => CulturalNamingPatterns {
             prefixes: vec!["National", "United", "People's", "Christian", "Democratic", "Conservative", "Liberal", "Progressive", "Social", "Free"],
@@ -54,7 +54,7 @@ pub fn get_cultural_patterns(cultural_group: &str) -> CulturalNamingPatterns {
         },
         "balkan" => CulturalNamingPatterns {
             prefixes: vec!["Narodna", "Jedinstvena", "Demokratska", "Konzervativna", "Liberalna", "Socijalna", "Hrišćanska", "Progressivna", "Patriotska", "Narodna Nova"],
-            nouns: vec!["Stranka", "Front", "Savez", "Pokret", "Liga", "Koalicija", "Alijansa", "Blok", "Inicijativa", "Platforma"],
+            nouns: vec!["Stranka", "Front", "Savez", "Pokret", "League", "Koalicija", "Alijansa", "Bloc", "Inicijativa", "Platform"],
             themes: vec!["Rada", "Sloboda", "Seljaka", "Obnova", "Solidarnost", "Pravde", "Budućnosti", "Reforme", "Porodice", "Nasleđa"],
             cultural_modifiers: vec!["Balkanski", "Narodni", "Slovenski", "Novi", "Gradjanski"],
         },

@@ -1,6 +1,6 @@
 //! Inspectorate violation detection and fining (Phase 15C).
 //!
-//! Implements physical inspectorate mechanics: Sanepid (sanitary), Building
+//! Implements physical inspectorate mechanics: sanepid (sanitary), Building
 //! Inspectorate, and Environmental Inspectorate. Each inspectorate produces
 //! inspection capacity from its buildings. Violations are detected based on
 //! building condition, sector, and production volume. Detected violations
@@ -102,7 +102,7 @@ fn condition_violation_severity(condition: f64) -> f64 {
 /// `InspectorateTurnResult` with capacity, violation, and fine statistics.
 ///
 /// # Rules
-/// - Sanepid: inspects food/pharma/agriculture companies with condition < 0.5.
+/// - sanepid: inspects food/pharma/agriculture companies with condition < 0.5.
 /// - Building Inspectorate: inspects buildings with condition < 0.3.
 /// - Environmental Inspectorate: inspects mining/heavy industry/energy companies.
 /// - Detection probability = `min(1.0, capacity / total_inspectable_entities)`.
@@ -170,7 +170,7 @@ pub fn process_inspectorates_turn(
     let mut violations = 0_u32;
     let mut justice_demand_added = 0.0_f64;
 
-    // --- Sanepid: health code violations ---
+    // --- sanepid: health code violations ---
     for &idx in &sanitary_targets {
         // Check if any building owned by this company has condition < 0.5
         let has_health_violation = buildings
@@ -446,9 +446,9 @@ mod tests {
         }];
         let buildings = vec![
             make_building("Fabryka", 0.2, Some("C1".to_string())),
-            make_building("Sanepid", 1.0, None),
+            make_building("sanepid", 1.0, None),
         ];
-        // Give Sanepid building some inspection capacity output
+        // Give sanepid building some inspection capacity output
         let mut buildings = buildings;
         {
             let sanepid = &mut buildings[1];
@@ -498,7 +498,7 @@ mod tests {
         }];
         let mut buildings = vec![
             make_building("Kopalnia", 0.8, Some("C1".to_string())),
-            make_building("Inspektorat Środowiska", 1.0, None),
+            make_building("environmental_inspectorate", 1.0, None),
         ];
         // High production output = high pollution proxy
         buildings[0].last_production.insert(Commodity::HardCoal, 500.0);
@@ -523,7 +523,7 @@ mod tests {
         }];
         let mut buildings = vec![
             make_building("Fabryka", 0.1, Some("C1".to_string())),
-            make_building("Sanepid", 1.0, None),
+            make_building("sanepid", 1.0, None),
         ];
         buildings[1].last_production.insert(Commodity::SanitaryInspectionCapacity, 10.0);
 
@@ -548,7 +548,7 @@ mod tests {
         }];
         let mut buildings = vec![
             make_building("Fabryka", 0.2, Some("C1".to_string())),
-            make_building("Sanepid", 1.0, None),
+            make_building("sanepid", 1.0, None),
         ];
         buildings[1].last_production.insert(Commodity::SanitaryInspectionCapacity, 10.0);
 
@@ -564,9 +564,9 @@ mod tests {
         let mut country = Country::mock_for_tests();
         let mut companies = vec![Company::default()];
         let mut buildings = vec![
-            make_building("Sanepid", 1.0, None),
+            make_building("sanepid", 1.0, None),
             make_building("Inspektorat Nadzoru", 1.0, None),
-            make_building("Inspektorat Środowiska", 1.0, None),
+            make_building("environmental_inspectorate", 1.0, None),
         ];
         buildings[0].last_production.insert(Commodity::SanitaryInspectionCapacity, 15.0);
         buildings[1].last_production.insert(Commodity::BuildingInspectionCapacity, 8.0);

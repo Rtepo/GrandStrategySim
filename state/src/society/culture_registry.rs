@@ -24,8 +24,7 @@ pub struct CultureDefinition {
     /// Engine key for cultural group (e.g., "slavic", "germanic").
     pub cultural_group: String,
     /// English display name for cultural group (e.g., "Slavic", "Germanic").
-    /// Old saves may store Polish strings; serde aliases handle backward compat.
-    #[serde(alias = "Słowiańska", alias = "Germańska", alias = "Łacińska", alias = "Bliskowschodnia", alias = "Bałkańska")]
+    #[serde(default)]
     pub cultural_group_display: String,
     /// English demonym for this culture's people (e.g., "Lechians", "Bactrians").
     #[serde(default)]
@@ -453,7 +452,7 @@ fn build_religions() -> HashMap<String, ReligionDefinition> {
         },
         ReligionDefinition {
             key: "orthodoxy".into(),
-            display_name: "Prawosławie".into(),
+            display_name: "Orthodoxy".into(),
             religious_group: "christianity".into(),
             taboos: vec![],
             obsessions: vec![(Commodity::Luxury, 1.1), (Commodity::Paper, 1.1)],
@@ -503,7 +502,7 @@ fn build_religions() -> HashMap<String, ReligionDefinition> {
         },
         ReligionDefinition {
             key: "pagan_cults".into(),
-            display_name: "Kulty Pogańskie".into(),
+            display_name: "Pagan Cults".into(),
             religious_group: "pagan".into(),
             taboos: vec![],
             obsessions: vec![(Commodity::Luxury, 1.15)],

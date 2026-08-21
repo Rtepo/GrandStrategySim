@@ -15,7 +15,7 @@ pub enum EducationBuildingType {
     PrimarySchool,
     /// Gimnazja (optional based on law)
     MiddleSchool,
-    /// Liceum/Technikum/Zawodówka
+    /// high_school/Technical/Vocational
     HighSchool,
     /// Higher education
     University,
@@ -31,22 +31,22 @@ pub enum EducationBuildingType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct EducationTemplate {
     /// Type of institution
-    #[serde(rename = "typ_instytucji")]
+
     pub institution_type: EducationBuildingType,
 
     /// Base capacity per turn
-    #[serde(rename = "pojemność_bazowa")]
+
     pub base_capacity: f64,
 
     /// Cost per capacity unit
-    #[serde(rename = "koszt_na_miejsce")]
+
     pub cost_per_capacity: f64,
 
     /// Required qualification for staff
-    #[serde(rename = "wymagana_kwalifikacja_kadra")]
+
     pub staff_qualification: LaborTier,
 
     /// Probability of class advancement
-    #[serde(rename = "mobilność_klasowa")]
+
     pub class_mobility_impact: f64,
 }

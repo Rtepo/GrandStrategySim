@@ -9,19 +9,19 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ConcessionClause {
     /// Description of the concession
-    #[serde(rename = "opis", default)]
+    #[serde(default)]
     pub description: String,
     
     /// Target party/faction receiving the concession
-    #[serde(rename = "cel", default)]
+    #[serde(default)]
     pub target: String,
     
     /// Budget cost of the concession
-    #[serde(rename = "koszt", default)]
+    #[serde(default)]
     pub cost: f64,
     
     /// Ideological distance reduction provided by this concession
-    #[serde(rename = "redukcja_odleglosci", default)]
+    #[serde(default)]
     pub distance_reduction: f64,
 }
 
@@ -287,7 +287,7 @@ pub fn check_coalition_stability(
             return (
                 true,
                 format!(
-                    "[ROZPAD KOALICJI] Różnice ideologiczne między {} a {} spowodowały zerwanie paktu.",
+                    "[COALITION BREAKDOWN] Ideological differences between {} and {} caused the pact to break.",
                     ruling_party, worst_partner
                 ),
             );
@@ -317,14 +317,14 @@ pub fn calculate_upper_house_composition(
         let method = upper_house.elections.clone();
         if method.contains("Dziedziczne") {
             composition.insert("Arystokracja".to_string(), interest_groups.get("Arystokracja").map(|ig| ig.total_political_weight).unwrap_or(30.0));
-            composition.insert("Duchowieństwo".to_string(), interest_groups.get("Duchowieństwo").map(|ig| ig.total_political_weight).unwrap_or(20.0));
-            composition.insert("Siły Zbrojne".to_string(), interest_groups.get("Siły Zbrojne").map(|ig| ig.total_political_weight).unwrap_or(15.0));
-            composition.insert("Niezależni Konserwatyści".to_string(), 35.0);
+            composition.insert("Clergy".to_string(), interest_groups.get("Clergy").map(|ig| ig.total_political_weight).unwrap_or(20.0));
+            composition.insert("Armed Forces".to_string(), interest_groups.get("Armed Forces").map(|ig| ig.total_political_weight).unwrap_or(15.0));
+            composition.insert("Independent Conservatives".to_string(), 35.0);
         } else if method.contains("Mianowanie") {
             composition.insert(ruling_party.to_string(), 60.0);
             composition.insert("Biurokraci".to_string(), 20.0);
-            composition.insert("Specjaliści / Technokraci".to_string(), 20.0);
-        } else if method.contains("Pośrednie") {
+            composition.insert("Specialists / Technocrats".to_string(), 20.0);
+        } else if method.contains("Indirect") {
             let mut groups: Vec<(&String, f64)> = interest_groups.iter().map(|(k, v)| (k, v.total_political_weight)).collect();
             groups.sort_by(|(a, va), (b, vb)| vb.partial_cmp(va).unwrap().then_with(|| a.cmp(b)));
             for (group, power) in groups.iter().take(4) {
@@ -341,7 +341,7 @@ pub fn calculate_upper_house_composition(
 
     let total: f64 = composition.values().sum();
     if total <= 0.0 {
-        return [("Niezależni".to_string(), 100)].into_iter().collect();
+        return [("Independents".to_string(), 100)].into_iter().collect();
     }
 
     let mut seats: HashMap<String, u32> = HashMap::new();
@@ -652,7 +652,7 @@ mod tests {
         let mut parties = HashMap::new();
         let mut p1 = Party::default();
         p1.support = 45.0;
-        p1.base = vec!["Aristokracja".to_string()];
+        p1.base = vec!["Aristocracy".to_string()];
         parties.insert("Conservative".to_string(), p1);
 
         let mut p2 = Party::default();
@@ -705,7 +705,7 @@ mod tests {
     fn make_test_mapping() -> ClassToGroupMapping {
         let mut mapping = ClassToGroupMapping::default();
         mapping.rural_class_mapping.insert("Aristocracy".to_string(), RuralClassConfig {
-            interest_group: "Aristokracja".to_string(),
+            interest_group: "Aristocracy".to_string(),
             ..Default::default()
         });
         mapping.rural_class_mapping.insert("LandlessLaborer".to_string(), RuralClassConfig {

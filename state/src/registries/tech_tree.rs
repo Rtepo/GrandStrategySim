@@ -27,45 +27,45 @@ pub enum TechType {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TechNode {
     /// Display name (`"nazwa"`), e.g. `"Spawanie elektryczne"`.
-    #[serde(rename = "nazwa")]
+
     pub name: String,
 
     /// Historical year the technology becomes available (`"rok"`).
-    #[serde(rename = "rok")]
+
     pub year: u32,
 
     /// Research cost in innovation points (`"koszt"`).
-    #[serde(rename = "koszt")]
+
     pub cost: u32,
 
     /// Human-readable description (`"opis"`).
-    #[serde(rename = "opis")]
+
     pub description: String,
 
     /// Production methods unlocked, keyed by sector then method-slot
     /// (`"odblokowuje_metody"`). Absent in the JSON when empty.
-    #[serde(rename = "odblokowuje_metody", default)]
+    #[serde(default)]
     pub unlocks_methods: HashMap<String, HashMap<String, String>>,
 
     /// State projects unlocked by this technology (`"odblokowuje_projekty"`).
     /// Absent in the JSON when empty.
-    #[serde(rename = "odblokowuje_projekty", default)]
+    #[serde(default)]
     pub unlocks_projects: Vec<String>,
 
     /// Prerequisite technology IDs (`"prerequisites"`).
-    #[serde(rename = "prerequisites", default)]
+    #[serde(default)]
     pub prerequisites: Vec<TechId>,
 
     /// Type of technology: Fundamental or Commercial.
-    #[serde(rename = "typ_tech", default)]
+    #[serde(default)]
     pub tech_type: TechType,
 
     /// Patent duration in turns (default 240 for 20 years at 1 turn/month).
-    #[serde(rename = "czas_patentu", default = "default_patent_duration")]
+    #[serde(default = "default_patent_duration")]
     pub patent_duration_turns: u32,
 
     /// VWAP ratio for royalty calculation (e.g., 0.05 for 5% of output commodity VWAP).
-    #[serde(rename = "stawka_royalty_vwap", default = "default_royalty_ratio")]
+    #[serde(default = "default_royalty_ratio")]
     pub royalty_vwap_ratio: f64,
 }
 
@@ -103,25 +103,25 @@ mod tests {
     fn parses_minimal_node() {
         let json = r#"{
             "tech_001": {
-                "nazwa": "Spawanie elektryczne",
-                "rok": 1881,
-                "koszt": 100,
-                "opis": "Fundamentalne laczenie metali.",
-                "odblokowuje_metody": {
-                    "przemysl_ciezki": { "automatyzacja": "Fabryki Zelektryfikowane" }
+                "name": "Electric Welding",
+                "year": 1881,
+                "cost": 100,
+                "description": "Fundamental metal joining.",
+                "unlocks_methods": {
+                    "heavy_industry": { "automation": "Electrified Factories" }
                 },
                 "prerequisites": []
             }
         }"#;
         let tree = load_tech_tree(json).unwrap();
         let node = &tree["tech_001"];
-        assert_eq!(node.name, "Spawanie elektryczne");
+        assert_eq!(node.name, "Electric Welding");
         assert_eq!(node.year, 1881);
         assert_eq!(node.cost, 100);
         assert!(node.prerequisites.is_empty());
         assert_eq!(
-            node.unlocks_methods["przemysl_ciezki"]["automatyzacja"],
-            "Fabryki Zelektryfikowane"
+            node.unlocks_methods["heavy_industry"]["automation"],
+            "Electrified Factories"
         );
     }
 
@@ -129,10 +129,10 @@ mod tests {
     fn defaults_missing_optionals() {
         let json = r#"{
             "tech_094": {
-                "nazwa": "Samoobslugowy terminal platniczy",
-                "rok": 1995,
-                "koszt": 6700,
-                "opis": "Poczatki likwidacji zawodu kasjera.",
+                "name": "Self-service Payment Terminal",
+                "year": 1995,
+                "cost": 6700,
+                "description": "Beginnings of cashier profession elimination.",
                 "prerequisites": []
             }
         }"#;

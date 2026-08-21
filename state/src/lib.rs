@@ -4,9 +4,9 @@
 //! It is being built incrementally following the roadmap in
 //! `RUST_MIGRATION_BLUEPRINT.md`.
 //!
-//! ## Target 0 — Static Registries & Core Math
+//! ## Stage 0 — Static Registries & Core Math
 //!
-//! Target 0 establishes the foundation with **zero mutable global state**:
+//! Stage 0 establishes the foundation with **zero mutable global state**:
 //!
 //! - [`registries`] — immutable, load-once game data (tech tree, production
 //!   methods, building templates, government forms) plus the categorical
@@ -14,7 +14,7 @@
 //! - [`math`] — pure numeric helpers (decay curves, experience gain, ratio
 //!   normalization) shared across all future gameplay systems.
 //!
-//! ## Target 1 — State Structs & Serde Interop Bridge
+//! ## Stage 1 — State Structs & Serde Interop Bridge
 //!
 //! - [`state`] — the typed replacements for Python's dynamic per-country
 //!   dictionaries ([`state::Treasury`], [`state::MacroData`],
@@ -25,7 +25,7 @@
 //! - [`io`] — the serde interop bridge that loads the Python engine's split
 //!   JSON save files into the typed state.
 //!
-//! ## Target 2 — Deterministic Economy Turn & Golden-master Parity (current)
+//! ## Stage 2 — Deterministic Economy Turn & Golden-master Parity (current)
 //!
 //! - [`economy::CountryTurnCtx`] — the split-borrow context: a mutable
 //!   `Country` and an immutable `&Registries`.
@@ -43,10 +43,9 @@
 //!   consumes inputs, produces outputs, and tallies orders in
 //!   [`economy::market::MarketOrders`].
 //! - [`economy::indicators::run_economic_turn`] — the per-country turn
-//!   orchestrator (currently calls the GDP-share update and returns
-//!   `MissingExpected` until full golden-master snapshots are produced).
-//! - `tests/golden_master_test.rs` — the parity harness with hardcoded
-//!   `turn_0` states and `assert_f64_eq!` macro.
+//!   orchestrator (calls the GDP-share update and returns the result).
+//! - `tests/phase75_dynamic_integration_test.rs` — the 24-turn dynamic
+//!   integration test that asserts behavioral invariants.
 //!
 //! ## Documentation Standard
 //!

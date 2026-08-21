@@ -25,12 +25,12 @@ pub enum NeedTier {
 pub struct ConsumptionBasket {
     /// Per capita, per turn consumption by need tier
     /// Maps NeedTier → (Commodity → units per capita per turn)
-    #[serde(rename = "koszyk_konsumpcyjny")]
+
     pub tiers: BTreeMap<NeedTier, BTreeMap<Commodity, f64>>,
     
     /// Max fraction of spending power committed to each tier
     /// Maps NeedTier → budget share (0.0-1.0), must sum to 1.0
-    #[serde(rename = "udział_budżetu")]
+
     pub tier_budget_share: BTreeMap<NeedTier, f64>,
 }
 
@@ -52,18 +52,18 @@ pub struct Substitution {
 pub struct SubsistenceConfig {
     /// Max fraction of a deficit that can be covered by substitution
     /// e.g., 0.5 means at most 50% of protein need can be covered by grain surplus
-    #[serde(rename = "kap_substytucji")]
+
     pub substitution_cap: f64,
     
     /// VWAP wage offset for FreePeasant/LandlessLaborer (class-dependent)
     /// Serfs receive in-kind INSTEAD of wages (no cash offset)
     /// Aristocracy receives no in-kind at all
-    #[serde(rename = "offset_płacy_vwap")]
+
     pub vwap_wage_offset: bool,
     
     /// Nutritional penalty for substituted consumption
     /// Reduces quality-of-life when subsistence is met via substitution
-    #[serde(rename = "kara_nutritionalna")]
+
     pub nutritional_penalty: f64,
 }
 
@@ -134,6 +134,8 @@ pub fn consumption_registry() -> &'static BTreeMap<String, ConsumptionBasket> {
                             subsistence.insert(Commodity::Cereal, 0.18);
                             subsistence.insert(Commodity::Vegetable, 0.12);
                             subsistence.insert(Commodity::Protein, 0.08);
+                            subsistence.insert(Commodity::Meat, 0.02); // Phase 74: modest meat consumption
+                            subsistence.insert(Commodity::Fruit, 0.02); // Phase 74: modest fruit consumption
                             subsistence.insert(Commodity::HealthCapacity, 0.03); // Phase 7: Health service need
                             subsistence.insert(Commodity::EducationSlots, 0.01); // Phase 7: Education service need
                             subsistence
@@ -174,6 +176,7 @@ pub fn consumption_registry() -> &'static BTreeMap<String, ConsumptionBasket> {
                             subsistence.insert(Commodity::Cereal, 0.16);
                             subsistence.insert(Commodity::Vegetable, 0.11);
                             subsistence.insert(Commodity::Protein, 0.06);
+                            subsistence.insert(Commodity::Meat, 0.01); // Phase 74: bare minimum meat
                             subsistence.insert(Commodity::HealthCapacity, 0.025); // Phase 7: Health service need
                             subsistence.insert(Commodity::EducationSlots, 0.008); // Phase 7: Education service need
                             subsistence
@@ -467,4 +470,108 @@ pub fn substitution_matrix() -> &'static BTreeMap<Commodity, Vec<Substitution>> 
 pub fn subsistence_config() -> &'static SubsistenceConfig {
     static CONFIG: OnceLock<SubsistenceConfig> = OnceLock::new();
     CONFIG.get_or_init(SubsistenceConfig::default)
+}
+
+/// Phase 74: Price-driven substitution rule for perishable goods.
+///
+/// When a primary good's price exceeds the affordability threshold (relative
+/// to average_wage), a calculated percentage of demand shifts to a cheaper
+/// substitute. This is distinct from the payment-in-kind `Substitution` matrix
+/// — this matrix is driven by market prices, not by deficit coverage.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct PriceSubstitution {
+    /// Primary commodity that may be substituted away from
+    pub primary: Commodity,
+    /// Substitute commodity that absorbs shifted demand
+    pub substitute: Commodity,
+    /// Nutritional equivalence ratio: substitute units needed per 1 unit of primary
+    /// e.g., 0.4 means 2.5 kg cereal ≈ 1 kg meat nutritionally
+    pub equivalence_ratio: f64,
+    /// Price elasticity coefficient: how aggressively demand shifts when price rises
+    /// substitution_fraction = ((price_ratio - 1.0) * coefficient).clamp(0, max_substitution)
+    pub elasticity_coefficient: f64,
+    /// Maximum fraction of demand that can be substituted (0.0–1.0)
+    pub max_substitution: f64,
+}
+
+/// Phase 74: Returns the static price-driven substitution matrix.
+///
+/// # Returns
+/// * `&'static BTreeMap<Commodity, Vec<PriceSubstitution>>` — primary commodity → substitute candidates
+///
+/// # Rules
+/// * Substitutes are ordered by preference (first is preferred)
+/// * When a primary good's price_ratio > 1.0, demand shifts to substitutes
+/// * substitution_fraction = ((price_ratio - 1.0) * coefficient).clamp(0, max_substitution)
+/// * Shifted demand is scaled by equivalence_ratio before adding to substitute
+pub fn price_substitution_matrix() -> &'static BTreeMap<Commodity, Vec<PriceSubstitution>> {
+    static MATRIX: OnceLock<BTreeMap<Commodity, Vec<PriceSubstitution>>> = OnceLock::new();
+    MATRIX.get_or_init(|| {
+        let mut m = BTreeMap::new();
+
+        // Meat → Cereal / Vegetable (when meat is too expensive)
+        m.insert(
+            Commodity::Meat,
+            vec![
+                PriceSubstitution {
+                    primary: Commodity::Meat,
+                    substitute: Commodity::Cereal,
+                    equivalence_ratio: 0.4,  // 2.5 kg cereal ≈ 1 kg meat
+                    elasticity_coefficient: 0.8,
+                    max_substitution: 0.6,
+                },
+                PriceSubstitution {
+                    primary: Commodity::Meat,
+                    substitute: Commodity::Vegetable,
+                    equivalence_ratio: 0.33, // 3 kg veg ≈ 1 kg meat
+                    elasticity_coefficient: 0.8,
+                    max_substitution: 0.6,
+                },
+            ],
+        );
+
+        // Fruit → Cereal / Vegetable
+        m.insert(
+            Commodity::Fruit,
+            vec![
+                PriceSubstitution {
+                    primary: Commodity::Fruit,
+                    substitute: Commodity::Cereal,
+                    equivalence_ratio: 0.5,
+                    elasticity_coefficient: 0.7,
+                    max_substitution: 0.5,
+                },
+                PriceSubstitution {
+                    primary: Commodity::Fruit,
+                    substitute: Commodity::Vegetable,
+                    equivalence_ratio: 0.6,
+                    elasticity_coefficient: 0.7,
+                    max_substitution: 0.5,
+                },
+            ],
+        );
+
+        // Protein → Cereal / Vegetable
+        m.insert(
+            Commodity::Protein,
+            vec![
+                PriceSubstitution {
+                    primary: Commodity::Protein,
+                    substitute: Commodity::Cereal,
+                    equivalence_ratio: 0.4,
+                    elasticity_coefficient: 0.9,
+                    max_substitution: 0.7,
+                },
+                PriceSubstitution {
+                    primary: Commodity::Protein,
+                    substitute: Commodity::Vegetable,
+                    equivalence_ratio: 0.33,
+                    elasticity_coefficient: 0.9,
+                    max_substitution: 0.7,
+                },
+            ],
+        );
+
+        m
+    })
 }

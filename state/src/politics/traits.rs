@@ -7,23 +7,23 @@ use std::collections::HashMap;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct LeaderTrait {
     /// Trait ID (e.g., "charismatic", "corrupt", "economist")
-    #[serde(rename = "id_cechy", default)]
+    #[serde(default)]
     pub id: String,
     
     /// Trait display name
-    #[serde(rename = "nazwa", default)]
+    #[serde(default)]
     pub name: String,
     
     /// Trait description
-    #[serde(rename = "opis", default)]
+    #[serde(default)]
     pub description: String,
     
     /// Rarity weight (higher = rarer)
-    #[serde(rename = "waga_rzadkości", default)]
+    #[serde(default)]
     pub rarity_weight: f64,
     
     /// Data-driven modifiers (JSON-configurable)
-    #[serde(rename = "modyfikatory", default)]
+    #[serde(default)]
     pub modifiers: Vec<TraitModifier>,
     
     /// Any additional fields
@@ -35,23 +35,23 @@ pub struct LeaderTrait {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct TraitModifier {
     /// Target system (e.g., "campaign", "scandal", "economy", "legislation")
-    #[serde(rename = "system_celowy", default)]
+    #[serde(default)]
     pub target_system: String,
     
     /// Specific parameter to modify (e.g., "cost_multiplier", "discovery_risk")
-    #[serde(rename = "parametr", default)]
+    #[serde(default)]
     pub parameter: String,
     
     /// Modifier type (additive, multiplicative, override)
-    #[serde(rename = "typ_modyfikatora", default)]
+    #[serde(default)]
     pub modifier_type: ModifierType,
     
     /// Modifier value
-    #[serde(rename = "wartość", default)]
+    #[serde(default)]
     pub value: f64,
     
     /// Condition for modifier application (optional)
-    #[serde(rename = "warunek", skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub condition: Option<String>,
 }
 
@@ -59,13 +59,13 @@ pub struct TraitModifier {
 #[serde(rename_all = "snake_case")]
 pub enum ModifierType {
     #[default]
-    #[serde(rename = "addytywny")]
+
     Additive,  // value is added to base
     
-    #[serde(rename = "mnożnikowy")]
+
     Multiplicative,  // value multiplies base
     
-    #[serde(rename = "nadpisujący")]
+
     Override,  // value replaces base
 }
 
@@ -73,7 +73,7 @@ pub enum ModifierType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct TraitRegistry {
     /// All traits by ID
-    #[serde(rename = "cechy", default)]
+    #[serde(default)]
     pub traits: HashMap<String, LeaderTrait>,
     
     /// Any additional fields

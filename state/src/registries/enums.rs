@@ -1,8 +1,6 @@
-//! Categorical enums that replace Python's stringly-typed dictionary keys.
+﻿//! Categorical enums that replace stringly-typed dictionary keys.
 //!
-//! Each enum uses `#[serde(rename = "...")]` to (de)serialize verbatim against
-//! the existing Polish-keyed JSON data, enabling Golden-master parity while
-//! giving Rust code exhaustive, compiler-checked `match` handling.
+//! These enums give Rust code exhaustive, compiler-checked `match` handling.
 
 use serde::{Deserialize, Serialize};
 
@@ -37,13 +35,13 @@ impl RegimeType {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ConscriptionLaw {
     /// Mandatory training only (`"obowiazkowe_szkolenia"`).
-    #[serde(rename = "obowiazkowe_szkolenia")]
+
     MandatoryTraining,
-    /// Full active service (`"pełna_służba"`).
-    #[serde(rename = "pełna_służba")]
+    /// Full active service (`"full_service"`).
+
     FullService,
     /// No mandatory service (`"brak"`).
-    #[serde(rename = "brak")]
+
     None_,
 }
 
@@ -51,13 +49,13 @@ pub enum ConscriptionLaw {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum WomenInArmy {
     /// Reserve duty only (`"jedynie_w_rezerwie"`).
-    #[serde(rename = "jedynie_w_rezerwie")]
+
     ReserveOnly,
-    /// Full access to all roles (`"pełny_dostęp"`).
-    #[serde(rename = "pełny_dostęp")]
+    /// Full access to all roles (`"full_access"`).
+
     FullAccess,
     /// Barred from service (`"zakaz"`).
-    #[serde(rename = "zakaz")]
+
     Banned,
 }
 
@@ -65,13 +63,13 @@ pub enum WomenInArmy {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum DraftScope {
     /// Voluntary enlistment only (`"dobrowolna"`).
-    #[serde(rename = "dobrowolna")]
+
     Voluntary,
     /// Selective draft (`"selektywny"`).
-    #[serde(rename = "selektywny")]
+
     Selective,
-    /// Universal conscription (`"powszechny_pobór"`).
-    #[serde(rename = "powszechny_pobór")]
+    /// Universal conscription (`"powszechny_pobÄ‚Ĺ‚r"`).
+
     UniversalDraft,
 }
 
@@ -92,7 +90,7 @@ pub enum LaborTier {
     Unskilled,
 }
 
-/// National prosperity bracket (`koszyk` / `koszyk_zamożności`).
+/// National prosperity bracket (`basket` / `prosperity_basket`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum WealthBracket {
@@ -121,25 +119,25 @@ pub enum Sector {
     Mining,
     /// `"agriculture"` (was: rolnictwo).
     Agriculture,
-    /// `"heavy_industry"` (was: przemysł_ciężki).
+    /// `"heavy_industry"`.
     HeavyIndustry,
-    /// `"light_industry"` (was: przemysł_lekki).
+    /// `"light_industry"`.
     LightIndustry,
-    /// `"armaments_industry"` (was: przemysł_zbrojeniowy).
+    /// `"armaments_industry"`.
     ArmamentsIndustry,
-    /// `"local_services"` (was: usługi_lokalne).
+    /// `"local_services"`.
     LocalServices,
-    /// `"export_services"` (was: usługi_eksportowe).
+    /// `"export_services"`.
     ExportServices,
     /// `"construction"` (was: budownictwo).
     Construction,
     /// `"energy"` (was: energetyka).
     Energy,
-    /// `"public_services"` (was: usługi_publiczne).
+    /// `"public_services"`.
     PublicServices,
-    /// `"medical_services"` (was: usługi_medyczne).
+    /// `"medical_services"`.
     MedicalServices,
-    /// `"educational_services"` (was: usługi_edukacyjne).
+    /// `"educational_services"`.
     EducationalServices,
     /// `"transport_logistics"` (was: transport_i_logistyka).
     TransportLogistics,
@@ -162,9 +160,9 @@ pub enum Sector {
     /// `"religion"` (churches, religious charities, religious institutions).
     Religion,
     /// PHASE 19B: `"maintenance_workshops"` (repair shops producing MaintenanceServices
-    /// from generic raw materials — the circular-dependency-breaking maintenance sector).
+    /// from generic raw materials Ă˘â‚¬â€ť the circular-dependency-breaking maintenance sector).
     MaintenanceWorkshops,
-    /// PHASE 32: `"government"` — Parliament, government buildings, ministerial offices.
+    /// PHASE 32: `"government"` Ă˘â‚¬â€ť Parliament, government buildings, ministerial offices.
     /// Employs politicians and administrative staff, consumes Paper/Energy/Services,
     /// and is funded from Treasury payroll.
     Government,
@@ -267,212 +265,194 @@ impl Sector {
 pub enum Commodity {
     /// "agd" (was: AGD).
     Agd,
-    /// "aluminum" (was: Aluminium).
+    /// "aluminum".
     Aluminum,
-    /// "ammunition" (was: Amunicja).
+    /// "ammunition".
     Ammunition,
-    /// "towed_artillery" (was: Artyleria Holowana).
+    /// "towed_artillery".
     TowedArtillery,
-    /// "mobile_artillery" (was: Artyleria Mobilna).
-    #[deprecated(note = "Phase 20: no producer or consumer — use is_active() filter")]
+    /// "mobile_artillery".
     MobileArtillery,
-    /// "anti_aircraft_artillery" (was: Artyleria Przeciwlotnicza).
-    #[deprecated(note = "Phase 20: no producer or consumer — use is_active() filter")]
+    /// "anti_aircraft_artillery".
     AntiAircraftArtillery,
-    /// "asphalt" (was: Asfalt).
+    /// "asphalt".
     Asphalt,
-    /// "bitumen" (was: Bitumin).
+    /// "bitumen".
     Bitumen,
-    /// "infantry_fighting_vehicles" (was: Bojowe Wozy Piechoty).
-    #[deprecated(note = "Phase 20: no producer or consumer — use is_active() filter")]
+    /// "infantry_fighting_vehicles".
     InfantryFightingVehicles,
-    /// "bauxite" (was: Boksyt).
+    /// "bauxite".
     Bauxite,
-    /// "batteries" — Phase 20: Energy storage for EVs, electronics, grid storage.
+    /// "batteries" Ă˘â‚¬â€ť Phase 20: Energy storage for EVs, electronics, grid storage.
     Batteries,
-    /// "bombers" (was: Bombowce).
+    /// "bombers".
     Bombers,
-    /// "bricks" (was: Cegły).
+    /// "bricks".
     Bricks,
-    /// "cement" (was: Cement).
+    /// "cement".
     Cement,
-    /// "trucks" (was: Ciężarówki).
+    /// "trucks".
     Trucks,
-    /// "military_trucks" (was: Ciężarówki Wojskowe).
-    #[deprecated(note = "Phase 20: no producer or consumer — use is_active() filter")]
+    /// "military_trucks".
     MilitaryTrucks,
-    /// "tin" (was: Cyna).
+    /// "tin".
     Tin,
-    /// "zinc" (was: Cynk).
+    /// "zinc".
     Zinc,
-    /// "heavy_tanks" (was: Czołgi Ciężkie).
+    /// "heavy_tanks".
     HeavyTanks,
-    /// "light_tanks" (was: Czołgi Lekkie).
+    /// "light_tanks".
     LightTanks,
-    /// "lithium" — Phase 20: Battery feedstock; mined from brines/hard rock.
+    /// "lithium" Ă˘â‚¬â€ť Phase 20: Battery feedstock; mined from brines/hard rock.
     Lithium,
-    /// "medium_tanks" (was: Czołgi Średnie).
+    /// "medium_tanks".
     MediumTanks,
-    /// "electronic_components" (was: Części Elektroniczne).
+    /// "electronic_components".
     ElectronicComponents,
-    /// "mechanical_components" (was: Części Mechaniczne).
+    /// "mechanical_components".
     MechanicalComponents,
-    /// "planks" (was: Deski).
+    /// "planks".
     Planks,
-    /// "timber" (was: Drewno).
+    /// "timber".
     Timber,
-    /// "energy" (was: Energia).
+    /// "energy".
     Energy,
-    /// "frigates" (was: Fregaty).
-    #[deprecated(note = "Phase 20: no producer or consumer — use is_active() filter")]
+    /// "frigates".
     Frigates,
-    /// "natural_gas" (was: Gaz Ziemny).
+    /// "natural_gas".
     NaturalGas,
-    /// "clay" (was: Glina).
+    /// "clay".
     Clay,
-    /// "helicopters" (was: Helikoptery).
+    /// "helicopters".
     Helicopters,
-    /// "stone" (was: Kamień).
+    /// "stone".
     Stone,
-    /// "rifles" (was: Karabiny).
+    /// "rifles".
     Rifles,
-    /// "catalysts" (was: Katalizatory).
+    /// "catalysts".
     Catalysts,
-    /// "coke" (was: Koks).
+    /// "coke".
     Coke,
-    /// "silicon" (was: Krzem).
+    /// "silicon".
     Silicon,
-    /// "cruisers" (was: Krążowniki).
-    #[deprecated(note = "Phase 20: no producer or consumer — use is_active() filter")]
+    /// "cruisers".
     Cruisers,
-    /// "aircraft_carriers" (was: Lotniskowce).
-    #[deprecated(note = "Phase 20: no producer or consumer — use is_active() filter")]
+    /// "aircraft_carriers".
     AircraftCarriers,
-    /// "magnesium" (was: Magnez).
+    /// "magnesium".
     Magnesium,
-    /// "office_machinery" (was: Maszyny Biurowe).
+    /// "office_machinery".
     OfficeMachinery,
-    /// "construction_machinery" (was: Maszyny Budowlane).
+    /// "construction_machinery".
     ConstructionMachinery,
-    /// "industrial_machinery" (was: Maszyny Przemysłowe).
+    /// "industrial_machinery".
     IndustrialMachinery,
-    /// "agricultural_machinery" (was: Maszyny Rolne).
+    /// "agricultural_machinery".
     AgriculturalMachinery,
-    /// "furniture" (was: Meble).
+    /// "furniture".
     Furniture,
-    /// "luxury_furniture" (was: Meble Luksusowe).
+    /// "luxury_furniture".
     LuxuryFurniture,
-    /// "copper" (was: Miedź).
+    /// "copper".
     Copper,
-    /// "meat" (was: Mięso).
+    /// "meat".
     Meat,
-    /// "fighters" (was: Myśliwce).
+    /// "fighters".
     Fighters,
-    /// "fertilizers" (was: Nawozy).
+    /// "fertilizers".
     Fertilizers,
-    /// "destroyers" (was: Niszczyciele).
-    #[deprecated(note = "Phase 20: no producer or consumer — use is_active() filter")]
+    /// "destroyers".
     Destroyers,
-    /// "software" (was: Oprogramowanie).
+    /// "software".
     Software,
-    /// "fruit" (was: Owoce).
+    /// "fruit".
     Fruit,
-    /// "lead" (was: Ołów).
+    /// "lead".
     Lead,
-    /// "fuels" (was: Paliwa).
+    /// "fuels".
     Fuels,
-    /// "battleships" (was: Pancerniki).
-    #[deprecated(note = "Phase 20: no producer or consumer — use is_active() filter")]
+    /// "battleships".
     Battleships,
-    /// "paper" (was: Papier).
+    /// "paper".
     Paper,
-    /// "sand" (was: Piasek).
+    /// "sand".
     Sand,
-    /// "pistols" (was: Pistolety).
-    #[deprecated(note = "Phase 20: no producer or consumer — use is_active() filter")]
+    /// "pistols".
     Pistols,
-    /// "plastics" — Phase 20: Oil-derived polymer; input for Agd, Cars, packaging.
+    /// "plastics" Ă˘â‚¬â€ť Phase 20: Oil-derived polymer; input for Agd, Cars, packaging.
     Plastics,
-    /// "trains" (was: Pociągi).
+    /// "trains".
     Trains,
-    /// "prefabricates" (was: Prefabrykaty).
+    /// "prefabricates".
     Prefabricates,
-    /// "gunpowder" (was: Proch).
-    #[deprecated(note = "Phase 20: no producer or consumer — use is_active() filter")]
+    /// "gunpowder".
     Gunpowder,
-    /// "food" (was: Produkty Spożywcze).
+    /// "food".
     Food,
-    /// "radio" (was: Radio).
+    /// "radio".
     Radio,
-    /// "rare_earth_elements" — Phase 20: Neodymium, dysprosium etc.; input for semiconductors, magnets.
+    /// "rare_earth_elements" Ă˘â‚¬â€ť Phase 20: Neodymium, dysprosium etc.; input for semiconductors, magnets.
     RareEarthElements,
-    /// "oil" (was: Ropa Naftowa).
+    /// "oil".
     Oil,
-    /// "fish" (was: Ryby).
+    /// "fish".
     Fish,
-    /// "cars" (was: Samochody).
+    /// "cars".
     Cars,
-    /// "airplanes" (was: Samoloty).
-    #[deprecated(note = "Phase 20: no producer or consumer — use is_active() filter")]
+    /// "airplanes".
     Airplanes,
-    /// "sulfur" (was: Siarka).
+    /// "sulfur".
     Sulfur,
-    /// "support_equipment" (was: Sprzęt Wsparcia).
+    /// "support_equipment".
     SupportEquipment,
-    /// "silver" (was: Srebro).
+    /// "silver".
     Silver,
-    /// "steel" (was: Stal).
+    /// "steel".
     Steel,
-    /// "passenger_ships" (was: Statki Pasażerskie).
-    #[deprecated(note = "Phase 20: no producer or consumer — use is_active() filter")]
+    /// "passenger_ships".
     PassengerShips,
-    /// "cargo_ships" (was: Statki Towarowe).
-    #[deprecated(note = "Phase 20: no producer or consumer — use is_active() filter")]
+    /// "cargo_ships".
     CargoShips,
-    /// "naval_vessels" (was: Statki Wojskowe).
-    #[deprecated(note = "Phase 20: no producer or consumer — use is_active() filter")]
+    /// "naval_vessels".
     NavalVessels,
-    /// "mineral_resources" (was: Surowce Mineralne).
-    #[deprecated(note = "Phase 20: no producer or consumer — use is_active() filter")]
+    /// "mineral_resources".
     MineralResources,
-    /// "glass" (was: Szkło).
+    /// "glass".
     Glass,
-    /// "salt" (was: Sól).
+    /// "salt".
     Salt,
-    /// "rolling_stock" (was: Tabór Kolejowy).
-    #[deprecated(note = "Phase 20: no producer or consumer — use is_active() filter")]
+    /// "rolling_stock".
     RollingStock,
-    /// "televisions" (was: Telewizory).
+    /// "televisions".
     Televisions,
-    /// "peat" (was: Torf).
+    /// "peat".
     Peat,
-    /// "passenger_transport" (was: Transport Pasażerski).
+    /// "passenger_transport".
     PassengerTransport,
-    /// "clothing" (was: Ubrania).
+    /// "clothing".
     Clothing,
-    /// "luxury_clothing" (was: Ubrania Luksusowe).
+    /// "luxury_clothing".
     LuxuryClothing,
-    /// "administrative_services" (was: Usługi Administracyjne).
+    /// "administrative_services".
     AdministrativeServices,
-    /// "banking_services" (was: Usługi Bankowe).
+    /// "banking_services".
     BankingServices,
-    /// "construction_services" (was: Usługi Budowlane).
+    /// "construction_services".
     ConstructionServices,
-    /// "maintenance_services" (was: Usługi Konserwacyjne).
+    /// "maintenance_services".
     MaintenanceServices,
-    /// "local_services" (was: Usługi Lokalne).
+    /// "local_services".
     #[serde(rename = "local_services")]
     LocalServicesCommodity,
-    /// "insurance_services" (was: Usługi Ubezpieczeniowe).
-    #[deprecated(note = "Phase 20: no producer or consumer — use is_active() filter")]
+    /// "insurance_services".
     InsuranceServices,
-    /// "limestone" (was: Wapień).
+    /// "limestone".
     Limestone,
     /// "cereal" - Grain crops (wheat, corn, rice, barley) - Phase 6.3.5
-    #[serde(alias = "grains")]
+    
     Cereal,
     /// "vegetable" - Root and leaf vegetables (potatoes, carrots, tomatoes) - Phase 6.3.5
-    #[serde(alias = "vegetables")]
+    
     Vegetable,
     /// "protein" - Legumes and oilseeds (beans, soybeans, peas) - Phase 6.3.5
     Protein,
@@ -484,7 +464,7 @@ pub enum Commodity {
     Chemicals,
     /// "seeds" - Agricultural seed inputs - Phase 6.4
     Seeds,
-    /// "semiconductors" — Phase 20: Silicon-based ICs; input for ElectronicComponents, solar.
+    /// "semiconductors" Ă˘â‚¬â€ť Phase 20: Silicon-based ICs; input for ElectronicComponents, solar.
     Semiconductors,
     /// "soda_ash" - Solvay process output - Phase 6.4
     SodaAsh,
@@ -492,30 +472,29 @@ pub enum Commodity {
     Ammonia,
     /// "luxury" - High-value processed crops (sugar, coffee, tobacco, spices) - Phase 6.3.5
     Luxury,
-    /// "water" (was: Woda).
+    /// "water".
     Water,
-    /// "hydrogen" (was: Wodór).
+    /// "hydrogen".
     Hydrogen,
-    /// "brown_coal" (was: Węgiel Brunatny).
+    /// "brown_coal".
     BrownCoal,
-    /// "hard_coal" (was: Węgiel Kamienny).
+    /// "hard_coal".
     HardCoal,
-    /// "fibers" (was: Włókna).
+    /// "fibers".
     Fibers,
-    /// "gold" (was: Złoto).
+    /// "gold".
     Gold,
-    /// "submarines" (was: Łodzie Podwodne).
+    /// "submarines".
     Submarines,
-    /// "iron" (was: Żelazo).
+    /// "iron".
     Iron,
-    /// "gravel" (was: Żwir).
+    /// "gravel".
     Gravel,
-    /// "livestock" (was: Żywiec).
+    /// "livestock".
     Livestock,
-    /// "market_research" (was: Analizy Rynkowe).
-    #[deprecated(note = "Phase 20: no producer or consumer — use is_active() filter")]
+    /// "market_research".
     MarketResearch,
-    /// "renovation_services" (was: Usługi Remontowe).
+    /// "renovation_services".
     RenovationServices,
     /// "innovation_points" - University output for state research (Phase 7).
     InnovationPoints,
@@ -543,25 +522,25 @@ pub enum Commodity {
     BorderEnforcementCapacity,
     /// "customs_capacity" - Customs inspection capacity produced by customs house buildings (Phase 15B).
     CustomsCapacity,
-    /// "sanitary_inspection_capacity" - Sanitary inspection capacity produced by Sanepid buildings (Phase 15C).
+    /// "sanitary_inspection_capacity" - Sanitary inspection capacity produced by sanepid buildings (Phase 15C).
     SanitaryInspectionCapacity,
     /// "building_inspection_capacity" - Building inspection capacity produced by Building Inspectorate (Phase 15C).
     BuildingInspectionCapacity,
     /// "environmental_inspection_capacity" - Environmental inspection capacity produced by Environmental Inspectorate (Phase 15C).
     EnvironmentalInspectionCapacity,
-    /// "labor_inspection_capacity" - PIP (Państwowa Inspekcja Pracy) capacity (Phase 22C).
+    /// "labor_inspection_capacity" - PIP (State Labor Inspectorate) capacity (Phase 22C).
     LaborInspectionCapacity,
     /// "assimilation_capacity" - Assimilation capacity produced by Integration Centers (Phase 17B).
     AssimilationCapacity,
     /// "religious_texts" - Books/scriptures produced by monasteries (Phase 17C).
     ReligiousTexts,
-    /// "refined_fuel" — Phase 20: High-grade distillate from crude oil.
+    /// "refined_fuel" Ă˘â‚¬â€ť Phase 20: High-grade distillate from crude oil.
     RefinedFuel,
     /// "religious_art" - Icons, sculptures, ritual objects produced by temples (Phase 17C).
     ReligiousArt,
     /// "information" - Media/information service for B2C consumption (Phase 18C).
     Information,
-    /// "uranium" — Phase 21A: Nuclear fuel feedstock, mined from rift-valley deposits.
+    /// "uranium" Ă˘â‚¬â€ť Phase 21A: Nuclear fuel feedstock, mined from rift-valley deposits.
     Uranium,
     /// "freight_capacity" - B2B freight transport service (Phase 23A).
     /// Ephemeral service commodity (like MaintenanceServices): produced and
@@ -588,7 +567,7 @@ impl Commodity {
     /// Returns the inventory key for this commodity.
     ///
     /// # Returns
-    /// * `String` — the serde JSON key used for inventory storage.
+    /// * `String` Ă˘â‚¬â€ť the serde JSON key used for inventory storage.
     ///
     /// # Rules
     /// * Direct replacement for `format!("{:?}", commodity)` in inventory code.
@@ -600,9 +579,9 @@ impl Commodity {
     /// Phase 41: Returns the VAT category for this commodity.
     ///
     /// Maps each commodity to one of three VAT categories:
-    /// - `"agriculture"` — food and agricultural products (typically lower VAT)
-    /// - `"industry"` — industrial goods, construction, energy, mining (standard VAT)
-    /// - `"services"` — services, software, maintenance, transport (standard VAT)
+    /// - `"agriculture"` Ă˘â‚¬â€ť food and agricultural products (typically lower VAT)
+    /// - `"industry"` Ă˘â‚¬â€ť industrial goods, construction, energy, mining (standard VAT)
+    /// - `"services"` Ă˘â‚¬â€ť services, software, maintenance, transport (standard VAT)
     ///
     /// The B2C clearing uses this to dynamically look up the active VAT rate
     /// from `country.tax_rates.vat` for the commodity's category.
@@ -610,11 +589,11 @@ impl Commodity {
     pub fn vat_category(&self) -> &'static str {
         use Commodity::*;
         match self {
-            // Agricultural products — food, crops, livestock
+            // Agricultural products Ă˘â‚¬â€ť food, crops, livestock
             Meat | Fruit | Cereal | Vegetable | Protein | Fodder | IndustrialFiber
             | Luxury | Livestock | Fish | Food | Seeds => "agriculture",
 
-            // Services — intangible, labor-based
+            // Services Ă˘â‚¬â€ť intangible, labor-based
             Software | AdministrativeServices | BankingServices | ConstructionServices
             | MaintenanceServices | LocalServicesCommodity | PassengerTransport
             | RenovationServices | Information | FreightCapacity | InnovationPoints
@@ -624,7 +603,7 @@ impl Commodity {
             | BuildingInspectionCapacity | EnvironmentalInspectionCapacity
             | LaborInspectionCapacity | AssimilationCapacity => "services",
 
-            // Industrial goods — everything else (mining, manufacturing, energy, military)
+            // Industrial goods Ă˘â‚¬â€ť everything else (mining, manufacturing, energy, military)
             // This is the default/safest category for treasury revenue.
             _ => "industry",
         }
@@ -638,7 +617,7 @@ impl Commodity {
     /// * Machinery + vehicles: {IndustrialMachinery, ConstructionMachinery,
     ///   AgriculturalMachinery, OfficeMachinery, Trucks, Cars}.
     /// * Cars/Trucks are *also* quality consumer durables (see `is_quality_durable`)
-    ///   — their role is determined by the transaction channel (B2B asset vs
+    ///   Ă˘â‚¬â€ť their role is determined by the transaction channel (B2B asset vs
     ///   B2C durable), not the commodity alone.
     /// * Phase 23A: DraftAnimals are fixed assets (installed as cohorts) but
     ///   are maintained with Fodder + Water, not MaintenanceServices.
@@ -683,7 +662,7 @@ impl Commodity {
     /// (persisted in `household_durables` on `ClassDemographics`) vs. a
     /// perishable (consumed per-turn).
     ///
-    /// ALL non-consumable goods are durables — the difference is durability,
+    /// ALL non-consumable goods are durables Ă˘â‚¬â€ť the difference is durability,
     /// not classification. Cheap `Clothing` wears out fast (24 turns) but is
     /// still a durable holding; `LuxuryClothing` lasts 100 turns.
     pub fn is_household_durable(&self) -> bool {
@@ -713,47 +692,61 @@ impl Commodity {
             Commodity::Furniture => 240.0,       // 10 years
             Commodity::LuxuryFurniture => 300.0, // ~12.5 years
             Commodity::Cars => 120.0,            // 5 years
-            _ => f64::MAX, // Non-durables — effectively infinite (not used)
+            _ => f64::MAX, // Non-durables Ă˘â‚¬â€ť effectively infinite (not used)
         }
     }
 
-    /// Phase 19A: Returns `true` if a commodity is blueprint-eligible — i.e.
+    /// Phase 74: Calorific value in MJ per commodity unit.
+    ///
+    /// Used by energy production methods to dynamically compute actual energy
+    /// output from fuel input quantities at runtime. Returns 0.0 for non-fuel
+    /// commodities.
+    ///
+    /// Values are approximate real-world energy densities:
+    /// - HardCoal (bituminous): ~25 MJ/kg
+    /// - BrownCoal (lignite): ~10 MJ/kg
+    /// - Peat (air-dried): ~6 MJ/kg
+    /// - Oil (crude): ~42 MJ/kg
+    /// - NaturalGas (methane): ~55 MJ/kg
+    /// - Fuels (refined diesel/gasoline): ~34 MJ/kg
+    /// - Uranium (enriched, simplified): ~80,000 MJ/kg
+    pub fn calorific_value_mj_per_unit(&self) -> f64 {
+        match self {
+            Commodity::HardCoal => 25.0,
+            Commodity::BrownCoal => 10.0,
+            Commodity::Peat => 6.0,
+            Commodity::Oil => 42.0,
+            Commodity::NaturalGas => 55.0,
+            Commodity::Fuels => 34.0,
+            Commodity::Uranium => 80_000.0,
+            _ => 0.0,
+        }
+    }
+
+    /// Phase 74: Returns `true` if this commodity is a combustible fuel
+    /// (has a positive calorific value).
+    pub fn is_fuel(&self) -> bool {
+        self.calorific_value_mj_per_unit() > 0.0
+    }
+
+    /// Phase 74: Returns `true` if this durable commodity requires housing
+    /// to be purchased. Homeless demographics cannot buy these goods.
+    /// Furniture, LuxuryFurniture, Agd, and Televisions need a home to be used.
+    pub fn requires_housing(&self) -> bool {
+        matches!(
+            self,
+            Commodity::Furniture
+                | Commodity::LuxuryFurniture
+                | Commodity::Agd
+                | Commodity::Televisions
+        )
+    }
+
+    /// Phase 19A: Returns `true` if a commodity is blueprint-eligible Ă˘â‚¬â€ť i.e.
     /// it is either a fixed asset or a quality consumer durable (or both, like
     /// Cars/Trucks). Only blueprint-eligible outputs get `InventoryCohort`s.
     pub fn is_blueprint_eligible(&self) -> bool {
         self.is_fixed_asset() || self.is_quality_durable()
-    }
-
-    /// Phase 20 Final Audit: Returns `true` if this commodity is active in the
-    /// economy. Deprecated variants are preserved in the enum for save
-    /// compatibility but should be skipped by the generator, market, and
-    /// supply-chain integrity checks.
-    ///
-    /// Deprecated variants have no producer, no consumer, and no gameplay role.
-    /// They exist solely so that old save files can deserialize without error.
-    pub fn is_active(&self) -> bool {
-        !matches!(
-            self,
-            Commodity::MobileArtillery
-                | Commodity::AntiAircraftArtillery
-                | Commodity::InfantryFightingVehicles
-                | Commodity::MilitaryTrucks
-                | Commodity::Frigates
-                | Commodity::Cruisers
-                | Commodity::AircraftCarriers
-                | Commodity::Destroyers
-                | Commodity::Battleships
-                | Commodity::NavalVessels
-                | Commodity::Pistols
-                | Commodity::Gunpowder
-                | Commodity::Airplanes
-                | Commodity::PassengerShips
-                | Commodity::CargoShips
-                | Commodity::RollingStock
-                | Commodity::InsuranceServices
-                | Commodity::MineralResources
-                | Commodity::MarketResearch
-        )
     }
 
     /// Returns all tradeable commodity variants in canonical (English) JSON order.
@@ -1001,9 +994,7 @@ impl TryFrom<&str> for Commodity {
             "insurance_services" => Ok(Commodity::InsuranceServices),
             "limestone" => Ok(Commodity::Limestone),
             "cereal" => Ok(Commodity::Cereal),
-            "grains" => Ok(Commodity::Cereal),  // Phase 20: legacy alias for migrated saves
             "vegetable" => Ok(Commodity::Vegetable),
-            "vegetables" => Ok(Commodity::Vegetable),  // Phase 20: legacy alias for migrated saves
             "protein" => Ok(Commodity::Protein),
             "fodder" => Ok(Commodity::Fodder),
             "industrial_fiber" => Ok(Commodity::IndustrialFiber),
@@ -1073,20 +1064,20 @@ impl From<Commodity> for String {
 /// Fuel type consumed by a power plant (`paliwo`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum FuelType {
-    /// `"węgiel"`.
-    #[serde(rename = "węgiel")]
+    /// `"wĂ„â„˘giel"`.
+
     Coal,
     /// `"gaz_ziemny"`.
-    #[serde(rename = "gaz_ziemny")]
+
     NaturalGas,
     /// `"uran"`.
-    #[serde(rename = "uran")]
+
     Uranium,
-    /// `"płody_rolne"`.
-    #[serde(rename = "płody_rolne")]
+    /// `"crops"`.
+
     AgriculturalProduce,
-    /// `"brak"` — no fuel (renewables).
-    #[serde(rename = "brak")]
+    /// `"brak"` Ă˘â‚¬â€ť no fuel (renewables).
+
     None_,
 }
 

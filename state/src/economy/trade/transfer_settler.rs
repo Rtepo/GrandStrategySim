@@ -753,7 +753,7 @@ mod tests {
             class_demographics: RegionalClassDemographics {
                 rural_classes: {
                     let mut m = BTreeMap::new();
-                    m.insert("chłopi".to_string(), ClassDemographics {
+                    m.insert("peasants".to_string(), ClassDemographics {
                         population: 100,
                         savings: 50_000.0,
                         ..Default::default()
@@ -894,13 +894,13 @@ mod tests {
         companies[0].primary_bank_id = Some("bank_0".to_string());
 
         let mut country = make_test_country();
-        let initial_savings = country.regions[0].class_demographics.rural_classes.get("chłopi").unwrap().savings;
+        let initial_savings = country.regions[0].class_demographics.rural_classes.get("peasants").unwrap().savings;
 
-        let result = settle_wage_payment(&mut companies, 0, 1_000.0, &mut country, 0, true, "chłopi");
+        let result = settle_wage_payment(&mut companies, 0, 1_000.0, &mut country, 0, true, "peasants");
         assert!(result.is_ok());
 
         // Citizen savings increased
-        let new_savings = country.regions[0].class_demographics.rural_classes.get("chłopi").unwrap().savings;
+        let new_savings = country.regions[0].class_demographics.rural_classes.get("peasants").unwrap().savings;
         assert_eq!(new_savings, initial_savings + 1_000.0);
     }
 
@@ -917,7 +917,7 @@ mod tests {
             class_demographics: RegionalClassDemographics {
                 rural_classes: {
                     let mut m = BTreeMap::new();
-                    m.insert("chłopi".to_string(), ClassDemographics {
+                    m.insert("peasants".to_string(), ClassDemographics {
                         population: 100,
                         savings: 5_000.0,
                         ..Default::default()
@@ -929,17 +929,17 @@ mod tests {
             ..Default::default()
         };
 
-        let initial_savings = region.class_demographics.rural_classes.get("chłopi").unwrap().savings;
+        let initial_savings = region.class_demographics.rural_classes.get("peasants").unwrap().savings;
         let initial_bank_deposits = companies[1].balance_sheet.as_ref().unwrap().deposits;
         let initial_bank_reserves = companies[1].balance_sheet.as_ref().unwrap().reserves_at_central_bank;
 
-        let result = settle_b2c_purchase(&mut companies, 0, 1_000.0, &mut region, true, "chłopi", 0.0);
+        let result = settle_b2c_purchase(&mut companies, 0, 1_000.0, &mut region, true, "peasants", 0.0);
         assert!(result.is_ok());
         let r = result.unwrap();
         assert_eq!(r.amount_transferred, 1_000.0);
 
         // Citizen savings decreased
-        assert_eq!(region.class_demographics.rural_classes.get("chłopi").unwrap().savings, initial_savings - 1_000.0);
+        assert_eq!(region.class_demographics.rural_classes.get("peasants").unwrap().savings, initial_savings - 1_000.0);
         // Company cash increased (1.0 initial + 1_000.0 received)
         assert_eq!(companies[0].brokerage_account.as_ref().unwrap().cash, 1_001.0);
         // Bank deposits increased
@@ -956,7 +956,7 @@ mod tests {
             class_demographics: RegionalClassDemographics {
                 rural_classes: {
                     let mut m = BTreeMap::new();
-                    m.insert("chłopi".to_string(), ClassDemographics {
+                    m.insert("peasants".to_string(), ClassDemographics {
                         population: 100,
                         savings: 500.0,
                         ..Default::default()
@@ -969,12 +969,12 @@ mod tests {
         };
 
         // Request 1_000 but only 500 available
-        let result = settle_b2c_purchase(&mut companies, 0, 1_000.0, &mut region, true, "chłopi", 0.0);
+        let result = settle_b2c_purchase(&mut companies, 0, 1_000.0, &mut region, true, "peasants", 0.0);
         assert!(result.is_ok());
         let r = result.unwrap();
         assert_eq!(r.amount_transferred, 500.0);
         assert_eq!(companies[0].brokerage_account.as_ref().unwrap().cash, 501.0);
-        assert_eq!(region.class_demographics.rural_classes.get("chłopi").unwrap().savings, 0.0);
+        assert_eq!(region.class_demographics.rural_classes.get("peasants").unwrap().savings, 0.0);
     }
 
     #[test]

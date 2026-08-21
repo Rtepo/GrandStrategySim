@@ -13,23 +13,23 @@ use crate::state::Country;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct InterestGroup {
     /// Nominal power: raw population numbers and voting base
-    #[serde(rename = "moc_nominalna", default)]
+    #[serde(default)]
     pub nominal_power: f64,
 
     /// Financial power: lobbying potential via liquid capital
-    #[serde(rename = "moc_finansowa", default)]
+    #[serde(default)]
     pub financial_power: f64,
 
     /// Total political weight (normalized percentage)
-    #[serde(rename = "waga_polityczna", default)]
+    #[serde(default)]
     pub total_political_weight: f64,
 
     /// Mobilization factor (0-1): how effectively the group converts members to political action
-    #[serde(rename = "mobilizacja", default)]
+    #[serde(default)]
     pub mobilization: f64,
 
     /// Radicalization potential (0-1): volatility and propensity for extreme actions
-    #[serde(rename = "radykalizacja", default)]
+    #[serde(default)]
     pub radicalization: f64,
 }
 
@@ -37,15 +37,15 @@ pub struct InterestGroup {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct SuffrageSystem {
     /// Weight of nominal power in total political weight (0-1)
-    #[serde(rename = "waga_nominalna", default)]
+    #[serde(default)]
     pub nominal_weight: f64,
 
     /// Weight of financial power in total political weight (0-1)
-    #[serde(rename = "waga_finansowa", default)]
+    #[serde(default)]
     pub financial_weight: f64,
 
     /// Type of suffrage system
-    #[serde(rename = "typ_suffrage", default)]
+    #[serde(default)]
     pub suffrage_type: SuffrageType,
 }
 
@@ -53,13 +53,13 @@ pub struct SuffrageSystem {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum SuffrageType {
     #[default]
-    #[serde(rename = "głosowanie_powszechne")]
+
     UniversalSuffrage,
-    #[serde(rename = "głosowanie_majątkowe")]
+
     WealthWeightedVoting,
-    #[serde(rename = "głosowanie_cenzusowe")]
+
     CensusRestrictedVoting,
-    #[serde(rename = "brak_głosowania")]
+
     NoVoting,
 }
 
@@ -67,15 +67,15 @@ pub enum SuffrageType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct RuralClassConfig {
     /// Interest group this class belongs to
-    #[serde(rename = "grupa_interesów", default)]
+    #[serde(default)]
     pub interest_group: String,
 
     /// Land value per capita (illiquid real estate wealth proxy)
-    #[serde(rename = "wartość_ziemi_na_osobę", default)]
+    #[serde(default)]
     pub land_value_per_capita: f64,
 
     /// Voting weight (0-1, disenfranchised classes have lower weight)
-    #[serde(rename = "waga_głosowania", default)]
+    #[serde(default)]
     pub voting_weight: f64,
 }
 
@@ -83,33 +83,33 @@ pub struct RuralClassConfig {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct ClassToGroupMapping {
     /// Maps rural classes to their configuration
-    #[serde(rename = "mapowanie_klas_wiejskich", default)]
+    #[serde(default)]
     pub rural_class_mapping: BTreeMap<String, RuralClassConfig>,
 
     /// Maps urban classes to interest groups
-    #[serde(rename = "mapowanie_klas_miejskich", default)]
+    #[serde(default)]
     pub urban_class_mapping: BTreeMap<String, String>,
 
     /// Maps education levels to interest groups with percentage shares
-    /// Format: "wyzsze" -> {"Studenci": 0.5, "Specjaliści": 0.3, "Inteligencja": 0.2}
-    #[serde(rename = "mapowanie_wykształcenia", default)]
+    /// Format: "wyzsze" -> {"Studenci": 0.5, "Specialists": 0.3, "Inteligencja": 0.2}
+    #[serde(default)]
     pub education_mapping: BTreeMap<String, HashMap<String, f64>>,
 
     /// Maps company legal forms to interest groups
-    /// Format: "Corporation" -> "Kapitaliści", "SoleProprietorship" -> "Drobna Burżuazja"
-    #[serde(rename = "mapowanie_form_prawnych", default)]
+    /// Format: "Corporation" -> "Capitalists", "SoleProprietorship" -> "Petty Bourgeoisie"
+    #[serde(default)]
     pub company_form_mapping: BTreeMap<String, String>,
 
     /// Interest group for Union entities
-    #[serde(rename = "grupa_związków", default)]
+    #[serde(default)]
     pub trade_union_group: String,
 
     /// Interest group for manufacturing employment
-    #[serde(rename = "grupa_przemysłu", default)]
+    #[serde(default)]
     pub manufacturing_employment_group: String,
 
     /// Default group for unmapped entities
-    #[serde(rename = "grupa_domyślna", default)]
+    #[serde(default)]
     pub default_group: String,
 }
 
@@ -353,35 +353,35 @@ pub fn calculate_interest_groups_power(
 
     // Default mobilization factors from blueprint
     let mut mobilization_factors: HashMap<String, f64> = HashMap::new();
-    mobilization_factors.insert("Związki Zawodowe".to_string(), 0.8);
+    mobilization_factors.insert("Trade Unions".to_string(), 0.8);
     mobilization_factors.insert("Studenci".to_string(), 0.8);
-    mobilization_factors.insert("Kapitaliści".to_string(), 0.3);
+    mobilization_factors.insert("Capitalists".to_string(), 0.3);
     mobilization_factors.insert("Arystokracja".to_string(), 0.3);
-    mobilization_factors.insert("Drobna Burżuazja".to_string(), 0.5);
-    mobilization_factors.insert("Duchowieństwo".to_string(), 0.5);
+    mobilization_factors.insert("Petty Bourgeoisie".to_string(), 0.5);
+    mobilization_factors.insert("Clergy".to_string(), 0.5);
     mobilization_factors.insert("Agrykolane".to_string(), 0.5);
     mobilization_factors.insert("Inteligencja".to_string(), 0.6);
-    mobilization_factors.insert("Specjaliści".to_string(), 0.6);
-    mobilization_factors.insert("Rzemieślnicy".to_string(), 0.5);
+    mobilization_factors.insert("Specialists".to_string(), 0.6);
+    mobilization_factors.insert("Artisans".to_string(), 0.5);
     mobilization_factors.insert("Biurokraci".to_string(), 0.4);
-    mobilization_factors.insert("Siły Zbrojne".to_string(), 0.7);
-    mobilization_factors.insert("Kliki Wewnętrzne".to_string(), 0.6);
+    mobilization_factors.insert("Armed Forces".to_string(), 0.7);
+    mobilization_factors.insert("Internal Cliques".to_string(), 0.6);
 
     // Default radicalization factors from blueprint
     let mut radicalization_factors: HashMap<String, f64> = HashMap::new();
-    radicalization_factors.insert("Związki Zawodowe".to_string(), 0.7);
+    radicalization_factors.insert("Trade Unions".to_string(), 0.7);
     radicalization_factors.insert("Studenci".to_string(), 0.7);
-    radicalization_factors.insert("Kapitaliści".to_string(), 0.2);
+    radicalization_factors.insert("Capitalists".to_string(), 0.2);
     radicalization_factors.insert("Arystokracja".to_string(), 0.2);
-    radicalization_factors.insert("Drobna Burżuazja".to_string(), 0.4);
-    radicalization_factors.insert("Duchowieństwo".to_string(), 0.4);
+    radicalization_factors.insert("Petty Bourgeoisie".to_string(), 0.4);
+    radicalization_factors.insert("Clergy".to_string(), 0.4);
     radicalization_factors.insert("Agrykolane".to_string(), 0.4);
     radicalization_factors.insert("Inteligencja".to_string(), 0.5);
-    radicalization_factors.insert("Specjaliści".to_string(), 0.4);
-    radicalization_factors.insert("Rzemieślnicy".to_string(), 0.3);
+    radicalization_factors.insert("Specialists".to_string(), 0.4);
+    radicalization_factors.insert("Artisans".to_string(), 0.3);
     radicalization_factors.insert("Biurokraci".to_string(), 0.2);
-    radicalization_factors.insert("Siły Zbrojne".to_string(), 0.3);
-    radicalization_factors.insert("Kliki Wewnętrzne".to_string(), 0.8);
+    radicalization_factors.insert("Armed Forces".to_string(), 0.3);
+    radicalization_factors.insert("Internal Cliques".to_string(), 0.8);
 
     let suffrage_system = &country.politics.constitution.suffrage_system;
     let total_weight = calculate_total_political_weight(&nominal_power, &financial_power, suffrage_system, &mobilization_factors);
@@ -449,12 +449,12 @@ pub fn calculate_interest_groups_power_legacy(country: &Country) -> HashMap<Stri
     let budzet_edukacji = allocation_share(allocations, "Edukacja i Propaganda");
     let mut inteligencja_sila = ((uslugi_eks * 50.0) + (budzet_edukacji * 50.0)) * (1.0 + (wyzsze_total * 6.0));
 
-    let wojsko_wydatki = allocation_share(allocations, "Siły Zbrojne");
+    let wojsko_wydatki = allocation_share(allocations, "Armed Forces");
     let wojsko_sila = wojsko_wydatki * 300.0;
 
     let mnoznik_prawa = match politics.religious_law.as_str() {
-        "Laicyzm" => 0.1,
-        "Państwowa" => 1.5,
+        "Secularism" => 0.1,
+        "State" => 1.5,
         _ => 1.0,
     };
     // Phase 17A: Use dynamic ReligiousAuthority if available, otherwise fall back to flat law multiplier.
@@ -507,7 +507,7 @@ pub fn calculate_interest_groups_power_legacy(country: &Country) -> HashMap<Stri
         * 100.0
         * (1.0 - (private_capital.max(10.0).log10() * 0.05));
 
-    let policja_budzet = allocation_share(allocations, "Bezpieczeństwo Publiczne");
+    let policja_budzet = allocation_share(allocations, "Public Security");
     let mut kliki_power = 5.0;
     if matches!(
         politics.government_form,
@@ -526,20 +526,20 @@ pub fn calculate_interest_groups_power_legacy(country: &Country) -> HashMap<Stri
     }
 
     match politics.emancipation_law.as_str() {
-        "Tradycjonalizm" => {
+        "Traditionalism" => {
             kler_sila *= 1.25;
             agrykolanie_sila *= 1.15;
             inteligencja_sila *= 0.85;
         }
-        "Prawa Majątkowe" => {
+        "Property Rights" => {
             kapitalisci_sila *= 1.10;
             drobna_burzuazja_sila *= 1.10;
         }
-        "Ograniczone Głosowanie" => {
+        "Limited Suffrage" => {
             inteligencja_sila *= 1.15;
             zwiazki_sila *= 1.10;
         }
-        "Pełna Emancypacja" => {
+        "Full Emancipation" => {
             inteligencja_sila *= 1.30;
             zwiazki_sila *= 1.25;
             studenci_sila *= 1.20;
@@ -549,19 +549,19 @@ pub fn calculate_interest_groups_power_legacy(country: &Country) -> HashMap<Stri
     }
 
     let raw = [
-        ("Związki Zawodowe", zwiazki_sila.max(1.0)),
-        ("Kapitaliści", kapitalisci_sila.max(1.0)),
-        ("Drobna Burżuazja", drobna_burzuazja_sila.max(1.0)),
+        ("Trade Unions", zwiazki_sila.max(1.0)),
+        ("Capitalists", kapitalisci_sila.max(1.0)),
+        ("Petty Bourgeoisie", drobna_burzuazja_sila.max(1.0)),
         ("Agrykolanie", agrykolanie_sila.max(1.0)),
         ("Inteligencja", inteligencja_sila.max(1.0)),
-        ("Siły Zbrojne", wojsko_sila.max(1.0)),
-        ("Duchowieństwo", kler_sila.max(1.0)),
+        ("Armed Forces", wojsko_sila.max(1.0)),
+        ("Clergy", kler_sila.max(1.0)),
         ("Studenci", studenci_sila.max(1.0)),
         ("Arystokracja", arystokracja_sila.max(1.0)),
         ("Biurokraci", biurokraci_sila.max(1.0)),
-        ("Specjaliści", specjalisci_sila.max(1.0)),
-        ("Rzemieślnicy", rzemieslnicy_sila.max(1.0)),
-        ("Kliki Wewnętrzne", kliki_power.max(1.0)),
+        ("Specialists", specjalisci_sila.max(1.0)),
+        ("Artisans", rzemieslnicy_sila.max(1.0)),
+        ("Internal Cliques", kliki_power.max(1.0)),
     ];
 
     let total: f64 = raw.iter().map(|(_, v)| v).sum();
@@ -576,13 +576,13 @@ fn sector_share(sectors: &HashMap<Sector, SectorShare>, sector: &Sector) -> f64 
 
 fn allocation_share(allocations: &BudgetAllocations, name: &str) -> f64 {
     match name {
-        "Przemysł" => allocations.industry,
+        "Industry" => allocations.industry,
         "Edukacja i Propaganda" => allocations.education_propaganda,
-        "Służba Zdrowia" => allocations.healthcare,
+        "Healthcare" => allocations.healthcare,
         "Infrastruktura i Transport" => allocations.infrastructure_transport,
         "Programy Socjalne" => allocations.social_programs,
         "Rolnictwo i Gospodarka Wiejska" => allocations.agriculture_rural,
-        "Siły Zbrojne" => allocations.armed_forces,
+        "Armed Forces" => allocations.armed_forces,
         _ => allocations
             .extra
             .get(name)
@@ -607,15 +607,15 @@ pub fn allocation_share_from_ministries(
     use crate::politics::ministries::GovernmentCompetency;
 
     let target_competency = match name {
-        "Przemysł" => vec![GovernmentCompetency::HeavyIndustry, GovernmentCompetency::LightIndustry],
+        "Industry" => vec![GovernmentCompetency::HeavyIndustry, GovernmentCompetency::LightIndustry],
         "Edukacja i Propaganda" => vec![GovernmentCompetency::Education],
-        "Służba Zdrowia" => vec![GovernmentCompetency::Healthcare],
+        "Healthcare" => vec![GovernmentCompetency::Healthcare],
         "Infrastruktura i Transport" => vec![GovernmentCompetency::Infrastructure, GovernmentCompetency::Transport],
         "Programy Socjalne" => vec![GovernmentCompetency::SocialWelfare],
         "Rolnictwo i Gospodarka Wiejska" => vec![GovernmentCompetency::Agriculture],
-        "Siły Zbrojne" => vec![GovernmentCompetency::Defense],
-        "Bezpieczeństwo Publiczne" => vec![GovernmentCompetency::InternalSecurity],
-        "Wymiar Sprawiedliwości" => vec![GovernmentCompetency::Justice],
+        "Armed Forces" => vec![GovernmentCompetency::Defense],
+        "Public Security" => vec![GovernmentCompetency::InternalSecurity],
+        "Justice System" => vec![GovernmentCompetency::Justice],
         _ => return 0.1,
     };
 

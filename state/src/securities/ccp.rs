@@ -11,16 +11,16 @@ use std::collections::BTreeMap;
 
 /// Member status in CCP.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Copy)]
-#[serde(rename = "status")]
+
 pub enum MemberStatus {
     /// Active member - can trade.
-    #[serde(rename = "aktywny")]
+
     Active,
     /// Suspended member - cannot trade temporarily.
-    #[serde(rename = "zawieszony")]
+
     Suspended,
     /// Defaulted member - in resolution process.
-    #[serde(rename = "default")]
+
     Defaulted,
 }
 
@@ -32,22 +32,22 @@ impl Default for MemberStatus {
 
 /// CCP member with margin account.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[serde(rename = "członek_ccp")]
+
 pub struct CcpMember {
     /// Member ID.
-    #[serde(rename = "id", default)]
+    #[serde(default)]
     pub id: String,
     
     /// Posted margin (collateral).
-    #[serde(rename = "zablokowana_marża", default)]
+    #[serde(default)]
     pub posted_margin: f64,
     
     /// Current margin deficit (if below requirements).
-    #[serde(rename = "deficyt_marży", default)]
+    #[serde(default)]
     pub margin_deficit: f64,
     
     /// Member status (active, suspended, defaulted).
-    #[serde(rename = "status", default)]
+    #[serde(default)]
     pub status: MemberStatus,
     
     /// Any additional member fields.
@@ -57,14 +57,14 @@ pub struct CcpMember {
 
 /// Strict margin requirements enforced by CCP.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[serde(rename = "wymogi_marżowe")]
+
 pub struct MarginRequirements {
     /// Initial margin ratio (e.g., 10%).
-    #[serde(rename = "marża_początkowa", default)]
+    #[serde(default)]
     pub initial_margin_ratio: f64,
     
     /// Maintenance margin ratio (e.g., 5%).
-    #[serde(rename = "marża_utrzymania", default)]
+    #[serde(default)]
     pub maintenance_margin_ratio: f64,
     
     /// Any additional requirements fields.
@@ -74,26 +74,26 @@ pub struct MarginRequirements {
 
 /// Central Counterparty Clearinghouse - Guarantees derivative trades.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[serde(rename = "izba_rozliczeniowa")]
+
 pub struct CentralCounterparty {
     /// CCP ID.
-    #[serde(rename = "id", default)]
+    #[serde(default)]
     pub id: String,
     
     /// Member banks/funds cleared by CCP.
-    #[serde(rename = "członkowie", default)]
+    #[serde(default)]
     pub members: BTreeMap<String, CcpMember>,
     
     /// Strict margin requirements (enforced by engine).
-    #[serde(rename = "wymogi_marżowe", default)]
+    #[serde(default)]
     pub margin_requirements: MarginRequirements,
     
     /// Default fund (buffer for member defaults).
-    #[serde(rename = "fundusz_defaultowy", default)]
+    #[serde(default)]
     pub default_fund: f64,
     
     /// Cleared derivatives positions.
-    #[serde(rename = "pozycje_rozliczone", default)]
+    #[serde(default)]
     pub cleared_positions: Vec<String>,
     
     /// Any additional CCP fields.

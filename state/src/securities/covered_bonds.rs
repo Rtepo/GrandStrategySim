@@ -9,38 +9,38 @@ use serde_json::Value;
 
 /// List Zastawny - Covered Bond issued by banks backed by mortgage/investment assets.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[serde(rename = "list_zastawny")]
+
 pub struct CoveredBond {
     /// Bond ID.
-    #[serde(rename = "id")]
+
     pub id: String,
     
     /// Issuing bank ID.
-    #[serde(rename = "emitent")]
+
     pub issuer_id: String,
     
     /// Current holder ID (investor).
-    #[serde(rename = "posiadacz")]
+
     pub holder_id: String,
     
     /// Principal amount.
-    #[serde(rename = "kwota_główna")]
+
     pub principal: f64,
     
     /// Coupon rate (annual interest).
-    #[serde(rename = "stopa_kuponowa")]
+
     pub coupon_rate: f64,
     
     /// Maturity turn.
-    #[serde(rename = "termin_płatności")]
+
     pub maturity_turn: u32,
     
     /// Backing asset pool (mortgage/investment IDs).
-    #[serde(rename = "pula_zabezpieczeń")]
+
     pub backing_pool: Vec<String>,
     
     /// Coverage ratio (backing assets / principal).
-    #[serde(rename = "wskaźnik pokrycia")]
+
     pub coverage_ratio: f64,
     
     /// Any additional bond fields.
@@ -322,7 +322,7 @@ mod tests {
         };
 
         let serialized = serde_json::to_string(&bond).unwrap();
-        assert!(serialized.contains("pula_zabezpieczeń"));
+        assert!(serialized.contains("backing_pool"));
     }
 
     #[test]

@@ -10,22 +10,22 @@ use serde_json::Map;
 
 /// Reference entity for CDS contracts.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(rename = "encja_referencyjna")]
+
 pub enum ReferenceEntity {
     /// Corporate entity.
-    #[serde(rename = "firma")]
+
     Company { 
         /// Company identifier.
         company_id: String 
     },
     /// Bank entity.
-    #[serde(rename = "bank")]
+
     Bank { 
         /// Bank identifier.
         bank_id: String 
     },
     /// Sovereign country.
-    #[serde(rename = "kraj")]
+
     Country { 
         /// Country identifier.
         country_id: String 
@@ -40,38 +40,38 @@ impl Default for ReferenceEntity {
 
 /// Credit Default Swap - Insurance against default.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[serde(rename = "swap_zadłużeniowy_kredytowy")]
+
 pub struct CreditDefaultSwap {
     /// CDS ID.
-    #[serde(rename = "id", default)]
+    #[serde(default)]
     pub id: String,
     
     /// Protection buyer (pays premium).
-    #[serde(rename = "kupujący_ochronę", default)]
+    #[serde(default)]
     pub protection_buyer_id: String,
     
     /// Protection seller (receives premium, pays on default).
-    #[serde(rename = "sprzedający_ochronę", default)]
+    #[serde(default)]
     pub protection_seller_id: String,
     
     /// Reference entity (what we're insuring against).
-    #[serde(rename = "encja_referencyjna", default)]
+    #[serde(default)]
     pub reference_entity: ReferenceEntity,
     
     /// Notional value (exposure amount).
-    #[serde(rename = "wartość_nominalna", default)]
+    #[serde(default)]
     pub notional: f64,
     
     /// Premium rate (annualized, e.g., 0.02 for 2%).
-    #[serde(rename = "stopa_premium", default)]
+    #[serde(default)]
     pub premium_rate: f64,
     
     /// Clearing method (OTC or CCP).
-    #[serde(rename = "metoda_rozliczenia", default)]
+    #[serde(default)]
     pub clearing_method: ClearingMethod,
     
     /// Current mark-to-market value.
-    #[serde(rename = "wartość_rynkowa", default)]
+    #[serde(default)]
     pub market_value: f64,
     
     /// Any additional CDS fields.
@@ -81,16 +81,16 @@ pub struct CreditDefaultSwap {
 
 /// Underlying asset for Futures contracts.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(rename = "aktywo_podstawowe")]
+
 pub enum FuturesUnderlying {
     /// Physical commodity (e.g., Oil, Wheat).
-    #[serde(rename = "surowiec")]
+
     Commodity { 
         /// Commodity identifier.
         commodity_id: String 
     },
     /// Interest rate (XIBOR).
-    #[serde(rename = "stopa_procentowa")]
+
     InterestRate { 
         /// Benchmark rate identifier.
         benchmark: String 
@@ -105,13 +105,13 @@ impl Default for FuturesUnderlying {
 
 /// Futures position type.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Copy)]
-#[serde(rename = "pozycja")]
+
 pub enum FuturesPosition {
     /// Long position (buyer - profits from price increase).
-    #[serde(rename = "długa")]
+
     Long,
     /// Short position (seller - profits from price decrease).
-    #[serde(rename = "krótka")]
+
     Short,
 }
 
@@ -123,13 +123,13 @@ impl Default for FuturesPosition {
 
 /// Clearing method for derivatives.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Copy)]
-#[serde(rename = "metoda_rozliczenia")]
+
 pub enum ClearingMethod {
     /// Over-The-Counter: Direct P2P, no margin enforcement.
-    #[serde(rename = "otc")]
+
     OTC,
     /// Central Counterparty: Strict margin enforcement.
-    #[serde(rename = "ccp")]
+
     CCP,
 }
 
@@ -141,50 +141,50 @@ impl Default for ClearingMethod {
 
 /// Futures Contract - Obligation to buy/sell at future price.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[serde(rename = "kontrakt terminowy")]
+
 pub struct FuturesContract {
     /// Futures ID.
-    #[serde(rename = "id", default)]
+    #[serde(default)]
     pub id: String,
     
     /// Long position (buyer) or Short position (seller).
-    #[serde(rename = "pozycja", default)]
+    #[serde(default)]
     pub position: FuturesPosition,
     
     /// Owner of the position.
-    #[serde(rename = "właściciel", default)]
+    #[serde(default)]
     pub owner_id: String,
     
     /// Counterparty (for OTC) or CCP (for cleared).
-    #[serde(rename = "kontrahent", default)]
+    #[serde(default)]
     pub counterparty_id: String,
     
     /// Underlying asset.
-    #[serde(rename = "aktywo_podstawowe", default)]
+    #[serde(default)]
     pub underlying: FuturesUnderlying,
     
     /// Contract size (units of underlying).
-    #[serde(rename = "wielkość_kontraktu", default)]
+    #[serde(default)]
     pub contract_size: f64,
     
     /// Strike price (agreed future price).
-    #[serde(rename = "cena_strike", default)]
+    #[serde(default)]
     pub strike_price: f64,
     
     /// Current market price of underlying.
-    #[serde(rename = "cena_rynkowa", default)]
+    #[serde(default)]
     pub current_price: f64,
     
     /// Maturity turn.
-    #[serde(rename = "turn_dojrzałości", default)]
+    #[serde(default)]
     pub maturity_turn: u32,
     
     /// Clearing method (OTC or CCP).
-    #[serde(rename = "metoda_rozliczenia", default)]
+    #[serde(default)]
     pub clearing_method: ClearingMethod,
     
     /// Unrealized P&L.
-    #[serde(rename = "p&l_nierozliczone", default)]
+    #[serde(default)]
     pub unrealized_pnl: f64,
     
     /// Any additional futures fields.

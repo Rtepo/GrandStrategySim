@@ -10,6 +10,7 @@
 
 use crate::state::CentralBank;
 use crate::securities::mbs::MortgageBackedSecurity;
+use crate::state::macro_data::annual_to_per_turn_rate;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
@@ -871,7 +872,7 @@ pub struct ConsumerLoan {
     /// Region ID where the borrowing class resides.
     #[serde(default)]
     pub region_id: String,
-    /// Class key (e.g., "Aristokracja", "Chłopi") identifying the demographic.
+    /// Class key (e.g., "Aristocracy", "Peasants") identifying the demographic.
     #[serde(default)]
     pub class_key: String,
     /// Whether the class is rural (true) or urban (false).
@@ -904,12 +905,12 @@ pub struct Bank {
     #[serde(default)]
     pub id: String,
 
-    /// Display name, e.g. "Główny Bank Państwowy Iliria".
+    /// Display name, e.g. "Main State Bank Iliria".
     #[serde(default)]
     pub name: String,
 
-    /// Bank type, e.g. "Komercyjny", "Spółdzielczy",
-    /// "Inwestycyjny", "Państwowy".
+    /// Bank type, e.g. "Commercial", "Cooperative",
+    /// "Investment", "State".
     #[serde(default)]
     pub bank_type: String,
 
@@ -950,7 +951,7 @@ pub struct Bank {
     #[serde(default)]
     pub interest_rate: f64,
 
-    /// Current condition / rating, e.g. "Doskonała" or "Zagrożona".
+    /// Current condition / rating, e.g. "Excellent" or "Endangered".
     #[serde(default = "default_condition")]
     pub condition: String,
 
@@ -965,7 +966,7 @@ pub struct Bank {
     #[serde(default = "default_reserve_requirement_ratio")]
     pub reserve_requirement_ratio: f64,
 
-    /// Phase 35: DSPW (Domowy Spełniający Podmiot Wiodący) Primary Dealer status.
+    /// Phase 35: DSPW (Domestic Fulfilling Leading Entity) Primary Dealer status.
     /// When true, this bank is authorized to participate directly in primary
     /// sovereign bond auctions. Non-DSPW banks can only buy sovereign bonds
     /// on the secondary market.
@@ -1007,8 +1008,7 @@ impl Bank {
     /// # Rules
     /// * `max_new_credit = max(0, total_deposits - required_reserves - issued_loans)`
     ///   when the bank is sufficiently reserved.
-    /// * This is the deterministic reserve-limit formula that the golden-master
-    ///   parity test verifies.
+    /// * This is the deterministic reserve-limit formula.
     pub fn max_new_credit(&self) -> f64 {
         let required = self.required_reserves();
         if self.liquid_reserves < required {
@@ -1028,37 +1028,37 @@ impl Bank {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct BfgFund {
     /// Total reserves in the BFG pool (funded by bank premiums).
-    #[serde(rename = "rezerwy_bfg", default)]
+    #[serde(default)]
     pub reserves: f64,
     
     /// Premium rate (percentage of total deposits charged each turn).
     /// Typical range: 0.05% to 0.20% (5-20 bps).
-    #[serde(rename = "stopa_premium", default = "default_bfg_premium")]
+    #[serde(default = "default_bfg_premium")]
     pub premium_rate: f64,
     
     /// Insurance limit multiplier (multiple of average national wage).
     /// Calculated dynamically: max_insured = average_wage * this_multiplier.
-    #[serde(rename = "mnożnik_limitu", default = "default_insurance_multiplier")]
+    #[serde(default = "default_insurance_multiplier")]
     pub insurance_limit_multiplier: f64,
     
     /// Total payouts made (historical record).
-    #[serde(rename = "wypłaty_łącznie", default)]
+    #[serde(default)]
     pub total_payouts: f64,
     
     /// Number of bank failures covered.
-    #[serde(rename = "liczba_upadłości", default)]
+    #[serde(default)]
     pub failures_covered: u32,
     
     /// Last premium collection turn.
-    #[serde(rename = "ostatnia_premium", default)]
+    #[serde(default)]
     pub last_premium_turn: u32,
     
     /// Emergency liquidity loan from Central Bank (when reserves depleted).
-    #[serde(rename = "pożyczka_emergencyjna_bc", default)]
+    #[serde(default)]
     pub cb_emergency_loan: f64,
     
     /// State subsidy received (non-refundable from Treasury).
-    #[serde(rename = "subwencja_państwowa", default)]
+    #[serde(default)]
     pub state_subsidy: f64,
     
     /// Any additional BFG fields.
@@ -1194,37 +1194,37 @@ impl BfgFund {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct SobkScheme {
     /// Total liquidity pool (funded by voluntary member contributions).
-    #[serde(rename = "pula_sobk", default)]
+    #[serde(default)]
     pub pool: f64,
     
     /// Preferential rate spread over XIBOR (below CB Lombard).
     /// Typical: 50 bps (vs Lombard: 150-200 bps).
-    #[serde(rename = "spread_preferencyjny", default = "default_sobk_spread")]
+    #[serde(default = "default_sobk_spread")]
     pub preferential_spread: f64,
     
     /// Maximum loan percentage of pool per member per turn.
     /// Prevents single member from draining the entire pool.
-    #[serde(rename = "maksymalny_procent_pożyczki", default = "default_max_loan_percent")]
+    #[serde(default = "default_max_loan_percent")]
     pub max_loan_percent_of_pool: f64,
     
     /// Member bank IDs and their contribution history.
-    #[serde(rename = "członkowie", default)]
+    #[serde(default)]
     pub members: Vec<String>,
     
     /// Outstanding SOBK loans (member_id -> amount).
-    #[serde(rename = "pożyczki_wykorzystane", default)]
+    #[serde(default)]
     pub outstanding_loans: HashMap<String, f64>,
     
     /// Last turn when pool was rebalanced.
-    #[serde(rename = "ostatnie_rebalansowanie", default)]
+    #[serde(default)]
     pub last_rebalance_turn: u32,
     
     /// Emergency liquidity loan from Central Bank (when pool depleted).
-    #[serde(rename = "pożyczka_emergencyjna_bc", default)]
+    #[serde(default)]
     pub cb_emergency_loan: f64,
     
     /// State subsidy received (non-refundable from Treasury).
-    #[serde(rename = "subwencja_państwowa", default)]
+    #[serde(default)]
     pub state_subsidy: f64,
     
     /// Any additional SOBK fields.
@@ -1391,28 +1391,28 @@ impl SobkScheme {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct BankResolution {
     /// Banks currently under bridge bank administration (bank_id -> takeover_turn).
-    #[serde(rename = "banki_pomostowe", default)]
+    #[serde(default)]
     pub bridge_banks: HashMap<String, u32>,
     
     /// Maximum duration a bridge bank can operate before resolution.
     /// After this, the bank must be reprivatized or liquidated.
-    #[serde(rename = "maksymalny_czas_operacji", default = "default_bridge_duration")]
+    #[serde(default = "default_bridge_duration")]
     pub max_bridge_duration_turns: u32,
     
     /// Total number of banks resolved (historical).
-    #[serde(rename = "liczba_rozwiązanych_banków", default)]
+    #[serde(default)]
     pub banks_resolved: u32,
     
     /// Total equity wiped out from shareholders (historical).
-    #[serde(rename = "kapitał_wyzerowany", default)]
+    #[serde(default)]
     pub equity_wiped_out: f64,
     
     /// Total toxic liabilities absorbed by BFG (historical).
-    #[serde(rename = "liabilities_toksyczne_absorbowane", default)]
+    #[serde(default)]
     pub toxic_liabilities_absorbed: f64,
     
     /// Revenue generated from bridge bank privatizations (historical).
-    #[serde(rename = "przychód_z_prywatyzacji", default)]
+    #[serde(default)]
     pub privatization_revenue: f64,
     
     /// Any additional bank resolution fields.
@@ -1694,39 +1694,39 @@ impl BankResolution {
 pub struct BankTax {
     /// Number of turns remaining for the tax to be active.
     /// When 0, the tax is inactive.
-    #[serde(rename = "pozostałe_turny", default)]
+    #[serde(default)]
     pub active_turns_remaining: u32,
     
     /// Tax rate applied to total bank assets (e.g., 0.01 for 1%).
-    #[serde(rename = "stopa_podatku", default)]
+    #[serde(default)]
     pub tax_rate: f64,
     
     /// Revenue split percentage to Treasury (e.g., 0.50 for 50%).
-    #[serde(rename = "udział_skarbu", default = "default_treasury_split")]
+    #[serde(default = "default_treasury_split")]
     pub treasury_split_percent: f64,
     
     /// Revenue split percentage to BFG (e.g., 0.25 for 25%).
-    #[serde(rename = "udział_bfg", default = "default_bfg_split")]
+    #[serde(default = "default_bfg_split")]
     pub bfg_split_percent: f64,
     
     /// Revenue split percentage to SOBK (e.g., 0.25 for 25%).
-    #[serde(rename = "udział_sobk", default = "default_sobk_split")]
+    #[serde(default = "default_sobk_split")]
     pub sobk_split_percent: f64,
     
     /// Total tax collected (historical).
-    #[serde(rename = "podatek_zebrany_łącznie", default)]
+    #[serde(default)]
     pub total_collected: f64,
     
     /// Treasury revenue received (historical).
-    #[serde(rename = "przychód_skarbu", default)]
+    #[serde(default)]
     pub treasury_revenue: f64,
     
     /// BFG revenue received (historical).
-    #[serde(rename = "przychód_bfg", default)]
+    #[serde(default)]
     pub bfg_revenue: f64,
     
     /// SOBK revenue received (historical).
-    #[serde(rename = "przychód_sobk", default)]
+    #[serde(default)]
     pub sobk_revenue: f64,
     
     /// Any additional bank tax fields.
@@ -2099,8 +2099,9 @@ pub fn process_banking_turn(
                 if loan.status == LoanStatus::Default {
                     continue;
                 }
-                // Accrue interest
-                let interest = loan.outstanding_balance * loan.interest_rate;
+                // Accrue interest (Phase 74: compound per-turn rate)
+                let per_turn_rate = annual_to_per_turn_rate(loan.interest_rate);
+                let interest = loan.outstanding_balance * per_turn_rate;
                 loan.outstanding_balance += interest;
 
                 // Update variable rate loans
@@ -2459,9 +2460,10 @@ pub fn process_banking_turn(
         let bank_region = bank.region_id.clone();
         let mut loans_to_process: Vec<(usize, f64, f64)> = Vec::new();
         for (i, loan) in bank.consumer_loans.iter().enumerate() {
-            // Per-turn repayment: 1/24 of principal + interest
+            // Per-turn repayment: 1/24 of principal + interest (Phase 74: compound rate)
             let principal_payment = loan.outstanding_principal / 24.0;
-            let interest_payment = loan.outstanding_principal * loan.interest_rate / 24.0;
+            let per_turn_rate = annual_to_per_turn_rate(loan.interest_rate);
+            let interest_payment = loan.outstanding_principal * per_turn_rate;
             loans_to_process.push((i, principal_payment, interest_payment));
         }
         // Find the region and class for each loan and process repayment

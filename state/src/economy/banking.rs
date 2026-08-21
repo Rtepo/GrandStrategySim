@@ -3,9 +3,8 @@
 //!
 //! This module ports the deterministic backbone of the Python banking turn from
 //! `corporate/markets/banking/core.py`. Random events (new bank creation,
-//! consortiums, certificate-of-deposit emission) are intentionally omitted in
-//! Target 2 Part 2; only the balance-sheet, reserve, and interest-rate logic
-//! is ported because it can be proved with a golden-master parity test.
+//! consortiums, certificate-of-deposit emission) are intentionally omitted;
+//! only the balance-sheet, reserve, and interest-rate logic is ported.
 
 use crate::economy::CountryTurnCtx;
 
@@ -36,9 +35,9 @@ const MAX_LEVERAGE: f64 = 15.0;
 ///   Investment = 0.05, Cooperative = 0.01, Commercial = 0.02.
 fn risk_spread(bank_type: &str) -> f64 {
     match bank_type {
-        "Inwestycyjny" => 0.05,
-        "Spółdzielczy" => 0.01,
-        "Państwowy" => 0.015,
+        "Investment" => 0.05,
+        "Cooperative" => 0.01,
+        "State" => 0.015,
         _ => 0.02,
     }
 }
@@ -109,12 +108,12 @@ pub fn process_banking_system(ctx: &mut CountryTurnCtx<'_>) {
         let leverage = bank.issued_loans / bank.own_capital.max(1.0);
         bank.condition = if leverage < MAX_LEVERAGE {
             if leverage < MAX_LEVERAGE * 0.5 {
-                "Doskonała".to_string()
+                "Excellent".to_string()
             } else {
                 "Dobra".to_string()
             }
         } else {
-            "Zagrożona".to_string()
+            "Endangered".to_string()
         };
     }
 }

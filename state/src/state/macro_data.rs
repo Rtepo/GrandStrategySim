@@ -400,32 +400,9 @@ pub struct HealthStatistics {
 }
 
 impl HealthStatistics {
-    /// Migrate from legacy extra field during deserialization
-    pub fn migrate_from_extra(extra: &Map<String, Value>) -> Self {
-        let health_extra = extra.get("statystyki_zdrowotne").and_then(|v| v.as_object());
-        
-        HealthStatistics {
-            service_quality: health_extra
-                .and_then(|obj| obj.get("jakosc_sluzby_zdrowia"))
-                .and_then(|v| v.as_f64())
-                .unwrap_or(0.0),
-            average_lifespan: health_extra
-                .and_then(|obj| obj.get("srednia_długość_życia"))
-                .and_then(|v| v.as_f64())
-                .unwrap_or(70.0),
-            mortality_rate: health_extra
-                .and_then(|obj| obj.get("wskaźnik_zgonów"))
-                .and_then(|v| v.as_f64())
-                .unwrap_or(0.0),
-            hospital_coverage: health_extra
-                .and_then(|obj| obj.get("pokrycie_szpitalne"))
-                .and_then(|v| v.as_f64())
-                .unwrap_or(0.0),
-        }
-    }
 }
 
-/// Education statistics extracted from legacy extra field
+/// Education statistics.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct EducationStatistics {
     /// Infrastructure base.
@@ -442,25 +419,6 @@ pub struct EducationStatistics {
 }
 
 impl EducationStatistics {
-    /// Migrate from legacy extra field during deserialization
-    pub fn migrate_from_extra(extra: &Map<String, Value>) -> Self {
-        let edu_extra = extra.get("statystyki_edukacyjne").and_then(|v| v.as_object());
-        
-        EducationStatistics {
-            infrastructure_base: edu_extra
-                .and_then(|obj| obj.get("baza_infrastruktury_edukacyjnej"))
-                .and_then(|v| v.as_f64())
-                .unwrap_or(0.0),
-            literacy_rate: edu_extra
-                .and_then(|obj| obj.get("wskaźnik_alfabetyzacji"))
-                .and_then(|v| v.as_f64())
-                .unwrap_or(0.0),
-            higher_education_rate: edu_extra
-                .and_then(|obj| obj.get("wskaźnik_wykształcenia_wyższego"))
-                .and_then(|v| v.as_f64())
-                .unwrap_or(0.0),
-        }
-    }
 }
 
 /// Phase 24F: A single telemetry sample stored in the rolling history buffer.
@@ -542,6 +500,38 @@ pub struct TelemetryHistory {
 pub const TURNS_PER_YEAR: usize = 24;
 /// Maximum samples to retain (1 year + 1 current turn).
 pub const MAX_HISTORY: usize = TURNS_PER_YEAR + 1;
+
+/// Phase 74: Convert an annual compounding rate to the equivalent per-turn rate.
+///
+/// Uses the compound period rate formula: `R_turn = (1 + R_annual)^(1/24) - 1`
+///
+/// This MUST be used for any rate that compounds over time (interest, birth/death
+/// rates, depreciation-as-fraction, etc.). Simple division by 24 is forbidden for
+/// compounding rates because it causes exponential drift.
+///
+/// # Example
+/// ```
+/// // 18% annual interest → 0.6926% per turn (compound)
+/// let per_turn = annual_to_per_turn_rate(0.18);
+/// // After 24 turns: (1 + 0.006926)^24 ≈ 1.18 (correct)
+/// ```
+pub fn annual_to_per_turn_rate(annual_rate: f64) -> f64 {
+    (1.0 + annual_rate).powf(1.0 / TURNS_PER_YEAR as f64) - 1.0
+}
+
+/// Phase 74: Convert an annual linear quantity to per-turn quantity.
+///
+/// Used for physical throughput, one-shot payments, and operating expenses that
+/// are consumed (not compounded) each turn. This is simple division by 24.
+///
+/// # Example
+/// ```
+/// // 1200 units/year → 50 units/turn
+/// let per_turn = annual_to_per_turn_quantity(1200.0);
+/// ```
+pub fn annual_to_per_turn_quantity(annual_quantity: f64) -> f64 {
+    annual_quantity / TURNS_PER_YEAR as f64
+}
 
 impl TelemetryHistory {
     /// Append a new sample, dropping the oldest if at capacity.
@@ -847,7 +837,7 @@ pub struct MacroData {
     /// Dominant religion.
     pub religion: String,
     /// Phase 6.1: Absolute turn number for next election (replaces years_until_election)
-    #[serde(rename = "turn_wyborów", default)]
+    #[serde(default)]
     pub election_turn: u32,
     /// Labor market.
     #[serde(default)]
@@ -910,20 +900,6 @@ impl Default for MacroData {
 }
 
 impl MacroData {
-    /// Post-process after deserialization to migrate legacy fields
-    pub fn migrate_legacy_fields(&mut self) {
-        // Migrate health statistics from extra if present
-        if self.extra.contains_key("statystyki_zdrowotne") {
-            self.health_statistics = HealthStatistics::migrate_from_extra(&self.extra);
-            self.extra.remove("statystyki_zdrowotne");
-        }
-        
-        // Migrate education statistics from extra if present
-        if self.extra.contains_key("statystyki_edukacyjne") {
-            self.education_statistics = EducationStatistics::migrate_from_extra(&self.extra);
-            self.extra.remove("statystyki_edukacyjne");
-        }
-    }
 }
 
 #[cfg(test)]

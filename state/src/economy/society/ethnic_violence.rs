@@ -481,7 +481,7 @@ mod tests {
         let mut country = Country::mock_for_tests();
         country.macro_indicators.social_unrest = 30.0;
         country.macro_indicators.culture = "Iliria".to_string();
-        country.politics.civil_rights_law = "Asymilacja 5 lat".to_string();
+        country.politics.civil_rights_law = "5-Year Assimilation".to_string();
 
         let config = PogromConfig::default();
         let results = check_pogrom_triggers(&mut country, &[], &config, 1);
@@ -507,7 +507,7 @@ mod tests {
         let mut country = Country::mock_for_tests();
         country.macro_indicators.social_unrest = 80.0;
         country.macro_indicators.culture = "Iliria".to_string();
-        country.politics.civil_rights_law = "Asymilacja 5 lat".to_string();
+        country.politics.civil_rights_law = "5-Year Assimilation".to_string();
 
         let mut building = crate::entities::Building::default();
         building.last_production.insert(Commodity::JusticeCapacity, 10000.0);

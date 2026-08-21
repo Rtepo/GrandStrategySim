@@ -211,9 +211,9 @@ fn get_vat_rate_for_commodity(commodity: Commodity, tax_rates: &crate::state::ta
     // Map commodity to VAT category (simplified - in production would use commodity registry)
     // Using actual commodities from the enum
     let category = match commodity {
-        Commodity::Bricks | Commodity::Cement | Commodity::Steel | Commodity::Aluminum => "przemysł",
-        Commodity::Agd | Commodity::Cars => "usługi",
-        _ => "usługi", // Default to services category
+        Commodity::Bricks | Commodity::Cement | Commodity::Steel | Commodity::Aluminum => "industry",
+        Commodity::Agd | Commodity::Cars => "services",
+        _ => "services", // Default to services category
     };
 
     tax_rates
@@ -530,7 +530,7 @@ mod tests {
                 vat: {
                     let mut map = HashMap::new();
                     map.insert(
-                        "przemysł".to_string(),
+                        "industry".to_string(),
                         VatBracket {
                             rate: 0.10,
                             consumption_share: 0.2,

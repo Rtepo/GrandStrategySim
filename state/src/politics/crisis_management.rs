@@ -1560,9 +1560,9 @@ mod tests {
 
         // Add parties with divergent ideologies.
         let mut marxist_party = crate::politics::system::Party::default();
-        marxist_party.ideology = "Marksizm-Leninizm".to_string();
+        marxist_party.ideology = "Marxism-Leninism".to_string();
         let mut liberal_party = crate::politics::system::Party::default();
-        liberal_party.ideology = "Klasyczny Liberalizm".to_string();
+        liberal_party.ideology = "Classical Liberalism".to_string();
         politics.active_parties.insert("MarxistParty".to_string(), marxist_party);
         politics.active_parties.insert("LiberalParty".to_string(), liberal_party);
 

@@ -63,7 +63,7 @@ impl Default for ReligiousAuthorityConfig {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct ReligiousAuthorityState {
     /// Maps religion engine key → authority score (0.0–1.0).
-    #[serde(rename = "autorytet_religijny", default)]
+    #[serde(default)]
     pub authority: BTreeMap<String, f64>,
 }
 
@@ -132,7 +132,7 @@ pub fn process_religious_authority_turn(
     }
 
     // Determine state religion from politics.religious_law.
-    let is_state_religion = country.politics.religious_law == "Państwowa";
+    let is_state_religion = country.politics.religious_law == "State";
     let state_religion_key = if is_state_religion {
         reg.religion_key_from_display(&country.macro_indicators.religion)
     } else {
@@ -239,7 +239,7 @@ mod tests {
         let mut class = ClassDemographics::default();
         class.population = pop;
         class.religion = religion.to_string();
-        region.class_demographics.rural_classes.insert("chłopi".into(), class);
+        region.class_demographics.rural_classes.insert("peasants".into(), class);
         region
     }
 
@@ -270,7 +270,7 @@ mod tests {
     #[test]
     fn test_state_religion_boost() {
         let mut country = Country::mock_for_tests();
-        country.politics.religious_law = "Państwowa".into();
+        country.politics.religious_law = "State".into();
         country.macro_indicators = MacroData {
             religion: "Katolicyzm".into(),
             ..Default::default()
@@ -323,7 +323,7 @@ mod tests {
     #[test]
     fn test_authority_clamped() {
         let mut country = Country::mock_for_tests();
-        country.politics.religious_law = "Państwowa".into();
+        country.politics.religious_law = "State".into();
         country.macro_indicators = MacroData {
             religion: "Katolicyzm".into(),
             ..Default::default()

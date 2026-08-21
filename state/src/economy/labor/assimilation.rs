@@ -78,7 +78,7 @@ pub fn process_assimilation_turn(
     }
 
     let dominant_def = reg.from_display_name(&dominant_culture);
-    let base_rate: f64 = if prawo_obywatelskie == "Asymilacja 5 lat" { 0.08 } else { 0.03 };
+    let base_rate: f64 = if prawo_obywatelskie == "5-Year Assimilation" { 0.08 } else { 0.03 };
 
     // Phase 18A: Legal status gate — Illegals cannot assimilate.
     // Compute the fraction of the total population that is legally eligible
@@ -489,7 +489,7 @@ mod tests {
         let mut class = ClassDemographics::default();
         class.population = pop;
         class.religion = religion.to_string();
-        region.class_demographics.rural_classes.insert("chłopi".into(), class);
+        region.class_demographics.rural_classes.insert("peasants".into(), class);
         region
     }
 
@@ -501,7 +501,7 @@ mod tests {
         country.macro_indicators.culture = "Iliria".into();
         country.macro_indicators.demographics.ethnic_composition.insert("Iliria".into(), 0.7);
         country.macro_indicators.demographics.ethnic_composition.insert("Weneda".into(), 0.3);
-        country.politics.civil_rights_law = "Asymilacja 5 lat".into();
+        country.politics.civil_rights_law = "5-Year Assimilation".into();
 
         let buildings: Vec<Building> = vec![];
         let edu_consumption: BTreeMap<String, f64> = BTreeMap::new();
@@ -519,14 +519,14 @@ mod tests {
         country.macro_indicators.culture = "Iliria".into();
         country.macro_indicators.demographics.ethnic_composition.insert("Iliria".into(), 0.7);
         country.macro_indicators.demographics.ethnic_composition.insert("Weneda".into(), 0.3);
-        country.politics.civil_rights_law = "Asymilacja 5 lat".into();
+        country.politics.civil_rights_law = "5-Year Assimilation".into();
 
         let mut region = Region::default();
         region.id = "test_region".into();
         let mut class = ClassDemographics::default();
         class.population = 1000;
         class.religion = "Katolicyzm".into();
-        region.class_demographics.rural_classes.insert("chłopi".into(), class);
+        region.class_demographics.rural_classes.insert("peasants".into(), class);
         country.regions = vec![region];
 
         let buildings: Vec<Building> = vec![];
@@ -547,14 +547,14 @@ mod tests {
         country.macro_indicators.culture = "Iliria".into();
         country.macro_indicators.demographics.ethnic_composition.insert("Iliria".into(), 0.7);
         country.macro_indicators.demographics.ethnic_composition.insert("Weneda".into(), 0.3);
-        country.politics.civil_rights_law = "Asymilacja 5 lat".into();
+        country.politics.civil_rights_law = "5-Year Assimilation".into();
 
         let mut region = Region::default();
         region.id = "test_region".into();
         let mut class = ClassDemographics::default();
         class.population = 1000;
         class.religion = "Katolicyzm".into();
-        region.class_demographics.rural_classes.insert("chłopi".into(), class);
+        region.class_demographics.rural_classes.insert("peasants".into(), class);
         country.regions = vec![region];
 
         let mut building = Building::default();
@@ -578,14 +578,14 @@ mod tests {
         country.macro_indicators.culture = "Iliria".into();
         country.macro_indicators.demographics.ethnic_composition.insert("Iliria".into(), 0.7);
         country.macro_indicators.demographics.ethnic_composition.insert("Weneda".into(), 0.3);
-        country.politics.civil_rights_law = "Asymilacja 5 lat".into();
+        country.politics.civil_rights_law = "5-Year Assimilation".into();
 
         let mut region = Region::default();
         region.id = "test_region".into();
         let mut class = ClassDemographics::default();
         class.population = 1000;
         class.religion = "Katolicyzm".into();
-        region.class_demographics.rural_classes.insert("chłopi".into(), class);
+        region.class_demographics.rural_classes.insert("peasants".into(), class);
         country.regions = vec![region];
 
         let mut building = Building::default();
@@ -631,7 +631,7 @@ mod tests {
     fn test_syncretism_bounding_limit() {
         let mut country = Country::mock_for_tests();
         country.macro_indicators.culture = "Iliria".into();
-        country.politics.civil_rights_law = "Asymilacja 5 lat".into();
+        country.politics.civil_rights_law = "5-Year Assimilation".into();
 
         // Pre-fill with 3 syncretic cultures (at the limit).
         country.macro_indicators.demographics.ethnic_composition.insert("Iliria".into(), 0.3);
@@ -646,7 +646,7 @@ mod tests {
         region.id = "test_region".into();
         let mut class = ClassDemographics::default();
         class.population = 1000;
-        region.class_demographics.rural_classes.insert("chłopi".into(), class);
+        region.class_demographics.rural_classes.insert("peasants".into(), class);
         country.regions = vec![region];
 
         // Full coverage to trigger syncretism conditions.

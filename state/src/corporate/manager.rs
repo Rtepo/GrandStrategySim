@@ -448,6 +448,7 @@ pub fn process_companies(
                     },
                     active_blueprint: None,
                     extra: serde_json::Map::new(),
+                    ..Default::default()
                 };
             }
         }

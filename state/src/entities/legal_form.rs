@@ -10,7 +10,7 @@ use crate::economy::market::MarketSignal;
 use crate::entities::Company;
 use serde::{Deserialize, Serialize};
 
-/// Data for a mutual aid circle (`kółko wzajemnej pomocy`).
+/// Data for a mutual aid circle (`mutual aid circle`).
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct MutualAidCircleData {
     /// Number of members in the mutual aid circle.
@@ -172,27 +172,27 @@ pub struct LatifundiumData {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct MunicipalCompanyData {
     /// Owning municipality ID
-    #[serde(rename = "id_jst_wlasciciela", default)]
+    #[serde(default)]
     pub owner_municipality: String,
     
     /// Service type (water, transport, construction, etc.)
-    #[serde(rename = "typ_uslugi", default)]
+    #[serde(default)]
     pub service_type: MunicipalServiceType,
     
     /// Service coverage (population served)
-    #[serde(rename = "pokrycie_uslugi", default)]
+    #[serde(default)]
     pub service_coverage: f64,
     
     /// Municipal subsidy amount
-    #[serde(rename = "dotacja_miejska", default)]
+    #[serde(default)]
     pub municipal_subsidy: f64,
     
     /// Whether service is privatizable
-    #[serde(rename = "mozliwa_prywatyzacja", default)]
+    #[serde(default)]
     pub privatizable: bool,
     
     /// Regulatory oversight level
-    #[serde(rename = "nadzor_regulacyjny", default)]
+    #[serde(default)]
     pub regulatory_oversight: f64, // 0-1
 }
 
@@ -225,89 +225,89 @@ pub enum MunicipalServiceType {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct StateMonopolyData {
     /// Ministry or government body managing the monopoly
-    #[serde(rename = "ministerium_zarządzające", default)]
+    #[serde(default)]
     pub managing_ministry: String,
     
     /// Sector/industry controlled (Forests, Waters, Mining, etc.)
-    #[serde(rename = "sektor_kontrolowany", default)]
+    #[serde(default)]
     pub controlled_sector: String,
     
     /// Land categories managed (e.g., Forests, WaterBodies)
-    #[serde(rename = "kategorie_ziemi_zarządzane", default)]
+    #[serde(default)]
     pub managed_land_categories: Vec<String>,
     
     /// Direct budget transfer to Central Treasury per turn
-    #[serde(rename = "bezpośredni_transfer_do_skarbu", default)]
+    #[serde(default)]
     pub direct_treasury_transfer: f64,
     
     /// Political influence 0-100
-    #[serde(rename = "wpływ_polityczny", default)]
+    #[serde(default)]
     pub political_influence: f64,
     
     /// Efficiency rating 0-1 (affects profit generation)
-    #[serde(rename = "ocena_efektywności", default)]
+    #[serde(default)]
     pub efficiency_rating: f64,
     
     /// Corruption level 0-1 (reduces actual treasury transfer)
-    #[serde(rename = "poziom_korupcji", default)]
+    #[serde(default)]
     pub corruption_level: f64,
     
     /// Public support 0-1
-    #[serde(rename = "wsparcie_publiczne", default)]
+    #[serde(default)]
     pub public_support: f64,
 }
 
-/// Data for a Housing Community (Wspólnota Mieszkaniowa) - Phase 6.5
+/// Data for a Housing Community (Housing Community) - Phase 6.5
 ///
 /// Represents a legal form for single building maintenance where
 /// owner-occupiers collectively manage common areas and maintenance.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct HousingCommunityData {
     /// Building ID this community manages
-    #[serde(rename = "id_budynku", default)]
+    #[serde(default)]
     pub building_id: String,
     
     /// Number of owner-occupiers
-    #[serde(rename = "liczba_właścicieli", default)]
+    #[serde(default)]
     pub owner_count: u32,
     
     /// Maintenance fund
-    #[serde(rename = "fundusz_utrzymania", default)]
+    #[serde(default)]
     pub maintenance_fund: f64,
     
     /// Common areas (sq meters)
-    #[serde(rename = "obszary_wspólne", default)]
+    #[serde(default)]
     pub common_areas: f64,
     
     /// Reserve fund for major repairs
-    #[serde(rename = "fundusz_rezerwowy", default)]
+    #[serde(default)]
     pub reserve_fund: f64,
 }
 
-/// Data for a Housing Cooperative (Spółdzielnia Mieszkaniowa) - Phase 6.5
+/// Data for a Housing Cooperative (Housing Cooperative) - Phase 6.5
 ///
 /// Represents a legal form for multi-building scale with utility economies
 /// where member households collectively manage multiple buildings.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct HousingCooperativeData {
     /// Buildings managed by this cooperative
-    #[serde(rename = "budynki_zarządzane", default)]
+    #[serde(default)]
     pub managed_buildings: Vec<String>,
     
     /// Member households
-    #[serde(rename = "gospodarstwa_członkowskie", default)]
+    #[serde(default)]
     pub member_households: u32,
     
     /// Share capital
-    #[serde(rename = "kapitał_akcyjny", default)]
+    #[serde(default)]
     pub share_capital: f64,
     
     /// Utility economies of scale (discount factor 0-1)
-    #[serde(rename = "skala_utilitarna", default)]
+    #[serde(default)]
     pub utility_economies: f64,
     
     /// Cooperative board members
-    #[serde(rename = "zarząd", default)]
+    #[serde(default)]
     pub board_members: Vec<String>,
 }
 
@@ -319,23 +319,23 @@ pub struct HousingCooperativeData {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct StrategicReserveData {
     /// Commodity reserves held by the agency
-    #[serde(rename = "rezerwy_towarowe", default)]
+    #[serde(default)]
     pub commodity_reserves: std::collections::BTreeMap<String, f64>,
     
     /// Purchase triggers for each commodity
-    #[serde(rename = "wyzwalacze_zakupu", default)]
+    #[serde(default)]
     pub purchase_triggers: std::collections::BTreeMap<String, PurchaseTrigger>,
     
     /// Release triggers for each commodity
-    #[serde(rename = "wyzwalacze_wydania", default)]
+    #[serde(default)]
     pub release_triggers: std::collections::BTreeMap<String, ReleaseTrigger>,
     
     /// Budget allocation from state treasury
-    #[serde(rename = "przydział_budżetowy", default)]
+    #[serde(default)]
     pub budget_allocation: f64,
     
     /// Maximum storage capacity per commodity
-    #[serde(rename = "maksymalna_pojemność", default)]
+    #[serde(default)]
     pub max_capacity: std::collections::BTreeMap<String, f64>,
 }
 
@@ -343,15 +343,15 @@ pub struct StrategicReserveData {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct PurchaseTrigger {
     /// Buy when price falls below this threshold
-    #[serde(rename = "proga_cenowa", default)]
+    #[serde(default)]
     pub price_floor: f64,
     
     /// Buy when global surplus exceeds this threshold
-    #[serde(rename = "próg_nadwyżki", default)]
+    #[serde(default)]
     pub surplus_threshold: f64,
     
     /// Fraction of budget allocation to spend per purchase
-    #[serde(rename = "udział_budżetu", default)]
+    #[serde(default)]
     pub budget_fraction: f64,
 }
 
@@ -359,15 +359,15 @@ pub struct PurchaseTrigger {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct ReleaseTrigger {
     /// Release when price exceeds this threshold
-    #[serde(rename = "sufit_cenowy", default)]
+    #[serde(default)]
     pub price_ceiling: f64,
     
     /// Release when global deficit exceeds this threshold
-    #[serde(rename = "próg_deficytu", default)]
+    #[serde(default)]
     pub deficit_threshold: f64,
     
     /// Fraction of reserves to release per trigger
-    #[serde(rename = "udział_wydania", default)]
+    #[serde(default)]
     pub release_fraction: f64,
 }
 
@@ -378,19 +378,19 @@ pub struct ReleaseTrigger {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct LogisticsCompanyData {
     /// Warehouse IDs owned by this logistics company
-    #[serde(rename = "magazyny_własne", default)]
+    #[serde(default)]
     pub owned_warehouses: Vec<String>,
     
     /// Fleet capacity for transportation
-    #[serde(rename = "pojemność_floty", default)]
+    #[serde(default)]
     pub fleet_capacity: f64,
     
     /// Transportation cost per unit per km
-    #[serde(rename = "koszt_transportu", default)]
+    #[serde(default)]
     pub transport_cost_per_unit_km: f64,
     
     /// Logistics network coverage (regions served)
-    #[serde(rename = "sieć_logistyczna", default)]
+    #[serde(default)]
     pub network_coverage: Vec<String>,
 }
 

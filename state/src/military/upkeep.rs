@@ -74,7 +74,7 @@ pub fn process_military_upkeep(
             let loss = (unit.manpower as f64 * config.attrition_manpower_loss_ratio) as i64;
             unit.manpower = (unit.manpower - loss).max(0);
             messages.push(format!(
-                "[ATRAKCJA] Jednostka {} traci {} ludzi z głodu/desercji",
+                "[ATTRACTION] Unit {} loses {} men to starvation/desertion",
                 unit.id, loss
             ));
         }
@@ -84,7 +84,7 @@ pub fn process_military_upkeep(
             *liquid_reserves -= wage_cost;
         } else {
             messages.push(format!(
-                "[BUDŻET] Brak funduszy na utrzymanie jednostki {} (koszt: {})",
+                "[BUDGET] No funds for unit {} maintenance (cost: {})",
                 unit.id, wage_cost
             ));
         }
@@ -92,7 +92,7 @@ pub fn process_military_upkeep(
 
     if total_wage_cost > 0.0 {
         messages.push(format!(
-            "[WOJSKO] Koszty utrzymania: {} (płace)",
+            "[MILITARY] Maintenance costs: {} (wages)",
             total_wage_cost
         ));
     }

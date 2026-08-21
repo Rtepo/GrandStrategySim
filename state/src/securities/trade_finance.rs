@@ -12,50 +12,50 @@ use crate::registries::enums::Commodity;
 /// Bill of Lading - tradable receipt for maritime cargo in transit.
 /// Acts as collateral for short-term working capital loans.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(rename = "konosament")]
+
 pub struct BillOfLading {
     /// Unique bill ID.
-    #[serde(rename = "id")]
+
     pub id: String,
     
     /// Physical shipment ID this bill represents.
-    #[serde(rename = "id_przesyłki")]
+
     pub shipment_id: String,
     
     /// Owner of the bill (current holder).
-    #[serde(rename = "właściciel")]
+
     pub owner_id: String,
     
     /// Commodity type being shipped.
-    #[serde(rename = "towar")]
+
     pub commodity: Commodity,
     
     /// Quantity of commodity.
-    #[serde(rename = "ilość")]
+
     pub quantity: f64,
     
     /// Declared value of cargo.
-    #[serde(rename = "wartość_zadeklarowana")]
+
     pub declared_value: f64,
     
     /// Port of origin.
-    #[serde(rename = "port_wyjścia")]
+
     pub port_of_origin: String,
     
     /// Port of destination.
-    #[serde(rename = "port_przeznaczenia")]
+
     pub port_of_destination: String,
     
     /// Expected arrival turn.
-    #[serde(rename = "spodziewany_przyjazd")]
+
     pub expected_arrival_turn: u32,
     
     /// Current status.
-    #[serde(rename = "status")]
+
     pub status: BillStatus,
     
     /// Collateral value (for loan purposes).
-    #[serde(rename = "wartość_zabezpieczenia")]
+
     pub collateral_value: f64,
     
     /// Any additional bill fields.
@@ -84,52 +84,52 @@ impl Default for BillOfLading {
 
 /// Status of a Bill of Lading document.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(rename = "status")]
+
 pub enum BillStatus {
     /// Cargo is currently in transit.
-    #[serde(rename = "w_tranzycie")]
+
     InTransit,
     /// Cargo has been delivered to destination.
-    #[serde(rename = "dostarczony")]
+
     Delivered,
     /// Bill is currently pledged as collateral for a loan.
-    #[serde(rename = "zastawiony")]
+
     PledgedAsCollateral,
     /// Bill has expired (past maturity).
-    #[serde(rename = "wygaszony")]
+
     Expired,
 }
 
 /// Short-term working capital loan backed by Bill of Lading.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(rename = "kredyt_obrotowy")]
+
 pub struct WorkingCapitalLoan {
     /// Loan ID.
-    #[serde(rename = "id")]
+
     pub id: String,
     
     /// Borrower ID.
-    #[serde(rename = "pożyczkobiorca")]
+
     pub borrower_id: String,
     
     /// Lender ID (bank).
-    #[serde(rename = "pożyczkodawca")]
+
     pub lender_id: String,
     
     /// Principal amount.
-    #[serde(rename = "kwota_główna")]
+
     pub principal: f64,
     
     /// Interest rate.
-    #[serde(rename = "stopa_procentowa")]
+
     pub interest_rate: f64,
     
     /// Collateral Bill of Lading ID.
-    #[serde(rename = "zabezpieczenie_konosament")]
+
     pub collateral_bill_id: String,
     
     /// Maturity turn (must be before cargo arrival).
-    #[serde(rename = "termin_płatności")]
+
     pub maturity_turn: u32,
     
     /// Any additional loan fields.

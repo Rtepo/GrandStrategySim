@@ -2180,13 +2180,13 @@ mod tests {
         let mut cadastre = Cadastre::default();
         let id = cadastre.insert(ParcelChunk {
             size_hectares: 200.0,
-            land_use_tag: "StateForest".to_string(),
+            land_use_tag: "forest_district".to_string(),
             acquisition_price: 100_000.0,
             ..Default::default()
         });
         let split_id = cadastre.split_parcel(id, 80.0, 5).unwrap();
         let split = cadastre.get(split_id).unwrap();
-        assert_eq!(split.land_use_tag, "StateForest");
+        assert_eq!(split.land_use_tag, "forest_district");
     }
 
     // ========================================================================

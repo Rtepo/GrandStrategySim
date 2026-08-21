@@ -343,7 +343,7 @@ fn generate_country(
         social_programs: Vec::new(),
         weather_state: crate::economy::weather::WeatherState::default(),
         maintenance_config: crate::economy::maintenance::MaintenanceConfig::default(),
-        state_forest_state: crate::economy::state_forests::StateForestState::default(),
+        state_forest_state: crate::economy::state_forests::forest_districtState::default(),
         religious_authority_state: crate::society::religious_authority::ReligiousAuthorityState::default(),
         generative_goods_config: crate::economy::generative_goods_config::GenerativeGoodsConfig::default(),
         geological_formations: Vec::new(),
@@ -437,6 +437,28 @@ fn generate_country(
         start_year.as_year(),
         rng,
     );
+
+    // Phase 74: Seed initial military stockpile with 3 turns of upkeep worth
+    // of Ammunition and Rifles so armies don't immediately starve on Turn 1.
+    // The stockpile is proportional to the total manpower under arms.
+    let total_manpower: f64 = country.order_of_battle.armies.iter()
+        .flat_map(|a| a.divisions.iter())
+        .map(|d| d.total_manpower() as f64)
+        .sum();
+    if total_manpower > 0.0 {
+        // Ammunition: ~15 units per 1000 soldiers per turn × 3 turns
+        let ammo_seed = (total_manpower / 1000.0 * 15.0 * 3.0).max(500.0);
+        // Rifles: ~1 rifle per 3 soldiers (not everyone needs a rifle) × 3 turns reserve
+        let rifle_seed = (total_manpower / 3.0 * 3.0).max(200.0);
+        country.military_stockpile.insert(
+            crate::registries::enums::Commodity::Ammunition,
+            ammo_seed,
+        );
+        country.military_stockpile.insert(
+            crate::registries::enums::Commodity::Rifles,
+            rifle_seed,
+        );
+    }
 
     (country, currency, country_regions, companies)
 }

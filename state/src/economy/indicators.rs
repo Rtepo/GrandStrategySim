@@ -1,11 +1,8 @@
 //! Core economic indicators and the per-country turn function.
 //!
-//! This module ports the deterministic economic formulas from the Python
-//! `economy.indicators` modules incrementally. The first formula is the
-//! sector-level GDP share update from physical employment counts, which is
-//! isolated and easy to prove with golden-master parity.
+//! This module hosts the deterministic per-country economic step, including
+//! the sector-level GDP share update from physical employment counts.
 
-use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 
@@ -15,30 +12,7 @@ use crate::registries::enums::Sector;
 // as from `economy`, which matches the function signatures in this module.
 pub use crate::economy::CountryTurnCtx;
 
-/// Result of a golden-master parity comparison between Rust and Python.
-///
-/// # Rules
-/// * `Equal` means the numeric and key-set comparisons both pass within the
-///   configured tolerance.
-/// * `Different` carries the first mismatching field and a short diagnostic.
-/// * `MissingExpected` is returned when the Python expected-save file is not
-///   yet generated.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub enum ParityResult {
-    /// The Rust output matches the Python master output.
-    Equal,
-    /// The Rust output differs from Python.
-    Different {
-        /// Path to the first field that diverged, e.g. `"treasury.gdp"`.
-        field: String,
-        /// Diagnostic string for logging.
-        diagnostic: String,
-    },
-    /// No Python expected output exists for this turn yet.
-    MissingExpected,
-}
-
-/// Recalculates each sector's `"udział_PKB"` (GDP share) from its physical
+/// Recalculates each sector's `"gdp_share"` (GDP share) from its physical
 /// employment count (`"zatrudnienie"`).
 ///
 /// This is a Rust port of the Python helper `_calculate_gdp_shares_from_employment`
@@ -68,14 +42,14 @@ pub enum ParityResult {
 ///         for sec_dict in sektory.values():
 ///             if isinstance(sec_dict, dict):
 ///                 employment = sec_dict.get('zatrudnienie', 0)
-///                 sec_dict['udział_PKB'] = employment / total_employment
+///                 sec_dict['gdp_share'] = employment / total_employment
 ///     else:
 ///         sector_count = len([s for s in sektory.values() if isinstance(s, dict)])
 ///         if sector_count > 0:
 ///             equal_share = 1.0 / sector_count
 ///             for sec_dict in sektory.values():
 ///                 if isinstance(sec_dict, dict):
-///                     sec_dict['udział_PKB'] = equal_share
+///                     sec_dict['gdp_share'] = equal_share
 /// ```
 pub fn update_gdp_shares_from_employment(ctx: &mut CountryTurnCtx<'_>) {
     let sectors = &mut ctx.country.budget.sectors;
@@ -272,47 +246,22 @@ pub fn compute_pmi_diffusion_index(
 ///   metadata.
 ///
 /// # Returns
-/// `Ok(ParityResult)` once the turn is processed. In Target 2 Part 1 the
-/// function only runs the isolated GDP-share update and then returns
-/// `MissingExpected` because no golden-master snapshot exists yet.
+/// `Ok(())` once the turn is processed.
 ///
 /// # Rules
 /// * This function is strictly deterministic: the same inputs must produce the
 ///   same outputs on every run.
-/// * The function mutates `ctx.country` in place and will eventually compare
-///   against a pre-generated Python "Turn + 1" save.
-pub fn run_economic_turn(ctx: &mut CountryTurnCtx<'_>) -> Result<ParityResult, String> {
+/// * The function mutates `ctx.country` in place.
+pub fn run_economic_turn(ctx: &mut CountryTurnCtx<'_>) -> Result<(), String> {
     update_gdp_shares_from_employment(ctx);
-    
+
     // Apply infrastructure capacity effects to all regions
     // This includes healthcare, dependency care, and education effects
     for region in &mut ctx.country.regions {
         crate::infrastructure::effects::apply_infrastructure_effects(region, ctx.year);
     }
-    
-    Ok(ParityResult::MissingExpected)
-}
 
-/// Compares the resulting `Treasury` and `MacroData` to an expected Python
-/// "Turn + 1" save.
-///
-/// # Arguments
-/// * `country_name` - Name of the country being compared.
-/// * `turn` - The turn number whose expected output is being checked.
-///
-/// # Returns
-/// `ParityResult::Equal` if the expected output exists and matches the
-/// supplied values, `ParityResult::Different` on mismatch, or
-/// `ParityResult::MissingExpected` if the expected file is absent.
-///
-/// # Rules
-/// * This is a mocked stub: the real implementation will load the expected
-///   JSON from `tests/golden_masters/{country_name}/turn_{turn+1}.json` and
-///   perform a tolerant numeric comparison. It currently returns
-///   `MissingExpected` so the harness compiles and passes without the complex
-///   math being ported.
-pub fn compare_to_expected(_country_name: &str, _turn: u32) -> ParityResult {
-    ParityResult::MissingExpected
+    Ok(())
 }
 
 #[cfg(test)]
@@ -417,23 +366,17 @@ mod tests {
     }
 
     #[test]
-    fn run_turn_updates_gdp_shares_and_returns_missing_expected() {
+    fn run_turn_updates_gdp_shares() {
         let reg = Registries::native_only();
         let mut country = dummy_country();
         let mut ctx = dummy_ctx(&mut country, &reg);
 
-        let result = run_economic_turn(&mut ctx).unwrap();
-        assert_eq!(result, ParityResult::MissingExpected);
+        run_economic_turn(&mut ctx).unwrap();
 
         let agri = &ctx.country.budget.sectors[&Sector::Agriculture];
         let heavy = &ctx.country.budget.sectors[&Sector::HeavyIndustry];
         assert!((agri.gdp_share - 0.3).abs() < 1e-9);
         assert!((heavy.gdp_share - 0.7).abs() < 1e-9);
-    }
-
-    #[test]
-    fn compare_stub_returns_missing_expected() {
-        assert_eq!(compare_to_expected("Iliria", 0), ParityResult::MissingExpected);
     }
 
     // ── Phase 29: PMI Diffusion Index Tests ──

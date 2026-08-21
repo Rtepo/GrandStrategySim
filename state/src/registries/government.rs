@@ -12,32 +12,32 @@ use std::collections::HashMap;
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct GovernmentForm {
     /// Broad regime classification (`"typ"`).
-    #[serde(rename = "typ")]
+
     pub regime_type: RegimeType,
 
     /// Length of an election cycle in years (`"cykl_wyborczy"`); `999` denotes
     /// no regular elections.
-    #[serde(rename = "cykl_wyborczy")]
+
     pub election_cycle: u32,
 
     /// Social-unrest level at which revolution triggers (`"prog_rewolucji"`).
-    #[serde(rename = "prog_rewolucji")]
+
     pub revolution_threshold: f64,
 
     /// Number of legislative chambers (`"izby"`).
-    #[serde(rename = "izby")]
+
     pub chambers: u32,
 
     /// Title of the head of government (`"szef_rzadu"`).
-    #[serde(rename = "szef_rzadu")]
+
     pub head_of_government: String,
 
     /// Title of the head of state (`"glowa_panstwa"`).
-    #[serde(rename = "glowa_panstwa")]
+
     pub head_of_state: String,
 
     /// Available ideological/structural subtypes (`"podtypy"`).
-    #[serde(rename = "podtypy", default)]
+    #[serde(default)]
     pub subtypes: Vec<String>,
 }
 
@@ -81,15 +81,15 @@ pub fn government_forms() -> HashMap<String, GovernmentForm> {
         ),
         (
             "Republika Prezydencka".to_string(),
-            form(Democracy, 5, 80.0, 2, "Brak", "Prezydent", &[]),
+            form(Democracy, 5, 80.0, 2, "None", "Prezydent", &[]),
         ),
         (
-            "Republika Półprezydencka".to_string(),
+            "Semi-Presidential Republic".to_string(),
             form(Democracy, 5, 82.0, 2, "Premier", "Prezydent", &[]),
         ),
         (
             "Demokracja Dyrektorialna".to_string(),
-            form(Democracy, 4, 88.0, 2, "Brak", "Rada Dyrektorów", &[]),
+            form(Democracy, 4, 88.0, 2, "None", "Board of Directors", &[]),
         ),
         (
             "Monarchia Konstytucyjna".to_string(),
@@ -113,10 +113,10 @@ pub fn government_forms() -> HashMap<String, GovernmentForm> {
         ),
         (
             "Monarchia Absolutna".to_string(),
-            form(Autocracy, 999, 60.0, 0, "Brak", "Monarcha", &[]),
+            form(Autocracy, 999, 60.0, 0, "None", "Monarcha", &[]),
         ),
         (
-            "Państwo Jednopartyjne".to_string(),
+            "Single-Party State".to_string(),
             form(
                 Autocracy,
                 999,
@@ -124,12 +124,12 @@ pub fn government_forms() -> HashMap<String, GovernmentForm> {
                 1,
                 "Premier",
                 "Sekretarz Generalny",
-                &["Państwo Korporacyjne", "Republika Ludowa", "Demokracja Autorytarna"],
+                &["Corporate State", "People's Republic", "Authoritarian Democracy"],
             ),
         ),
         (
             "Dyktatura Wojskowa".to_string(),
-            form(Autocracy, 999, 55.0, 0, "Brak", "Generał", &[]),
+            form(Autocracy, 999, 55.0, 0, "None", "General", &[]),
         ),
         (
             "Teokracja".to_string(),
@@ -138,8 +138,8 @@ pub fn government_forms() -> HashMap<String, GovernmentForm> {
                 999,
                 70.0,
                 1,
-                "Brak",
-                "Wielki Kapłan",
+                "None",
+                "High Priest",
                 &["Teokracja Klasyczna", "Republika Religijna"],
             ),
         ),

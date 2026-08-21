@@ -16,14 +16,14 @@ use std::path::{Path, PathBuf};
 #[serde(rename_all = "snake_case")]
 pub enum UnionScale {
     /// Single-company union.
-    #[serde(rename = "company")]
+
     #[default]
     Company,
     /// Sector-wide union.
-    #[serde(rename = "sector")]
+
     Sector,
     /// Regional federation of unions.
-    #[serde(rename = "regional")]
+
     Regional,
     /// National federation of unions.
     #[serde(rename = "national")]
@@ -37,43 +37,43 @@ pub struct Union {
     #[serde(default)]
     pub id: String,
     /// Union name (`"nazwa"`).
-    #[serde(default, rename = "nazwa")]
+    #[serde(default)]
     pub name: String,
     /// Scope of the union.
-    #[serde(default, rename = "scale_level")]
+    #[serde(default)]
     pub scale_level: UnionScale,
     /// Primary sector the union operates in (`"sektor"`).
-    #[serde(default, rename = "sektor")]
+    #[serde(default)]
     pub sector: Sector,
     /// Region identifier for regional unions (`"region_id"`).
-    #[serde(default, rename = "region_id")]
+    #[serde(default)]
     pub region_id: String,
     /// Company IDs this union represents or covers (`"company_ids"`).
-    #[serde(default, rename = "company_ids")]
+    #[serde(default)]
     pub company_ids: BTreeSet<String>,
     /// Union budget (`"budget"`).
-    #[serde(default, rename = "budget")]
+    #[serde(default)]
     pub budget: f64,
     /// Strike fund (`"strike_fund"`).
-    #[serde(default, rename = "strike_fund")]
+    #[serde(default)]
     pub strike_fund: f64,
     /// Political power, 0..100 (`"political_power"`).
-    #[serde(default, rename = "political_power")]
+    #[serde(default)]
     pub political_power: f64,
     /// Militancy / strike propensity, 0..1 (`"militancy"`).
-    #[serde(default, rename = "militancy")]
+    #[serde(default)]
     pub militancy: f64,
     /// Desired percentage wage increase (`"wage_demand"`).
-    #[serde(default, rename = "wage_demand")]
+    #[serde(default)]
     pub wage_demand: f64,
     /// Desired safety level (`"safety_demand"`).
-    #[serde(default, rename = "safety_demand")]
+    #[serde(default)]
     pub safety_demand: f64,
     /// Year of the last strike, if any (`"last_strike_turn"`).
-    #[serde(default, rename = "last_strike_turn", skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub last_strike_turn: Option<u32>,
     /// Whether the union is currently on strike (`"on_strike"`).
-    #[serde(default, rename = "on_strike")]
+    #[serde(default)]
     pub on_strike: bool,
     /// Phase 48: Union leader VIP ID (references the global VIP registry).
     /// When None, no union boss is tracked in the VIP registry.
@@ -116,7 +116,7 @@ mod tests {
 
         let mut union = Union::default();
         union.id = "UNION-001".to_string();
-        union.name = "Stoczniowcy Wybrzeża".to_string();
+        union.name = "Coastal Shipbuilders".to_string();
         union.sector = Sector::HeavyIndustry;
         union.region_id = "R-1".to_string();
         union.scale_level = UnionScale::Regional;

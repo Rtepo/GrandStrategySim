@@ -1580,8 +1580,8 @@ mod tests {
         "income_tax": {"rate": 0.189, "structure": "liniowy"},
         "corporate_tax": 0.123,
         "vat": {
-            "usługi": {"rate": 0.15, "consumption_share": 0.45},
-            "przemysł": {"rate": 0.23, "consumption_share": 0.35},
+            "services": {"rate": 0.15, "consumption_share": 0.45},
+            "industry": {"rate": 0.23, "consumption_share": 0.35},
             "rolnictwo": {"rate": 0.05, "consumption_share": 0.2}
         },
         "public_debt": {"current_debt": 9428548348.65, "interest_rate": 0.077}
@@ -1592,7 +1592,7 @@ mod tests {
         let t: TaxRates = serde_json::from_str(FIXTURE).unwrap();
         assert_eq!(t.income_tax.structure, "liniowy");
         assert_eq!(t.vat.len(), 3);
-        assert!((t.vat["przemysł"].rate - 0.23).abs() < 1e-9);
+        assert!((t.vat["industry"].rate - 0.23).abs() < 1e-9);
         assert!((t.public_debt.interest_rate - 0.077).abs() < 1e-9);
     }
 

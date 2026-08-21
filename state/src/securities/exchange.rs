@@ -45,26 +45,26 @@ pub enum InstrumentType {
 
 /// National stock exchange with dual-liquidity execution models.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[serde(rename = "giełda_papierów_wartościowych")]
+
 pub struct StockExchange {
     /// Order book: Maps instrument_id -> (bids, asks).
-    #[serde(rename = "karnet_zleceń")]
+
     pub order_book: BTreeMap<String, OrderBook>,
     
     /// AMM liquidity pools: Maps instrument_id -> LiquidityPool.
-    #[serde(rename = "pule_płynności")]
+
     pub liquidity_pools: BTreeMap<String, LiquidityPool>,
     
     /// Trade history for audit and price discovery.
-    #[serde(rename = "historia_transakcji")]
+
     pub trade_history: VecDeque<Trade>,
     
     /// Market-wide circuit breaker status.
-    #[serde(rename = "wyłącznik_obwodu")]
+
     pub circuit_breaker: CircuitBreaker,
     
     /// Trading fee (percentage of transaction value).
-    #[serde(rename = "opłata_transakcyjna")]
+
     pub transaction_fee: f64,
 
     /// Phase 56: Market index tracking (main index + sector indices).
@@ -82,23 +82,23 @@ pub struct StockExchange {
 
 /// Order book for a single company.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[serde(rename = "księga_zleceń")]
+
 pub struct OrderBook {
     /// Bids: Maps price -> list of buy orders.
     /// Using ordered list of (price, orders) tuples since f64 doesn't implement Ord for BTreeMap.
-    #[serde(rename = "zlecenia_kupna")]
+
     pub bids: Vec<(f64, Vec<Order>)>,
     
     /// Asks: Maps price -> list of sell orders.
-    #[serde(rename = "zlecenia_sprzedaży")]
+
     pub asks: Vec<(f64, Vec<Order>)>,
     
     /// Best bid price (highest buy).
-    #[serde(rename = "najlepsza_cena_kupna")]
+
     pub best_bid: f64,
     
     /// Best ask price (lowest sell).
-    #[serde(rename = "najlepsza_cena_sprzedaży")]
+
     pub best_ask: f64,
 }
 
@@ -109,49 +109,49 @@ pub enum Order {
     /// Buy limit order.
     Buy {
         /// Unique order identifier.
-        #[serde(rename = "id")]
+
         order_id: String,
         /// Investor placing the order.
-        #[serde(rename = "inwestor_id")]
+
         investor_id: String,
         /// Instrument being traded (e.g., "EQUITY:COMP-001", "MBS:MBS-001:senior").
-        #[serde(rename = "instrument_id")]
+
         instrument_id: String,
         /// Type of instrument being bought.
-        #[serde(rename = "typ_instrumentu")]
+
         instrument_type: InstrumentType,
         /// Number of units to buy.
-        #[serde(rename = "ilość")]
+
         quantity: u64,
         /// Maximum price willing to pay.
-        #[serde(rename = "cena_limit")]
+
         limit_price: f64,
         /// Turn when order expires.
-        #[serde(rename = "czas_ważności")]
+
         expiry_turn: u32,
     },
     /// Sell limit order.
     Sell {
         /// Unique order identifier.
-        #[serde(rename = "id")]
+
         order_id: String,
         /// Investor placing the order.
-        #[serde(rename = "inwestor_id")]
+
         investor_id: String,
         /// Instrument being traded.
-        #[serde(rename = "instrument_id")]
+
         instrument_id: String,
         /// Type of instrument being sold.
-        #[serde(rename = "typ_instrumentu")]
+
         instrument_type: InstrumentType,
         /// Number of units to sell.
-        #[serde(rename = "ilość")]
+
         quantity: u64,
         /// Minimum price willing to accept.
-        #[serde(rename = "cena_limit")]
+
         limit_price: f64,
         /// Turn when order expires.
-        #[serde(rename = "czas_ważności")]
+
         expiry_turn: u32,
     },
 }
@@ -255,80 +255,80 @@ impl Order {
 
 /// AMM liquidity pool for instant market orders.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[serde(rename = "pula_płynności")]
+
 pub struct LiquidityPool {
     /// Total shares in the pool.
-    #[serde(rename = "akcje_w_puli")]
+
     pub shares: u64,
     
     /// Total cash in the pool.
-    #[serde(rename = "gotówka_w_puli")]
+
     pub cash: f64,
     
     /// Liquidity providers: Maps provider_id -> share of pool.
-    #[serde(rename = "dostawcy_płynności")]
+
     pub providers: BTreeMap<String, f64>,
     
     /// Pool fee (percentage of trade value).
-    #[serde(rename = "opłata_puli")]
+
     pub pool_fee: f64,
     
     /// Phase D.5: Treasury bonds held in pool (for QE secondary market purchases).
-    #[serde(rename = "obligacje_skarbowe", default)]
+    #[serde(default)]
     pub treasury_bonds: Vec<CoveredBond>,
     
     /// Total market value of pool assets.
-    #[serde(rename = "wartość_rynkowa", default)]
+    #[serde(default)]
     pub total_value: f64,
 }
 
 /// Trade record for audit and price discovery.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(rename = "transakcja")]
+
 pub struct Trade {
     /// Trade ID.
-    #[serde(rename = "id")]
+
     pub id: String,
     
     /// Instrument ID (e.g., "EQUITY:COMP-001", "MBS:MBS-001:senior").
-    #[serde(rename = "instrument_id")]
+
     pub instrument_id: String,
     
     /// Buyer ID.
-    #[serde(rename = "kupujący")]
+
     pub buyer_id: String,
     
     /// Seller ID.
-    #[serde(rename = "sprzedający")]
+
     pub seller_id: String,
     
     /// Quantity traded.
-    #[serde(rename = "ilość")]
+
     pub quantity: u64,
     
     /// Execution price.
-    #[serde(rename = "cena")]
+
     pub price: f64,
     
     /// Turn of execution.
-    #[serde(rename = "tur")]
+
     pub turn: u32,
 }
 
 /// Circuit breaker status for market-wide trading halts.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[serde(rename = "wyłącznik_obwodu")]
+
 pub struct CircuitBreaker {
     /// Is trading currently halted?
-    #[serde(rename = "wstrzymano")]
+
     pub is_halted: bool,
 
     /// Turn when halt was triggered.
-    #[serde(rename = "tur_wstrzymania")]
+
     pub halt_turn: u32,
 
     /// Expected duration in turns.
-    #[serde(rename = "czas_trwania")]
+
     pub duration_turns: u32,
 }
 

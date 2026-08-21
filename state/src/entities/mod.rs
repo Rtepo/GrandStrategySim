@@ -29,15 +29,15 @@ pub use union::*;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct AgriculturalProfile {
     /// Arable land hectares for annual crops (requires sowing each season)
-    #[serde(rename = "hektary_uprawne", default)]
+    #[serde(default)]
     pub arable_land_hectares: f64,
 
     /// Plantation hectares for perennial crops (orchards, coffee, etc.)
-    #[serde(rename = "hektary_plantacji", default)]
+    #[serde(default)]
     pub plantation_hectares: f64,
 
     /// Active crop batches currently growing/harvesting
-    #[serde(rename = "partie_upraw", default)]
+    #[serde(default)]
     pub batches: Vec<CropBatch>,
 }
 
@@ -48,11 +48,11 @@ pub struct CropBatch {
     pub crop_id: String,
 
     /// Planned hectares (max physical size of the field, permanent)
-    #[serde(rename = "hektary_planowane")]
+
     pub planned_hectares: f64,
 
     /// Active hectares (actually growing this cycle, resets each harvest)
-    #[serde(rename = "hektary_aktywne", default)]
+    #[serde(default)]
     pub active_hectares: f64,
 
     /// Current state in the agricultural cycle
@@ -96,16 +96,16 @@ impl Default for CropState {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Patent {
     /// Technology ID this patent covers.
-    #[serde(rename = "tech_id")]
+
     pub tech_id: TechId,
     /// Turn when patent was granted.
-    #[serde(rename = "granted_turn")]
+
     pub granted_turn: u32,
     /// Turn when patent expires.
-    #[serde(rename = "expires_turn")]
+
     pub expires_turn: u32,
     /// VWAP ratio for royalty calculation (e.g., 0.05 for 5% of output commodity VWAP).
-    #[serde(rename = "royalty_vwap_ratio")]
+
     pub royalty_vwap_ratio: f64,
 }
 
@@ -113,13 +113,13 @@ pub struct Patent {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct LicensedMethod {
     /// Technology ID of the licensed method.
-    #[serde(rename = "tech_id")]
+
     pub tech_id: TechId,
     /// Company ID of the licensor (patent holder).
-    #[serde(rename = "licensor_company_id")]
+
     pub licensor_company_id: String,
     /// Turn when license was signed.
-    #[serde(rename = "licensed_turn")]
+
     pub licensed_turn: u32,
 }
 
@@ -157,26 +157,26 @@ impl TaxExempt for Company {
     }
 }
 
-/// A single production plant (`zakład`) inside a [`Company`].
+/// A single production plant (`plant`) inside a [`Company`].
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct Plant {
     /// Number of buildings in this plant (was: ilosc_budynkow).
-    #[serde(rename = "building_count", default)]
+    #[serde(default)]
     pub building_count: u32,
     /// Year the plant was built (was: rok_budowy).
-    #[serde(rename = "year_built", default)]
+    #[serde(default)]
     pub year_built: u32,
     /// Production method name (was: metoda_produkcji).
-    #[serde(rename = "method_name", default)]
+    #[serde(default)]
     pub method_name: String,
     /// Technological wear and tear (was: zuzycie_technologiczne).
-    #[serde(rename = "wear", default)]
+    #[serde(default)]
     pub wear: f64,
     /// Installed power / capacity (was: moc_zainstalowana).
-    #[serde(rename = "installed_power", default)]
+    #[serde(default)]
     pub installed_power: f64,
     /// Worker capacity of this plant (was: pojemnosc_pracownikow).
-    #[serde(rename = "worker_capacity", default)]
+    #[serde(default)]
     pub worker_capacity: u32,
     /// Any additional plant fields.
     #[serde(flatten, default)]
@@ -190,111 +190,15 @@ pub type ShareholderRegister = BTreeMap<String, u64>;
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct AggregatedStats {
     /// Total employment across all aggregated units (was: zatrudnienie).
-    #[serde(rename = "total_employment", default)]
+    #[serde(default)]
     pub total_employment: u32,
     /// Total production by commodity (was: produkcja).
-    #[serde(rename = "total_production", default)]
+    #[serde(default)]
     pub total_production: BTreeMap<Commodity, f64>,
     /// Total dividends distributed (was: dywidendy).
-    #[serde(rename = "total_dividends", default)]
+    #[serde(default)]
     pub total_dividends: f64,
     /// Any additional aggregate fields.
-    #[serde(flatten, default)]
-    pub extra: Map<String, Value>,
-}
-
-/// Deserialization-only representation of a [`Company`].
-///
-/// `CompanyDef` preserves legacy string-based fields (`typ`, `ownership_type`,
-/// `zwiazek_zakladowy`) and optional `legal_form`/`union_id` so that old save
-/// files can be loaded and then migrated into the strongly typed `Company`
-/// struct.
-#[derive(Deserialize, Default)]
-#[serde(default)]
-pub(crate) struct CompanyDef {
-    #[serde(default)]
-    pub id: String,
-    #[serde(skip, default)]
-    pub file_stem: String,
-    #[serde(default, rename = "name")]
-    pub name: String,
-    #[serde(default, rename = "sector")]
-    pub sector: Sector,
-    #[serde(rename = "region_id", default)]
-    pub region_id: String,
-    #[serde(rename = "company_type", default)]
-    pub company_type: Option<String>,
-    #[serde(rename = "ownership_type", default)]
-    pub ownership_type: Option<String>,
-    #[serde(rename = "state_share", default)]
-    pub state_share: f64,
-    #[serde(rename = "fixed_capital", default)]
-    pub fixed_capital: f64,
-    #[serde(rename = "liquid_capital", default)]
-    pub liquid_capital: f64,
-    /// Phase 6.5: Available cash for B2B orders (uncommitted)
-    #[serde(rename = "dostępne_gotówka", default)]
-    pub available_cash: f64,
-    /// Phase 6.5: Cash committed to bids but not yet settled
-    #[serde(rename = "zablokowane_gotówka", default)]
-    pub debit_cash: f64,
-    /// Phase 6.5: Cash received from asks but not yet settled
-    #[serde(rename = "otrzymane_gotówka", default)]
-    pub credit_cash: f64,
-    #[serde(rename = "liabilities", default)]
-    pub liabilities: f64,
-    #[serde(rename = "company_capital", default)]
-    pub company_capital: f64,
-    #[serde(rename = "shares_count", default)]
-    pub shares_count: u64,
-    #[serde(rename = "share_price", default)]
-    pub share_price: f64,
-    #[serde(rename = "shareholders", default)]
-    pub shareholders: ShareholderRegister,
-    #[serde(rename = "price_history", default)]
-    pub price_history: Vec<f64>,
-    #[serde(rename = "financial_history", default)]
-    pub financial_history: Vec<Value>,
-    #[serde(rename = "safety_level", default)]
-    pub safety_level: f64,
-    #[serde(rename = "trade_union", default)]
-    pub trade_union: Option<bool>,
-    #[serde(rename = "union_id", default)]
-    pub union_id: Option<String>,
-    #[serde(rename = "building_ids", default)]
-    pub building_ids: Vec<String>,
-    #[serde(rename = "plants", default)]
-    pub plants: Vec<Plant>,
-    #[serde(rename = "scale_factor", default)]
-    pub scale_factor: u32,
-    #[serde(rename = "worker_capacity", default)]
-    pub worker_capacity: u32,
-    #[serde(rename = "is_national_champion", default)]
-    pub is_national_champion: Option<bool>,
-    #[serde(rename = "is_listed", default)]
-    pub is_listed: Option<bool>,
-    #[serde(rename = "legal_form", default)]
-    pub legal_form: Option<LegalForm>,
-    #[serde(rename = "aggregated_stats", default)]
-    pub aggregated_stats: AggregatedStats,
-    /// Phase 41: DSPW primary dealer status (was silently dropped on reload).
-    #[serde(default)]
-    pub is_dspw: bool,
-    /// Phase 41: Wage arrears (was silently reset to 0 on reload).
-    #[serde(default)]
-    pub wage_arrears: f64,
-    /// Phase 41: Productivity penalty from arrears (was silently reset to 0 on reload).
-    #[serde(default)]
-    pub productivity_penalty: f64,
-    /// Phase 41: Consumer loans (was silently emptied on reload).
-    #[serde(default)]
-    pub consumer_loans: Vec<crate::state::banking::ConsumerLoan>,
-    /// Phase 41: Target wage for slow wage adjustment.
-    #[serde(default)]
-    pub target_wage: f64,
-    /// Phase 41: Whether the company's workforce is on strike.
-    #[serde(default)]
-    pub is_striking: bool,
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
 }
@@ -345,12 +249,9 @@ pub enum SeasonalState {
     Furloughed,
 }
 
-/// `Company` now stores ownership through the typed [`LegalForm`] enum and links
-/// to an independent [`Union`] via `union_id`. Legacy string fields are removed
-/// from the in-memory representation but are still understood during
-/// deserialization through `CompanyDef`.
+/// `Company` stores ownership through the typed [`LegalForm`] enum and links
+/// to an independent [`Union`] via `union_id`.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[serde(from = "CompanyDef")]
 pub struct Company {
     /// Company identifier, e.g. `[KRS-2BD-2395]` (`"id"`).
     #[serde(default)]
@@ -363,118 +264,118 @@ pub struct Company {
     #[serde(skip)]
     pub file_stem: String,
     /// Company name (was: nazwa).
-    #[serde(default, rename = "name")]
+    #[serde(default)]
     pub name: String,
     /// GDP sector (was: sektor).
-    #[serde(default, rename = "sector")]
+    #[serde(default)]
     pub sector: Sector,
     /// Region identifier for regional aggregates (was: region_id).
-    #[serde(rename = "region_id", default)]
+    #[serde(default)]
     pub region_id: String,
     /// Legal form of the company (was: legal_form).
-    #[serde(rename = "legal_form", default)]
+    #[serde(default)]
     pub legal_form: LegalForm,
     /// State share in `[0.0, 1.0]` (was: udzial_panstwa).
-    #[serde(rename = "state_share", default)]
+    #[serde(default)]
     pub state_share: f64,
     /// Fixed capital (was: kapital_trwaly).
-    #[serde(rename = "fixed_capital", default)]
+    #[serde(default)]
     pub fixed_capital: f64,
     /// Liquid capital (was: kapital_plynny).
-    #[serde(rename = "liquid_capital", default)]
+    #[serde(default)]
     pub liquid_capital: f64,
     /// Phase 6.5: Available cash for B2B orders (uncommitted)
-    #[serde(rename = "dostępne_gotówka", default)]
+    #[serde(default)]
     pub available_cash: f64,
     /// Phase 6.5: Cash committed to bids but not yet settled
-    #[serde(rename = "zablokowane_gotówka", default)]
+    #[serde(default)]
     pub debit_cash: f64,
     /// Phase 6.5: Cash received from asks but not yet settled
-    #[serde(rename = "otrzymane_gotówka", default)]
+    #[serde(default)]
     pub credit_cash: f64,
     /// Phase 45: Unfilled bid prices from last turn, for dynamic price feedback.
     /// Maps commodity → last unfilled bid limit price.
     /// When a bid goes unfilled, the buyer raises its next bid price.
-    #[serde(rename = "niezrealizowane_oferty", default)]
+    #[serde(default)]
     pub unfilled_bid_prices: std::collections::HashMap<Commodity, f64>,
     /// Liabilities (was: zobowiazania).
-    #[serde(rename = "liabilities", default)]
+    #[serde(default)]
     pub liabilities: f64,
     /// Company capital (was: kapital_firmy).
-    #[serde(rename = "company_capital", default)]
+    #[serde(default)]
     pub company_capital: f64,
     /// Number of issued shares (was: liczba_akcji).
-    #[serde(rename = "shares_count", default)]
+    #[serde(default)]
     pub shares_count: u64,
     /// Share price (was: cena_akcji).
-    #[serde(rename = "share_price", default)]
+    #[serde(default)]
     pub share_price: f64,
     /// Shareholders (was: akcjonariat).
-    #[serde(rename = "shareholders", default)]
+    #[serde(default)]
     pub shareholders: ShareholderRegister,
     /// Price history (was: historia_cen).
-    #[serde(rename = "price_history", default)]
+    #[serde(default)]
     pub price_history: Vec<f64>,
     /// Financial history (was: historia_finansowa).
-    #[serde(rename = "financial_history", default)]
+    #[serde(default)]
     pub financial_history: Vec<Value>,
     /// Safety level (was: poziom_bhp).
-    #[serde(rename = "safety_level", default)]
+    #[serde(default)]
     pub safety_level: f64,
     /// Optional union / syndicate that represents this company's workers (was: union_id).
-    #[serde(rename = "union_id", default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub union_id: Option<String>,
     /// Building IDs owned by this company (was: budynki).
-    #[serde(rename = "building_ids", default)]
+    #[serde(default)]
     pub building_ids: Vec<String>,
-    /// Plants (`zakłady`) of the company (was: zaklady).
-    #[serde(rename = "plants", default)]
+    /// Plants (`plants`) of the company .
+    #[serde(default)]
     pub plants: Vec<Plant>,
     /// Aggregate scale factor (was: scale_factor).
-    #[serde(rename = "scale_factor", default)]
+    #[serde(default)]
     pub scale_factor: u32,
     /// Aggregate worker capacity (was: pojemnosc_pracownikow).
-    #[serde(rename = "worker_capacity", default)]
+    #[serde(default)]
     pub worker_capacity: u32,
     /// National champion flag (was: is_national_champion).
-    #[serde(rename = "is_national_champion", default)]
+    #[serde(default)]
     pub is_national_champion: bool,
     /// Whether the company is listed on the stock exchange (was: is_listed).
-    #[serde(rename = "is_listed", default)]
+    #[serde(default)]
     pub is_listed: bool,
     /// CRITICAL: Universal ownership tracking for dividend routing
     /// Maps owner_id (fund_id, founder_id, state_id) to equity percentage (0.0 - 1.0)
-    /// This ensures dividends can always be routed to the correct entity (was: właściciele).
-    #[serde(rename = "owners", default)]
+    /// This ensures dividends can always be routed to the correct entity.
+    #[serde(default)]
     pub owners: BTreeMap<String, f64>,
     /// Free float percentage for listed companies (0.0 - 1.0)
     /// Represents shares circulating on public market (was: free_float).
-    #[serde(rename = "free_float", default)]
+    #[serde(default)]
     pub free_float: f64,
     /// Aggregate production/employment statistics.
-    #[serde(rename = "aggregated_stats", default)]
+    #[serde(default)]
     pub aggregated_stats: AggregatedStats,
     /// STAGE D PHASE 2: Bank type (only applicable if sector == Banking).
     /// None for non-banking companies.
-    #[serde(rename = "typ_banku", skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub bank_type: Option<BankType>,
     /// STAGE D PHASE 2: Balance sheet (only applicable if sector == Banking).
     /// None for non-banking companies.
     /// For non-banking companies, use existing liquid_capital/liabilities fields.
-    #[serde(rename = "bilans", skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub balance_sheet: Option<BankBalanceSheet>,
     /// STAGE D PHASE 2: Bank-specific margin over XIBOR for loan pricing.
     /// None for non-banking companies.
-    #[serde(rename = "marża_kredytowa", skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub loan_margin: Option<f64>,
     /// Phase D.4: Brokerage account for trading securities.
     /// Attached to Companies, Demographics, and Institutional Investors.
-    #[serde(rename = "rachunek_maklerski", skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub brokerage_account: Option<crate::securities::BrokerageAccount>,
     /// Phase 16: ID of the bank company that holds this company's deposits.
     /// Used by TransferSettler to sync bank balance sheets on cash transfers.
     /// None for companies without a brokerage account or using cash-only.
-    #[serde(rename = "bank_prowadzący", skip_serializing_if = "Option::is_none", default)]
+    #[serde(skip_serializing_if = "Option::is_none", default)]
     pub primary_bank_id: Option<String>,
     /// Phase 24A.3: ID of the commercial bank that issued this company's working-capital loan.
     /// Used to route corporate interest payments to the correct lending bank via
@@ -484,25 +385,25 @@ pub struct Company {
     pub outstanding_loan_bank_id: Option<String>,
     /// Phase D.4: Fund type for institutional investors.
     /// None for non-institutional companies.
-    #[serde(rename = "typ_funduszu", skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub fund_type: Option<crate::securities::FundType>,
     /// Phase D.4: Fund ledger for institutional investor operations.
     /// None for non-institutional companies.
-    #[serde(rename = "księga_funduszu", skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub fund_ledger: Option<crate::securities::FundLedger>,
     /// Phase 5: Temporary disruption modifier from mass movements (0-1, reset each turn)
     /// Prevents permanent economic death by using transient modifier instead of mutating base stats
-    #[serde(rename = "modyfikator_zakłóceń", default)]
+    #[serde(default)]
     pub temporary_disruption_modifier: f64,
     /// Phase 6.2: Target FTE demand for this turn (before liquidity clamping)
-    #[serde(rename = "zapotrzebowanie_fte", default)]
+    #[serde(default)]
     pub target_fte_demand: f64,
     /// Phase 6.2: Offered wage per FTE (currency units per FTE)
-    #[serde(rename = "płaca_za_fte", default)]
+    #[serde(default)]
     pub offered_wage_per_fte: f64,
     /// Phase 38: Previous turn's offered wage. Used for Keynesian downward
     /// wage rigidity — wages cannot drop more than 3% per turn.
-    #[serde(rename = "poprzednia_płaca_za_fte", default)]
+    #[serde(default)]
     pub prev_offered_wage_per_fte: f64,
     /// Phase 40: Accumulated unpaid wages owed to workers (wage arrears).
     /// When a company cannot afford full payroll, the FTE retention floor
@@ -527,35 +428,35 @@ pub struct Company {
     #[serde(default)]
     pub is_striking: bool,
     /// Phase 6.2: FTE actually secured after market clearing
-    #[serde(rename = "zrealizowane_fte", default)]
+    #[serde(default)]
     pub fulfilled_fte: f64,
     /// Phase 37: FTE secured in the previous turn. Used for hiring frictions
     /// (max 15% growth per turn) and severance pay calculations.
-    #[serde(rename = "poprzednie_zrealizowane_fte", default)]
+    #[serde(default)]
     pub prev_fulfilled_fte: f64,
     /// Phase 6.3: Physical FTE demand (raw requirement before liquidity clamping)
     /// Used for rot calculation to prevent "Broke Farmer Exploit"
-    #[serde(rename = "zapotrzebowanie_fizyczne", default)]
+    #[serde(default)]
     pub physical_fte_demand: f64,
-    /// Phase 6.3: Receivership status (Zarząd Komisaryczny) for bankrupt agricultural companies
-    #[serde(rename = "zarząd_komisaryczny", default)]
+    /// Phase 6.3: Receivership status (Commissionership) for bankrupt agricultural companies
+    #[serde(default)]
     pub is_in_receivership: bool,
     /// Phase 6.3: Agricultural profile (None for non-agricultural sectors)
-    #[serde(rename = "profil_rolny", skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub agricultural_profile: Option<AgriculturalProfile>,
     /// Phase 7: Accumulated R&D investment budget.
-    #[serde(rename = "budżet_rd", default)]
+    #[serde(default)]
     pub rd_budget: f64,
     /// Phase 7: Patents owned by this company.
-    #[serde(rename = "patenty", default)]
+    #[serde(default)]
     pub patents: Vec<Patent>,
     /// Phase 7: Licensed production methods from other companies.
-    #[serde(rename = "licencje", default)]
+    #[serde(default)]
     pub licensed_methods: Vec<LicensedMethod>,
     /// Phase 24C.7: Bounded rationality information quality tier.
     /// Determines how accurately the company estimates costs and market conditions.
     /// Computed each turn from company capital and average wage.
-    #[serde(rename = "jakość_informacji", skip_serializing_if = "Option::is_none", default)]
+    #[serde(skip_serializing_if = "Option::is_none", default)]
     pub information_quality: Option<crate::corporate::bounded_rationality::InformationQuality>,
     /// Phase 7: Pending expansion request from `CorporateAction::Expand`.
     /// Set by `apply_action`, consumed by `process_companies` to create
@@ -564,17 +465,17 @@ pub struct Company {
     pub pending_expansion: Option<PendingExpansion>,
     /// Phase 18A: Shadow employment (off-the-books undocumented workers).
     /// None for companies that don't hire illegals or aren't in labor-intensive sectors.
-    #[serde(rename = "zatrudnienie_cieniowe", skip_serializing_if = "Option::is_none", default)]
+    #[serde(skip_serializing_if = "Option::is_none", default)]
     pub shadow_employment: Option<crate::economy::legal_status::ShadowEmployment>,
     /// Phase 19A: Product blueprints owned (designed) by this company.
     /// Each blueprint is a generative product design with quality, durability,
     /// and a bill of materials (with chosen substitutes).
-    #[serde(rename = "projekty", default)]
+    #[serde(default)]
     pub blueprints: Vec<crate::economy::blueprints::ProductBlueprint>,
     /// Phase 19A: Blueprints this company has licensed from other companies
     /// (domestic or foreign) or from the state. Royalties are paid each turn
     /// the company produces output under a licensed blueprint.
-    #[serde(rename = "licencje_projektów", default)]
+    #[serde(default)]
     pub licensed_blueprints: Vec<crate::economy::blueprints::LicensedBlueprint>,
 
     /// Phase 22D: Reputation score (0.0 = ruined, 100.0 = exemplary).
@@ -605,7 +506,7 @@ pub struct Company {
     /// Phase 39: Annual profit accumulator for SOE dividend calculation.
     /// Accumulates `last_profit` each turn; drained annually during
     /// process_political_year to pay dividends to the treasury.
-    #[serde(rename = "akumulator_zysku_rocznego", default)]
+    #[serde(default)]
     pub annual_profit_accumulator: f64,
 
     /// Phase 47: Seasonal operation profile for climate-dependent companies.
@@ -809,285 +710,22 @@ impl Borrower for Company {
     }
 }
 
-impl From<CompanyDef> for Company {
-    fn from(mut def: CompanyDef) -> Self {
-        let legal_form = def.legal_form.take().unwrap_or_else(|| infer_legal_form(&def));
-        let is_national_champion = def.is_national_champion.unwrap_or_else(|| {
-            is_national_champion_from_type(&legal_form, def.company_type.as_deref())
-        });
-        let is_listed = def.is_listed.unwrap_or_else(|| legal_form.is_listed());
-        let union_id = def.union_id.take().or_else(|| {
-            if def.trade_union.unwrap_or(false) {
-                Some(format!("UNION-{}", def.id))
-            } else {
-                None
-            }
-        });
 
-        // Use serialized brokerage_account if present (from a previous Rust save).
-        // Otherwise, for fresh Python saves, transfer liquid_capital to brokerage_account.
-        // Phase 33: Always create an (empty) brokerage_account even if liquid_capital == 0,
-        // so the labor market doesn't clamp these companies to 0 FTE.
-        let brokerage_account = if let Some(ba_val) = def.extra.remove("rachunek_maklerski") {
-            serde_json::from_value::<crate::securities::BrokerageAccount>(ba_val).ok()
-        } else {
-            let liquid_capital = def.liquid_capital;
-            Some(crate::securities::BrokerageAccount {
-                cash: liquid_capital,
-                fx_balances: HashMap::new(),
-                portfolio: BTreeMap::new(),
-                pending_orders: BTreeMap::new(),
-                frozen_cash: 0.0,
-                is_frozen: false,
-                margin_account: None,
-                extra: HashMap::new(),
-            })
-        };
-
-        // Extract Phase 16+ fields from extra (avoids serde duplicate field errors
-        // on original Python saves that contain duplicate JSON keys).
-        let primary_bank_id = def.extra.remove("bank_prowadzący")
-            .and_then(|v| serde_json::from_value::<String>(v).ok());
-        let bank_type = def.extra.remove("typ_banku")
-            .and_then(|v| serde_json::from_value::<BankType>(v).ok());
-        let balance_sheet = def.extra.remove("bilans")
-            .and_then(|v| serde_json::from_value::<BankBalanceSheet>(v).ok());
-        let loan_margin = def.extra.remove("marża_kredytowa")
-            .and_then(|v| v.as_f64());
-        let fund_type = def.extra.remove("typ_funduszu")
-            .and_then(|v| serde_json::from_value::<crate::securities::FundType>(v).ok());
-        let fund_ledger = def.extra.remove("księga_funduszu")
-            .and_then(|v| serde_json::from_value::<crate::securities::FundLedger>(v).ok());
-        let owners = def.extra.remove("właściciele")
-            .and_then(|v| serde_json::from_value::<BTreeMap<String, f64>>(v).ok())
-            .unwrap_or_default();
-        let free_float = def.extra.remove("free_float")
-            .and_then(|v| v.as_f64())
-            .unwrap_or(0.0);
-        let target_fte_demand = def.extra.remove("zapotrzebowanie_fte")
-            .and_then(|v| v.as_f64())
-            .filter(|v| *v != 0.0)
-            .unwrap_or(def.worker_capacity as f64);
-        let offered_wage_per_fte = def.extra.remove("płaca_za_fte")
-            .and_then(|v| v.as_f64())
-            .unwrap_or(0.0);
-        let fulfilled_fte = def.extra.remove("zrealizowane_fte")
-            .and_then(|v| v.as_f64())
-            .unwrap_or(0.0);
-        let physical_fte_demand = def.extra.remove("zapotrzebowanie_fizyczne")
-            .and_then(|v| v.as_f64())
-            .filter(|v| *v != 0.0)
-            .unwrap_or(def.worker_capacity as f64);
-        let is_in_receivership = def.extra.remove("zarząd_komisaryczny")
-            .and_then(|v| v.as_bool())
-            .unwrap_or(false);
-        let agricultural_profile = def.extra.remove("profil_rolny")
-            .and_then(|v| serde_json::from_value::<AgriculturalProfile>(v).ok());
-        let rd_budget = def.extra.remove("budżet_rd")
-            .and_then(|v| v.as_f64())
-            .unwrap_or(0.0);
-        let patents = def.extra.remove("patenty")
-            .and_then(|v| serde_json::from_value::<Vec<Patent>>(v).ok())
-            .unwrap_or_default();
-        let licensed_methods = def.extra.remove("licencje")
-            .and_then(|v| serde_json::from_value::<Vec<LicensedMethod>>(v).ok())
-            .unwrap_or_default();
-        let temporary_disruption_modifier = def.extra.remove("modyfikator_zakłóceń")
-            .and_then(|v| v.as_f64())
-            .unwrap_or(0.0);
-        let shadow_employment = def.extra.remove("zatrudnienie_cieniowe")
-            .and_then(|v| serde_json::from_value::<crate::economy::legal_status::ShadowEmployment>(v).ok());
-
-        Self {
-            id: def.id,
-            file_stem: def.file_stem,
-            name: def.name,
-            sector: def.sector,
-            region_id: def.region_id,
-            legal_form,
-            state_share: def.state_share,
-            fixed_capital: def.fixed_capital,
-            liquid_capital: 0.0, // Zeroed after transfer to brokerage_account
-            available_cash: def.available_cash,
-            debit_cash: def.debit_cash,
-            credit_cash: def.credit_cash,
-            unfilled_bid_prices: std::collections::HashMap::new(),
-            liabilities: def.liabilities,
-            company_capital: def.company_capital,
-            shares_count: def.shares_count,
-            share_price: def.share_price,
-            shareholders: def.shareholders,
-            price_history: def.price_history,
-            financial_history: def.financial_history,
-            safety_level: def.safety_level,
-            union_id,
-            building_ids: def.building_ids,
-            plants: def.plants,
-            scale_factor: def.scale_factor,
-            worker_capacity: def.worker_capacity,
-            is_national_champion,
-            is_listed,
-            owners,
-            free_float,
-            aggregated_stats: def.aggregated_stats,
-            bank_type,
-            balance_sheet,
-            loan_margin,
-            brokerage_account,
-            primary_bank_id,
-            outstanding_loan_bank_id: None,
-            fund_type,
-            fund_ledger,
-            temporary_disruption_modifier,
-            target_fte_demand,
-            offered_wage_per_fte,
-            prev_offered_wage_per_fte: 0.0,
-            wage_arrears: def.wage_arrears,
-            productivity_penalty: def.productivity_penalty,
-            fulfilled_fte,
-            prev_fulfilled_fte: 0.0,
-            physical_fte_demand,
-            is_in_receivership,
-            agricultural_profile,
-            rd_budget,
-            patents,
-            licensed_methods,
-            information_quality: None,
-            shadow_employment,
-            pending_expansion: None,
-            blueprints: Vec::new(),
-            licensed_blueprints: Vec::new(),
-            reputation_score: 50.0,
-            donation_history: Vec::new(),
-            is_dspw: def.is_dspw,
-            consumer_loans: def.consumer_loans,
-            target_wage: def.target_wage,
-            is_striking: def.is_striking,
-            annual_profit_accumulator: 0.0,
-            seasonal_profile: None,
-            furloughed_workers_count: 0.0,
-            ceo_vip_id: None,
-            eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
-            extra: def.extra,
-        }
-    }
-}
-
-fn is_national_champion_from_type(legal_form: &LegalForm, company_type: Option<&str>) -> bool {
-    if matches!(legal_form, LegalForm::Consortium(_)) {
-        return true;
-    }
-    if let Some(t) = company_type {
-        let t = t.to_lowercase();
-        t.contains("kombinat") || t.contains("narodowy") || t.contains("consortium")
-    } else {
-        false
-    }
-}
-
-fn infer_legal_form(def: &CompanyDef) -> LegalForm {
-    let typ = def.company_type.as_deref().unwrap_or("").to_lowercase();
-    let ownership = def.ownership_type.as_deref().unwrap_or("").to_lowercase();
-    let is_national_champion = def.is_national_champion.unwrap_or(false);
-    let is_listed = def.is_listed.unwrap_or_else(|| {
-        typ.contains("public") || typ.contains("giełdowa") || typ.contains("listed")
-    });
-    let shares_issued = if def.shares_count > 0 {
-        def.shares_count
-    } else {
-        1_000_000
-    };
-    let free_float = if is_listed { 0.3 } else { 0.0 };
-
-    if is_national_champion
-        || typ.contains("kombinat")
-        || typ.contains("narodowy")
-        || typ.contains("consortium")
-        || typ.contains("holding")
-    {
-        return LegalForm::Consortium(ConsortiumData::default());
-    }
-
-    if ownership.contains("mutual")
-        || ownership.contains("wzajemna")
-        || typ.contains("wzajemna")
-        || typ.contains("mutual")
-    {
-        return LegalForm::MutualAidCircle(MutualAidCircleData {
-            member_count: def.worker_capacity,
-            common_fund: 0.0,
-        });
-    }
-
-    if ownership.contains("cooperative")
-        || ownership.contains("spółdzielcza")
-        || typ.contains("spółdzielcza")
-        || typ.contains("cooperative")
-    {
-        return LegalForm::Cooperative(CooperativeData {
-            member_count: def.worker_capacity,
-            patronage_pool: 0.0,
-            federation_id: None,
-        });
-    }
-
-    if ownership.contains("family")
-        || ownership.contains("rodzinna")
-        || typ.contains("family")
-        || typ.contains("rodzinna")
-        || typ.contains("mała")
-    {
-        return LegalForm::FamilyBusiness(FamilyBusinessData {
-            dynasty_id: None,
-            successor_generation: 0,
-            family_retained_share: 1.0,
-            heir_vip_ids: Vec::new(),
-            succession_crisis: false,
-        });
-    }
-
-    if is_listed
-        || typ.contains("sa")
-        || typ.contains("joint")
-        || typ.contains("stock")
-        || typ.contains("public")
-        || typ.contains("giełdowa")
-        || def.shares_count > 0
-        || typ.contains("duża")
-        || typ.contains("średnia")
-    {
-        return LegalForm::JointStockCompany(JointStockData {
-            shares_issued,
-            free_float,
-            dividend_per_share: 0.0,
-            board_independence: 0.5,
-            board_members: Vec::new(),
-        });
-    }
-
-    LegalForm::FamilyBusiness(FamilyBusinessData {
-        dynasty_id: None,
-        successor_generation: 0,
-        family_retained_share: 1.0,
-        heir_vip_ids: Vec::new(),
-        succession_crisis: false,
-    })
-}
 
 /// Cluster metadata for a building (`"cluster_info"`).
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct ClusterInfo {
     /// Region identifier (`"region_id"`).
-    #[serde(rename = "region_id", default)]
+    #[serde(default)]
     pub region_id: String,
     /// Cluster scale factor (`"scale_factor"`).
-    #[serde(rename = "scale_factor", default)]
+    #[serde(default)]
     pub scale_factor: u32,
     /// Sector (`"sector"`).
     #[serde(default)]
     pub sector: Sector,
     /// Owner company id (`"owner_id"`).
-    #[serde(rename = "owner_id", default)]
+    #[serde(default)]
     pub owner_id: String,
     /// Any additional cluster fields.
     #[serde(flatten, default)]
@@ -1101,35 +739,42 @@ pub struct ClusterInfo {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct ActiveProductionMethod {
     /// Year this method becomes available (`"rok"`).
-    #[serde(rename = "rok", default)]
+    #[serde(default)]
     pub year: u32,
     /// Expert labor ratio (`"eksperci"`).
-    #[serde(rename = "eksperci", default)]
+    #[serde(default)]
     pub experts_ratio: f64,
     /// Skilled labor ratio (`"sredni"`).
-    #[serde(rename = "sredni", default)]
+    #[serde(default)]
     pub skilled_ratio: f64,
     /// Basic labor ratio (`"szeregowi"`).
-    #[serde(rename = "szeregowi", default)]
+    #[serde(default)]
     pub basic_ratio: f64,
     /// Efficiency multiplier (`"wydajnosc"`).
-    #[serde(rename = "wydajnosc", default = "default_efficiency")]
+    #[serde(default = "default_efficiency")]
     pub efficiency: f64,
     /// Per-1000-worker inputs consumed (`"inputs"`).
-    #[serde(rename = "inputs", default)]
+    #[serde(default)]
     pub inputs: BTreeMap<Commodity, f64>,
     /// Per-1000-worker outputs produced (`"outputs"`).
-    #[serde(rename = "outputs", default)]
+    #[serde(default)]
     pub outputs: BTreeMap<Commodity, f64>,
     /// The three chosen method names (`"aktywne_metody"`).
-    #[serde(rename = "aktywne_metody", default)]
+    #[serde(default)]
     pub active_methods: ProductionMethodChoice,
     /// Phase 19A: Blueprint id applied to this building's blueprint-eligible
     /// outputs. When set, produced outputs carry the blueprint's quality
     /// (→ `InventoryCohort` in Phase 19C) and the building pays blueprint
     /// royalties. None = legacy behavior (flat aggregate inventory, no quality).
-    #[serde(rename = "aktywny_projekt", default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub active_blueprint: Option<String>,
+    /// Phase 74: Thermal efficiency (0.0–1.0) for energy production methods.
+    /// Fraction of fuel calorific energy converted to useful Energy/Heat output.
+    /// 0.0 for non-energy methods (default). Used by `process_building_cycle()`
+    /// to dynamically compute fuel consumption from required energy output
+    /// based on the actual `calorific_value_mj_per_unit()` of input fuels.
+    #[serde(default)]
+    pub thermal_efficiency: f64,
     /// Any additional method fields.
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -1149,79 +794,79 @@ pub struct Building {
     #[serde(default)]
     pub name: String,
     /// Owner company id (`"wlasciciel_id"`).
-    #[serde(rename = "wlasciciel_id", default)]
+    #[serde(default)]
     pub owner_id: String,
     /// Year built (`"rok_budowy"`).
-    #[serde(rename = "rok_budowy", default)]
+    #[serde(default)]
     pub year_built: u32,
     /// GDP sector (`"sektor_pkb"`).
-    #[serde(rename = "sektor_pkb", default)]
+    #[serde(default)]
     pub sector: Sector,
     /// Worker capacity (`"pojemnosc_pracownikow"`).
-    #[serde(rename = "pojemnosc_pracownikow", default)]
+    #[serde(default)]
     pub worker_capacity: u32,
     /// Current employment (`"zatrudnienie_aktualne"`).
-    #[serde(rename = "zatrudnienie_aktualne", default)]
+    #[serde(default)]
     pub current_employment: u32,
     /// Cash reserve of the building (`"rezerwa_zakladowa"`).
-    #[serde(rename = "rezerwa_zakladowa", default)]
+    #[serde(default)]
     pub reserve: f64,
     /// Active production method (`"aktywna_metoda"`).
-    #[serde(rename = "aktywna_metoda", default)]
+    #[serde(default)]
     pub active_method: ActiveProductionMethod,
     /// Accidents in the last year (`"wypadki_ost_rok"`).
-    #[serde(rename = "wypadki_ost_rok", default)]
+    #[serde(default)]
     pub accidents_last_year: u32,
     /// Whether the building is on strike (`"strajk"`).
-    #[serde(rename = "strajk", default)]
+    #[serde(default)]
     pub strike: bool,
     /// Cluster scale factor (`"scale_factor"`).
-    #[serde(rename = "scale_factor", default)]
+    #[serde(default)]
     pub scale_factor: u32,
     /// Building construction capacity (`"pojemnosc_budowlana"`).
-    #[serde(rename = "pojemnosc_budowlana", default)]
+    #[serde(default)]
     pub building_capacity: u32,
     /// Region id (`"region_id"`).
-    #[serde(rename = "region_id", default)]
+    #[serde(default)]
     pub region_id: String,
     /// Cluster metadata (`"cluster_info"`).
-    #[serde(rename = "cluster_info", default)]
+    #[serde(default)]
     pub cluster_info: ClusterInfo,
     /// Last turn production by commodity (`"ostatnia_produkcja"`).
-    #[serde(rename = "ostatnia_produkcja", default)]
+    #[serde(default)]
     pub last_production: BTreeMap<Commodity, f64>,
     /// Last turn profit (`"rentownosc_ost_rok"`).
-    #[serde(rename = "rentownosc_ost_rok", default)]
+    #[serde(default)]
     pub last_profit: f64,
     /// Building condition (0.0-1.0), degrades over time, restored by maintenance.
-    #[serde(rename = "stan_techniczny", default = "default_building_condition")]
+    #[serde(default = "default_building_condition")]
     pub condition: f64,
     /// Phase 19B: Fixed-asset cohorts (machinery/vehicles) installed in this
     /// building. Empty = manual mode (capacity from labor only, pre-Phase-19
     /// behavior). Cohorts are aggregated by blueprint+acquire turn+condition
     /// (never per-item) for RAM predictability — see `economy/fixed_assets.rs`.
-    #[serde(rename = "aktywa_trwałe", default)]
+    #[serde(default)]
     pub fixed_assets: Vec<crate::economy::fixed_assets::FixedAssetCohort>,
     /// Whether this building is a protected heritage site.
-    #[serde(rename = "zabytek", default)]
+    #[serde(default)]
     pub is_heritage_site: bool,
     /// Experience level, e.g. for military bases (`"poziom_doswiadczenia"`).
-    #[serde(rename = "poziom_doswiadczenia", default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub experience_level: Option<f64>,
     /// Aggregate production/employment statistics for the cluster.
-    #[serde(rename = "aggregated_stats", default)]
+    #[serde(default)]
     pub aggregated_stats: AggregatedStats,
     /// Phase 4: Physical commodity inventory (inputs + outputs) at this building site.
-    #[serde(rename = "inwentarz", default)]
+    #[serde(default)]
     pub inventory: BTreeMap<Commodity, f64>,
     /// Phase 4: Maximum inventory capacity (tons units).
-    #[serde(rename = "pojemność_magazynu", default = "default_building_inventory_capacity")]
+    #[serde(default = "default_building_inventory_capacity")]
     pub inventory_capacity: f64,
     /// Phase 7: Active construction project on this site (None if operational).
-    #[serde(rename = "projekt_budowlany", default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub active_project: Option<crate::construction::ConstructionProject>,
     /// Phase 8: Landfill metadata (None for non-landfill buildings).
-    #[serde(rename = "dane_wysypiska", default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub landfill_data: Option<crate::utilities::waste::LandfillData>,
     /// Phase 21A: Linked geological deposit ID (formation_id + "/" + commodity key).
     /// None for non-mining buildings or mining buildings without a deposit.

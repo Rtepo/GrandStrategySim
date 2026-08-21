@@ -30,6 +30,35 @@ fn pm(
         efficiency: eff,
         inputs: inputs.iter().copied().collect(),
         outputs: outputs.iter().copied().collect(),
+        thermal_efficiency: 0.0,
+    }
+}
+
+/// Phase 74: Helper for energy production methods with thermal efficiency.
+/// Same as `pm()` but sets `thermal_efficiency` > 0.0, which triggers
+/// dynamic fuel consumption computation in `process_building_cycle()`.
+#[allow(clippy::too_many_arguments)]
+fn pm_thermal(
+    year: u32,
+    tech: Option<&str>,
+    experts: f64,
+    skilled: f64,
+    basic: f64,
+    eff: f64,
+    inputs: &[(Commodity, f64)],
+    outputs: &[(Commodity, f64)],
+    thermal_efficiency: f64,
+) -> ProductionMethod {
+    ProductionMethod {
+        year,
+        required_tech: tech.map(|s| s.to_string()),
+        experts_ratio: experts,
+        skilled_ratio: skilled,
+        basic_ratio: basic,
+        efficiency: eff,
+        inputs: inputs.iter().copied().collect(),
+        outputs: outputs.iter().copied().collect(),
+        thermal_efficiency,
     }
 }
 
@@ -313,6 +342,12 @@ fn agriculture_methods() -> BuildingMethods {
     m.insert(MethodSlot::Organization, "Agribusiness Scale".into(),
         pm(1960, Some("bio_005"), 0.20, 0.35, 0.45, 2.5,
            &[(Commodity::Fertilizers, 10.0), (Commodity::Software, 1.0)], &[]));
+    // Phase 74: Draft Animal Breeding — closes the supply chain for DraftAnimals
+    // which were previously only seeded at world generation with no replenishment.
+    m.insert(MethodSlot::Production, "Draft Animal Breeding".into(),
+        pm(1880, None, 0.05, 0.15, 0.80, 0.8,
+           &[(Commodity::Fodder, 10.0), (Commodity::Water, 8.0), (Commodity::Cereal, 5.0)],
+           &[(Commodity::DraftAnimals, 3.0), (Commodity::Livestock, 2.0)]));
     m
 }
 
@@ -731,6 +766,13 @@ fn armaments_methods() -> BuildingMethods {
         pm(1880, Some("arm_001"), 0.20, 0.35, 0.45, 1.5,
            &[(Commodity::Steel, 15.0), (Commodity::Fuels, 8.0), (Commodity::Food, 5.0)],
            &[(Commodity::TowedArtillery, 5.0)]));
+    // Phase 74: Cartridge Manufacturing — baseline Ammunition production from 1880.
+    // Without this, the first Ammunition-producing method is "Aircraft Cannon Production"
+    // (1930), leaving a 1925 start year with zero Ammunition supply.
+    m.insert(MethodSlot::Production, "Cartridge Manufacturing".into(),
+        pm(1880, None, 0.15, 0.30, 0.55, 1.0,
+           &[(Commodity::Steel, 8.0), (Commodity::Chemicals, 5.0), (Commodity::Gunpowder, 10.0)],
+           &[(Commodity::Ammunition, 25.0)]));
     m.insert(MethodSlot::Production, "Tank Production".into(),
         pm(1916, Some("arm_002"), 0.25, 0.40, 0.35, 2.0,
            &[(Commodity::Steel, 30.0), (Commodity::Fuels, 15.0), (Commodity::MechanicalComponents, 10.0)],
@@ -863,34 +905,44 @@ fn construction_methods() -> BuildingMethods {
 // === ENERGY ===
 fn energy_methods() -> BuildingMethods {
     let mut m = BuildingMethods::default();
+    // Phase 74: Fuel-burning plants use pm_thermal with thermal_efficiency.
+    // Fuel inputs are capacity slots (max fuel the plant can accept per cycle).
+    // Actual consumption is computed dynamically in process_building_cycle()
+    // based on calorific_value_mj_per_unit() and the plant's thermal_efficiency.
     m.insert(MethodSlot::Production, "Coal-Fired Boilers".into(),
-        pm(1880, None, 0.10, 0.25, 0.65, 1.0,
+        pm_thermal(1880, None, 0.10, 0.25, 0.65, 1.0,
            &[(Commodity::HardCoal, 20.0), (Commodity::BrownCoal, 10.0), (Commodity::Peat, 5.0), (Commodity::Water, 10.0)],
-           &[(Commodity::Energy, 30.0), (Commodity::Heat, 10.0)]));
+           &[(Commodity::Energy, 30.0), (Commodity::Heat, 10.0)],
+           0.15));  // 15% thermal efficiency
     m.insert(MethodSlot::Production, "Turbo-Generator Plant".into(),
-        pm(1888, Some("steam_003"), 0.15, 0.30, 0.55, 2.0,
+        pm_thermal(1888, Some("steam_003"), 0.15, 0.30, 0.55, 2.0,
            &[(Commodity::HardCoal, 15.0), (Commodity::BrownCoal, 8.0), (Commodity::Water, 8.0)],
-           &[(Commodity::Energy, 50.0), (Commodity::Heat, 15.0)]));
+           &[(Commodity::Energy, 50.0), (Commodity::Heat, 15.0)],
+           0.25));  // 25% thermal efficiency
     m.insert(MethodSlot::Production, "Hydroelectric Power".into(),
         pm(1890, Some("elecf_002"), 0.20, 0.35, 0.45, 2.5,
            &[(Commodity::Water, 15.0), (Commodity::MechanicalComponents, 5.0)],
            &[(Commodity::Energy, 60.0)]));
     m.insert(MethodSlot::Production, "Steam Turbine Plant".into(),
-        pm(1900, Some("steam_005"), 0.20, 0.35, 0.45, 3.0,
+        pm_thermal(1900, Some("steam_005"), 0.20, 0.35, 0.45, 3.0,
            &[(Commodity::HardCoal, 20.0), (Commodity::Water, 10.0)],
-           &[(Commodity::Energy, 80.0), (Commodity::Heat, 25.0)]));
+           &[(Commodity::Energy, 80.0), (Commodity::Heat, 25.0)],
+           0.30));  // 30% thermal efficiency
     m.insert(MethodSlot::Production, "Internal Combustion Plant".into(),
-        pm(1910, Some("auto_002"), 0.20, 0.35, 0.45, 3.5,
+        pm_thermal(1910, Some("auto_002"), 0.20, 0.35, 0.45, 3.5,
            &[(Commodity::Fuels, 15.0), (Commodity::MechanicalComponents, 5.0)],
-           &[(Commodity::Energy, 90.0)]));
+           &[(Commodity::Energy, 90.0)],
+           0.35));  // 35% thermal efficiency
     m.insert(MethodSlot::Production, "Nuclear Power Plant".into(),
-        pm(1955, Some("nucp_001"), 0.30, 0.45, 0.25, 6.0,
+        pm_thermal(1955, Some("nucp_001"), 0.30, 0.45, 0.25, 6.0,
            &[(Commodity::Uranium, 5.0), (Commodity::Water, 20.0), (Commodity::ElectronicComponents, 10.0)],
-           &[(Commodity::Energy, 200.0)]));
+           &[(Commodity::Energy, 200.0)],
+           0.33));  // 33% thermal efficiency
     m.insert(MethodSlot::Production, "Combined Cycle Plant".into(),
-        pm(1975, Some("auto3_007"), 0.30, 0.45, 0.25, 7.0,
+        pm_thermal(1975, Some("auto3_007"), 0.30, 0.45, 0.25, 7.0,
            &[(Commodity::NaturalGas, 15.0), (Commodity::ElectronicComponents, 5.0)],
-           &[(Commodity::Energy, 250.0), (Commodity::Heat, 40.0)]));
+           &[(Commodity::Energy, 250.0), (Commodity::Heat, 40.0)],
+           0.55));  // 55% thermal efficiency
     m.insert(MethodSlot::Production, "Solar Power Plant".into(),
         pm(1990, Some("advman_004"), 0.30, 0.45, 0.25, 5.0,
            &[(Commodity::ElectronicComponents, 10.0), (Commodity::Silicon, 5.0)],

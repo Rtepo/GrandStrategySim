@@ -43,25 +43,25 @@ pub enum EdgeType {
 #[serde(rename_all = "snake_case")]
 pub enum ClimateProfile {
     #[default]
-    #[serde(rename = "umiarkowany")]
+
     Temperate,  // Four distinct seasons, moderate extremes
 
-    #[serde(rename = "górski")]
+
     Mountainous,  // Harsh winters, mild summers, high energy demand
 
-    #[serde(rename = "morski")]
+
     Coastal,  // Mild winters, tourism boost in summer
 
-    #[serde(rename = "kontynentalny")]
+
     Continental,  // Extreme temperature swings, harsh winters
 
-    #[serde(rename = "tropikalny")]
+
     Tropical,  // Hot year-round, monsoon season
 
-    #[serde(rename = "pustynny")]
+
     Desert,  // Extreme heat, cold nights, water scarcity
 
-    #[serde(rename = "arktyczny")]
+
     Arctic,  // Permafrost, extreme cold, limited activity
 }
 
@@ -91,9 +91,9 @@ fn pick_climate_profile(rng: &mut impl rand::Rng) -> ClimateProfile {
 /// Required to prevent key collisions in labor ledgers (Phase 6.2)
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 pub enum DemographyType {
-    #[serde(rename = "wiejski")]
+
     Rural,
-    #[serde(rename = "miejski")]
+
     Urban,
 }
 
@@ -101,16 +101,16 @@ pub enum DemographyType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Edge {
     /// Target node ID
-    #[serde(rename = "cel_węzła")]
+
     pub target_node: String,
     /// Type of edge connection
-    #[serde(rename = "typ_krawędzi")]
+
     pub edge_type: EdgeType,
     /// Distance for pathfinding cost (kilometers)
-    #[serde(rename = "odległość")]
+
     pub distance: f64,
     /// Whether ships can traverse this edge
-    #[serde(rename = "nawigowalny")]
+
     pub is_navigable: bool,
     /// Phase 30: Territorial owner of this edge (for SeaLane edges).
     /// None = international waters. Some("country") = territorial waters
@@ -140,28 +140,28 @@ pub enum FormationType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ResourceDeposit {
     /// Tradeable commodity this deposit yields (native enum, no string mapping).
-    #[serde(rename = "commodity")]
+
     pub commodity: Commodity,
     /// Estimated total reserves (tons/barrels) — original quantity at discovery.
-    #[serde(rename = "rezerwy_szacunkowe")]
+
     pub estimated_reserves: f64,
     /// Current remaining reserves (depletes as the deposit is mined).
-    #[serde(rename = "rezerwy_aktualne", default)]
+    #[serde(default)]
     pub current_reserves: f64,
     /// Extraction cost per unit.
-    #[serde(rename = "koszt_wydobycia")]
+
     pub extraction_cost: f64,
     /// Base quality 0-1, affects processing efficiency.
-    #[serde(rename = "jakość")]
+
     pub quality: f64,
     /// Effective quality 0-1 (decays as the deposit is depleted).
-    #[serde(rename = "jakość_aktualna", default)]
+    #[serde(default)]
     pub current_quality: f64,
     /// Depth below surface in meters (gates tech access).
-    #[serde(rename = "głębokość", default)]
+    #[serde(default)]
     pub depth: f64,
     /// Whether this deposit has been discovered (fog-of-war).
-    #[serde(rename = "odkryte", default)]
+    #[serde(default)]
     pub discovered: bool,
 }
 
@@ -169,22 +169,22 @@ pub struct ResourceDeposit {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct GeologicalFormation {
     /// Unique formation ID
-    #[serde(rename = "id_formacji")]
+
     pub id: String,
     /// Formation name (e.g., "Carpathian Mountains")
-    #[serde(rename = "nazwa")]
+
     pub name: String,
     /// Type of geological formation
-    #[serde(rename = "typ_formacji")]
+
     pub formation_type: FormationType,
     /// Resource deposits in this formation
-    #[serde(rename = "złoża_zasobów")]
+
     pub resource_deposits: BTreeMap<String, ResourceDeposit>,
     /// Region IDs intersecting this formation
-    #[serde(rename = "nakładające_się_regiony")]
+
     pub overlapping_regions: Vec<String>,
     /// Total area in square kilometers
-    #[serde(rename = "całkowita_powierzchnia")]
+
     pub total_area: f64,
 }
 
@@ -192,13 +192,13 @@ pub struct GeologicalFormation {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum Climate {
     #[default]
-    #[serde(rename = "Urodzajny")]
+
     Fertile,
-    #[serde(rename = "Pustynny")]
+
     Desert,
-    #[serde(rename = "Górzysty")]
+
     Mountainous,
-    #[serde(rename = "Zrównoważony")]
+
     Balanced,
 }
 
@@ -260,24 +260,24 @@ impl Climate {
         let mut limits = base_mine_template();
         match self {
             Climate::Mountainous => {
-                limits.insert("Kopalnia Węgla".to_string(), (base_mines as f64 * rng.gen_range(1.0..3.0)) as i64);
-                limits.insert("Kopalnia Żelaza".to_string(), (base_mines as f64 * rng.gen_range(1.5..3.5)) as i64);
+                limits.insert("coal_mine".to_string(), (base_mines as f64 * rng.gen_range(1.0..3.0)) as i64);
+                limits.insert("iron_mine".to_string(), (base_mines as f64 * rng.gen_range(1.5..3.5)) as i64);
                 limits.insert("Kopalnia Boksytu".to_string(), (base_mines as f64 * rng.gen_range(0.5..2.0)) as i64);
                 limits.insert("Kopalnie Metali Kolorowych".to_string(), (base_mines as f64 * rng.gen_range(1.0..2.5)) as i64);
                 limits.insert("Szyby Naftowe".to_string(), (base_mines as f64 * rng.gen_range(0.0..0.5)) as i64);
                 limits.insert("Kopalnie Gazu Ziemnego".to_string(), (base_mines as f64 * rng.gen_range(0.0..0.5)) as i64);
             }
             Climate::Desert => {
-                limits.insert("Kopalnia Węgla".to_string(), (base_mines as f64 * rng.gen_range(0.0..1.0)) as i64);
-                limits.insert("Kopalnia Żelaza".to_string(), (base_mines as f64 * rng.gen_range(0.5..1.5)) as i64);
+                limits.insert("coal_mine".to_string(), (base_mines as f64 * rng.gen_range(0.0..1.0)) as i64);
+                limits.insert("iron_mine".to_string(), (base_mines as f64 * rng.gen_range(0.5..1.5)) as i64);
                 limits.insert("Kopalnia Boksytu".to_string(), (base_mines as f64 * rng.gen_range(0.0..1.0)) as i64);
                 limits.insert("Kopalnie Metali Kolorowych".to_string(), (base_mines as f64 * rng.gen_range(0.5..1.5)) as i64);
                 limits.insert("Szyby Naftowe".to_string(), (base_mines as f64 * rng.gen_range(2.0..5.0)) as i64);
                 limits.insert("Kopalnie Gazu Ziemnego".to_string(), (base_mines as f64 * rng.gen_range(1.5..4.0)) as i64);
             }
             Climate::Fertile => {
-                limits.insert("Kopalnia Węgla".to_string(), (base_mines as f64 * rng.gen_range(1.0..2.0)) as i64);
-                limits.insert("Kopalnia Żelaza".to_string(), (base_mines as f64 * rng.gen_range(0.5..1.5)) as i64);
+                limits.insert("coal_mine".to_string(), (base_mines as f64 * rng.gen_range(1.0..2.0)) as i64);
+                limits.insert("iron_mine".to_string(), (base_mines as f64 * rng.gen_range(0.5..1.5)) as i64);
                 limits.insert("Kopalnia Boksytu".to_string(), (base_mines as f64 * rng.gen_range(0.0..0.5)) as i64);
                 limits.insert("Kopalnie Metali Kolorowych".to_string(), (base_mines as f64 * rng.gen_range(0.2..1.0)) as i64);
                 limits.insert("Szyby Naftowe".to_string(), (base_mines as f64 * rng.gen_range(0.2..1.0)) as i64);
@@ -296,8 +296,8 @@ impl Climate {
 
 fn base_mine_template() -> BTreeMap<String, i64> {
     BTreeMap::from([
-        ("Kopalnia Węgla".to_string(), 0),
-        ("Kopalnia Żelaza".to_string(), 0),
+        ("coal_mine".to_string(), 0),
+        ("iron_mine".to_string(), 0),
         ("Kopalnia Boksytu".to_string(), 0),
         ("Kopalnie Metali Kolorowych".to_string(), 0),
         ("Szyby Naftowe".to_string(), 0),
@@ -326,19 +326,19 @@ pub enum LandSubType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct SoilClassData {
     /// Soil class identifier in English (e.g., "Class_I" through "Class_VI")
-    #[serde(rename = "klasa_gleby")]
+
     pub soil_class: String,
     /// Area in hectares
-    #[serde(rename = "hektary")]
+
     pub area_hectares: f64,
     /// Ownership distribution (reuses existing ClassLandDistribution)
-    #[serde(rename = "własność")]
+
     pub ownership: ClassLandDistribution,
     /// Fertility index 0-1, crop yield multiplier
-    #[serde(rename = "indeks_urodzajności")]
+
     pub fertility_index: f64,
     /// Erosion risk 0-1, degradation probability
-    #[serde(rename = "ryzyko_erozji")]
+
     pub erosion_risk: f64,
 }
 
@@ -346,31 +346,31 @@ pub struct SoilClassData {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct LandCategoryData {
     /// Area in hectares
-    #[serde(rename = "hektary")]
+
     pub area_hectares: f64,
     /// Soil profile (subordinate soil system)
-    #[serde(rename = "profil_gleb", default)]
+    #[serde(default)]
     pub soil_profile: BTreeMap<String, SoilClassData>,
     /// Ownership distribution (existing structure)
-    #[serde(rename = "dystrybucja_własności", default)]
+    #[serde(default)]
     pub ownership_distribution: ClassLandDistribution,
     /// Ecological health 0-1, affected by pollution
-    #[serde(rename = "zdrowie_ekologiczne")]
+
     pub ecological_health: f64,
     /// Development potential 0-1, ease of transformation
-    #[serde(rename = "potencja_rozwojowy")]
+
     pub development_potential: f64,
     /// Sub-type for specific categories
-    #[serde(rename = "podtyp", default)]
+    #[serde(default)]
     pub sub_type: LandSubType,
     /// Water pollution level 0-1 (for WaterBodies)
-    #[serde(rename = "zanieczyszczenie_wody", default)]
+    #[serde(default)]
     pub water_pollution: f64,
     /// Natural pollution decay rate (water self-cleans)
-    #[serde(rename = "tempo_rozpadu_zanieczyszczeń", default)]
+    #[serde(default)]
     pub pollution_decay_rate: f64,
     /// Sewage inflow this turn
-    #[serde(rename = "przepływ_ścieków", default)]
+    #[serde(default)]
     pub sewage_inflow: f64,
 }
 
@@ -400,10 +400,10 @@ pub enum LandCategory {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct LandUseInventory {
     /// Total area in hectares
-    #[serde(rename = "całkowita_powierzchnia")]
+
     pub total_area: f64,
     /// Land categories with their data
-    #[serde(rename = "kategorie", default)]
+    #[serde(default)]
     pub categories: BTreeMap<String, LandCategoryData>,
 }
 
@@ -473,27 +473,27 @@ impl LandUseInventory {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct ClassLandDistribution {
     /// Hectares owned by Aristocracy (latifundia estates)
-    #[serde(rename = "hektary_arystokracja", default)]
+    #[serde(default)]
     pub aristocracy_hectares: i64,
     
     /// Hectares owned by Free Peasants (smallholdings)
-    #[serde(rename = "hektary_wolni_chłopi", default)]
+    #[serde(default)]
     pub free_peasant_hectares: i64,
     
     /// Hectares owned by State (crown lands)
-    #[serde(rename = "hektary_skarb_panstwa", default)]
+    #[serde(default)]
     pub state_hectares: i64,
     
     /// Hectares owned by Corporations (agricultural firms)
-    #[serde(rename = "hektary_korporacje", default)]
+    #[serde(default)]
     pub corporation_hectares: i64,
     
     /// Hectares owned by Communities/Cooperatives
-    #[serde(rename = "hektary_wspólnoty", default)]
+    #[serde(default)]
     pub community_hectares: i64,
     
     /// Hectares owned by Municipalities (JST)
-    #[serde(rename = "hektary_miejskie", default)]
+    #[serde(default)]
     pub municipal_hectares: i64,
 }
 
@@ -528,87 +528,84 @@ pub struct Region {
     pub population: i64,
     pub gdp: f64,
     pub gdp_pc: f64,
-    #[serde(alias = "klimat")]
+    
     pub climate: Climate,
-    #[serde(alias = "profil_gleb")]
+    
     pub soil_profile: BTreeMap<String, f64>,
-    #[serde(alias = "ziemia_orna_max")]
+    
     pub arable_land_max: i64,
-    #[serde(alias = "ziemia_orna_wykorzystana")]
+    
     pub arable_land_used: i64,
-    #[serde(alias = "limity_wydobycia")]
+    
     pub extraction_limits: BTreeMap<String, i64>,
-    #[serde(alias = "limity_wykorzystane")]
+    
     pub extraction_used: BTreeMap<String, i64>,
-    #[serde(alias = "zasoby")]
+    
     pub resources: Map<String, Value>,
     pub is_capital: bool,
     /// NEW: Graph node type (LandRegion, SeaNode, OceanNode)
-    #[serde(rename = "typ_węzła", default)]
+    #[serde(default)]
     pub node_type: NodeType,
-    /// NEW: Structured edges replacing simple adjacency list
-    #[serde(rename = "krawędzie", default)]
+    /// Structured edges representing connections between regions.
+    #[serde(default)]
     pub edges: Vec<Edge>,
-    /// DEPRECATED: Kept for backward compatibility during migration
-    #[serde(rename = "sąsiedztwo", default)]
-    pub adjacency: Vec<String>,
-    
-    // NEW: Regional class-based land distribution
-    #[serde(rename = "dystrybucja_gruntu", default)]
+
+    // Regional class-based land distribution
+    #[serde(default)]
     pub land_distribution: BTreeMap<String, ClassLandDistribution>,
     
     // NEW: Class demographics
-    #[serde(rename = "demografia_klas", default)]
+    #[serde(default)]
     pub class_demographics: RegionalClassDemographics,
     
     // NEW: Regional governance (JST)
-    #[serde(rename = "zarzad_regionalne", default)]
+    #[serde(default)]
     pub governance: Option<crate::politics::local_government::RegionalGovernance>,
 
     // NEW: Capacity pool generated by infrastructure companies
-    #[serde(rename = "pojemność_regionalna", default)]
+    #[serde(default)]
     pub capacity_pool: BTreeMap<crate::infrastructure::CapacityType, f64>,
 
     // NEW: Capacity utilization by type (0.0-1.0)
-    #[serde(rename = "wykorzystanie_pojemności", default)]
+    #[serde(default)]
     pub capacity_utilization: BTreeMap<crate::infrastructure::CapacityType, f64>,
 
     // NEW: Market prices for capacity units (for Private funding model)
-    #[serde(rename = "ceny_pojemności", default)]
+    #[serde(default)]
     pub capacity_prices: BTreeMap<crate::infrastructure::CapacityType, f64>,
 
     // NEW: Land use inventory (Phase 5.3)
-    #[serde(rename = "inwentarz_ziemi", default)]
+    #[serde(default)]
     pub land_use_inventory: LandUseInventory,
     
     // Phase 6.1: Climate profile for seasonal modifiers
-    #[serde(rename = "profil_klimatyczny", default)]
+    #[serde(default)]
     pub climate_profile: ClimateProfile,
 
     // NEW: Micro-regions within this region (Phase 6.1)
-    #[serde(rename = "mikroregiony", default)]
+    #[serde(default)]
     pub micro_regions: BTreeMap<String, MicroRegion>,
 
     // STAGE C: Regional treasury for cascading tax routing
-    #[serde(rename = "skarbiec", default)]
+    #[serde(default)]
     pub treasury: Treasury,
 
     // STAGE C: Microregion budgets for tax routing
-    #[serde(rename = "budżety_mikroregionów", default)]
+    #[serde(default)]
     pub microregion_budgets: HashMap<String, MicroRegionBudget>,
 
     // Phase 8: Winter mortality multiplier (1.0 = baseline, >1.0 = increased mortality)
     // Written by process_utility_consumption, read and reset by process_demographics_and_labor
-    #[serde(rename = "współczynnik_śmiertelności_zimowej", default = "default_winter_mortality_multiplier")]
+    #[serde(default = "default_winter_mortality_multiplier")]
     pub winter_mortality_multiplier: f64,
 
     /// Phase 17A: Holy site trait for this region, if any.
     /// Links to a religion engine key and enables pilgrimage tourism.
-    #[serde(rename = "święte_miejsce", default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub holy_site: Option<HolySite>,
 
     /// Phase 23D: Geographic traits enabling maritime, riverine, and aviation transport.
-    #[serde(rename = "cechy_geograficzne", default)]
+    #[serde(default)]
     pub geographic_traits: GeographicTraits,
 
     /// Phase 30: 2D spatial coordinate X for geographic computations
@@ -637,7 +634,7 @@ pub struct Region {
     /// Phase 65: Whether this region is an Autonomous Republic with its own
     /// Premier and elevated separatist risk. Set during world generation based
     /// on cultural/national distinctness.
-    #[serde(default, rename = "jest_autonomiczna")]
+    #[serde(default)]
     pub is_autonomous_republic: bool,
 }
 
@@ -651,13 +648,13 @@ fn default_development_level() -> f64 {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct HolySite {
     /// Religion engine key this site is sacred to (e.g., "catholicism").
-    #[serde(rename = "religia", default)]
+    #[serde(default)]
     pub religion_key: String,
     /// Pilgrimage attractiveness (0.0–1.0, higher = more famous).
-    #[serde(rename = "atrakcyjność_pielgrzymkowa", default)]
+    #[serde(default)]
     pub pilgrimage_attractiveness: f64,
     /// Display name for localization (Polish).
-    #[serde(rename = "nazwa", default)]
+    #[serde(default)]
     pub display_name: String,
 }
 
@@ -669,17 +666,17 @@ pub struct HolySite {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct GeographicTraits {
     /// Region borders a sea/ocean → enables ports and maritime freight.
-    #[serde(rename = "wybrzeże", default)]
+    #[serde(default)]
     pub has_coastline: bool,
     /// Region has a navigable river → enables barge/river freight.
-    #[serde(rename = "rzeka_żeglowna", default)]
+    #[serde(default)]
     pub has_navigable_river: bool,
     /// Region has a mountain pass → enables land freight but with high friction.
-    #[serde(rename = "przełęcz_górska", default)]
+    #[serde(default)]
     pub has_mountain_pass: bool,
     /// Region has an airport → enables aviation freight (late-game).
     /// Set by construction, not by geography, but stored here for routing.
-    #[serde(rename = "lotnisko", default)]
+    #[serde(default)]
     pub has_airport: bool,
 }
 
@@ -731,23 +728,23 @@ pub enum DependencyLevel {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct PoliticalSentiment {
     /// Percentage of population that is Loyalist (pro-regime, 0-1)
-    #[serde(rename = "lojalisci", default)]
+    #[serde(default)]
     pub loyalists: f64,
     
     /// Percentage of population that is Undecided (swing voters, 0-1)
-    #[serde(rename = "niezdecydowani", default)]
+    #[serde(default)]
     pub undecided: f64,
     
     /// Percentage of population that is Radical (anti-regime, 0-1)
-    #[serde(rename = "radykałowie", default)]
+    #[serde(default)]
     pub radicals: f64,
     
     /// Sentiment volatility (0-1, higher = faster shifts)
-    #[serde(rename = "zmienność", default)]
+    #[serde(default)]
     pub volatility: f64,
     
     /// Turn when sentiment was last recalculated
-    #[serde(rename = "turn_ostatniej_aktualizacji", default)]
+    #[serde(default)]
     pub last_update_turn: u32,
 }
 
@@ -767,19 +764,19 @@ impl PoliticalSentiment {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct HistoricalQualityOfLife {
     /// Savings per capita at this turn in previous year
-    #[serde(rename = "oszczędności_na_osobę_rok_temu", default)]
+    #[serde(default)]
     pub savings_per_capita_yoy: f64,
     
     /// Real wage at this turn in previous year
-    #[serde(rename = "płaca_realna_rok_temu", default)]
+    #[serde(default)]
     pub real_wage_yoy: f64,
     
     /// Inflation rate at this turn in previous year
-    #[serde(rename = "inflacja_rok_temu", default)]
+    #[serde(default)]
     pub inflation_yoy: f64,
     
     /// Turn when this snapshot was taken (for validation)
-    #[serde(rename = "turn_zdjęcia", default)]
+    #[serde(default)]
     pub snapshot_turn: u32,
 }
 
@@ -788,11 +785,11 @@ pub struct HistoricalQualityOfLife {
 pub struct ClassDemographics {
     /// Population count for this class
     /// NOTE: For Serf class, this is NOT stored statically - aggregated dynamically from Latifundia
-    #[serde(rename = "populacja", default)]
+    #[serde(default)]
     pub population: i64,
 
     /// Total personal savings/capital held by this class
-    #[serde(rename = "oszczędności", default)]
+    #[serde(default)]
     pub savings: f64,
 
     /// Phase 35: Outstanding consumer debt principal owed to banks.
@@ -803,101 +800,101 @@ pub struct ClassDemographics {
     pub debt: f64,
 
     /// Average per-capita savings
-    #[serde(rename = "oszczędności_na_osobę", default)]
+    #[serde(default)]
     pub savings_per_capita: f64,
 
     /// Subsistence consumption rate (0-1, fraction of income needed for survival)
-    #[serde(rename = "konsumpcja_subsystencjalna", default)]
+    #[serde(default)]
     pub subsistence_rate: f64,
 
     /// Current economic status
-    #[serde(rename = "status_ekonomiczny", default)]
+    #[serde(default)]
     pub economic_status: EconomicStatus,
 
     /// Labor force participation rate (0-1)
-    #[serde(rename = "aktywność_zawodowa", default)]
+    #[serde(default)]
     pub labor_participation: f64,
 
     /// Remaining labor time for subsistence farming (0-1, 1.0 = full time available)
     /// Used for Serf class to calculate survival based on corvée demands
-    #[serde(rename = "czas_pracy_subsystencjalny", default)]
+    #[serde(default)]
     pub subsistence_labor_time: f64,
 
     /// Average health status for this class
-    #[serde(rename = "status_zdrowia", default)]
+    #[serde(default)]
     pub health_status: HealthStatus,
 
     /// Health degradation rate per turn (age + labor factors)
-    #[serde(rename = "współczynnik_degradacji", default)]
+    #[serde(default)]
     pub health_degradation_rate: f64,
 
     /// Dependency level for this class
-    #[serde(rename = "poziom_zależności", default)]
+    #[serde(default)]
     pub dependency_level: DependencyLevel,
 
     /// Number of dependents requiring care
-    #[serde(rename = "liczba_zależnych", default)]
+    #[serde(default)]
     pub dependent_count: i64,
 
     /// Political sentiment distribution
-    #[serde(rename = "sentyment_polityczny", default)]
+    #[serde(default)]
     pub political_sentiment: PoliticalSentiment,
 
     /// Trade union affiliation (if any)
-    #[serde(rename = "przynależność_związkowa", skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub union_affiliation: Option<String>,
     
     /// Phase 6.1: Historical QoL snapshots for YoY comparison (indexed by turn 1-24)
-    #[serde(rename = "historia_jakości_życia", default)]
+    #[serde(default)]
     pub historical_qol: [HistoricalQualityOfLife; 24],
 
     /// Phase 6.1: Short-term memory: QoL snapshot from previous turn (for Turn-over-Turn fallback in Year 1)
-    #[serde(rename = "qol_poprzedniego_turnu", default)]
+    #[serde(default)]
     pub previous_turn_qol: HistoricalQualityOfLife,
 
     /// Phase 6.2: Available FTE this class can offer to the labor market
     /// Maximum: 1.5 * population (full-time + half-time secondary job)
-    #[serde(rename = "dostępne_fte", default)]
+    #[serde(default)]
     pub available_fte: f64,
 
     /// Phase 6.2: FTE currently allocated to companies this turn
-    #[serde(rename = "przydzielone_fte", default)]
+    #[serde(default)]
     pub allocated_fte: f64,
 
     /// Resurrection Phase 2: Brokerage account for direct retail securities trading.
-    #[serde(rename = "rachunek_maklerski", skip_serializing_if = "Option::is_none", default)]
+    #[serde(skip_serializing_if = "Option::is_none", default)]
     pub brokerage_account: Option<crate::securities::BrokerageAccount>,
 
     /// Phase 13: Religion practiced by this demographic class (e.g., "Katolicyzm", "Islam").
     /// Defaults to country-level religion if empty (migration on load).
-    #[serde(rename = "religia", default, skip_serializing_if = "String::is_empty")]
+    #[serde(default, skip_serializing_if = "String::is_empty")]
     pub religion: String,
 
     /// Phase 18A: Legal status of this class (Citizen, Resident, TemporaryWorker, Illegal).
-    #[serde(rename = "status_prawny", default)]
+    #[serde(default)]
     pub legal_status: crate::economy::legal_status::LegalStatus,
 
     /// Phase 18A: Undocumented/illegal population within this class.
     /// These are shadow workers not counted in official labor statistics.
-    #[serde(rename = "nielegalna_populacja", default)]
+    #[serde(default)]
     pub illegal_population: i64,
 
     /// Phase 24D: FTE permanently lost to OHS accidents / disasters.
     /// These workers are alive but unable to work (disabled/injured).
     /// Subtracted from `available_fte` when casualties occur.
-    #[serde(rename = "niezdolne_do_pracy_fte", default)]
+    #[serde(default)]
     pub unable_to_work: f64,
 
     /// Phase 24D: Cumulative count of class members killed by OHS accidents,
     /// building collapses, disasters, or pogroms. Subtracted from
     /// `available_fte` and `population` when deaths occur.
-    #[serde(rename = "ofiar_śmiertelnych", default)]
+    #[serde(default)]
     pub deceased: i64,
 
     /// Phase 24D: Cumulative count of class members disabled by OHS accidents
     /// or disasters. They remain in `population` but are excluded from
     /// `available_fte`.
-    #[serde(rename = "niepełnosprawni", default)]
+    #[serde(default)]
     pub active_disabled: i64,
 
     /// Phase 47: Persistent durable-goods holdings for this class.
@@ -1092,11 +1089,11 @@ impl ClassDemographics {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct RegionalClassDemographics {
     /// Demographics by rural class
-    #[serde(rename = "klasy_wiejskie", default)]
+    #[serde(default)]
     pub rural_classes: BTreeMap<String, ClassDemographics>,
     
     /// Demographics by urban class
-    #[serde(rename = "klasy_miejskie", default)]
+    #[serde(default)]
     pub urban_classes: BTreeMap<String, ClassDemographics>,
 }
 
@@ -1107,7 +1104,7 @@ pub enum MicroRegionType {
     #[default]
     /// City district (Dzielnica)
     CityDistrict,
-    /// Village (Sołectwo)
+    /// Village (Village)
     Village,
     /// Rural settlement
     RuralSettlement,
@@ -1119,23 +1116,23 @@ pub enum MicroRegionType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct MicroRegionBudget {
     /// Liquid reserves
-    #[serde(rename = "rezerwy_liquidne", default)]
+    #[serde(default)]
     pub liquid_reserves: f64,
     
     /// Property tax revenue
-    #[serde(rename = "podatek_nieruchomosci", default)]
+    #[serde(default)]
     pub property_tax: f64,
     
     /// Local service fees
-    #[serde(rename = "oplata_lokalna", default)]
+    #[serde(default)]
     pub local_fees: f64,
     
     /// Transfer from parent Region
-    #[serde(rename = "transfer_z_regionu", default)]
+    #[serde(default)]
     pub regional_transfer: f64,
     
     /// Allocation for social housing
-    #[serde(rename = "alokacja_mieszkania_spoleczne", default)]
+    #[serde(default)]
     pub social_housing_allocation: f64,
 }
 
@@ -1143,7 +1140,7 @@ pub struct MicroRegionBudget {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct MicroRegion {
     /// Unique micro-region ID
-    #[serde(rename = "id_mikroregionu", default)]
+    #[serde(default)]
     pub id: String,
     
     /// Parent Region ID
@@ -1151,23 +1148,23 @@ pub struct MicroRegion {
     pub parent_region_id: String,
     
     /// Micro-region type
-    #[serde(rename = "typ_mikroregionu")]
+
     pub micro_type: MicroRegionType,
     
-    /// Name (e.g., "Warszawa-Śródmieście", "Wieś-Kowalówka")
-    #[serde(rename = "nazwa", default)]
+    /// Name (e.g., "Capital-Center", "Village-Smithville")
+    #[serde(default)]
     pub name: String,
     
     /// Population within this micro-region
-    #[serde(rename = "populacja", default)]
+    #[serde(default)]
     pub population: i64,
     
     /// Sub-budget derived from local property taxes
-    #[serde(rename = "budzet_lokalny", default)]
+    #[serde(default)]
     pub sub_budget: MicroRegionBudget,
     
     /// Autonomy level 0-1 (affects independent spending power)
-    #[serde(rename = "poziom_autonomii", default)]
+    #[serde(default)]
     pub autonomy_level: f64,
 }
 
@@ -1282,23 +1279,23 @@ pub struct Megaregion {
     pub population: i64,
     pub gdp: f64,
     
-    // NEW: Megaregion governance
-    #[serde(rename = "zarzad_megaregionu", default)]
+    // Megaregion governance
+    #[serde(default)]
     pub governance: Option<crate::politics::local_government::MegaregionGovernance>,
 }
 
 fn seed_geological_deposits(zasoby: &mut Map<String, Value>, gdp: f64, _rng: &mut impl Rng) {
-    let goods = ["węgiel", "węgiel_brunatny", "ropa", "gaz_ziemny", "torf", "uran", "żelazo", "miedź", "cynk", "boksyt", "złoto", "srebro", "diamenty", "kamień", "piasek", "sól", "wapień"];
+    let goods = ["coal", "lignite", "oil", "natural_gas", "peat", "uranium", "iron", "copper", "zinc", "bauxite", "gold", "silver", "diamonds", "stone", "sand", "salt", "limestone"];
     for good in goods {
         let multiplier = geological_multiplier(&good);
         zasoby.insert(
             good.to_string(),
             serde_json::json!({
-                "rezerwy_geologiczne": int(gdp * multiplier * 1000.0),
-                "rezerwy": 0,
-                "wydobycie_roczne": 0,
-                "efektywność": 1.0,
-                "krajowe_zuzycie": 0
+                "geological_reserves": int(gdp * multiplier * 1000.0),
+                "reserves": 0,
+                "annual_extraction": 0,
+                "efficiency": 1.0,
+                "domestic_consumption": 0
             }),
         );
     }
@@ -1306,18 +1303,18 @@ fn seed_geological_deposits(zasoby: &mut Map<String, Value>, gdp: f64, _rng: &mu
 
 fn geological_multiplier(good: &str) -> f64 {
     match resource_category(good) {
-        "energetyczne" => 50.0,
-        "metaliczne" => 30.0,
-        "skalne" => 100.0,
+        "energy" => 50.0,
+        "metallic" => 30.0,
+        "rock" => 100.0,
         _ => 100.0,
     }
 }
 
 fn resource_category(good: &str) -> &'static str {
     match good {
-        "węgiel" | "węgiel_brunatny" | "ropa" | "gaz_ziemny" | "torf" | "uran" => "energetyczne",
-        "żelazo" | "miedź" | "cynk" | "boksyt" | "złoto" | "srebro" | "diamenty" => "metaliczne",
-        _ => "skalne",
+        "coal" | "lignite" | "oil" | "natural_gas" | "peat" | "uranium" => "energy",
+        "iron" | "copper" | "zinc" | "bauxite" | "gold" | "silver" | "diamonds" => "metallic",
+        _ => "rock",
     }
 }
 
@@ -1473,7 +1470,6 @@ pub fn generate_regional_topology(country: &str, population: i64, gdp: f64, star
             is_capital: i == 0,
             node_type: NodeType::LandRegion,
             edges: Vec::new(),
-            adjacency: Vec::new(),
             land_distribution: BTreeMap::new(),
             class_demographics: generate_class_demographics(region_pop, start_year, development_level),
             governance,
@@ -1495,13 +1491,11 @@ pub fn generate_regional_topology(country: &str, population: i64, gdp: f64, star
         });
     }
 
-    let adjacency = build_adjacency_graph(&regions);
     let structured_edges = build_structured_edges(&regions);
     for region in &mut regions {
-        region.adjacency = adjacency.get(&region.id).cloned().unwrap_or_default();
         region.node_type = NodeType::LandRegion;
         region.edges = structured_edges.get(&region.id).cloned().unwrap_or_default();
-        // Initialize land use inventory (Phase 5.3)
+        // Initialize land use inventory
         initialize_default_land_inventory(region);
     }
 
@@ -1626,23 +1620,33 @@ fn generate_class_demographics(region_pop: i64, start_year: u32, development_lev
         });
     }
 
-    rural_classes.insert("FreePeasant".to_string(), ClassDemographics {
-        population: free_peasant_pop,
-        labor_participation: 0.55,
-        savings: (free_peasant_pop as f64 * 100.0 * dev_savings_mult),
-        ..Default::default()
+    rural_classes.insert("FreePeasant".to_string(), {
+        let savings = free_peasant_pop as f64 * 100.0 * dev_savings_mult;
+        ClassDemographics {
+            population: free_peasant_pop,
+            labor_participation: 0.55,
+            savings,
+            savings_per_capita: if free_peasant_pop > 0 { savings / free_peasant_pop as f64 } else { 0.0 },
+            ..Default::default()
+        }
     });
-    rural_classes.insert("LandlessLaborer".to_string(), ClassDemographics {
-        population: landless_pop,
-        labor_participation: 0.60,
-        savings: (landless_pop as f64 * 50.0 * dev_savings_mult),
-        ..Default::default()
+    rural_classes.insert("LandlessLaborer".to_string(), {
+        let savings = landless_pop as f64 * 50.0 * dev_savings_mult;
+        ClassDemographics {
+            population: landless_pop,
+            labor_participation: 0.60,
+            savings,
+            savings_per_capita: if landless_pop > 0 { savings / landless_pop as f64 } else { 0.0 },
+            ..Default::default()
+        }
     });
     rural_classes.insert("Aristocracy".to_string(), {
+        let savings = aristocracy_pop as f64 * 5000.0 * dev_savings_mult;
         let mut demo = ClassDemographics {
             population: aristocracy_pop,
             labor_participation: 0.30,
-            savings: (aristocracy_pop as f64 * 5000.0 * dev_savings_mult),
+            savings,
+            savings_per_capita: if aristocracy_pop > 0 { savings / aristocracy_pop as f64 } else { 0.0 },
             ..Default::default()
         };
         // Phase 47: Seed initial household durables for wealthy classes.
@@ -1656,17 +1660,23 @@ fn generate_class_demographics(region_pop: i64, start_year: u32, development_lev
     let worker_pop = (urban_pop as f64 * 0.70) as i64;
     let middle_pop = urban_pop - worker_pop;
 
-    urban_classes.insert("Worker".to_string(), ClassDemographics {
-        population: worker_pop,
-        labor_participation: 0.60,
-        savings: (worker_pop as f64 * 200.0 * dev_savings_mult),
-        ..Default::default()
+    urban_classes.insert("Worker".to_string(), {
+        let savings = worker_pop as f64 * 200.0 * dev_savings_mult;
+        ClassDemographics {
+            population: worker_pop,
+            labor_participation: 0.60,
+            savings,
+            savings_per_capita: if worker_pop > 0 { savings / worker_pop as f64 } else { 0.0 },
+            ..Default::default()
+        }
     });
     urban_classes.insert("Bourgeoisie".to_string(), {
+        let savings = middle_pop as f64 * 1000.0 * dev_savings_mult;
         let mut demo = ClassDemographics {
             population: middle_pop,
             labor_participation: 0.55,
-            savings: (middle_pop as f64 * 1000.0 * dev_savings_mult),
+            savings,
+            savings_per_capita: if middle_pop > 0 { savings / middle_pop as f64 } else { 0.0 },
             ..Default::default()
         };
         // Phase 47: Seed initial household durables for wealthy classes.
@@ -1792,7 +1802,6 @@ pub fn generate_maritime_nodes(
         is_capital: false,
         node_type: NodeType::SeaNode,
         edges: Vec::new(),
-        adjacency: Vec::new(),
         land_distribution: BTreeMap::new(),
         class_demographics: RegionalClassDemographics::default(),
         governance: None,
@@ -1834,7 +1843,6 @@ pub fn generate_maritime_nodes(
         is_capital: false,
         node_type: NodeType::OceanNode,
         edges: Vec::new(),
-        adjacency: Vec::new(),
         land_distribution: BTreeMap::new(),
         class_demographics: RegionalClassDemographics::default(),
         governance: None,
@@ -1920,7 +1928,7 @@ pub fn generate_geological_formations(
 
         let formation_id = format!("Formation-{i}");
         let formation_name = match formation_type {
-            FormationType::MountainRange => format!("Góry {i}"),
+            FormationType::MountainRange => format!("Mountains {i}"),
             FormationType::SedimentaryBasin => format!("Basen {i}"),
             FormationType::RiftValley => format!("Rift {i}"),
             FormationType::VolcanicArc => format!("Wulkan {i}"),
@@ -2214,37 +2222,37 @@ pub enum TransformationType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct LandTransformationProject {
     /// Unique project ID
-    #[serde(rename = "id_projektu")]
+
     pub id: String,
     /// Type of transformation
-    #[serde(rename = "typ_transformacji")]
+
     pub project_type: TransformationType,
     /// Source land category
-    #[serde(rename = "kategoria_źródłowa")]
+
     pub source_category: LandCategory,
     /// Target land category
-    #[serde(rename = "kategoria_docelowa")]
+
     pub target_category: LandCategory,
     /// Region where project is located
-    #[serde(rename = "region_id")]
+
     pub region_id: String,
     /// Area to transform in hectares
-    #[serde(rename = "obszar_transformacji")]
+
     pub area_to_transform: f64,
     /// Total cost
-    #[serde(rename = "koszt_całkowity")]
+
     pub cost: f64,
     /// Duration in turns
-    #[serde(rename = "czas_trwania")]
+
     pub duration_turns: u32,
     /// Progress 0-1
-    #[serde(rename = "postęp")]
+
     pub progress: f64,
     /// Required infrastructure building types
-    #[serde(rename = "wymagana_infrastruktura", default)]
+    #[serde(default)]
     pub required_infrastructure: Vec<String>,
     /// Soil class to assign (for Agricultural target)
-    #[serde(rename = "przypisana_klasa_gleby", default)]
+    #[serde(default)]
     pub assigned_soil_class: Option<String>,
 }
 
@@ -2361,7 +2369,7 @@ pub fn create_melioration_project(
         cost: total_cost,
         duration_turns: duration_turns.max(1),
         progress: 0.0,
-        required_infrastructure: vec!["Systemy Odwadniające".to_string()],
+        required_infrastructure: vec!["drainage_systems".to_string()],
         assigned_soil_class: Some(soil_class),
     }
 }
@@ -2395,7 +2403,7 @@ pub fn create_reforestation_project(
         cost: total_cost,
         duration_turns: duration_turns.max(1),
         progress: 0.0,
-        required_infrastructure: vec!["Szkółki Leśne".to_string()],
+        required_infrastructure: vec!["forest_nurseries".to_string()],
         assigned_soil_class: None,
     }
 }
@@ -2700,24 +2708,6 @@ pub fn build_graph_from_regions(regions: &[Region]) -> HashMap<String, Vec<Edge>
                 .or_insert_with(Vec::new)
                 .push(edge.clone());
         }
-
-        // For backward compatibility, also add edges from old adjacency list
-        for neighbor_id in &region.adjacency {
-            if !region.edges.iter().any(|e| &e.target_node == neighbor_id) {
-                // Create a default edge for backward compatibility
-                let default_edge = Edge {
-                    target_node: neighbor_id.clone(),
-                    edge_type: EdgeType::LandBorder,
-                    distance: 100.0, // Default distance
-                    is_navigable: false,
-                    territorial_owner: None,
-                };
-                graph
-                    .entry(region.id.clone())
-                    .or_insert_with(Vec::new)
-                    .push(default_edge);
-            }
-        }
     }
 
     graph
@@ -2836,7 +2826,6 @@ mod phase30_tests {
             is_capital: false,
             node_type: NodeType::LandRegion,
             edges,
-            adjacency: Vec::new(),
             land_distribution: BTreeMap::new(),
             class_demographics: Default::default(),
             governance: None,

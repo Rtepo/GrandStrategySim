@@ -23,31 +23,31 @@ pub enum HeritageError {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct HeritageBuilding {
     /// Building identifier
-    #[serde(rename = "id", default)]
+    #[serde(default)]
     pub id: String,
     
     /// Year the building was built
-    #[serde(rename = "rok_budowy", default)]
+    #[serde(default)]
     pub year_built: u32,
     
     /// Current condition (0.0 to 1.0)
-    #[serde(rename = "stan", default)]
+    #[serde(default)]
     pub condition: f64,
     
     /// Heritage site flag
-    #[serde(rename = "zabytek", default)]
+    #[serde(default)]
     pub is_heritage_site: bool,
     
     /// Reserve fund for maintenance
-    #[serde(rename = "rezerwa", default)]
+    #[serde(default)]
     pub reserve: f64,
     
     /// Fixed capital value (asset value)
-    #[serde(rename = "kapitał_trwały", default)]
+    #[serde(default)]
     pub fixed_capital: f64,
     
     /// Building sector
-    #[serde(rename = "sektor", default)]
+    #[serde(default)]
     pub sector: Sector,
 }
 

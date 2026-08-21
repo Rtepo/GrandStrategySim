@@ -83,10 +83,10 @@ pub fn get_construction_bom_for_kind(building_kind: &str, start_year: u32) -> BT
 fn sector_from_building_kind(kind: &str) -> Sector {
     let k = kind.to_lowercase();
     if k.contains("huta") || k.contains("stal") || k.contains("odlewn")
-        || k.contains("ciężki") || k.contains("heavy")
+        || k.contains("heavy") || k.contains("heavy")
     {
         Sector::HeavyIndustry
-    } else if k.contains("kopaln") || k.contains("mine") || k.contains("węgiel")
+    } else if k.contains("kopaln") || k.contains("mine") || k.contains("coal")
         || k.contains("rud") || k.contains("boksyt")
     {
         Sector::Mining
@@ -94,7 +94,7 @@ fn sector_from_building_kind(kind: &str) -> Sector {
         || k.contains("gospodarstw") || k.contains("farm")
     {
         Sector::Agriculture
-    } else if k.contains("magazyn") || k.contains("warehouse") || k.contains("skład")
+    } else if k.contains("warehouse") || k.contains("warehouse") || k.contains("storage")
     {
         Sector::TransportLogistics
     } else if k.contains("sklep") || k.contains("biuro") || k.contains("handel")

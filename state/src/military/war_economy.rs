@@ -789,6 +789,7 @@ pub fn military_conversion_methods() -> Vec<MilitaryConversion> {
                 active_methods: ProductionMethodChoice::default(),
                 active_blueprint: None,
                 extra: serde_json::Map::new(),
+                            ..Default::default()
             },
             description: "Converts heavy industry to military truck production. Requires plastics and mechanical components not needed for steel production.",
         },
@@ -813,6 +814,7 @@ pub fn military_conversion_methods() -> Vec<MilitaryConversion> {
                 active_methods: ProductionMethodChoice::default(),
                 active_blueprint: None,
                 extra: serde_json::Map::new(),
+                            ..Default::default()
             },
             description: "Converts heavy industry to light tank production. Demands aluminum and heavy mechanical components.",
         },
@@ -836,6 +838,7 @@ pub fn military_conversion_methods() -> Vec<MilitaryConversion> {
                 active_methods: ProductionMethodChoice::default(),
                 active_blueprint: None,
                 extra: serde_json::Map::new(),
+                            ..Default::default()
             },
             description: "Converts heavy industry to towed artillery production. High steel demand.",
         },
@@ -860,6 +863,7 @@ pub fn military_conversion_methods() -> Vec<MilitaryConversion> {
                 active_methods: ProductionMethodChoice::default(),
                 active_blueprint: None,
                 extra: serde_json::Map::new(),
+                            ..Default::default()
             },
             description: "Surge ammunition production. Demands massive chemical inputs (explosives) not needed for civilian steel.",
         },
@@ -883,6 +887,7 @@ pub fn military_conversion_methods() -> Vec<MilitaryConversion> {
                 active_methods: ProductionMethodChoice::default(),
                 active_blueprint: None,
                 extra: serde_json::Map::new(),
+                            ..Default::default()
             },
             description: "Converts chemical/heavy industry to gunpowder production. Requires sulfur and heavy chemical inputs.",
         },
@@ -908,6 +913,7 @@ pub fn military_conversion_methods() -> Vec<MilitaryConversion> {
                 active_methods: ProductionMethodChoice::default(),
                 active_blueprint: None,
                 extra: serde_json::Map::new(),
+                            ..Default::default()
             },
             description: "Converts textile factories to military uniform production. Adds industrial fiber and steel inputs for webbing, buttons, buckles.",
         },
@@ -932,6 +938,7 @@ pub fn military_conversion_methods() -> Vec<MilitaryConversion> {
                 active_methods: ProductionMethodChoice::default(),
                 active_blueprint: None,
                 extra: serde_json::Map::new(),
+                            ..Default::default()
             },
             description: "Converts light industry to support equipment (webbing, packs, entrenching tools). Steel and industrial fiber heavy.",
         },

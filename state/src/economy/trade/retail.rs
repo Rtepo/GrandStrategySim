@@ -9,8 +9,8 @@ use crate::economy::transfer_settler::settle_b2c_purchase;
 use crate::entities::Company;
 use crate::registries::enums::Commodity;
 use crate::society::culture_registry::{registry as culture_registry, CultureDefinition, ReligionDefinition};
-use crate::society::geography::{DemographyType, Region};
-use crate::society::housing::{CommercialBuilding, RetailProfile};
+use crate::society::geography::{DemographyType, Region, RuralClass};
+use crate::society::housing::{CommercialBuilding, RetailProfile, HousingBuilding};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap};
 
@@ -18,30 +18,30 @@ use std::collections::{BTreeMap, HashMap};
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct StoreOffer {
     /// Store building ID
-    #[serde(rename = "id_sklepu")]
+
     pub store_id: String,
 
     /// Commodity offered
-    #[serde(rename = "towar")]
+
     pub commodity: Commodity,
 
     /// Quantity available
-    #[serde(rename = "ilość")]
+
     pub quantity: f64,
 
     /// Price per unit
-    #[serde(rename = "cena_jednostkowa")]
+
     pub price_per_unit: f64,
 
     /// Effective attractiveness (includes upgrades)
-    #[serde(rename = "atrakcyjność_efektywna")]
+
     pub effective_attractiveness: f64,
 
     /// Phase 19C: Blueprint quality of this offer (1.0 = baseline, >1.0 = premium).
     /// For non-quality-durables, this is always 1.0. For quality durables
     /// (Cars, Televisions, Furniture, Clothing, ...), this reflects the
     /// blueprint's quality score and drives wealth-segmented B2C selection.
-    #[serde(rename = "jakość", default = "default_offer_quality")]
+    #[serde(default = "default_offer_quality")]
     pub quality: f64,
 }
 
@@ -54,11 +54,11 @@ fn default_offer_quality() -> f64 {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ConsumerDemand {
     /// (region_id, demography_type, class_id) → (commodity → units demanded)
-    #[serde(rename = "popyt_konsumencki")]
+
     pub demand: BTreeMap<(String, DemographyType, String), BTreeMap<Commodity, f64>>,
     
     /// Total demand per commodity (aggregated across all classes)
-    #[serde(rename = "popyt_całkowity")]
+
     pub total_demand: BTreeMap<Commodity, f64>,
 }
 
@@ -209,14 +209,15 @@ fn commodity_wealth_gate(commodity: Commodity) -> f64 {
         | Commodity::Meat | Commodity::Fruit | Commodity::HealthCapacity
         | Commodity::EducationSlots | Commodity::Food | Commodity::Water => 0.0,
         // Durables — wealth-gated (purchased only when savings permit)
-        Commodity::Clothing => 50.0,       // Basic durable, low gate
-        Commodity::Furniture => 100.0,
-        Commodity::Radio => 300.0,
-        Commodity::Agd => 500.0,
-        Commodity::Televisions => 800.0,
-        Commodity::Cars => 2000.0,
-        Commodity::Fuels => 1500.0,  // Only if you have a car
-        Commodity::Luxury | Commodity::LuxuryFurniture | Commodity::LuxuryClothing => 3000.0,
+        // Phase 74: Recalibrated to match generated savings_per_capita values
+        Commodity::Clothing => 20.0,       // Everyone buys clothing
+        Commodity::Furniture => 50.0,      // Basic household necessity
+        Commodity::Radio => 150.0,         // Available to workers
+        Commodity::Agd => 300.0,           // Middle-class purchase
+        Commodity::Televisions => 500.0,   // Middle-class luxury
+        Commodity::Cars => 1500.0,         // Upper-class
+        Commodity::Fuels => 200.0,         // Car fuel tracks car ownership, not savings
+        Commodity::Luxury | Commodity::LuxuryFurniture | Commodity::LuxuryClothing => 2000.0, // Aristocracy only
         _ => 0.0,
     }
 }
@@ -373,11 +374,83 @@ pub fn install_durable_purchase(
     }
 }
 
+/// Phase 74: Average number of people per household slot. This is a physical
+/// demographic constant, not a magic economic number — it represents real
+/// household composition in the simulation's era.
+const HOUSEHOLD_SIZE: f64 = 4.0;
+
+/// Phase 74: Compute the fraction of a class's population that has housing.
+///
+/// Returns 0.0 if the class has no housing allocation, 1.0 if fully housed.
+/// Used by complementarity gating: homeless demographics cannot buy
+/// Furniture, LuxuryFurniture, Agd, or Televisions.
+fn class_housing_possession_rate(
+    housing_buildings: &[HousingBuilding],
+    region_id: &str,
+    class_id: &str,
+    class_population: i64,
+) -> f64 {
+    if class_population <= 0 {
+        return 0.0;
+    }
+    // Count occupied housing slots assigned to this class in this region
+    let housed_slots: u32 = housing_buildings.iter()
+        .filter(|b| b.micro_region_id == region_id)
+        .filter_map(|b| {
+            let primary = if b.primary_slots.target_class
+                .map(|c| class_id_matches_rural(c, class_id)).unwrap_or(false) {
+                b.primary_slots.occupied_slots
+            } else { 0 };
+            let sublet = b.sublet_slots.as_ref()
+                .and_then(|s| s.target_class.map(|c| class_id_matches_rural(c, class_id)))
+                .map(|matches| if matches {
+                    b.sublet_slots.as_ref().unwrap().occupied_slots
+                } else { 0 })
+                .unwrap_or(0);
+            if primary + sublet > 0 { Some(primary + sublet) } else { None }
+        })
+        .sum();
+    let housed_people = (housed_slots as f64 * HOUSEHOLD_SIZE) as i64;
+    (housed_people as f64 / class_population as f64).clamp(0.0, 1.0)
+}
+
+/// Phase 74: Match a RuralClass enum to a class_id string.
+fn class_id_matches_rural(class: RuralClass, class_id: &str) -> bool {
+    format!("{:?}", class) == class_id
+}
+
+/// Phase 74: Public test helper for housing possession rate.
+#[doc(hidden)]
+pub fn test_class_housing_possession_rate(
+    housing_buildings: &[HousingBuilding],
+    region_id: &str,
+    class_id: &str,
+    class_population: i64,
+) -> f64 {
+    class_housing_possession_rate(housing_buildings, region_id, class_id, class_population)
+}
+
+/// Phase 74: Affordability threshold — the fraction of monthly wage that
+/// represents the "normal" price point for a perishable commodity.
+/// When price exceeds this fraction of wage, substitution kicks in.
+fn affordability_threshold(commodity: Commodity) -> f64 {
+    match commodity {
+        Commodity::Meat => 0.05,    // 5% of monthly wage
+        Commodity::Fruit => 0.03,   // 3% of monthly wage
+        Commodity::Protein => 0.04, // 4% of monthly wage
+        Commodity::Cereal => 0.10,  // 10% of monthly wage (staple)
+        Commodity::Vegetable => 0.05,
+        _ => 0.05,
+    }
+}
+
 /// Build consumer demand from demographic classes (Phase 6.5, Phase R1, Phase 17A).
 ///
 /// # Arguments
 /// * `region` - Region with class demographics
 /// * `current_turn` - Current turn number
+/// * `market_prices` - Current market prices by commodity (Phase 74)
+/// * `average_wage` - Current average wage in the economy (Phase 74)
 ///
 /// # Returns
 /// * `ConsumerDemand` - Demand by class and total
@@ -388,10 +461,14 @@ pub fn install_durable_purchase(
 /// * Evaluates tiers in order: Subsistence → Standard → Luxury
 /// * Phase 17A: Applies authority-scaled taboo/obsession modifiers
 /// * Phase 45: Applies wealth-tier and era-aware consumption modifiers
+/// * Phase 74: Applies price-driven substitution and housing complementarity
 /// * Used in R1 phase before store offer generation
 pub fn build_consumer_demand(
     region: &Region,
     current_turn: u32,
+    market_prices: &HashMap<Commodity, f64>,
+    average_wage: f64,
+    housing_buildings: &[HousingBuilding],
 ) -> ConsumerDemand {
     let mut demand = ConsumerDemand {
         demand: BTreeMap::new(),
@@ -399,12 +476,20 @@ pub fn build_consumer_demand(
     };
 
     let consumption = consumption_registry();
+    let price_subs = consumption_registry::price_substitution_matrix();
     // Phase 45: Derive year from turn (24 turns per year, default start 1925)
     let year = 1925 + (current_turn / 24);
 
-    // Process rural classes
-    for (class_id, demographics) in &region.class_demographics.rural_classes {
-        let key = (region.id.clone(), DemographyType::Rural, class_id.clone());
+    // Helper: compute demand for a single class (rural or urban)
+    let process_class = |demand: &mut ConsumerDemand,
+                         region: &Region,
+                         housing_buildings: &[HousingBuilding],
+                         class_id: &str,
+                         demographics: &crate::society::geography::ClassDemographics,
+                         demography_type: DemographyType,
+                         year: u32| {
+        let key = (region.id.clone(), demography_type, class_id.to_string());
+        let housing_rate = class_housing_possession_rate(housing_buildings, &region.id, class_id, demographics.population);
 
         if let Some(basket) = consumption.get(class_id) {
             for (tier, tier_commodities) in &basket.tiers {
@@ -413,7 +498,12 @@ pub fn build_consumer_demand(
                     // upgrade + saturation), NOT per-turn consumption.
                     // Perishables use the existing per_capita × era × wealth × pop.
                     let class_demand = if commodity.is_household_durable() {
-                        compute_durable_demand(*commodity, demographics, year, *per_capita)
+                        let mut d = compute_durable_demand(*commodity, demographics, year, *per_capita);
+                        // Phase 74: Housing complementarity gating
+                        if commodity.requires_housing() {
+                            d *= housing_rate;
+                        }
+                        d
                     } else {
                         // Phase 45: Era-aware consumption multiplier.
                         let era_mult = era_consumption_multiplier(*commodity, year);
@@ -429,7 +519,35 @@ pub fn build_consumer_demand(
                             *tier,
                             demographics.savings_per_capita,
                         );
-                        per_capita * era_mult * wealth_mult * (demographics.population as f64)
+                        let base_demand = per_capita * era_mult * wealth_mult * (demographics.population as f64);
+
+                        // Phase 74: Price-driven substitution
+                        let mut final_demand = base_demand;
+                        if average_wage > 0.0 {
+                            let price = market_prices.get(commodity).copied().unwrap_or(0.0);
+                            if price > 0.0 {
+                                let threshold = average_wage * affordability_threshold(*commodity);
+                                let price_ratio = price / threshold.max(1.0);
+                                if price_ratio > 1.0 {
+                                    if let Some(subs) = price_subs.get(commodity) {
+                                        for sub in subs {
+                                            let substitution_fraction = ((price_ratio - 1.0) * sub.elasticity_coefficient)
+                                                .clamp(0.0, sub.max_substitution);
+                                            let shifted = base_demand * substitution_fraction;
+                                            final_demand -= shifted;
+                                            // Add shifted demand to substitute, scaled by equivalence ratio
+                                            let substitute_demand = shifted * sub.equivalence_ratio;
+                                            if substitute_demand > 0.0 {
+                                                *demand.demand.entry(key.clone()).or_insert_with(BTreeMap::new)
+                                                    .entry(sub.substitute).or_insert(0.0) += substitute_demand;
+                                                *demand.total_demand.entry(sub.substitute).or_insert(0.0) += substitute_demand;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        final_demand
                     };
 
                     if class_demand > 0.0 {
@@ -440,40 +558,16 @@ pub fn build_consumer_demand(
                 }
             }
         }
+    };
+
+    // Process rural classes
+    for (class_id, demographics) in &region.class_demographics.rural_classes {
+        process_class(&mut demand, region, housing_buildings, class_id, demographics, DemographyType::Rural, year);
     }
 
     // Process urban classes
     for (class_id, demographics) in &region.class_demographics.urban_classes {
-        let key = (region.id.clone(), DemographyType::Urban, class_id.clone());
-
-        if let Some(basket) = consumption.get(class_id) {
-            for (tier, tier_commodities) in &basket.tiers {
-                for (commodity, per_capita) in tier_commodities {
-                    let class_demand = if commodity.is_household_durable() {
-                        compute_durable_demand(*commodity, demographics, year, *per_capita)
-                    } else {
-                        let era_mult = era_consumption_multiplier(*commodity, year);
-                        if era_mult <= 0.0 {
-                            continue;
-                        }
-                        if demographics.savings_per_capita < commodity_wealth_gate(*commodity) {
-                            continue;
-                        }
-                        let wealth_mult = wealth_tier_multiplier(
-                            *tier,
-                            demographics.savings_per_capita,
-                        );
-                        per_capita * era_mult * wealth_mult * (demographics.population as f64)
-                    };
-
-                    if class_demand > 0.0 {
-                        *demand.demand.entry(key.clone()).or_insert_with(BTreeMap::new)
-                            .entry(*commodity).or_insert(0.0) += class_demand;
-                        *demand.total_demand.entry(*commodity).or_insert(0.0) += class_demand;
-                    }
-                }
-            }
-        }
+        process_class(&mut demand, region, housing_buildings, class_id, demographics, DemographyType::Urban, year);
     }
 
     demand
@@ -1639,8 +1733,8 @@ mod tests {
         let format = select_retail_format(0.55, 1950, false, 600.0);
         assert_eq!(
             format.building_type,
-            crate::society::housing::CommercialBuildingType::Supermarket,
-            "Mid-wealth region in modern era should get Supermarket"
+            crate::society::housing::CommercialBuildingType::supermarket,
+            "Mid-wealth region in modern era should get supermarket"
         );
     }
 }

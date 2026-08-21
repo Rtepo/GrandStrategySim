@@ -19,7 +19,7 @@ pub enum CapacityType {
     RehabSlots,
     /// Preventative care stays
     SanatoriumStays,
-    /// 24/7 care home capacity (Dom Pomocy Społecznej)
+    /// 24/7 care home capacity (Social Care Home)
     DPSCapacity,
     /// Daycare capacity (Dom Dziennego Pobytu)
     DDPCapacity,
@@ -58,19 +58,19 @@ pub enum CapacityType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct CapacityOutput {
     /// Type of capacity generated
-    #[serde(rename = "typ_pojemności")]
+
     pub capacity_type: CapacityType,
 
     /// Base capacity per turn
-    #[serde(rename = "pojemność_bazowa")]
+
     pub base_capacity: f64,
 
     /// Capacity per worker (efficiency multiplier)
-    #[serde(rename = "pojemność_na_pracownika")]
+
     pub capacity_per_worker: f64,
 
     /// Current utilization (0.0-1.0)
-    #[serde(rename = "wykorzystanie", default)]
+    #[serde(default)]
     pub utilization: f64,
 }
 

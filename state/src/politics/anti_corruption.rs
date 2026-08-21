@@ -214,7 +214,7 @@ pub fn run_anti_corruption_feedback(country: &mut Country) -> f64 {
 /// * Only one inspectorate tender per turn (cooldown).
 /// * Requires sufficient allocated cash (minimum 50,000).
 /// * Uses real construction tender mechanism.
-/// * Building types: "Sanepid Station", "Building Inspectorate", "Environmental Inspectorate".
+/// * Building types: "sanepid Station", "Building Inspectorate", "Environmental Inspectorate".
 pub fn maybe_publish_inspectorate_tender(country: &mut Country, current_turn: u32) -> usize {
     let corruption_index = country
         .politics
@@ -230,7 +230,7 @@ pub fn maybe_publish_inspectorate_tender(country: &mut Country, current_turn: u3
     // Cooldown: check if there's already a pending inspectorate tender
     let has_pending = country.phase22_tenders.iter().any(|t| {
         t.target_building_type.contains("Inspectorate")
-            || t.target_building_type.contains("Sanepid")
+            || t.target_building_type.contains("sanepid")
     });
     if has_pending {
         return 0;
@@ -278,7 +278,7 @@ pub fn maybe_publish_inspectorate_tender(country: &mut Country, current_turn: u3
     // Pick inspectorate building type based on what's most needed
     // (simplified: rotate through the three types)
     let building_types = [
-        "Sanepid Station",
+        "sanepid Station",
         "Building Inspectorate",
         "Environmental Inspectorate",
     ];
@@ -453,7 +453,7 @@ mod tests {
         assert_eq!(country.phase22_tenders.len(), 1);
         let tender = &country.phase22_tenders[0];
         assert!(tender.target_building_type.contains("Inspectorate")
-            || tender.target_building_type.contains("Sanepid"));
+            || tender.target_building_type.contains("sanepid"));
     }
 
     #[test]

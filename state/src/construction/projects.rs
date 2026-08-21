@@ -59,68 +59,68 @@ pub enum ConstructionProjectType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct ConstructionProject {
     /// Unique project ID.
-    #[serde(rename = "id_projektu", default)]
+    #[serde(default)]
     pub id: String,
 
     /// Project type.
-    #[serde(rename = "typ_projektu")]
+
     pub project_type: ConstructionProjectType,
 
     /// Micro-region where construction occurs.
-    #[serde(rename = "mikroregion_id", default)]
+    #[serde(default)]
     pub micro_region_id: String,
 
     /// Target building type name (e.g. "Cementownia").
-    #[serde(rename = "typ_budynku_docelowy", default)]
+    #[serde(default)]
     pub target_building_type: String,
 
     /// Required construction materials (Commodity → total quantity needed).
-    #[serde(rename = "materiały_wymagane", default)]
+    #[serde(default)]
     pub required_materials: BTreeMap<Commodity, f64>,
 
     /// Materials physically delivered and consumed so far.
-    #[serde(rename = "materiały_dostarczone", default)]
+    #[serde(default)]
     pub delivered_materials: BTreeMap<Commodity, f64>,
 
     /// Worker capacity to add on completion.
-    #[serde(rename = "zwiększenie_pojemności", default)]
+    #[serde(default)]
     pub target_capacity_increase: u32,
 
     /// Fixed capital to add on completion.
-    #[serde(rename = "zwiększenie_kapitału", default)]
+    #[serde(default)]
     pub target_capital_increase: f64,
 
     /// True if this is a brand-new building (vs expanding an existing one).
-    #[serde(rename = "nowy_budynek", default)]
+    #[serde(default)]
     pub is_new_building: bool,
 
     /// Total estimated cost (for budgeting reference).
-    #[serde(rename = "koszt_całkowity", default)]
+    #[serde(default)]
     pub total_cost: f64,
 
     /// Cost spent so far (cash paid for delivered materials).
-    #[serde(rename = "koszt_wydany", default)]
+    #[serde(default)]
     pub cost_spent: f64,
 
     /// Estimated duration in turns (for planning only; actual completion
     /// depends on material delivery).
-    #[serde(rename = "czas_trwania", default)]
+    #[serde(default)]
     pub duration_turns: u32,
 
     /// Turns elapsed since project start.
-    #[serde(rename = "turny_minione", default)]
+    #[serde(default)]
     pub turns_elapsed: u32,
 
     /// Progress 0.0–1.0, computed from material fulfillment.
-    #[serde(rename = "postęp", default)]
+    #[serde(default)]
     pub progress: f64,
 
     /// Whether project is on hold due to material shortage.
-    #[serde(rename = "wstrzymany", default)]
+    #[serde(default)]
     pub on_hold: bool,
 
     /// Reason for being on hold (if applicable).
-    #[serde(rename = "powód_wstrzymania", default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub hold_reason: Option<String>,
 
     /// Phase 29: Consecutive turns the project has been on hold without
@@ -308,15 +308,15 @@ impl ConstructionProject {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct ConstructionQueue {
     /// Active projects.
-    #[serde(rename = "projekty_aktywne", default)]
+    #[serde(default)]
     pub active_projects: Vec<ConstructionProject>,
 
     /// Completed projects (for history).
-    #[serde(rename = "projekty_ukończone", default)]
+    #[serde(default)]
     pub completed_projects: Vec<ConstructionProject>,
 
     /// Maximum concurrent projects.
-    #[serde(rename = "maks_projekty_równoległe", default)]
+    #[serde(default)]
     pub max_concurrent_projects: u32,
 }
 

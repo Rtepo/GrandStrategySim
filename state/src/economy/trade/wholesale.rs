@@ -12,15 +12,15 @@ use std::collections::BTreeMap;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct LogisticsConfig {
     /// Transport cost per ton-km
-    #[serde(rename = "koszt_transportu_ton_km")]
+
     pub transport_cost_per_ton_km: f64,
     
     /// Consolidation discount (0.0-1.0) for bulk shipments
-    #[serde(rename = "zniżka_konsolidacji")]
+
     pub consolidation_discount: f64,
     
     /// Minimum tons for consolidation eligibility
-    #[serde(rename = "minimum_konsolidacji_tony")]
+
     pub min_consolidation_tons: f64,
 }
 
@@ -38,19 +38,19 @@ impl Default for LogisticsConfig {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ProcurementRequest {
     /// Retailer building ID
-    #[serde(rename = "id_detalisty")]
+
     pub retailer_building_id: String,
     
     /// Commodity requested
-    #[serde(rename = "towar")]
+
     pub commodity: Commodity,
     
     /// Quantity requested (tons)
-    #[serde(rename = "ilość")]
+
     pub quantity: f64,
     
     /// Maximum price per unit
-    #[serde(rename = "cena_maksymalna")]
+
     pub max_price_per_unit: f64,
 }
 
@@ -58,27 +58,27 @@ pub struct ProcurementRequest {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ConsolidatedShipment {
     /// Source wholesaler building ID
-    #[serde(rename = "id_hurtownika")]
+
     pub wholesaler_id: String,
     
     /// Destination micro-region
-    #[serde(rename = "mikroregion_docelowy")]
+
     pub destination_micro_region: String,
     
     /// Total tons in shipment
-    #[serde(rename = "całkowite_tony")]
+
     pub total_tons: f64,
     
     /// Commodities in shipment
-    #[serde(rename = "towary")]
+
     pub commodities: BTreeMap<Commodity, f64>,
     
     /// Original transport cost (before consolidation)
-    #[serde(rename = "koszt_transportu_oryginalny")]
+
     pub original_transport_cost: f64,
     
     /// Consolidated transport cost (after discount)
-    #[serde(rename = "koszt_transportu_skonsolidowany")]
+
     pub consolidated_transport_cost: f64,
 }
 

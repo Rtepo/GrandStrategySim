@@ -20,23 +20,23 @@ use std::collections::{BTreeMap, HashMap};
 /// Assets are added at fire-sale prices and tracked with creditor claims.
 /// Unsold assets after auction_max_turns trigger nationalization.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[serde(rename = "pula_upadłości")]
+
 pub struct BankruptcyAuctionPool {
     /// Assets in auction pool: (asset_id, (asking_price, book_value, owner_id, creditor_claims, turns_in_pool))
-    #[serde(rename = "aktywa", default)]
+    #[serde(default)]
     pub assets: BTreeMap<String, (f64, f64, String, HashMap<String, f64>, u32)>,
     
     /// Cash collected from asset purchases (to be distributed to creditors)
-    #[serde(rename = "zebrane_gotówka", default)]
+    #[serde(default)]
     pub cash_collected: f64,
     
     /// Creditor distribution: (bank_id, amount_to_distribute)
-    #[serde(rename = "dystrybucja_wierzycieli", default)]
+    #[serde(default)]
     pub creditor_distribution: HashMap<String, f64>,
     
     /// Privatization queue: (asset_id, (owner_id, book_value))
     /// Assets nationalized by JST/State awaiting privatization
-    #[serde(rename = "kolejka_prywatyzacji", default)]
+    #[serde(default)]
     pub privatization_queue: BTreeMap<String, (String, f64)>,
     
     /// Any additional auction pool fields.
@@ -126,22 +126,22 @@ impl BankruptcyAuctionPool {
 
 /// Debt restructuring proposal for distressed companies.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[serde(rename = "plan_restrukturyzacji")]
+
 pub struct RestructuringPlan {
     /// Company ID being restructured.
-    #[serde(rename = "id_firmy", default)]
+    #[serde(default)]
     pub company_id: String,
     
     /// Proposed haircut percentage (0.0 - 1.0).
-    #[serde(rename = "zniżka_długu", default)]
+    #[serde(default)]
     pub debt_haircut: f64,
     
     /// Extended repayment period in turns.
-    #[serde(rename = "okres_kredytowania", default)]
+    #[serde(default)]
     pub extended_period: u32,
     
     /// Whether the plan has been approved by creditors.
-    #[serde(rename = "zatwierdzony", default)]
+    #[serde(default)]
     pub approved: bool,
     
     /// Any additional restructuring plan fields.
@@ -171,7 +171,7 @@ impl RestructuringPlan {
             .take(3)
             .all(|record| {
                 record
-                    .get("przepływy_operacyjne")
+                    .get("operating_cash_flows")
                     .and_then(|v| v.as_f64())
                     .map_or(false, |ocf| ocf > 0.0)
             });
@@ -192,14 +192,14 @@ impl RestructuringPlan {
 
 /// Syndic (court-appointed liquidator) for bankruptcy proceedings.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[serde(rename = "syndyk")]
+
 pub struct Syndic {
     /// Domestic currency code.
-    #[serde(rename = "waluta_krajowa", default)]
+    #[serde(default)]
     pub domestic_currency: String,
     
     /// Creditor distributions: (creditor_id, amount_distributed)
-    #[serde(rename = "dystrybucje_wierzycieli", default)]
+    #[serde(default)]
     pub creditor_distributions: HashMap<String, f64>,
     
     /// Any additional syndic fields.

@@ -12,7 +12,7 @@ use std::collections::BTreeMap;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CapacityPricing {
     /// Price per capacity unit by type
-    #[serde(rename = "ceny_pojemności")]
+
     pub prices: BTreeMap<CapacityType, f64>,
 }
 

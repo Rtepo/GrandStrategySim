@@ -9,6 +9,7 @@
 //! lockout.
 
 use crate::state::Country;
+use crate::state::macro_data::{annual_to_per_turn_rate, TURNS_PER_YEAR};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -666,10 +667,10 @@ pub fn process_debt_service(
             security.turns_remaining -= 1;
         }
 
-        // Coupon payment check
+        // Coupon payment check (Phase 74: fix frequency — Annual = every 24 turns)
         let coupon_due = match security.coupon_frequency {
             CouponFrequency::EveryTurn => true,
-            CouponFrequency::Annual => (current_turn - security.last_coupon_turn) >= 4,
+            CouponFrequency::Annual => (current_turn - security.last_coupon_turn) >= TURNS_PER_YEAR as u32,
             CouponFrequency::CapitalizedAtMaturity => security.turns_remaining == 0,
         };
 
@@ -684,12 +685,22 @@ pub fn process_debt_service(
                     holder.quantity
                 };
 
-                let interest = adjusted_principal * security.coupon_rate
-                    / match security.coupon_frequency {
-                        CouponFrequency::EveryTurn => 1.0,
-                        CouponFrequency::Annual => 1.0,
-                        CouponFrequency::CapitalizedAtMaturity => 1.0,
-                    };
+                // Phase 74: Compound interest calculation
+                let interest = match security.coupon_frequency {
+                    CouponFrequency::EveryTurn => {
+                        // Per-turn compound rate
+                        adjusted_principal * annual_to_per_turn_rate(security.coupon_rate)
+                    }
+                    CouponFrequency::Annual => {
+                        // Annual coupon paid once per year — full annual rate is correct
+                        adjusted_principal * security.coupon_rate
+                    }
+                    CouponFrequency::CapitalizedAtMaturity => {
+                        // Compound over the full maturity period
+                        let maturity_years = security.maturity_turns as f64 / TURNS_PER_YEAR as f64;
+                        adjusted_principal * ((1.0 + security.coupon_rate).powf(maturity_years) - 1.0)
+                    }
+                };
 
                 total_due += interest;
                 payments.push((holder.entity_id.clone(), interest));
@@ -714,8 +725,8 @@ pub fn process_debt_service(
             bond.turns_remaining -= 1;
         }
 
-        // Interest payment (annual)
-        if (current_turn - bond.issue_turn) % 4 == 0 && bond.turns_remaining > 0 {
+        // Interest payment (annual — Phase 74: fix to every 24 turns, not 4)
+        if (current_turn - bond.issue_turn) % TURNS_PER_YEAR as u32 == 0 && bond.turns_remaining > 0 {
             let adjusted_principal = if bond.is_inflation_indexed {
                 let new_principal = bond.face_value * (1.0 + inflation_rate);
                 bond.face_value = new_principal;
@@ -724,6 +735,7 @@ pub fn process_debt_service(
                 bond.face_value
             };
 
+            // Annual coupon paid once per year — full annual rate is correct
             let interest = adjusted_principal * bond.interest_rate;
             total_due += interest;
             // Retail interest goes to citizen savings
@@ -769,20 +781,24 @@ pub fn process_debt_service(
         });
 
         // Capitalize unpaid portion into holder principals (wholesale)
+        // Phase 74: Use compound per-turn rate for capitalization
         for security in &mut country.debt_market.outstanding_securities {
             if security.is_matured {
                 continue;
             }
             for holder in &mut security.holders {
-                let holder_due = holder.quantity * security.coupon_rate;
+                let per_turn_rate = annual_to_per_turn_rate(security.coupon_rate);
+                let holder_due = holder.quantity * per_turn_rate;
                 let unpaid_holder = holder_due * (1.0 - payment_ratio);
                 holder.quantity += unpaid_holder;
             }
         }
 
         // Capitalize unpaid retail interest into bond arrears
+        // Phase 74: Use compound per-turn rate for capitalization
         for bond in &mut country.debt_market.retail_bonds {
-            let interest = bond.face_value * bond.interest_rate;
+            let per_turn_rate = annual_to_per_turn_rate(bond.interest_rate);
+            let interest = bond.face_value * per_turn_rate;
             let unpaid_interest = interest * (1.0 - payment_ratio);
             bond.arrears += unpaid_interest;
         }

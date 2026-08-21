@@ -17,70 +17,70 @@ use crate::society::geography::Region;
 
 /// Type of institutional fund.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(rename = "typ_funduszu")]
+
 pub enum FundType {
     /// FIO - Open-End Investment Fund (Fundusz Inwestycyjny Otwarty).
-    #[serde(rename = "FIO")]
+
     OpenEndInvestmentFund,
     
-    /// FIZ - Closed-End Investment Fund (Fundusz Inwestycyjny Zamknięty).
-    #[serde(rename = "FIZ")]
+    /// FIZ - Closed-End Investment Fund (Closed-End Investment Fund).
+
     ClosedEndInvestmentFund,
     
     /// Hedge Fund (high-risk, high-leverage strategies).
-    #[serde(rename = "fundusz_zabezpieczający")]
+
     HedgeFund,
     
     /// ETF - Exchange Traded Fund.
-    #[serde(rename = "ETF")]
+
     ExchangeTradedFund,
     
     /// Mutual Fund (traditional diversified portfolio).
-    #[serde(rename = "fundusz_wzajemny")]
+
     MutualFund,
 }
 
 /// Detailed ledger for fund operations and holdings.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[serde(rename = "księga_funduszu")]
+
 pub struct FundLedger {
     /// Net Asset Value per share.
-    #[serde(rename = "wartość_aktywa_netto")]
+
     pub nav_per_share: f64,
 
     /// Total shares outstanding.
-    #[serde(rename = "akcje_w_obrocie")]
+
     pub shares_outstanding: u64,
 
     /// Management fee (percentage of AUM).
-    #[serde(rename = "opłata_zarządzania")]
+
     pub management_fee: f64,
 
     /// Performance fee (percentage of profits above benchmark).
-    #[serde(rename = "opłata_za_wyniki")]
+
     pub performance_fee: f64,
 
     /// Leverage ratio (for hedge funds).
-    #[serde(rename = "dźwignia")]
+
     pub leverage_ratio: f64,
 
     /// Investment mandate restrictions.
-    #[serde(rename = "mandat_inwestycyjny")]
+
     pub investment_mandate: InvestmentMandate,
 
     /// Liquidity provision to AMM pools.
-    #[serde(rename = "dostarczanie_płynności")]
+
     pub liquidity_provision: BTreeMap<String, f64>,
 
     /// Resurrection Phase 2: Unit holder registry — maps contributor_id to units held.
-    #[serde(rename = "posiadacze_jednostek", default)]
+    #[serde(default)]
     pub unit_holders: BTreeMap<String, u64>,
 
     /// Phase 36: Sovereign/treasury bond holdings with strict double-entry tracking.
     /// Each holding records the security ID, face value, purchase price, coupon rate,
     /// maturity, and ownership. This prevents the "magic asset increase" bug where
     /// fund NAV rose without debiting cash or crediting a counterparty.
-    #[serde(rename = "obligacje_skarbowe", default)]
+    #[serde(default)]
     pub bond_holdings: Vec<FundBondHolding>,
 
     /// Phase 57: Fund manager VIP ID (for trait-driven behavior).
@@ -120,18 +120,18 @@ pub struct FundBondHolding {
 
 /// Investment mandate restrictions for institutional funds.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[serde(rename = "mandat_inwestycyjny")]
+
 pub struct InvestmentMandate {
     /// Maximum position size in single company (percentage).
-    #[serde(rename = "maksymalna_pozycja")]
+
     pub max_position_size: f64,
     
     /// Allowed sectors.
-    #[serde(rename = "dozwolone_sektory")]
+
     pub allowed_sectors: Vec<Sector>,
     
     /// Minimum liquidity requirement.
-    #[serde(rename = "minimalna_płynność")]
+
     pub min_liquidity: f64,
 }
 
@@ -981,7 +981,7 @@ mod tests {
     fn test_fund_type_serialization() {
         let fund_type = FundType::OpenEndInvestmentFund;
         let serialized = serde_json::to_string(&fund_type).unwrap();
-        assert!(serialized.contains("FIO"));
+        assert!(serialized.contains("OpenEndInvestmentFund"));
     }
 
     #[test]
