@@ -262,9 +262,9 @@ pub struct Country {
     /// Phase 3: Rebellion goals (ideological demands).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rebellion_goals: Option<Vec<String>>,
-    /// Phase 4: Military units owned by this country.
-    #[serde(default)]
-    pub military_units: Vec<crate::military::MilitaryUnit>,
+    /// Phase 70: Hierarchical Order of Battle (replaces flat military_units).
+    /// No serde default — breaks saves per Rule 10.
+    pub order_of_battle: crate::military::oob::OrderOfBattle,
     /// Phase 5: Active military fronts.
     #[serde(default)]
     pub military_fronts: Vec<crate::military::Front>,
@@ -274,6 +274,11 @@ pub struct Country {
     /// Phase 3: All combat and supply parameters. No magic numbers in logic.
     #[serde(rename = "konfiguracja_bojowa", default)]
     pub military_config: crate::military::config::MilitaryCombatConfig,
+    /// Phase 69: War economy state — production decrees, conscription, war bonds.
+    /// No serde default — breaks saves per Rule 10.
+    pub war_economy: crate::military::war_economy::WarEconomyState,
+    /// Phase 70: Countries this nation is currently at war with.
+    pub at_war_with: Vec<String>,
     /// Phase 3: Pending B2B buy orders from Ministry of Defense.
     /// Created in Phase 8, merged into global OrderBook at start of next turn's Phase 6.4.
     #[serde(rename = "zlecenia_obrony", default)]
@@ -578,10 +583,12 @@ impl Country {
             mother_country: None,
             rebellion_type: None,
             rebellion_goals: None,
-            military_units: Vec::new(),
+            order_of_battle: crate::military::oob::OrderOfBattle::default(),
             military_fronts: Vec::new(),
             military_stockpile: HashMap::new(),
             military_config: crate::military::config::MilitaryCombatConfig::default(),
+            war_economy: crate::military::war_economy::WarEconomyState::default(),
+            at_war_with: Vec::new(),
             pending_defense_orders: Vec::new(),
             rationing_system: RationingSystem::default(),
             emergency_powers: EmergencyPowers::default(),
@@ -929,10 +936,12 @@ impl CountryBuilder {
             mother_country: None,
             rebellion_type: None,
             rebellion_goals: None,
-            military_units: Vec::new(),
+            order_of_battle: crate::military::oob::OrderOfBattle::default(),
             military_fronts: Vec::new(),
             military_stockpile: HashMap::new(),
             military_config: crate::military::config::MilitaryCombatConfig::default(),
+            war_economy: crate::military::war_economy::WarEconomyState::default(),
+            at_war_with: Vec::new(),
             pending_defense_orders: Vec::new(),
             rationing_system: RationingSystem::default(),
             emergency_powers: EmergencyPowers::default(),

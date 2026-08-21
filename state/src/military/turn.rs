@@ -7,6 +7,7 @@ use crate::military::combat::{resolve_battle, process_wounded, process_dead, pro
 use crate::military::config::MilitaryCombatConfig;
 use crate::military::fronts::Front;
 use crate::military::units::MilitaryUnit;
+use crate::military::oob::OrderOfBattle;
 use crate::registries::enums::Commodity;
 use crate::society::geography::{Region, Climate, RuralClass};
 
@@ -29,7 +30,7 @@ use crate::society::geography::{Region, Climate, RuralClass};
 /// # Returns
 /// (updated_fronts, all_messages)
 pub fn process_military_turn(
-    units: &mut Vec<MilitaryUnit>,
+    oob: &mut OrderOfBattle,
     fronts: &mut Vec<Front>,
     regions: &mut Vec<Region>,
     liquid_reserves: &mut f64,
@@ -41,13 +42,17 @@ pub fn process_military_turn(
 ) -> (Vec<Front>, Vec<String>) {
     let mut all_messages = Vec::new();
 
+    // Flatten the OOB into a temporary Vec for processing.
+    // This is safe because unit IDs are unique and we write back by ID.
+    let mut units: Vec<MilitaryUnit> = oob.flatten();
+
     // Phase 45: Degrade military equipment reserves by one turn BEFORE upkeep.
     // This ensures ToE deficits grow naturally, driving recurring procurement.
-    crate::military::degrade_military_equipment(units);
+    crate::military::degrade_military_equipment(&mut units);
 
     // MIL-1: Process unit upkeep (burn stockpiles, pay wages)
     let (_wage_cost, upkeep_messages) = crate::military::process_military_upkeep(
-        units,
+        &mut units,
         liquid_reserves,
         config,
     );
@@ -56,13 +61,13 @@ pub fn process_military_turn(
     // MIL-2: Supply delivery from B2B trades (Phase 45: includes equipment delivery)
     let delivered = crate::military::deliver_military_supplies_and_equipment(
         trades,
-        units,
+        &mut units,
         military_stockpile,
     );
     if !delivered.is_empty() {
         for (commodity, qty) in &delivered {
             all_messages.push(format!(
-                "[DOSTAWA] {} jednostek {} dostarczono do składnicy wojskowej",
+                "[SUPPLY] {} units of {} delivered to military depot",
                 qty, format!("{:?}", commodity)
             ));
         }
@@ -85,7 +90,7 @@ pub fn process_military_turn(
     // MIL-3: Resolve battles on active fronts
     for front in fronts.iter_mut() {
         if front.is_active(turn, 5) {
-            let battle_messages = resolve_front_battles(front, units, regions, turn, country_name, config);
+            let battle_messages = resolve_front_battles(front, &mut units, regions, turn, country_name, config);
             all_messages.extend(battle_messages);
         }
 
@@ -94,16 +99,44 @@ pub fn process_military_turn(
     }
 
     // MIL-4: Disband broken units and return survivors to demographics
-    let disbanded_survivors = disband_broken_units(units, regions);
+    let disbanded_survivors = disband_broken_units(&mut units, regions);
     for msg in &disbanded_survivors {
         all_messages.push(msg.clone());
     }
 
     // MIL-5: Process peasant battalion devastation
-    let devastation_messages = process_peasant_devastation(units, regions, config);
+    let devastation_messages = process_peasant_devastation(&units, regions, config);
     all_messages.extend(devastation_messages);
 
+    // Write back processed units to the OOB by ID.
+    writeback_units_to_oob(oob, &units);
+
+    // Cleanup dead units from the OOB hierarchy
+    oob.cleanup_dead();
+
     (fronts.clone(), all_messages)
+}
+
+/// Writes back processed units from a flat Vec to the OOB by matching unit IDs.
+///
+/// This is the safe writeback path after flatten-process-writeback.
+/// Each unit in the OOB is found by ID and replaced with the processed version.
+fn writeback_units_to_oob(oob: &mut OrderOfBattle, units: &[MilitaryUnit]) {
+    let unit_map: HashMap<String, &MilitaryUnit> = units.iter()
+        .map(|u| (u.id.clone(), u))
+        .collect();
+
+    for army in &mut oob.armies {
+        for division in &mut army.divisions {
+            for regiment in &mut division.regiments {
+                for unit in &mut regiment.units {
+                    if let Some(processed) = unit_map.get(&unit.id) {
+                        *unit = (*processed).clone();
+                    }
+                }
+            }
+        }
+    }
 }
 
 /// Disband units with manpower <= 0 or organization <= 0.
@@ -149,7 +182,7 @@ fn disband_broken_units(
         }
         let total_survivors: i64 = survivors.values().sum();
         messages.push(format!(
-            "[ROZFORMOWANIE] Jednostka z regionu {} rozformowana. {} żołnierzy wraca do populacji.",
+            "[DISBAND] Unit from region {} disbanded. {} soldiers return to population.",
             home_region, total_survivors
         ));
     }
@@ -190,7 +223,7 @@ fn process_peasant_devastation(
     for region in regions {
         if let Some(&devastation) = peasant_regions.get(&region.id) {
             messages.push(format!(
-                "[ZBÓJOWANIE] Region {} cierpi z powodu chłopskich batalionów (uszkodzenia gospodarcze: {}%)",
+                "[FORAGING] Region {} suffers from peasant battalion foraging (economic damage: {}%)",
                 region.id, devastation * 100.0
             ));
         }

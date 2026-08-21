@@ -26,34 +26,24 @@ pub enum FleetMission {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Ship {
     /// Unique ship ID
-    #[serde(rename = "id_statku")]
     pub id: String,
     /// Type of ship
-    #[serde(rename = "typ_statku")]
     pub ship_type: ShipType,
     /// Cargo capacity in tons
-    #[serde(rename = "pojemność_ładunku")]
     pub cargo_capacity: f64,
     /// Current cargo load in tons
-    #[serde(rename = "aktualny_ładunek")]
     pub current_cargo: f64,
     /// Fuel capacity
-    #[serde(rename = "pojemność_paliwa")]
     pub fuel_capacity: f64,
     /// Current fuel
-    #[serde(rename = "aktualne_paliwo")]
     pub current_fuel: f64,
     /// Condition 0-1 (affects performance)
-    #[serde(rename = "stan")]
     pub condition: f64,
     /// Crew required
-    #[serde(rename = "załoga_wymagana")]
     pub crew_required: u32,
     /// Current crew
-    #[serde(rename = "aktualna_załoga")]
     pub current_crew: u32,
     /// Maintenance cost per turn
-    #[serde(rename = "koszt_utrzymania")]
     pub maintenance_cost: f64,
 }
 
@@ -135,31 +125,22 @@ impl Ship {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Fleet {
     /// Unique fleet ID
-    #[serde(rename = "id_floty")]
     pub id: String,
     /// Name of the fleet
-    #[serde(rename = "nazwa_floty")]
     pub name: String,
     /// Owner country
-    #[serde(rename = "kraj_właściciel")]
     pub owner_country: String,
     /// Home port ID
-    #[serde(rename = "port_domowy")]
     pub home_port: String,
     /// Current mission
-    #[serde(rename = "aktualna_misja")]
     pub current_mission: FleetMission,
     /// Ships in the fleet
-    #[serde(rename = "statki", default)]
     pub ships: Vec<Ship>,
     /// Trade route path (if on trade mission)
-    #[serde(rename = "trasa_handlowa", default)]
     pub trade_route: Vec<String>,
     /// Fishing region ID (if on fishing mission)
-    #[serde(rename = "region_rybacki", default)]
     pub fishing_region: Option<String>,
     /// Operational status
-    #[serde(rename = "status_operacyjny")]
     pub operational_status: bool,
 }
 

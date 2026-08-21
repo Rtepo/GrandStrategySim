@@ -207,8 +207,8 @@ export async function getArbitrationCases(country: string): Promise<ArbitrationC
   return invoke<ArbitrationCasesResponse>("get_arbitration_cases", { country });
 }
 
-export async function getMinistryLandReport(country: string, playerVipRole: string): Promise<MinistryLandReportDTO> {
-  return invoke<MinistryLandReportDTO>("get_ministry_land_report", { country, playerVipRole });
+export async function getMinistryLandReport(country: string): Promise<MinistryLandReportDTO> {
+  return invoke<MinistryLandReportDTO>("get_ministry_land_report", { country });
 }
 
 /// Phase 54: Fetch banking history for sparkline tooltips.

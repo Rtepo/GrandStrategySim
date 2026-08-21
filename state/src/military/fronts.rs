@@ -23,19 +23,15 @@ pub enum RegionControl {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct Casualties {
     /// Dead soldiers
-    #[serde(rename = "polegli", default)]
     pub dead: i64,
-    
+
     /// Wounded soldiers
-    #[serde(rename = "ranni", default)]
     pub wounded: i64,
-    
+
     /// Deserters
-    #[serde(rename = "dezerterzy", default)]
     pub deserters: i64,
-    
+
     /// Demographic breakdown of casualties (for routing back to classes)
-    #[serde(rename = "podział_demograficzny", default)]
     pub demographic_breakdown: HashMap<RuralClass, i64>,
 }
 
@@ -79,43 +75,33 @@ impl Casualties {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Battle {
     /// Unique battle ID
-    #[serde(rename = "id_bitwy", default)]
     pub id: String,
-    
+
     /// Battle location (region ID)
-    #[serde(rename = "lokalizacja")]
     pub location: String,
-    
+
     /// Attacking country
-    #[serde(rename = "atakujący")]
     pub attacker: String,
-    
+
     /// Defending country
-    #[serde(rename = "obrońca")]
     pub defender: String,
-    
+
     /// Turn when battle occurred
-    #[serde(rename = "tura")]
     pub turn: u32,
-    
+
     /// Attacker units involved
-    #[serde(rename = "jednostki_atakujące", default)]
     pub attacker_units: Vec<String>,
-    
+
     /// Defender units involved
-    #[serde(rename = "jednostki_obronne", default)]
     pub defender_units: Vec<String>,
-    
+
     /// Attacker casualties
-    #[serde(rename = "straty_atakujące")]
     pub attacker_casualties: Casualties,
-    
+
     /// Defender casualties
-    #[serde(rename = "straty_obronne")]
     pub defender_casualties: Casualties,
-    
+
     /// Battle result
-    #[serde(rename = "wynik")]
     pub result: BattleResult,
 }
 
@@ -131,38 +117,42 @@ pub enum BattleResult {
     Stalemate,
     /// Pyrrhic victory (attacker won but with heavy losses)
     PyrrhicVictory,
+    /// Phase 70.4b: Strategic retreat — one side withdrew to preserve forces.
+    /// The retreating side is identified by the `retreating_side` field.
+    Retreat {
+        /// Name of the country that retreated.
+        retreating_side: String,
+    },
 }
 
 /// Military front (collection of battles in a region)
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Front {
     /// Unique front ID
-    #[serde(rename = "id_frontu", default)]
     pub id: String,
-    
+
     /// Front name
-    #[serde(rename = "nazwa")]
     pub name: String,
-    
+
     /// Regions involved in this front
-    #[serde(rename = "regiony", default)]
     pub regions: Vec<String>,
-    
+
     /// Control status of each region
-    #[serde(rename = "kontrola_regionów", default)]
     pub region_control: HashMap<String, RegionControl>,
-    
+
     /// Active battles in this front
-    #[serde(rename = "bitwy", default)]
     pub battles: Vec<Battle>,
-    
+
     /// Countries involved in this front
-    #[serde(rename = "kraj_zaangażowane", default)]
     pub involved_countries: Vec<String>,
-    
+
     /// War exhaustion for each country
-    #[serde(rename = "zmęczenie_wojenne", default)]
     pub war_exhaustion: HashMap<String, f64>,
+
+    /// Phase 71: Parcels where active combat is occurring (combat zones).
+    /// Devastation is applied at the parcel level, then aggregated to regions.
+    #[serde(default)]
+    pub combat_zones: Vec<crate::society::cadastre::ParcelId>,
 }
 
 impl Front {
@@ -200,6 +190,7 @@ impl Front {
             battles: Vec::new(),
             involved_countries: countries,
             war_exhaustion,
+            combat_zones: Vec::new(),
         }
     }
     

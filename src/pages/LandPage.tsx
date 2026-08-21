@@ -24,7 +24,7 @@ import type {
 type Tab = "cadastre" | "zoning" | "courts";
 
 export function LandPage() {
-  const { selectedCountry, playerVipRole } = useGameStore();
+  const { selectedCountry } = useGameStore();
   const [tab, setTab] = useState<Tab>("cadastre");
 
   if (!selectedCountry) return <div className="p-6 text-muted-foreground">Select a country from the sidebar.</div>;
@@ -40,7 +40,7 @@ export function LandPage() {
         <TabButton active={tab === "courts"} onClick={() => setTab("courts")}>Courts & Arbitration</TabButton>
       </div>
 
-      {tab === "cadastre" && <CadastreTab country={selectedCountry} playerVipRole={playerVipRole} />}
+      {tab === "cadastre" && <CadastreTab country={selectedCountry} />}
       {tab === "zoning" && <ZoningTab country={selectedCountry} />}
       {tab === "courts" && <CourtsTab country={selectedCountry} />}
     </div>
@@ -66,7 +66,7 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
 // CADASTRE TAB
 // ============================================================================
 
-function CadastreTab({ country, playerVipRole }: { country: string; playerVipRole: string }) {
+function CadastreTab({ country }: { country: string }) {
   const { data, isLoading } = useQuery({
     queryKey: ["cadastre-summary", country],
     queryFn: () => getCadastreSummary(country),
@@ -74,12 +74,11 @@ function CadastreTab({ country, playerVipRole }: { country: string; playerVipRol
     staleTime: 30_000,
   });
 
-  // Role-gated Ministry Report — only visible to top-tier executives
-  const isExecutiveRole = isAuthorizedRole(playerVipRole);
+  // Ministry Report — always visible
   const { data: ministryReport, isLoading: ministryLoading } = useQuery<MinistryLandReportDTO>({
-    queryKey: ["ministry-land-report", country, playerVipRole],
-    queryFn: () => getMinistryLandReport(country, playerVipRole),
-    enabled: !!country && isExecutiveRole,
+    queryKey: ["ministry-land-report", country],
+    queryFn: () => getMinistryLandReport(country),
+    enabled: !!country,
     staleTime: 30_000,
     retry: false,
   });
@@ -160,75 +159,63 @@ function CadastreTab({ country, playerVipRole }: { country: string; playerVipRol
         </Card>
       )}
 
-      {/* Role-Gated Ministry Report */}
-      {isExecutiveRole ? (
-        <Card className="border-amber-500/30">
-          <CardHeader>
-            <CardTitle className="text-sm flex items-center gap-2">
-              <span>Ministry of Agriculture — Classified Report</span>
-              <Badge variant="outline" className="text-amber-500 border-amber-500/50">RESTRICTED</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {ministryLoading ? (
-              <div className="text-muted-foreground">Loading classified report...</div>
-            ) : ministryReport ? (
-              <div className="space-y-4">
-                <div className="grid grid-cols-4 gap-3">
-                  <StatBox label="Total Land Value" value={fmt(ministryReport.total_land_value)} />
-                  <StatBox label="Total Hectares" value={fmt(ministryReport.total_hectares)} />
-                  <StatBox label="Foreign Ownership" value={pct(ministryReport.foreign_ownership_pct)} />
-                  <StatBox label="Arbitration Exposure" value={fmt(ministryReport.total_arbitration_exposure)} />
-                </div>
-                <div className="grid grid-cols-3 gap-3">
-                  <StatBox label="Border Conflicts" value={String(ministryReport.total_border_conflicts)} />
-                  <StatBox label="Pending Arbitration" value={String(ministryReport.total_arbitration_cases)} />
-                  <StatBox label="Report Turn" value={String(ministryReport.report_turn)} />
-                </div>
-                <p className="text-xs text-muted-foreground italic">{ministryReport.delay_note}</p>
-                {ministryReport.regional_summaries.length > 0 && (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Region</TableHead>
-                        <TableHead className="text-right">Hectares</TableHead>
-                        <TableHead className="text-right">Value</TableHead>
-                        <TableHead className="text-right">Certainty</TableHead>
-                        <TableHead className="text-right">Foreign %</TableHead>
-                        <TableHead className="text-right">Conflicts</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {ministryReport.regional_summaries.map((r) => (
-                        <TableRow key={r.region_id}>
-                          <TableCell>{r.region_id}</TableCell>
-                          <TableCell className="text-right">{fmt(r.total_hectares)}</TableCell>
-                          <TableCell className="text-right">{fmt(r.total_value)}</TableCell>
-                          <TableCell className="text-right"><CertaintyBadge certainty={r.avg_legal_certainty} /></TableCell>
-                          <TableCell className="text-right">{pct(r.foreign_ownership_pct)}</TableCell>
-                          <TableCell className="text-right">{r.border_conflicts}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
+      {/* Ministry Report — always visible */}
+      <Card className="border-amber-500/30">
+        <CardHeader>
+          <CardTitle className="text-sm flex items-center gap-2">
+            <span>Ministry of Agriculture — Classified Report</span>
+            <Badge variant="outline" className="text-amber-500 border-amber-500/50">RESTRICTED</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {ministryLoading ? (
+            <div className="text-muted-foreground">Loading classified report...</div>
+          ) : ministryReport ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-4 gap-3">
+                <StatBox label="Total Land Value" value={fmt(ministryReport.total_land_value)} />
+                <StatBox label="Total Hectares" value={fmt(ministryReport.total_hectares)} />
+                <StatBox label="Foreign Ownership" value={pct(ministryReport.foreign_ownership_pct)} />
+                <StatBox label="Arbitration Exposure" value={fmt(ministryReport.total_arbitration_exposure)} />
               </div>
-            ) : (
-              <div className="text-muted-foreground text-sm">Unable to load classified report.</div>
-            )}
-          </CardContent>
-        </Card>
-      ) : (
-        <Card className="border-dashed">
-          <CardContent className="pt-6">
-            <div className="text-center text-muted-foreground text-sm">
-              <p className="font-medium">Ministry Reports — Classified</p>
-              <p className="mt-1">Internal government land reports are only available to top-tier executive office holders (Prime Minister, Head of State, or Minister).</p>
-              <p className="mt-2 text-xs">Your current role: {playerVipRole || "None"}</p>
+              <div className="grid grid-cols-3 gap-3">
+                <StatBox label="Border Conflicts" value={String(ministryReport.total_border_conflicts)} />
+                <StatBox label="Pending Arbitration" value={String(ministryReport.total_arbitration_cases)} />
+                <StatBox label="Report Turn" value={String(ministryReport.report_turn)} />
+              </div>
+              <p className="text-xs text-muted-foreground italic">{ministryReport.delay_note}</p>
+              {ministryReport.regional_summaries.length > 0 && (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Region</TableHead>
+                      <TableHead className="text-right">Hectares</TableHead>
+                      <TableHead className="text-right">Value</TableHead>
+                      <TableHead className="text-right">Certainty</TableHead>
+                      <TableHead className="text-right">Foreign %</TableHead>
+                      <TableHead className="text-right">Conflicts</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {ministryReport.regional_summaries.map((r) => (
+                      <TableRow key={r.region_id}>
+                        <TableCell>{r.region_id}</TableCell>
+                        <TableCell className="text-right">{fmt(r.total_hectares)}</TableCell>
+                        <TableCell className="text-right">{fmt(r.total_value)}</TableCell>
+                        <TableCell className="text-right"><CertaintyBadge certainty={r.avg_legal_certainty} /></TableCell>
+                        <TableCell className="text-right">{pct(r.foreign_ownership_pct)}</TableCell>
+                        <TableCell className="text-right">{r.border_conflicts}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          ) : (
+            <div className="text-muted-foreground text-sm">Unable to load classified report.</div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -514,8 +501,3 @@ function strengthColor(strength: number): string {
   return "text-red-500";
 }
 
-/** Check if the player's VIP role is authorized for Ministry Reports. */
-function isAuthorizedRole(role: string): boolean {
-  const lower = role.toLowerCase();
-  return ["prime_minister", "head_of_state", "president", "minister"].some(r => lower.includes(r));
-}

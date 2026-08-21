@@ -329,7 +329,7 @@ pub fn process_intel_turn(
     };
 
     let true_gdp = target_country.budget.gdp;
-    let true_military = target_country.military_units.len() as u32;
+    let true_military = target_country.order_of_battle.unit_count() as u32;
     let true_treasury = target_country.budget.liquid_reserves;
 
     let level = compute_intel_level(state, observer, target, fog_config);

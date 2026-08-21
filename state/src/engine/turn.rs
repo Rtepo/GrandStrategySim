@@ -36,6 +36,10 @@ use crate::government::{
 };
 use crate::international::{balance_global_trade, process_diplomacy_turn, TradeBalanceResult};
 use crate::military::{process_military_turn, add_military_demand_to_market};
+use crate::military::war_economy::{
+    execute_conscription, process_expired_decrees, issue_war_bonds, WarEconomyConfig,
+    ConscriptionLevel,
+};
 use crate::state::Country;
 use rand::SeedableRng;
 use crate::registries::enums::Commodity;
@@ -1184,7 +1188,7 @@ pub fn run_turn_in_memory(
             let config = task.ctx.country.military_config.clone();
             let trades = all_trades.clone();
             let (_fronts, mil_messages) = process_military_turn(
-                &mut task.ctx.country.military_units,
+                &mut task.ctx.country.order_of_battle,
                 &mut task.ctx.country.military_fronts,
                 &mut task.ctx.country.regions,
                 &mut task.ctx.country.budget.liquid_reserves,
@@ -1196,6 +1200,47 @@ pub fn run_turn_in_memory(
             );
             // Log military messages (in full implementation, would push to event log)
             let _ = mil_messages;
+        });
+
+        // ═══════════════════════════════════════════════════════════
+        // PHASE 69: WAR ECONOMY
+        // 69-A: Conscription (drain demographics → military units)
+        // 69-B: War bond issuance (if at war and deficit exceeds threshold)
+        // 69-C: Expired decree cleanup (after production, see below)
+        // ═══════════════════════════════════════════════════════════
+        let war_economy_config = WarEconomyConfig::default();
+        tasks.par_iter_mut().for_each(|task| {
+            // 69-A: Conscription
+            let _conscription_result = execute_conscription(
+                &mut task.ctx.country.regions,
+                &mut task.ctx.country.order_of_battle,
+                &mut task.ctx.country.war_economy,
+                &war_economy_config,
+                &task.ctx.country.name,
+                task.ctx.turn,
+            );
+
+            // 69-B: War bond issuance if at war and deficit exceeds threshold
+            let at_war = !task.ctx.country.at_war_with.is_empty();
+            if at_war {
+                let liquid = task.ctx.country.budget.liquid_reserves;
+                let gdp: f64 = task.ctx.country.regions.iter().map(|r| r.gdp).sum();
+                let deficit_threshold = gdp * war_economy_config.war_bond_deficit_threshold;
+                if liquid < deficit_threshold {
+                    let amount_needed = deficit_threshold - liquid;
+                    let avg_wage = task.ctx.country.regions.iter()
+                        .map(|r| r.gdp / (r.population as f64).max(1.0))
+                        .sum::<f64>()
+                        / (task.ctx.country.regions.len() as f64).max(1.0);
+                    let _raised = issue_war_bonds(
+                        &mut task.ctx.country,
+                        amount_needed,
+                        &war_economy_config,
+                        task.ctx.turn,
+                        avg_wage,
+                    );
+                }
+            }
         });
 
         // ═══════════════════════════════════════════════════════════
@@ -1709,6 +1754,19 @@ pub fn run_turn_in_memory(
 
         // Update market history with VWAP
         market_history::update_vwap(&mut state.market_history, &all_trades);
+
+        // ═══════════════════════════════════════════════════════════
+        // PHASE 69-C: EXPIRED DECREE CLEANUP
+        // After production, remove expired production decrees and
+        // restore original production methods on affected buildings.
+        // ═══════════════════════════════════════════════════════════
+        tasks.par_iter_mut().for_each(|task| {
+            process_expired_decrees(
+                &mut task.ctx.buildings,
+                &mut task.ctx.country.war_economy,
+                task.ctx.turn,
+            );
+        });
 
         // Phase 6.5: Agricultural sub-sequence (Phase 6.3.5)
         tasks.par_iter_mut().for_each(|task| {
@@ -3225,7 +3283,7 @@ pub fn run_turn_in_memory(
             let mod_cash = task.ctx.country.budget.liquid_reserves * 0.3; // Reserve 30% for MoD procurement
             let market_prices = &market.base_prices;
             let bids = crate::military::submit_defense_b2b_orders(
-                &task.ctx.country.military_units,
+                &task.ctx.country.order_of_battle.flatten(),
                 &config,
                 mod_cash,
                 market_prices,
@@ -3254,7 +3312,7 @@ pub fn run_turn_in_memory(
 
         // Add military commodity demand to market before clearing
         tasks.par_iter_mut().for_each(|task| {
-            add_military_demand_to_market(&task.ctx.country.military_units, &mut task.orders.orders);
+            add_military_demand_to_market(&task.ctx.country.order_of_battle.flatten(), &mut task.orders.orders);
         });
 
         // ═══════════════════════════════════════════════════════════
@@ -4313,7 +4371,7 @@ pub fn run_turn_in_memory(
             None => continue,
         };
         let true_gdp = target_country.budget.gdp;
-        let true_military = target_country.military_units.len() as u32;
+        let true_military = target_country.order_of_battle.unit_count() as u32;
         let true_treasury = target_country.budget.liquid_reserves;
 
         let observer_intel = state.foreign_intelligence

@@ -5,6 +5,7 @@ pub mod company_queries;
 pub mod diplomacy_queries;
 pub mod governance_queries;
 pub mod macro_queries;
+pub mod military_queries;
 pub mod parliament_queries;
 pub mod region_queries;
 pub mod securities_queries;

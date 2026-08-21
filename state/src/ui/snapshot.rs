@@ -793,7 +793,7 @@ pub fn build_foreign_country_rows(
 
         let fog_result = crate::international::fog_of_war::apply_fog_of_war(
             country.budget.gdp,
-            country.military_units.len() as u32,
+            country.order_of_battle.unit_count() as u32,
             country.budget.liquid_reserves,
             &intel,
         );
@@ -3327,4 +3327,315 @@ pub fn build_global_snapshot(
     }
 
     GlobalSnapshot { turn, year, countries, diplomacy: None, foreign_countries: Vec::new() }
+}
+
+// ============================================================================
+// Phase 73: Military & Crisis Dashboard DTOs
+// ============================================================================
+
+/// A single active war/front row for the Military dashboard.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct WarRow {
+    /// Front ID.
+    pub front_id: String,
+    /// Front name.
+    pub front_name: String,
+    /// Countries involved.
+    pub involved_countries: Vec<String>,
+    /// Regions in the front.
+    pub regions: Vec<String>,
+    /// War exhaustion per country.
+    pub war_exhaustion: Vec<(String, f64)>,
+    /// Number of battles fought.
+    pub battle_count: usize,
+    /// Last battle result (if any).
+    pub last_battle_result: String,
+}
+
+/// A single battle row for the Military dashboard.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct BattleRow {
+    /// Battle ID.
+    pub battle_id: String,
+    /// Location (region).
+    pub location: String,
+    /// Attacker country.
+    pub attacker: String,
+    /// Defender country.
+    pub defender: String,
+    /// Battle result.
+    pub result: String,
+    /// Attacker casualties.
+    pub attacker_casualties: i64,
+    /// Defender casualties.
+    pub defender_casualties: i64,
+    /// Turn.
+    pub turn: u32,
+}
+
+/// A single devastation row for the heatmap.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct DevastationRow {
+    /// Region ID.
+    pub region_id: String,
+    /// Region display name.
+    pub region_name: String,
+    /// Average devastation index (0.0 = pristine, 1.0 = total ruin).
+    pub devastation_index: f64,
+    /// Number of parcels.
+    pub parcel_count: usize,
+    /// Number of parcels above destruction threshold.
+    pub destroyed_parcels: usize,
+    /// Number of parcels above damage threshold.
+    pub damaged_parcels: usize,
+}
+
+/// Army composition for a single country.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct ArmyCompositionRow {
+    /// Country name.
+    pub country: String,
+    /// Total manpower across all units.
+    pub total_manpower: i64,
+    /// Number of armies in the OOB.
+    pub army_count: usize,
+    /// Number of divisions.
+    pub division_count: usize,
+    /// Number of regiments.
+    pub regiment_count: usize,
+    /// Total unit count.
+    pub unit_count: usize,
+    /// Unit counts by type.
+    pub units_by_type: Vec<(String, usize)>,
+    /// Total manpower by type.
+    pub manpower_by_type: Vec<(String, i64)>,
+}
+
+/// War morale for a single country's demographic class.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct MoraleRow {
+    /// Country name.
+    pub country: String,
+    /// Region ID.
+    pub region_id: String,
+    /// Class name (e.g., "FreePeasant").
+    pub class_name: String,
+    /// War morale (0.0–100.0).
+    pub war_morale: f64,
+    /// Mental health (0.0–100.0).
+    pub mental_health: f64,
+    /// Population.
+    pub population: i64,
+    /// Whether strikes are active.
+    pub strikes_active: bool,
+    /// Whether desertions are active.
+    pub desertions_active: bool,
+}
+
+/// A single disaster event for the Peacetime Disasters panel.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct DisasterRow {
+    /// Disaster event ID.
+    pub event_id: String,
+    /// Disaster type.
+    pub disaster_type: String,
+    /// Region where it occurred.
+    pub region_id: String,
+    /// Turn.
+    pub turn: u32,
+    /// Devastation impact.
+    pub devastation_impact: f64,
+    /// Casualties.
+    pub casualties: i64,
+}
+
+/// POW camp statistics for a single country.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct PowCampRow {
+    /// Country name (captor).
+    pub country: String,
+    /// Total prisoners.
+    pub total_prisoners: i64,
+    /// Number of distinct prisoner groups.
+    pub prisoner_groups: usize,
+    /// Prisoners by origin country.
+    pub prisoners_by_origin: Vec<(String, i64)>,
+    /// Average health of POWs.
+    pub average_health: f64,
+    /// POWs assigned to forced labor.
+    pub forced_labor_assigned: i64,
+}
+
+/// Full military dashboard response.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct MilitaryDashboardResponse {
+    /// All active wars/fronts.
+    pub wars: Vec<WarRow>,
+    /// Recent battles across all fronts.
+    pub recent_battles: Vec<BattleRow>,
+    /// Devastation heatmap data per region.
+    pub devastation_map: Vec<DevastationRow>,
+    /// Army composition for each country.
+    pub army_compositions: Vec<ArmyCompositionRow>,
+    /// War morale for each country's demographic classes.
+    pub war_morale: Vec<MoraleRow>,
+    /// Recent peacetime disaster events.
+    pub disasters: Vec<DisasterRow>,
+    /// POW camp statistics.
+    pub pow_camps: Vec<PowCampRow>,
+}
+
+/// Builds the full military dashboard response.
+pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse {
+    let mut wars = Vec::new();
+    let mut recent_battles = Vec::new();
+    let mut army_compositions = Vec::new();
+    let mut war_morale = Vec::new();
+    let mut pow_camps = Vec::new();
+
+    for (country_name, country) in &state.countries {
+        // Active wars/fronts
+        for front in &country.military_fronts {
+            let battle_count = front.battles.len();
+            let last_battle_result = front.battles.last()
+                .map(|b| format!("{:?}", b.result))
+                .unwrap_or_else(|| "No battles".to_string());
+
+            wars.push(WarRow {
+                front_id: front.id.clone(),
+                front_name: front.name.clone(),
+                involved_countries: front.involved_countries.clone(),
+                regions: front.regions.clone(),
+                war_exhaustion: front.war_exhaustion.iter()
+                    .map(|(k, v)| (k.clone(), *v))
+                    .collect(),
+                battle_count,
+                last_battle_result,
+            });
+
+            // Recent battles (last 5 per front)
+            for battle in front.battles.iter().rev().take(5) {
+                recent_battles.push(BattleRow {
+                    battle_id: battle.id.clone(),
+                    location: battle.location.clone(),
+                    attacker: battle.attacker.clone(),
+                    defender: battle.defender.clone(),
+                    result: format!("{:?}", battle.result),
+                    attacker_casualties: battle.attacker_casualties.total(),
+                    defender_casualties: battle.defender_casualties.total(),
+                    turn: battle.turn,
+                });
+            }
+        }
+
+        // Army composition
+        let oob = &country.order_of_battle;
+        let total_manpower = oob.total_manpower();
+        let army_count = oob.armies.len();
+        let division_count: usize = oob.armies.iter().map(|a| a.divisions.len()).sum();
+        let regiment_count: usize = oob.armies.iter()
+            .flat_map(|a| a.divisions.iter())
+            .map(|d| d.regiments.len())
+            .sum();
+        let unit_count = oob.unit_count();
+
+        // Count units by type
+        let mut units_by_type: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
+        let mut manpower_by_type: std::collections::BTreeMap<String, i64> = std::collections::BTreeMap::new();
+        for unit in oob.flatten() {
+            let type_name = format!("{:?}", unit.unit_type);
+            *units_by_type.entry(type_name.clone()).or_insert(0) += 1;
+            *manpower_by_type.entry(type_name).or_insert(0) += unit.manpower;
+        }
+
+        army_compositions.push(ArmyCompositionRow {
+            country: country_name.clone(),
+            total_manpower,
+            army_count,
+            division_count,
+            regiment_count,
+            unit_count,
+            units_by_type: units_by_type.into_iter().collect(),
+            manpower_by_type: manpower_by_type.into_iter().collect(),
+        });
+
+        // War morale per class — regions is a Vec<Region>
+        for region in &country.regions {
+            for (class_name, demo) in &region.class_demographics.rural_classes {
+                war_morale.push(MoraleRow {
+                    country: country_name.clone(),
+                    region_id: region.id.clone(),
+                    class_name: class_name.clone(),
+                    war_morale: demo.war_morale,
+                    mental_health: demo.mental_health,
+                    population: demo.population,
+                    strikes_active: demo.war_morale < 30.0,
+                    desertions_active: demo.war_morale < 15.0,
+                });
+            }
+        }
+
+        // POW camp stats — POW camps are managed in the turn context, not on Country.
+        // The dashboard exposes zero-row POW data when no camps are active.
+        // (POW data would be populated from the turn context's POW registry if present.)
+    }
+
+    // Devastation map — aggregate per region per country
+    let mut devastation_map = Vec::new();
+    for (country_name, country) in &state.countries {
+        let cadastre = &country.cadastre;
+        for region in &country.regions {
+            let parcel_ids = &region.parcel_ids;
+            if parcel_ids.is_empty() {
+                continue;
+            }
+            let mut total_devastation = 0.0;
+            let mut parcel_count = 0usize;
+            let mut destroyed = 0usize;
+            let mut damaged = 0usize;
+            for pid in parcel_ids {
+                if let Some(p) = cadastre.get(*pid) {
+                    total_devastation += p.devastation_index;
+                    parcel_count += 1;
+                    if p.devastation_index >= 0.7 {
+                        destroyed += 1;
+                    } else if p.devastation_index >= 0.3 {
+                        damaged += 1;
+                    }
+                }
+            }
+            if parcel_count > 0 {
+                devastation_map.push(DevastationRow {
+                    region_id: format!("{}:{}", country_name, region.id),
+                    region_name: if region.display_name.is_empty() {
+                        region.id.clone()
+                    } else {
+                        region.display_name.clone()
+                    },
+                    devastation_index: total_devastation / parcel_count as f64,
+                    parcel_count,
+                    destroyed_parcels: destroyed,
+                    damaged_parcels: damaged,
+                });
+            }
+        }
+    }
+
+    MilitaryDashboardResponse {
+        wars,
+        recent_battles,
+        devastation_map,
+        army_compositions,
+        war_morale,
+        disasters: Vec::new(), // Disasters are transient — would need a log
+        pow_camps,
+    }
 }

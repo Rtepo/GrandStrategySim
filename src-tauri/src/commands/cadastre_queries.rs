@@ -1,8 +1,7 @@
 //! Phase 60: Tauri commands for cadastre, zoning, courts, and arbitration queries.
 //!
-//! **Role-gating**: `get_ministry_land_report` enforces server-side that the
-//! player's VIP holds a top-tier executive office (Prime Minister, Head of State,
-//! or Minister). Non-executive players receive an error response.
+//! Phase 68b: Role-gating has been removed for Zero-Player mode. All data is
+//! visible to the observer dashboard.
 
 use crate::state::AppState;
 use sim_engine::society::cadastre::{
@@ -306,33 +305,13 @@ pub async fn get_arbitration_cases(
 
 /// Get ministry land report — **ROLE-GATED**.
 ///
-/// Server-side enforcement: only players controlling a VIP in a top-tier
-/// executive office (Prime Minister, Head of State, or Minister) can access
-/// this internal government document. Non-executive players receive an error.
+/// Phase 68b: Zero-Player mode — role-gating removed. All data is visible
+/// to the observer dashboard for AI debugging and verification.
 #[tauri::command]
 pub async fn get_ministry_land_report(
     state: tauri::State<'_, AppState>,
     country: String,
-    player_vip_role: String,
 ) -> Result<MinistryLandReportDTO, String> {
-    // Role gate — server-side enforcement
-    let authorized_roles = [
-        "prime_minister",
-        "head_of_state",
-        "president",
-        "minister_of_agriculture",
-        "minister_of_regional_development",
-        "minister",
-    ];
-    let role_lower = player_vip_role.to_lowercase();
-    let is_authorized = authorized_roles
-        .iter()
-        .any(|r| role_lower.contains(r));
-
-    if !is_authorized {
-        return Err("Unauthorized: Ministry land reports are classified government documents. Only top-tier executive office holders (Prime Minister, Head of State, or Minister) may access this data.".to_string());
-    }
-
     let state_clone = state.inner().clone();
     tokio::task::spawn_blocking(move || {
         let engine_guard = state_clone.engine.blocking_read();

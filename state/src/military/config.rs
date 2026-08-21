@@ -11,94 +11,153 @@ use serde::{Deserialize, Serialize};
 pub struct MilitaryCombatConfig {
     // ── Terrain modifiers (defender bonus) ──
     /// Defender multiplier in mountain terrain.
-    #[serde(rename = "bonus_górski", default = "default_terrain_mountain")]
+    #[serde(default = "default_terrain_mountain")]
     pub terrain_mountain_defense_bonus: f64,
     /// Defender multiplier in forest terrain.
-    #[serde(rename = "bonus_leśny", default = "default_terrain_forest")]
+    #[serde(default = "default_terrain_forest")]
     pub terrain_forest_defense_bonus: f64,
     /// Defender multiplier on plains.
-    #[serde(rename = "bonus_równinny", default = "default_terrain_plains")]
+    #[serde(default = "default_terrain_plains")]
     pub terrain_plains_defense_bonus: f64,
 
     // ── Battle resolution thresholds ──
     /// Attacker power > defender power * this → AttackerVictory.
-    #[serde(rename = "próg_zdecydowanego_zwycięstwa", default = "default_decisive_victory")]
+    #[serde(default = "default_decisive_victory")]
     pub decisive_victory_ratio: f64,
     /// Attacker power > defender power * this → PyrrhicVictory.
-    #[serde(rename = "próg_zwycięstwa_pyrrusowego", default = "default_pyrrhic_victory")]
+    #[serde(default = "default_pyrrhic_victory")]
     pub pyrrhic_victory_ratio: f64,
 
     // ── Casualty ratios ──
     /// Maximum fraction of loser's manpower that becomes casualties.
-    #[serde(rename = "maks_straty_przegrany", default = "default_max_loser_casualty")]
+    #[serde(default = "default_max_loser_casualty")]
     pub max_loser_casualty_ratio: f64,
     /// Winner casualties as a fraction of loser casualties.
-    #[serde(rename = "mnożnik_strat_zwycięzcy", default = "default_winner_casualty_mult")]
+    #[serde(default = "default_winner_casualty_mult")]
     pub winner_casualty_multiplier: f64,
     /// Casualty ratio for both sides in a stalemate.
-    #[serde(rename = "straty_pat", default = "default_stalemate_casualty")]
+    #[serde(default = "default_stalemate_casualty")]
     pub stalemate_casualty_ratio: f64,
     /// Fraction of casualties that are dead.
-    #[serde(rename = "wskaźnik_poległych", default = "default_dead_ratio")]
+    #[serde(default = "default_dead_ratio")]
     pub dead_ratio: f64,
     /// Fraction of casualties that are wounded.
-    #[serde(rename = "wskaźnik_rannych", default = "default_wounded_ratio")]
+    #[serde(default = "default_wounded_ratio")]
     pub wounded_ratio: f64,
     /// Fraction of casualties that are deserters.
-    #[serde(rename = "wskaźnik_dezerterów", default = "default_deserters_ratio")]
+    #[serde(default = "default_deserters_ratio")]
     pub deserters_ratio: f64,
 
     // ── Combat commodity burn rates (per 1000 soldiers per battle) ──
     /// Base ammunition burned per 1000 soldiers in a decisive battle.
-    #[serde(rename = "bazowe_spalanie_amunicji", default = "default_ammo_burn")]
+    #[serde(default = "default_ammo_burn")]
     pub base_ammo_burn_per_battle: f64,
     /// Base fuel burned per 1000 soldiers in a decisive battle.
-    #[serde(rename = "bazowe_spalanie_paliwa", default = "default_fuel_burn")]
+    #[serde(default = "default_fuel_burn")]
     pub base_fuel_burn_per_battle: f64,
     /// Combat intensity multiplier for stalemates (reduced burn).
-    #[serde(rename = "intensywność_patu", default = "default_stalemate_intensity")]
+    #[serde(default = "default_stalemate_intensity")]
     pub stalemate_combat_intensity: f64,
     /// Combat intensity multiplier for decisive battles (full burn).
-    #[serde(rename = "intensywność_zdecydowana", default = "default_decisive_intensity")]
+    #[serde(default = "default_decisive_intensity")]
     pub decisive_combat_intensity: f64,
 
     // ── Supply & attrition ──
     /// Supply level at or above which a unit fights at full power.
-    #[serde(rename = "próg_pełnego_zaopatrzenia", default = "default_supply_full")]
+    #[serde(default = "default_supply_full")]
     pub supply_full_threshold: f64,
     /// Combat power multiplier when supply is zero.
-    #[serde(rename = "kara_brak_zaopatrzenia", default = "default_supply_zero_penalty")]
+    #[serde(default = "default_supply_zero_penalty")]
     pub supply_zero_penalty: f64,
     /// Supply level below which attrition occurs.
-    #[serde(rename = "próg_atrakcji", default = "default_attrition_threshold")]
+    #[serde(default = "default_attrition_threshold")]
     pub attrition_supply_threshold: f64,
     /// Fraction of manpower lost per turn below attrition threshold.
-    #[serde(rename = "współczynnik_atrakcji", default = "default_attrition_loss")]
+    #[serde(default = "default_attrition_loss")]
     pub attrition_manpower_loss_ratio: f64,
     /// Organization lost per turn when fully unsupplied.
-    #[serde(rename = "utrata_organizacji_bez_zaopatrzenia", default = "default_org_loss")]
+    #[serde(default = "default_org_loss")]
     pub organization_loss_unsupplied: f64,
 
     // ── Upkeep ──
     /// Food consumed per 1000 soldiers per turn.
-    #[serde(rename = "zaopatrzenie_żywnościowe", default = "default_food_upkeep")]
+    #[serde(default = "default_food_upkeep")]
     pub food_upkeep_per_1000: f64,
     /// Number of turns of upkeep a unit's field stockpile can hold.
-    #[serde(rename = "pojemność_polkowa", default = "default_supply_capacity")]
+    #[serde(default = "default_supply_capacity")]
     pub unit_supply_capacity_turns: f64,
 
     // ── War exhaustion ──
     /// War exhaustion decay rate per turn (fraction).
-    #[serde(rename = "rotacja_zmęczenia_wojennego", default = "default_we_decay")]
+    #[serde(default = "default_we_decay")]
     pub war_exhaustion_decay_rate: f64,
     /// War exhaustion gained per 1000 casualties.
-    #[serde(rename = "zmęczenie_na_straty", default = "default_we_per_casualty")]
+    #[serde(default = "default_we_per_casualty")]
     pub war_exhaustion_per_casualty: f64,
 
     // ── Peasant devastation ──
     /// Multiplier: foraging_intensity * this = GDP damage fraction.
-    #[serde(rename = "mnożnik_dewastacji_chłopów", default = "default_peasant_devastation")]
+    #[serde(default = "default_peasant_devastation")]
     pub peasant_devastation_multiplier: f64,
+
+    // ── Multi-domain combat (Phase 70.4) ──
+    /// Land combat power multiplier for the side with air superiority (offensive).
+    /// Derived from close-air-support effectiveness (CAS multiplier).
+    #[serde(default = "default_air_superiority_offensive")]
+    pub air_superiority_offensive_bonus: f64,
+    /// Land combat power multiplier for the side with air superiority (defensive).
+    /// Derived from air interdiction reducing attacker effectiveness.
+    #[serde(default = "default_air_superiority_defensive")]
+    pub air_superiority_defensive_bonus: f64,
+    /// Land combat power multiplier for the side with naval control (coastal).
+    /// Derived from naval gunfire support effectiveness.
+    #[serde(default = "default_naval_bombardment")]
+    pub naval_bombardment_bonus: f64,
+
+    // ── Strategic retreat (Phase 70.4b) ──
+    /// Combat power ratio below which retreat is evaluated (e.g., 0.333 = 1:3).
+    /// If one side's power is less than this fraction of the other's, retreat
+    /// is considered (subject to commander traits).
+    #[serde(default = "default_catastrophic_power_ratio")]
+    pub catastrophic_power_ratio: f64,
+    /// Casualty ratio for the retreating side (e.g., 0.05 = 5% losses).
+    /// Much lower than a decisive defeat (30%) — the army escapes.
+    #[serde(default = "default_retreat_casualty_ratio")]
+    pub retreat_casualty_ratio: f64,
+    /// Casualty ratio for the opposing side during a retreat (e.g., 0.02).
+    /// Minimal — the retreating side fled, so the victor takes few losses.
+    #[serde(default = "default_retreat_attacker_casualty_ratio")]
+    pub retreat_attacker_casualty_ratio: f64,
+    /// Fraction of ToE equipment lost during retreat (e.g., 0.15 = 15%).
+    /// Abandoned equipment flows to the victor as captured materiel.
+    #[serde(default = "default_retreat_equipment_loss_rate")]
+    pub retreat_equipment_loss_rate: f64,
+
+    // ── Phase 71: Devastation Index ──
+    /// Devastation added per decisive battle on combat-zone parcels.
+    #[serde(default = "default_devastation_per_decisive_battle")]
+    pub devastation_per_decisive_battle: f64,
+    /// Devastation added per stalemate turn on combat-zone parcels.
+    #[serde(default = "default_devastation_per_stalemate_turn")]
+    pub devastation_per_stalemate_turn: f64,
+    /// Natural devastation decay rate per turn when no combat occurs.
+    #[serde(default = "default_devastation_decay_rate")]
+    pub devastation_decay_rate: f64,
+    /// Rate at which devastation spreads to adjacent parcels via the
+    /// topological adjacency graph (fraction of excess devastation spread).
+    #[serde(default = "default_devastation_spread_rate")]
+    pub devastation_spread_rate: f64,
+    /// Damage threshold: below this, buildings are damaged (reduced output)
+    /// but remain operational.
+    #[serde(default = "default_damage_threshold")]
+    pub damage_threshold: f64,
+    /// Destruction threshold: above this, buildings are destroyed and must
+    /// be rebuilt by the Construction sector.
+    #[serde(default = "default_destruction_threshold")]
+    pub destruction_threshold: f64,
+    /// Factor by which devastation reduces building condition when damaged.
+    #[serde(default = "default_damage_factor")]
+    pub damage_factor: f64,
 }
 
 // ── Default value functions ──
@@ -128,6 +187,20 @@ fn default_supply_capacity() -> f64 { 3.0 }
 fn default_we_decay() -> f64 { 0.05 }
 fn default_we_per_casualty() -> f64 { 0.1 }
 fn default_peasant_devastation() -> f64 { 0.3 }
+fn default_air_superiority_offensive() -> f64 { 1.25 }
+fn default_air_superiority_defensive() -> f64 { 1.15 }
+fn default_naval_bombardment() -> f64 { 1.20 }
+fn default_catastrophic_power_ratio() -> f64 { 0.333 }
+fn default_retreat_casualty_ratio() -> f64 { 0.05 }
+fn default_retreat_attacker_casualty_ratio() -> f64 { 0.02 }
+fn default_retreat_equipment_loss_rate() -> f64 { 0.15 }
+fn default_devastation_per_decisive_battle() -> f64 { 0.15 }
+fn default_devastation_per_stalemate_turn() -> f64 { 0.05 }
+fn default_devastation_decay_rate() -> f64 { 0.02 }
+fn default_devastation_spread_rate() -> f64 { 0.10 }
+fn default_damage_threshold() -> f64 { 0.3 }
+fn default_destruction_threshold() -> f64 { 0.7 }
+fn default_damage_factor() -> f64 { 0.5 }
 
 impl Default for MilitaryCombatConfig {
     fn default() -> Self {
@@ -157,6 +230,20 @@ impl Default for MilitaryCombatConfig {
             war_exhaustion_decay_rate: default_we_decay(),
             war_exhaustion_per_casualty: default_we_per_casualty(),
             peasant_devastation_multiplier: default_peasant_devastation(),
+            air_superiority_offensive_bonus: default_air_superiority_offensive(),
+            air_superiority_defensive_bonus: default_air_superiority_defensive(),
+            naval_bombardment_bonus: default_naval_bombardment(),
+            catastrophic_power_ratio: default_catastrophic_power_ratio(),
+            retreat_casualty_ratio: default_retreat_casualty_ratio(),
+            retreat_attacker_casualty_ratio: default_retreat_attacker_casualty_ratio(),
+            retreat_equipment_loss_rate: default_retreat_equipment_loss_rate(),
+            devastation_per_decisive_battle: default_devastation_per_decisive_battle(),
+            devastation_per_stalemate_turn: default_devastation_per_stalemate_turn(),
+            devastation_decay_rate: default_devastation_decay_rate(),
+            devastation_spread_rate: default_devastation_spread_rate(),
+            damage_threshold: default_damage_threshold(),
+            destruction_threshold: default_destruction_threshold(),
+            damage_factor: default_damage_factor(),
         }
     }
 }

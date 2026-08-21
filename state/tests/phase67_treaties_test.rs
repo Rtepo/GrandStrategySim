@@ -500,8 +500,11 @@ fn test_doctrine_evaluation_expansionist() {
     let mut state = GameState::default();
     let mut strong = Country::mock_for_tests();
     strong.name = "Strongland".to_string();
+    // Add many military units to the OOB
+    use sim_engine::military::oob::{Army, Division, Regiment};
+    let mut reg = Regiment::new("REG-test-001".to_string(), "Test Regiment".to_string(), "home".to_string());
     for i in 0..20 {
-        strong.military_units.push(sim_engine::military::MilitaryUnit::new(
+        reg.add_unit(sim_engine::military::MilitaryUnit::new(
             format!("unit-{}", i),
             sim_engine::military::UnitType::Infantry,
             100,
@@ -509,6 +512,11 @@ fn test_doctrine_evaluation_expansionist() {
             "home".to_string(),
         ));
     }
+    let mut div = Division::new("DIV-test-001".to_string(), "Test Division".to_string(), "home".to_string());
+    div.add_regiment(reg);
+    let mut army = Army::new("ARMY-test-001".to_string(), "Test Army".to_string(), "home".to_string());
+    army.add_division(div);
+    strong.order_of_battle.add_army(army);
     let weak = Country::mock_for_tests();
     state.countries.insert("Strongland".to_string(), strong);
     state.countries.insert("Weakland".to_string(), weak);

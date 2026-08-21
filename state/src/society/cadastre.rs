@@ -244,6 +244,12 @@ pub struct ParcelChunk {
     /// Phase 63.1: Topographic traits (water access, forest, natural wonder, subsurface rights).
     #[serde(default)]
     pub topography: ParcelTopography,
+    /// Phase 71: Devastation index (0.0 = pristine, 1.0 = total ruin).
+    /// Increased by warfare (battles, artillery, foraging), industrial accidents
+    /// (factory fires, chemical spills), and natural disasters (floods, wildfires,
+    /// earthquakes). Spreads to adjacent parcels via the topological graph.
+    /// Decays naturally when no combat or disasters occur.
+    pub devastation_index: f64,
 }
 
 impl Default for ParcelChunk {
@@ -271,6 +277,7 @@ impl Default for ParcelChunk {
             adverse_possession: None,
             pollution_level: 0.0,
             topography: ParcelTopography::default(),
+            devastation_index: 0.0,
         }
     }
 }
@@ -378,6 +385,7 @@ impl Cadastre {
             adverse_possession: original.adverse_possession.clone(),
             pollution_level: original.pollution_level,
             topography: original.topography.clone(),
+            devastation_index: original.devastation_index,
         };
         // Mark the split as a new acquisition
         new_parcel.acquisition_turn = current_turn;
@@ -388,6 +396,11 @@ impl Cadastre {
     /// Iterate over all parcels.
     pub fn iter(&self) -> impl Iterator<Item = (ParcelId, &ParcelChunk)> {
         self.parcels.iter()
+    }
+
+    /// Iterate mutably over all parcels.
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = (ParcelId, &mut ParcelChunk)> {
+        self.parcels.iter_mut()
     }
 }
 
@@ -900,6 +913,7 @@ pub fn generate_cadastre(
                 adverse_possession: None,
                 pollution_level: 0.0,
                 topography,
+                devastation_index: 0.0,
             };
 
             // Set acquisition price to the hedonic value at generation

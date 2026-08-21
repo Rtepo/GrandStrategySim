@@ -905,6 +905,14 @@ pub struct ClassDemographics {
     /// Aggregated by (commodity, quality_bucket) to bound memory.
     #[serde(default)]
     pub household_durables: Vec<HouseholdDurableCohort>,
+    /// Phase 72: General mental health of this class (0.0–100.0, baseline ~70.0).
+    /// Reduced by war casualties, economic hardship, disasters.
+    /// Low mental health reduces labor productivity and increases unrest.
+    pub mental_health: f64,
+    /// Phase 72: War-specific morale (0.0–100.0, separate from general mental health).
+    /// Drops when casualties are routed back to demographics.
+    /// Below threshold → factory strikes and military desertions.
+    pub war_morale: f64,
 }
 
 /// Phase 47: A cohort of household durable goods held by a demographic class.

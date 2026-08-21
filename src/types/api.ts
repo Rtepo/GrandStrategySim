@@ -16,6 +16,43 @@ export type ArbitrationCaseRow = { case_id: string, plaintiff_name: string, plai
 export type ArbitrationCasesResponse = { rows: Array<ArbitrationCaseRow>, total_exposure: number, state_strength: number, };
 
 /**
+ * Army composition for a single country.
+ */
+export type ArmyCompositionRow = { 
+/**
+ * Country name.
+ */
+country: string, 
+/**
+ * Total manpower across all units.
+ */
+total_manpower: bigint, 
+/**
+ * Number of armies in the OOB.
+ */
+army_count: number, 
+/**
+ * Number of divisions.
+ */
+division_count: number, 
+/**
+ * Number of regiments.
+ */
+regiment_count: number, 
+/**
+ * Total unit count.
+ */
+unit_count: number, 
+/**
+ * Unit counts by type.
+ */
+units_by_type: Array<[string, number]>, 
+/**
+ * Total manpower by type.
+ */
+manpower_by_type: Array<[string, bigint]>, };
+
+/**
  * Response for paginated bank queries.
  */
 export type BankPageResponse = { rows: Array<BankRow>, total_count: number, };
@@ -34,6 +71,43 @@ export type BankingAggregates = { total_bank_reserves: number, total_bank_deposi
  * Phase 54: Banking history response for sparkline tooltips.
  */
 export type BankingHistoryResponse = { turns: Array<number>, total_reserves: Array<number>, total_deposits: Array<number>, total_loans: Array<number>, };
+
+/**
+ * A single battle row for the Military dashboard.
+ */
+export type BattleRow = { 
+/**
+ * Battle ID.
+ */
+battle_id: string, 
+/**
+ * Location (region).
+ */
+location: string, 
+/**
+ * Attacker country.
+ */
+attacker: string, 
+/**
+ * Defender country.
+ */
+defender: string, 
+/**
+ * Battle result.
+ */
+result: string, 
+/**
+ * Attacker casualties.
+ */
+attacker_casualties: bigint, 
+/**
+ * Defender casualties.
+ */
+defender_casualties: bigint, 
+/**
+ * Turn.
+ */
+turn: number, };
 
 /**
  * Phase 55: Board member row for governance display.
@@ -212,6 +286,64 @@ export type DepositRow = { formation: string, deposit_id: string, current_reserv
 active_miners: number, };
 
 /**
+ * A single devastation row for the heatmap.
+ */
+export type DevastationRow = { 
+/**
+ * Region ID.
+ */
+region_id: string, 
+/**
+ * Region display name.
+ */
+region_name: string, 
+/**
+ * Average devastation index (0.0 = pristine, 1.0 = total ruin).
+ */
+devastation_index: number, 
+/**
+ * Number of parcels.
+ */
+parcel_count: number, 
+/**
+ * Number of parcels above destruction threshold.
+ */
+destroyed_parcels: number, 
+/**
+ * Number of parcels above damage threshold.
+ */
+damaged_parcels: number, };
+
+/**
+ * A single disaster event for the Peacetime Disasters panel.
+ */
+export type DisasterRow = { 
+/**
+ * Disaster event ID.
+ */
+event_id: string, 
+/**
+ * Disaster type.
+ */
+disaster_type: string, 
+/**
+ * Region where it occurred.
+ */
+region_id: string, 
+/**
+ * Turn.
+ */
+turn: number, 
+/**
+ * Devastation impact.
+ */
+devastation_impact: number, 
+/**
+ * Casualties.
+ */
+casualties: bigint, };
+
+/**
  * Summary of a household durable cohort for the region drill-down.
  */
 export type DurableCohortSummary = { commodity: string, count: number, avg_condition: number, quality: number, durability: number, };
@@ -336,6 +468,39 @@ export type MarketIndexSnapshot = { value: number, change_pct: number, history: 
 export type MegaregionDetail = { megaregion_id: string, display_name: string, country: string, member_region_ids: Array<string>, member_region_count: number, total_population: bigint, total_gdp: number, governor_name: string, governor_appointed: boolean, competence_level: string, budget_reserves: number, regional_transfers: number, development_expenditures: number, coordination_expenditures: number, budget_balance: number, };
 
 /**
+ * Full military dashboard response.
+ */
+export type MilitaryDashboardResponse = { 
+/**
+ * All active wars/fronts.
+ */
+wars: Array<WarRow>, 
+/**
+ * Recent battles across all fronts.
+ */
+recent_battles: Array<BattleRow>, 
+/**
+ * Devastation heatmap data per region.
+ */
+devastation_map: Array<DevastationRow>, 
+/**
+ * Army composition for each country.
+ */
+army_compositions: Array<ArmyCompositionRow>, 
+/**
+ * War morale for each country's demographic classes.
+ */
+war_morale: Array<MoraleRow>, 
+/**
+ * Recent peacetime disaster events.
+ */
+disasters: Array<DisasterRow>, 
+/**
+ * POW camp statistics.
+ */
+pow_camps: Array<PowCampRow>, };
+
+/**
  * A minister row for the Government tab.
  */
 export type MinisterRow = { ministry_name: string, minister_name: string, party: string, ideology: string, allocated_cash: number, spent_cash: number, 
@@ -359,6 +524,43 @@ export type MinistryLandReportDTO = { report_turn: number, total_land_value: num
  * Phase 60: Per-region summary in the ministry report.
  */
 export type MinistryRegionalSummaryDTO = { region_id: string, total_hectares: number, total_value: number, avg_legal_certainty: number, border_conflicts: number, foreign_ownership_pct: number, court_backlog: number, };
+
+/**
+ * War morale for a single country's demographic class.
+ */
+export type MoraleRow = { 
+/**
+ * Country name.
+ */
+country: string, 
+/**
+ * Region ID.
+ */
+region_id: string, 
+/**
+ * Class name (e.g., "FreePeasant").
+ */
+class_name: string, 
+/**
+ * War morale (0.0–100.0).
+ */
+war_morale: number, 
+/**
+ * Mental health (0.0–100.0).
+ */
+mental_health: number, 
+/**
+ * Population.
+ */
+population: bigint, 
+/**
+ * Whether strikes are active.
+ */
+strikes_active: boolean, 
+/**
+ * Whether desertions are active.
+ */
+desertions_active: boolean, };
 
 /**
  * OHS / casualty summary.
@@ -401,6 +603,35 @@ vips: Array<VipRow>,
  * Phase 42: Committees with chairs and member counts.
  */
 committees: Array<CommitteeRow>, };
+
+/**
+ * POW camp statistics for a single country.
+ */
+export type PowCampRow = { 
+/**
+ * Country name (captor).
+ */
+country: string, 
+/**
+ * Total prisoners.
+ */
+total_prisoners: bigint, 
+/**
+ * Number of distinct prisoner groups.
+ */
+prisoner_groups: number, 
+/**
+ * Prisoners by origin country.
+ */
+prisoners_by_origin: Array<[string, bigint]>, 
+/**
+ * Average health of POWs.
+ */
+average_health: number, 
+/**
+ * POWs assigned to forced labor.
+ */
+forced_labor_assigned: bigint, };
 
 /**
  * A legislative queue row.
@@ -686,6 +917,39 @@ export type VipRow = { full_name: string, party: string, role: string, ideology:
  * A recent vote row.
  */
 export type VoteRow = { bill_id: string, bill_title: string, votes_for: number, votes_against: number, passed: boolean, turn: number, };
+
+/**
+ * A single active war/front row for the Military dashboard.
+ */
+export type WarRow = { 
+/**
+ * Front ID.
+ */
+front_id: string, 
+/**
+ * Front name.
+ */
+front_name: string, 
+/**
+ * Countries involved.
+ */
+involved_countries: Array<string>, 
+/**
+ * Regions in the front.
+ */
+regions: Array<string>, 
+/**
+ * War exhaustion per country.
+ */
+war_exhaustion: Array<[string, number]>, 
+/**
+ * Number of battles fought.
+ */
+battle_count: number, 
+/**
+ * Last battle result (if any).
+ */
+last_battle_result: string, };
 
 /**
  * Phase 60: Zoning plan row (public data).

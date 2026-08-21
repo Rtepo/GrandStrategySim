@@ -11,32 +11,26 @@ use crate::military::config::MilitaryCombatConfig;
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct UnitStats {
     /// Attack power
-    #[serde(rename = "atak", default)]
     pub attack: f64,
-    
+
     /// Defense power
-    #[serde(rename = "obrona", default)]
     pub defense: f64,
-    
+
     /// Organization (morale/cohesion)
-    #[serde(rename = "organizacja", default)]
     pub organization: f64,
-    
+
     /// Supply level (logistics)
-    #[serde(rename = "zaopatrzenie", default)]
     pub supply: f64,
-    
+
     /// Maneuver capability
-    #[serde(rename = "manewr", default)]
     pub maneuver: f64,
-    
+
     /// Health/Hit points
-    #[serde(rename = "zdrowie", default)]
     pub health: f64,
 }
 
 /// Type of military unit
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum UnitType {
     /// Standard infantry
@@ -389,19 +383,14 @@ impl UnitType {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct EquipmentReserve {
     /// The commodity type of this equipment.
-    #[serde(rename = "sprzęt")]
     pub commodity: Commodity,
     /// Target quantity per the unit's Table of Equipment (ToE).
-    #[serde(rename = "etatowa_ilość", default)]
     pub toe_quantity: f64,
     /// Currently installed quantity (may be < toe_quantity due to losses/wear).
-    #[serde(rename = "obecna_ilość", default)]
     pub current_quantity: f64,
     /// Average condition in [0.0, 1.0]. Degrades by `depreciation_rate` per turn.
-    #[serde(rename = "stan", default)]
     pub condition: f64,
     /// Per-turn depreciation rate (fraction of condition lost each turn).
-    #[serde(rename = "amortyzacja", default)]
     pub depreciation_rate: f64,
 }
 
@@ -458,50 +447,39 @@ impl EquipmentReserve {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct MilitaryUnit {
     /// Unique unit ID
-    #[serde(rename = "id_jednostki", default)]
     pub id: String,
-    
+
     /// Unit type
-    #[serde(rename = "typ_jednostki")]
     pub unit_type: UnitType,
-    
+
     /// Current combat statistics
-    #[serde(rename = "statystyki")]
     pub stats: UnitStats,
-    
+
     /// Current manpower count
-    #[serde(rename = "liczebnosc", default)]
     pub manpower: i64,
-    
+
     /// CRITICAL: Demographic origin of manpower (for casualty routing)
-    #[serde(rename = "pochodzenie_manzpru", default)]
     pub manpower_origin: HashMap<RuralClass, i64>,
-    
+
     /// Home region
-    #[serde(rename = "region_domowy", default)]
     pub home_region: String,
-    
+
     /// Current location
-    #[serde(rename = "lokacja", default)]
     pub location: String,
-    
+
     /// Experience level (0-100)
-    #[serde(rename = "doswiadczenie", default)]
     pub experience: f64,
-    
+
     /// Equipment quality (0-100)
-    #[serde(rename = "jakosc_sprzetu", default)]
     pub equipment_quality: f64,
 
     /// Field supply carried by this unit (refilled from country depot each turn).
     /// Key = Commodity, Value = quantity on hand.
-    #[serde(rename = "zaopatrzenie_polkowe", default)]
     pub stockpile: HashMap<Commodity, f64>,
 
     /// Phase 45: Table of Equipment (ToE) — the unit's installed capital equipment.
     /// Each entry tracks target quantity, current quantity, and condition.
     /// B2B procurement orders are generated to fill replacement_demand().
-    #[serde(rename = "rezerwy_sprzętu", default)]
     pub equipment_reserves: Vec<EquipmentReserve>,
 }
 
@@ -740,9 +718,8 @@ pub struct PeasantBattalion {
     /// Base military unit
     #[serde(flatten)]
     pub unit: MilitaryUnit,
-    
+
     /// Foraging intensity (how much local devastation caused)
-    #[serde(rename = "intensywnosc_zbieracka", default)]
     pub foraging_intensity: f64,
 }
 

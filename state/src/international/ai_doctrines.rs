@@ -87,14 +87,14 @@ pub fn evaluate_doctrine(
         return GeopoliticalDoctrine::Balanced;
     };
 
-    let military_size = country.military_units.len() as u32;
+    let military_size = country.order_of_battle.unit_count() as u32;
 
     // Compute average military size across all countries
     let avg_military: f64 = if state.countries.is_empty() {
         0.0
     } else {
         state.countries.values()
-            .map(|c| c.military_units.len() as f64)
+            .map(|c| c.order_of_battle.unit_count() as f64)
             .sum::<f64>() / state.countries.len() as f64
     };
 
@@ -180,7 +180,7 @@ pub fn execute_doctrine(
                     if name == country_name {
                         continue;
                     }
-                    let mil = other.military_units.len() as u32;
+                    let mil = other.order_of_battle.unit_count() as u32;
                     if weakest.map_or(true, |(_, m)| mil < m) {
                         weakest = Some((name, mil));
                     }
@@ -286,9 +286,11 @@ mod tests {
         let mut state = GameState::default();
         let mut strong = Country::mock_for_tests();
         strong.name = "Strongland".to_string();
-        // Add many military units
+        // Add many military units to the OOB
+        use crate::military::oob::{Army, Division, Regiment};
+        let mut reg = Regiment::new("REG-test-001".to_string(), "Test Regiment".to_string(), "home".to_string());
         for i in 0..20 {
-            strong.military_units.push(crate::military::MilitaryUnit::new(
+            reg.add_unit(crate::military::MilitaryUnit::new(
                 format!("unit-{}", i),
                 crate::military::UnitType::Infantry,
                 100,
@@ -296,6 +298,11 @@ mod tests {
                 "home".to_string(),
             ));
         }
+        let mut div = Division::new("DIV-test-001".to_string(), "Test Division".to_string(), "home".to_string());
+        div.add_regiment(reg);
+        let mut army = Army::new("ARMY-test-001".to_string(), "Test Army".to_string(), "home".to_string());
+        army.add_division(div);
+        strong.order_of_battle.add_army(army);
         let mut weak = Country::mock_for_tests();
         weak.name = "Weakland".to_string();
         state.countries.insert("Strongland".to_string(), strong);

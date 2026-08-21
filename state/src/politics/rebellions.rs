@@ -195,10 +195,12 @@ pub fn spawn_rebel_proto_state(
         rebellion_type: Some(rebellion_type.clone()),
         rebellion_goals: Some(goals),
         economic_policy: mother_country.economic_policy.clone(), // Inherit economic policy
-        military_units: Vec::new(), // No military units initially
+        order_of_battle: crate::military::oob::OrderOfBattle::default(), // No military units initially
         military_fronts: Vec::new(), // No fronts initially
         military_stockpile: std::collections::HashMap::new(),
         military_config: crate::military::config::MilitaryCombatConfig::default(),
+        war_economy: crate::military::war_economy::WarEconomyState::default(),
+        at_war_with: Vec::new(),
         pending_defense_orders: Vec::new(),
         rationing_system: crate::state::RationingSystem::default(),
         emergency_powers: crate::state::EmergencyPowers::default(),

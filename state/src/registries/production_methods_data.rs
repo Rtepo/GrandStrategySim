@@ -586,6 +586,30 @@ fn heavy_industry_methods() -> BuildingMethods {
     m.insert(MethodSlot::Organization, "Six Sigma".into(),
         pm(1990, Some("advman_005"), 0.25, 0.45, 0.30, 3.0,
            &[(Commodity::Food, 5.0), (Commodity::Software, 5.0)], &[]));
+    // ── Phase 69: Military conversion methods (Production Decree targets) ──
+    // These methods are swapped in by ProductionDecree to convert civilian
+    // heavy industry to military output. Each has DISTINCT physical inputs
+    // that shock the supply chain (Rule 3 compliance).
+    m.insert(MethodSlot::Production, "Military Truck Conversion".into(),
+        pm(1916, None, 0.20, 0.35, 0.45, 0.8,
+           &[(Commodity::Steel, 25.0), (Commodity::Fuels, 12.0), (Commodity::MechanicalComponents, 8.0), (Commodity::Plastics, 5.0)],
+           &[(Commodity::Trucks, 8.0)]));
+    m.insert(MethodSlot::Production, "Light Tank Conversion".into(),
+        pm(1935, None, 0.22, 0.38, 0.40, 0.7,
+           &[(Commodity::Steel, 35.0), (Commodity::Aluminum, 10.0), (Commodity::Fuels, 15.0), (Commodity::MechanicalComponents, 12.0)],
+           &[(Commodity::LightTanks, 3.0)]));
+    m.insert(MethodSlot::Production, "Artillery Conversion".into(),
+        pm(1916, None, 0.20, 0.35, 0.45, 0.8,
+           &[(Commodity::Steel, 30.0), (Commodity::Fuels, 10.0), (Commodity::MechanicalComponents, 8.0)],
+           &[(Commodity::TowedArtillery, 4.0)]));
+    m.insert(MethodSlot::Production, "Ammunition Surge Production".into(),
+        pm(1916, None, 0.18, 0.32, 0.50, 0.9,
+           &[(Commodity::Steel, 20.0), (Commodity::Chemicals, 25.0), (Commodity::Fuels, 8.0)],
+           &[(Commodity::Ammunition, 40.0)]));
+    m.insert(MethodSlot::Production, "Gunpowder Conversion".into(),
+        pm(1880, None, 0.15, 0.30, 0.55, 0.8,
+           &[(Commodity::Chemicals, 30.0), (Commodity::Sulfur, 15.0), (Commodity::Energy, 10.0)],
+           &[(Commodity::Gunpowder, 20.0)]));
     m
 }
 
@@ -686,6 +710,17 @@ fn light_industry_methods() -> BuildingMethods {
     m.insert(MethodSlot::Organization, "Lean Manufacturing".into(),
         pm(1985, Some("advman_002"), 0.20, 0.40, 0.40, 2.5,
            &[(Commodity::Food, 5.0), (Commodity::Software, 2.0)], &[]));
+    // ── Phase 69: Military conversion methods (Production Decree targets) ──
+    // Textile factories converted to military uniform production.
+    // Distinct physical inputs: heavier fibers, leather, steel for buttons/buckles.
+    m.insert(MethodSlot::Production, "Military Uniform Conversion".into(),
+        pm(1880, None, 0.10, 0.25, 0.65, 0.8,
+           &[(Commodity::Fibers, 20.0), (Commodity::IndustrialFiber, 5.0), (Commodity::Steel, 2.0), (Commodity::Energy, 5.0)],
+           &[(Commodity::Clothing, 15.0)]));
+    m.insert(MethodSlot::Production, "Support Equipment Conversion".into(),
+        pm(1916, None, 0.15, 0.30, 0.55, 0.7,
+           &[(Commodity::Fibers, 10.0), (Commodity::Steel, 8.0), (Commodity::IndustrialFiber, 8.0), (Commodity::Energy, 5.0)],
+           &[(Commodity::SupportEquipment, 6.0)]));
     m
 }
 

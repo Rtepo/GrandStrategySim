@@ -281,10 +281,12 @@ fn generate_country(
         rebellion_type: None,
         rebellion_goals: None,
         economic_policy: crate::state::EconomicPolicy::default(),
-        military_units: Vec::new(),
+        order_of_battle: crate::military::oob::OrderOfBattle::default(),
         military_fronts: Vec::new(),
         military_stockpile: std::collections::HashMap::new(),
         military_config: crate::military::config::MilitaryCombatConfig::default(),
+        war_economy: crate::military::war_economy::WarEconomyState::default(),
+        at_war_with: Vec::new(),
         pending_defense_orders: Vec::new(),
         rationing_system: crate::state::RationingSystem::default(),
         emergency_powers: crate::state::EmergencyPowers::default(),
@@ -428,8 +430,8 @@ fn generate_country(
         }
     }
 
-    // Phase 45: Spawn a standing army with ToE equipment reserves.
-    country.military_units = spawn_standing_army(
+    // Phase 70: Generate the Order of Battle natively (no flat list, no shim).
+    country.order_of_battle = spawn_standing_oob(
         &country,
         &country_regions,
         start_year.as_year(),
@@ -439,32 +441,50 @@ fn generate_country(
     (country, currency, country_regions, companies)
 }
 
-/// Phase 45: Spawn a standing army for a country based on its population and era.
+/// Phase 70: Spawn a standing Order of Battle for a country based on its
+/// population, GDP, and era.
+///
+/// This function constructs the OOB hierarchy natively:
+/// `OrderOfBattle → Army → Division → Regiment → MilitaryUnit`.
+///
+/// There is no `rebuild_oob()` shim and no flat-list-to-hierarchy conversion.
 ///
 /// # Rules
 /// * Army size = max(1000, population * 0.005) — 0.5% of population under arms.
-/// * Infantry Division is always present.
-/// * Artillery Brigade added if year >= 1880.
-/// * Tank Brigade added if year >= 1916.
-/// * Air Wing added if year >= 1940.
-/// * Naval Fleet added if country has coastline and year >= 1880.
+/// * OOB structure is generated via `generate_asymmetric_oob` (rich/poor scaling).
+/// * Era-appropriate unit types are applied post-generation:
+///   - Artillery added if year >= 1880.
+///   - Tanks added if year >= 1916.
+///   - Air Force added if year >= 1940.
+///   - Naval units added if country has coastline and year >= 1880.
 /// * Equipment is seeded at 90% ToE strength (not 100% — represents existing stock).
 /// * Manpower is drawn proportionally from rural classes.
-fn spawn_standing_army(
+fn spawn_standing_oob(
     country: &crate::state::Country,
     regions: &HashMap<String, crate::society::geography::Region>,
     start_year: u32,
     rng: &mut impl Rng,
-) -> Vec<crate::military::units::MilitaryUnit> {
+) -> crate::military::oob::OrderOfBattle {
+    use crate::military::oob::{generate_asymmetric_oob, OrderOfBattle, Army, Division, Regiment};
     use crate::military::units::{MilitaryUnit, UnitType, EquipmentReserve};
 
     let total_pop: i64 = regions.values().map(|r| r.population).sum();
-    let army_size = ((total_pop as f64) * 0.005).max(1000.0) as i64;
-
+    let total_gdp: f64 = regions.values().map(|r| r.gdp).sum();
     let has_coast = regions.values().any(|r| r.geographic_traits.has_coastline);
-    let home_region = regions.keys().next().cloned().unwrap_or_default();
 
-    let mut units = Vec::new();
+    // Collect home regions for army basing.
+    let home_regions: Vec<String> = regions.keys().take(5).cloned().collect();
+    if home_regions.is_empty() {
+        return OrderOfBattle::default();
+    }
+
+    // Generate the base OOB structure natively (asymmetric rich/poor).
+    let mut oob = generate_asymmetric_oob(
+        &country.name,
+        total_gdp,
+        total_pop,
+        home_regions.clone(),
+    );
 
     // Helper: scale ToE by manpower and seed at 90% strength
     let make_toe = |unit_type: &UnitType, manpower: i64| -> Vec<EquipmentReserve> {
@@ -490,7 +510,6 @@ fn spawn_standing_army(
         if total_rural <= 0 {
             return origin;
         }
-        // Draw proportionally from FreePeasant and LandlessLaborer
         for region in regions.values() {
             for (class_key, demo) in &region.class_demographics.rural_classes {
                 let rural_class = match class_key.as_str() {
@@ -512,17 +531,40 @@ fn spawn_standing_army(
         origin
     };
 
-    // Infantry Division (always present)
-    let infantry_manpower = army_size / 2;
-    let mut infantry = MilitaryUnit::new(
-        format!("{}-INF-1", country.name),
-        UnitType::Infantry,
-        infantry_manpower,
-        draw_manpower(regions, infantry_manpower),
-        home_region.clone(),
+    let army_size = ((total_pop as f64) * 0.005).max(1000.0) as i64;
+
+    // Apply era-appropriate equipment and unit type adjustments to all units.
+    for army in &mut oob.armies {
+        for division in &mut army.divisions {
+            for regiment in &mut division.regiments {
+                for unit in &mut regiment.units {
+                    // Apply era-appropriate equipment
+                    unit.equipment_reserves = make_toe(&unit.unit_type, unit.manpower);
+                    // Apply proportional manpower origin
+                    unit.manpower_origin = draw_manpower(regions, unit.manpower);
+                }
+            }
+        }
+    }
+
+    // Add era-appropriate specialist units as a separate army (Support Army).
+    let mut support_army = Army::new(
+        format!("ARMY-{}-SPT", country.name),
+        format!("{} Support Command", country.name),
+        home_regions[0].clone(),
     );
-    infantry.equipment_reserves = make_toe(&UnitType::Infantry, infantry_manpower);
-    units.push(infantry);
+
+    let mut support_division = Division::new(
+        format!("DIV-{}-SPT-001", country.name),
+        "Support Division".to_string(),
+        home_regions[0].clone(),
+    );
+
+    let mut support_regiment = Regiment::new(
+        format!("REG-{}-SPT-001", country.name),
+        "Specialist Regiment".to_string(),
+        home_regions[0].clone(),
+    );
 
     // Artillery Brigade (if year >= 1880)
     if start_year >= 1880 {
@@ -532,10 +574,10 @@ fn spawn_standing_army(
             UnitType::Artillery,
             arty_manpower,
             draw_manpower(regions, arty_manpower),
-            home_region.clone(),
+            home_regions[0].clone(),
         );
         artillery.equipment_reserves = make_toe(&UnitType::Artillery, arty_manpower);
-        units.push(artillery);
+        support_regiment.add_unit(artillery);
     }
 
     // Tank Brigade (if year >= 1916)
@@ -546,10 +588,10 @@ fn spawn_standing_army(
             UnitType::Tanks,
             tank_manpower,
             draw_manpower(regions, tank_manpower),
-            home_region.clone(),
+            home_regions[0].clone(),
         );
         tanks.equipment_reserves = make_toe(&UnitType::Tanks, tank_manpower);
-        units.push(tanks);
+        support_regiment.add_unit(tanks);
     }
 
     // Air Wing (if year >= 1940)
@@ -560,10 +602,10 @@ fn spawn_standing_army(
             UnitType::AirForce,
             air_manpower,
             draw_manpower(regions, air_manpower),
-            home_region.clone(),
+            home_regions[0].clone(),
         );
         air.equipment_reserves = make_toe(&UnitType::AirForce, air_manpower);
-        units.push(air);
+        support_regiment.add_unit(air);
     }
 
     // Naval Fleet (if coastal and year >= 1880)
@@ -572,7 +614,7 @@ fn spawn_standing_army(
         let coastal_region = regions.values()
             .find(|r| r.geographic_traits.has_coastline)
             .map(|r| r.id.clone())
-            .unwrap_or(home_region.clone());
+            .unwrap_or_else(|| home_regions[0].clone());
         let mut naval = MilitaryUnit::new(
             format!("{}-NAV-1", country.name),
             UnitType::Naval,
@@ -581,10 +623,18 @@ fn spawn_standing_army(
             coastal_region,
         );
         naval.equipment_reserves = make_toe(&UnitType::Naval, naval_manpower);
-        units.push(naval);
+        support_regiment.add_unit(naval);
     }
 
-    units
+    // Only add the support army if it has units
+    if !support_regiment.units.is_empty() {
+        support_division.add_regiment(support_regiment);
+        support_army.add_division(support_division);
+        oob.add_army(support_army);
+    }
+
+    let _ = rng; // rng reserved for future randomized OOB variations
+    oob
 }
 
 /// Phase 26: Generate baseline transport network links from regional adjacency.

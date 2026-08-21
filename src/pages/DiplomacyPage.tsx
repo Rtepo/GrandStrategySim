@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useGameStore } from "../store/gameStore";
 import { invoke } from "@tauri-apps/api/core";
 import { Card, CardHeader, CardTitle, CardContent, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty } from "../components/ui";
@@ -122,19 +122,9 @@ function milRangeStr(range: [number, number] | null): string {
 }
 
 export function DiplomacyPage() {
-  const { selectedCountry, activeMockRole, playerVipRole } = useGameStore();
-  const queryClient = useQueryClient();
-  const [selectedTarget, setSelectedTarget] = useState<string | null>(null);
-  const [aidAmount, setAidAmount] = useState("100000");
-  const [postType, setPostType] = useState("Ambassador");
-  const [selectedVipId, setSelectedVipId] = useState<string | null>(null);
+  const { selectedCountry } = useGameStore();
   const [treatySearch, setTreatySearch] = useState("");
   const [treatyStatusFilter, setTreatyStatusFilter] = useState("All");
-
-  const canSeeClassified =
-    activeMockRole === "Admin" ||
-    playerVipRole.toLowerCase().includes("minister") ||
-    playerVipRole.toLowerCase().includes("prime");
 
   const { data: diplomacy, isLoading: dipLoading } = useQuery({
     queryKey: ["diplomacy", selectedCountry],
@@ -148,49 +138,13 @@ export function DiplomacyPage() {
     enabled: !!selectedCountry,
   });
 
-  const assignMut = useMutation({
-    mutationFn: (vars: { vip_id: string; home_country: string; host_country: string; post_type: string }) =>
-      invoke("assign_diplomat", vars),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["diplomacy"] });
-      queryClient.invalidateQueries({ queryKey: ["foreign-countries"] });
-    },
-  });
-
-  const recallMut = useMutation({
-    mutationFn: (vars: { vip_id: string; home_country: string }) =>
-      invoke("recall_diplomat", vars),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["diplomacy"] });
-      queryClient.invalidateQueries({ queryKey: ["foreign-countries"] });
-    },
-  });
-
-  const aidMut = useMutation({
-    mutationFn: (vars: { from_country: string; to_country: string; amount: number }) =>
-      invoke("send_economic_aid", vars),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["diplomacy"] });
-    },
-  });
-
-  const provokeMut = useMutation({
-    mutationFn: (vars: { from_country: string; to_country: string; intensity: number }) =>
-      invoke("border_provocation", vars),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["diplomacy"] });
-    },
-  });
-
   if (!selectedCountry) return <div className="p-6 text-muted-foreground">Select a country from the sidebar.</div>;
   if (dipLoading || fcLoading) return <div className="p-6 text-muted-foreground">Loading diplomacy data...</div>;
 
   const filteredTreaties = (diplomacy?.treaties ?? []).filter((t) => {
     const matchesSearch = t.name.toLowerCase().includes(treatySearch.toLowerCase());
     const matchesStatus = treatyStatusFilter === "All" || t.status === treatyStatusFilter;
-    const isClassified = t.name.toLowerCase().includes("secret") || t.name.toLowerCase().includes("classified");
-    const passesClassification = !isClassified || canSeeClassified;
-    return matchesSearch && matchesStatus && passesClassification;
+    return matchesSearch && matchesStatus;
   });
 
   return (
@@ -247,7 +201,6 @@ export function DiplomacyPage() {
                   <TableHead>Host Country</TableHead>
                   <TableHead>Post Type</TableHead>
                   <TableHead>Traits</TableHead>
-                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -261,20 +214,12 @@ export function DiplomacyPage() {
                       </span>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{d.traits.join(", ")}</TableCell>
-                    <TableCell>
-                      <button
-                        className="text-xs px-2 py-1 rounded border border-border hover:bg-accent"
-                        onClick={() => recallMut.mutate({ vip_id: d.vip_id, home_country: selectedCountry! })}
-                      >
-                        Recall
-                      </button>
-                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           ) : (
-            <TableEmpty colSpan={5} message="No diplomats currently posted." />
+            <TableEmpty colSpan={4} message="No diplomats currently posted." />
           )}
         </CardContent>
       </Card>
@@ -379,7 +324,6 @@ export function DiplomacyPage() {
                   <TableHead>Participants</TableHead>
                   <TableHead>Clauses</TableHead>
                   <TableHead>Progress</TableHead>
-                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -397,30 +341,12 @@ export function DiplomacyPage() {
                     <TableCell className="text-muted-foreground">{t.participants.join(", ")}</TableCell>
                     <TableCell className="text-muted-foreground">{t.clauses.join(", ")}</TableCell>
                     <TableCell>{(t.negotiation_progress * 100).toFixed(0)}%</TableCell>
-                    <TableCell>
-                      {t.status === "Proposed" || t.status === "Negotiating" ? (
-                        <button
-                          className="text-xs px-2 py-1 rounded border border-border hover:bg-accent mr-1"
-                          onClick={() => invoke("sign_treaty", { treatyId: t.id })}
-                        >
-                          Sign
-                        </button>
-                      ) : null}
-                      {t.status === "Active" ? (
-                        <button
-                          className="text-xs px-2 py-1 rounded border border-red-600 text-red-600 hover:bg-red-600/10"
-                          onClick={() => invoke("abrogate_treaty", { treatyId: t.id, abrogatingCountry: selectedCountry })}
-                        >
-                          Abrogate
-                        </button>
-                      ) : null}
-                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           ) : (
-            <TableEmpty colSpan={6} message="No treaties found." />
+            <TableEmpty colSpan={5} message="No treaties found." />
           )}
         </CardContent>
       </Card>
@@ -530,130 +456,6 @@ export function DiplomacyPage() {
           ) : (
             <TableEmpty colSpan={6} message="No sanctions against this country." />
           )}
-        </CardContent>
-      </Card>
-
-      {/* Diplomatic Actions */}
-      <Card>
-        <CardHeader><CardTitle>Diplomatic Actions</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          {/* Assign Diplomat */}
-          <div className="space-y-2">
-            <h4 className="text-sm font-semibold">Assign Diplomat</h4>
-            <div className="flex gap-2 items-center text-sm">
-              <select
-                className="border border-border rounded px-2 py-1 bg-background"
-                value={selectedTarget ?? ""}
-                onChange={(e) => setSelectedTarget(e.target.value || null)}
-              >
-                <option value="">Select target country...</option>
-                {foreignCountries?.map((c) => (
-                  <option key={c.name} value={c.name}>{c.name}</option>
-                ))}
-              </select>
-              <select
-                className="border border-border rounded px-2 py-1 bg-background"
-                value={postType}
-                onChange={(e) => setPostType(e.target.value)}
-              >
-                <option value="Ambassador">Ambassador</option>
-                <option value="Consul">Consul</option>
-                <option value="Spy">Spy</option>
-              </select>
-              <input
-                className="border border-border rounded px-2 py-1 bg-background w-40"
-                placeholder="VIP ID"
-                value={selectedVipId ?? ""}
-                onChange={(e) => setSelectedVipId(e.target.value || null)}
-              />
-              <button
-                className="px-3 py-1 rounded bg-primary text-primary-foreground text-sm hover:bg-primary/90 disabled:opacity-50"
-                disabled={!selectedTarget || !selectedVipId || assignMut.isPending}
-                onClick={() => {
-                  if (selectedTarget && selectedVipId) {
-                    assignMut.mutate({
-                      vip_id: selectedVipId,
-                      home_country: selectedCountry!,
-                      host_country: selectedTarget,
-                      post_type: postType,
-                    });
-                  }
-                }}
-              >
-                {assignMut.isPending ? "Assigning..." : "Assign"}
-              </button>
-            </div>
-          </div>
-
-          {/* Send Economic Aid */}
-          <div className="space-y-2">
-            <h4 className="text-sm font-semibold">Send Economic Aid</h4>
-            <div className="flex gap-2 items-center text-sm">
-              <select
-                className="border border-border rounded px-2 py-1 bg-background"
-                value={selectedTarget ?? ""}
-                onChange={(e) => setSelectedTarget(e.target.value || null)}
-              >
-                <option value="">Select recipient...</option>
-                {foreignCountries?.map((c) => (
-                  <option key={c.name} value={c.name}>{c.name}</option>
-                ))}
-              </select>
-              <input
-                className="border border-border rounded px-2 py-1 bg-background w-32"
-                type="number"
-                value={aidAmount}
-                onChange={(e) => setAidAmount(e.target.value)}
-              />
-              <button
-                className="px-3 py-1 rounded bg-primary text-primary-foreground text-sm hover:bg-primary/90 disabled:opacity-50"
-                disabled={!selectedTarget || aidMut.isPending}
-                onClick={() => {
-                  if (selectedTarget) {
-                    aidMut.mutate({
-                      from_country: selectedCountry!,
-                      to_country: selectedTarget,
-                      amount: parseFloat(aidAmount) || 0,
-                    });
-                  }
-                }}
-              >
-                {aidMut.isPending ? "Sending..." : "Send Aid"}
-              </button>
-            </div>
-          </div>
-
-          {/* Border Provocation */}
-          <div className="space-y-2">
-            <h4 className="text-sm font-semibold">Border Provocation</h4>
-            <div className="flex gap-2 items-center text-sm">
-              <select
-                className="border border-border rounded px-2 py-1 bg-background"
-                value={selectedTarget ?? ""}
-                onChange={(e) => setSelectedTarget(e.target.value || null)}
-              >
-                <option value="">Select target...</option>
-                {foreignCountries?.map((c) => (
-                  <option key={c.name} value={c.name}>{c.name}</option>
-                ))}
-              </select>
-              <button
-                className="px-3 py-1 rounded border border-red-600 text-red-600 text-sm hover:bg-red-600/10 disabled:opacity-50"
-                disabled={!selectedTarget || provokeMut.isPending}
-                onClick={() => {
-                  if (selectedTarget) {
-                    provokeMut.mutate({
-                      from_country: selectedCountry!,
-                      to_country: selectedTarget,
-                      intensity: 0.5,
-                    });
-                  }
-                }}
-              >
-                {provokeMut.isPending ? "Provoking..." : "Provoke Borders"}
-              </button>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>
