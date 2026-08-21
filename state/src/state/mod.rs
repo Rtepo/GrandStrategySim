@@ -553,6 +553,10 @@ pub struct Country {
     /// Phase 63.3: National subsurface rights law (default by tradition, changeable via legislation).
     #[serde(default)]
     pub subsurface_rights_law: crate::society::cadastre::SubsurfaceRightsLaw,
+    /// Phase 67: Global reputation for this country (-100 to +100).
+    pub global_reputation: crate::international::reputation::GlobalReputation,
+    /// Phase 67: Geopolitical doctrine guiding AI diplomatic behavior.
+    pub geopolitical_doctrine: crate::international::ai_doctrines::GeopoliticalDoctrine,
 }
 
 impl Country {
@@ -659,6 +663,8 @@ impl Country {
             externality_config: crate::society::cadastre::ExternalityConfig::default(),
             national_zoning_quota: crate::society::cadastre::NationalZoningQuota::default(),
             subsurface_rights_law: crate::society::cadastre::SubsurfaceRightsLaw::default(),
+            global_reputation: crate::international::reputation::GlobalReputation::default(),
+            geopolitical_doctrine: crate::international::ai_doctrines::GeopoliticalDoctrine::default(),
         }
     }
 
@@ -738,6 +744,32 @@ pub struct GameState {
     /// mutation during Rayon iteration.
     #[serde(default)]
     pub pending_diplomatic_actions: Vec<crate::state::diplomatic_actions::DiplomaticAction>,
+    /// Phase 66: Foreign intelligence data per observer country.
+    /// Keyed by observer country name → (target country name → ForeignIntelligence).
+    #[serde(default)]
+    pub foreign_intelligence: HashMap<String, HashMap<String, crate::international::fog_of_war::ForeignIntelligence>>,
+    /// Phase 66: Fog of War configuration (intel rates, estimation errors).
+    #[serde(default)]
+    pub fog_of_war_config: crate::international::fog_of_war::FogOfWarConfig,
+    /// Phase 66: Diplomatic configuration (spy risk, relation penalties, costs).
+    #[serde(default)]
+    pub diplomatic_config: crate::international::fog_of_war::DiplomaticConfig,
+    /// Phase 67: Treaty registry (all treaties: active, pending, expired, abrogated).
+    pub treaty_registry: crate::international::treaties::TreatyRegistry,
+    /// Phase 67: Treaty configuration (negotiation speed, capacity costs).
+    pub treaty_config: crate::international::treaties::TreatyConfig,
+    /// Phase 67: Reputation configuration (penalties, recovery rate, thresholds).
+    pub reputation_config: crate::international::reputation::ReputationConfig,
+    /// Phase 67: AI doctrine configuration (thresholds for doctrine selection).
+    pub doctrine_config: crate::international::ai_doctrines::DoctrineConfig,
+    /// Phase 68: International organizations (World Forum + dynamic orgs).
+    pub international_organizations: crate::international::organizations::OrganizationRegistry,
+    /// Phase 68: Active and expired sanctions.
+    pub active_sanctions: crate::international::sanctions::SanctionRegistry,
+    /// Phase 68: Organization configuration (integration thresholds, fine rates).
+    pub org_config: crate::international::organizations::OrgConfig,
+    /// Phase 68: Sanction configuration (vote thresholds, durations).
+    pub sanction_config: crate::international::sanctions::SanctionConfig,
     /// Not-yet-typed global systems, preserved losslessly.
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -763,6 +795,17 @@ impl GameState {
             vaults: BTreeMap::new(),
             trait_registry: None,
             pending_diplomatic_actions: Vec::new(),
+            foreign_intelligence: HashMap::new(),
+            fog_of_war_config: crate::international::fog_of_war::FogOfWarConfig::default(),
+            diplomatic_config: crate::international::fog_of_war::DiplomaticConfig::default(),
+            treaty_registry: crate::international::treaties::TreatyRegistry::default(),
+            treaty_config: crate::international::treaties::TreatyConfig::default(),
+            reputation_config: crate::international::reputation::ReputationConfig::default(),
+            doctrine_config: crate::international::ai_doctrines::DoctrineConfig::default(),
+            international_organizations: crate::international::organizations::OrganizationRegistry::default(),
+            active_sanctions: crate::international::sanctions::SanctionRegistry::default(),
+            org_config: crate::international::organizations::OrgConfig::default(),
+            sanction_config: crate::international::sanctions::SanctionConfig::default(),
             extra: Map::new(),
         }
     }
@@ -971,6 +1014,8 @@ impl CountryBuilder {
             externality_config: crate::society::cadastre::ExternalityConfig::default(),
             national_zoning_quota: crate::society::cadastre::NationalZoningQuota::default(),
             subsurface_rights_law: crate::society::cadastre::SubsurfaceRightsLaw::default(),
+            global_reputation: crate::international::reputation::GlobalReputation::default(),
+            geopolitical_doctrine: crate::international::ai_doctrines::GeopoliticalDoctrine::default(),
         }
     }
 }

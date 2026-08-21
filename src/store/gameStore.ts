@@ -24,6 +24,8 @@ interface GameStore {
   selectedZoningRegionId: string | null;
   /** Phase 60: Player VIP role for role-gated UI (Ministry Reports). */
   playerVipRole: string;
+  /** Player Role Selector: Active mock role for role-gated UI. */
+  activeMockRole: string;
   setSelectedCountry: (country: string | null) => void;
   refreshStatus: () => Promise<void>;
   setLoading: (loading: boolean) => void;
@@ -35,6 +37,7 @@ interface GameStore {
   setSelectedParcelId: (id: string | null) => void;
   setSelectedZoningRegionId: (id: string | null) => void;
   setPlayerVipRole: (role: string) => void;
+  setActiveMockRole: (role: string) => void;
   bumpTurn: () => void;
   resetStore: () => void;
 }
@@ -52,6 +55,7 @@ export const useGameStore = create<GameStore>((set) => ({
   selectedParcelId: null,
   selectedZoningRegionId: null,
   playerVipRole: "",
+  activeMockRole: "Admin",
   setSelectedCountry: (country) => set({ selectedCountry: country }),
   setLoading: (loading) => set({ loading }),
   setGenerating: (generating) => set({ generating }),
@@ -62,6 +66,7 @@ export const useGameStore = create<GameStore>((set) => ({
   setSelectedParcelId: (id) => set({ selectedParcelId: id }),
   setSelectedZoningRegionId: (id) => set({ selectedZoningRegionId: id }),
   setPlayerVipRole: (role) => set({ playerVipRole: role }),
+  setActiveMockRole: (role) => set({ activeMockRole: role }),
   bumpTurn: () => set((s) => ({ turnNonce: s.turnNonce + 1 })),
   resetStore: () => set({
     selectedCountry: null,
@@ -76,6 +81,7 @@ export const useGameStore = create<GameStore>((set) => ({
     selectedParcelId: null,
     selectedZoningRegionId: null,
     playerVipRole: "",
+    activeMockRole: "Admin",
   }),
   refreshStatus: async () => {
     try {

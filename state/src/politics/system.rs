@@ -952,6 +952,16 @@ pub struct Politics {
     /// See `politics/succession.rs`.
     #[serde(default, rename = "dynastia_krolewska")]
     pub royal_dynasty: Option<crate::politics::succession::RoyalDynasty>,
+    /// Phase 65: State structure (Unitary/Federation/Totalitarian/AutonomousRepublic).
+    /// Controls tax retention rates and regional law authority.
+    #[serde(default, rename = "ustrój_państwa")]
+    pub state_structure: super::state_structure::StateStructure,
+    /// Phase 65: State structure configuration with tax retention rates.
+    #[serde(default, rename = "konfiguracja_ustróju")]
+    pub state_structure_config: super::state_structure::StateStructureConfig,
+    /// Phase 65: Regional laws enacted by Federation/AutonomousRepublic regions.
+    #[serde(default, rename = "prawa_regionalne")]
+    pub regional_laws: Vec<super::state_structure::RegionalLaw>,
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
 }

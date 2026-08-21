@@ -3694,7 +3694,7 @@ pub fn run_turn_in_memory(
                     (task.ctx.country, &task.ctx.buildings, disaster_count),
                 );
             }
-            let flows = crate::economy::migration::collect_migration_flows(&country_refs, turn);
+            let flows = crate::economy::migration::collect_migration_flows(&country_refs, turn, Some(&state.treaty_registry));
 
             // Pass 2: Apply migration flows (mutable access to countries)
             let mut country_mut_refs: HashMap<String, &mut crate::state::Country> = HashMap::new();
@@ -4274,7 +4274,7 @@ pub fn run_turn_in_memory(
     // This runs after all parallel per-country processing is complete,
     // safely handling cross-country mutations (embassy construction,
     // funding transfers) without borrow-checker conflicts.
-    crate::state::diplomatic_actions::drain_diplomatic_actions(state);
+    crate::state::diplomatic_actions::drain_diplomatic_actions(state, &state.diplomatic_config.clone());
 
     // Phase 24C.3: Auto re-entry for sovereign default forex lockout.
     // Decrement the remaining turns and unlock countries whose default period has ended.
@@ -4291,10 +4291,187 @@ pub fn run_turn_in_memory(
         state.forex_market.unlock_country(country_id);
     }
 
-    // Phase 11: Update diplomatic relations dynamically based on this turn's events.
+    // Phase 11/66: Update diplomatic relations dynamically based on this turn's events.
     // Must run after balance_global_trade (needs trade balance data) and after
     // military processing (needs front data). New relations apply to next turn's B2B.
-    process_diplomacy_turn(state, &mut diplomacy);
+    // Phase 66: Also processes ambassador presence, spy activity, and espionage risk.
+    let mut intel_updates: Vec<(String, String, crate::international::fog_of_war::IntelLevel)> = Vec::new();
+    let mut expel_actions: Vec<(String, String)> = Vec::new();
+    process_diplomacy_turn(
+        state,
+        &mut diplomacy,
+        &state.diplomatic_config,
+        state.calendar.global_turn,
+        &mut intel_updates,
+        &mut expel_actions,
+    );
+
+    // Phase 66: Process intel updates from spy activity
+    for (observer, target, new_level) in &intel_updates {
+        let target_country = match state.countries.get(target) {
+            Some(c) => c,
+            None => continue,
+        };
+        let true_gdp = target_country.budget.gdp;
+        let true_military = target_country.military_units.len() as u32;
+        let true_treasury = target_country.budget.liquid_reserves;
+
+        let observer_intel = state.foreign_intelligence
+            .entry(observer.clone())
+            .or_default();
+        let intel = observer_intel
+            .entry(target.clone())
+            .or_insert_with(crate::international::fog_of_war::ForeignIntelligence::unknown);
+        let mut rng = rand::thread_rng();
+        intel.update_from_true_values(true_gdp, true_military, true_treasury, *new_level, state.calendar.global_turn, &mut rng);
+    }
+
+    // Phase 66: Process expelled spies — queue ExpelDiplomat actions
+    for (home, host) in &expel_actions {
+        state.pending_diplomatic_actions.push(
+            crate::state::diplomatic_actions::DiplomaticAction::ExpelDiplomat {
+                home_country: home.clone(),
+                host_country: host.clone(),
+            }
+        );
+    }
+    // Drain the newly queued expulsion actions
+    crate::state::diplomatic_actions::drain_diplomatic_actions(state, &state.diplomatic_config.clone());
+
+    // Phase 66: Process intel for all observer-target pairs
+    let country_names: Vec<String> = state.countries.keys().cloned().collect();
+    let fog_config = state.fog_of_war_config.clone();
+    let current_turn = state.calendar.global_turn;
+    let mut foreign_intelligence = std::mem::take(&mut state.foreign_intelligence);
+    for observer in &country_names {
+        for target in &country_names {
+            if observer == target {
+                continue;
+            }
+            crate::international::fog_of_war::process_intel_turn(
+                state,
+                observer,
+                target,
+                &mut foreign_intelligence,
+                &fog_config,
+                current_turn,
+            );
+        }
+    }
+    state.foreign_intelligence = foreign_intelligence;
+
+    // Phase 67: Process treaty negotiations, expiry, and reputation recovery.
+    let treaty_config = state.treaty_config.clone();
+    let current_turn_for_treaties = state.calendar.global_turn;
+
+    // Advance treaty negotiations (requires diplomacy matrix + ambassador counts)
+    let diplomacy_ref = &diplomacy;
+    let mut ambassador_counts: std::collections::BTreeMap<String, std::collections::BTreeMap<String, u32>> =
+        std::collections::BTreeMap::new();
+    for (name, country) in &state.countries {
+        if let Some(reg) = &country.politics.vip_registry {
+            for vip in reg.vips.values() {
+                if let Some(post) = &vip.diplomatic_post {
+                    *ambassador_counts
+                        .entry(name.clone())
+                        .or_default()
+                        .entry(post.host_country.clone())
+                        .or_insert(0) += 1;
+                }
+            }
+        }
+    }
+    state.treaty_registry.advance_negotiations(
+        current_turn_for_treaties,
+        &treaty_config,
+        diplomacy_ref,
+        &ambassador_counts,
+    );
+
+    // Expire treaties that have reached their duration
+    state.treaty_registry.expire_finished_treaties(current_turn_for_treaties);
+
+    // Reputation recovery for all countries (if no new violations this turn)
+    let rep_config = state.reputation_config.clone();
+    for country in state.countries.values_mut() {
+        country.global_reputation.recover(&rep_config);
+    }
+
+    // Phase 67: AI doctrine evaluation and execution for all AI nations.
+    let doctrine_config = state.doctrine_config.clone();
+    let country_names: Vec<String> = state.countries.keys().cloned().collect();
+    for ai_country_name in &country_names {
+        let doctrine = crate::international::ai_doctrines::evaluate_doctrine(
+            state,
+            ai_country_name,
+            &doctrine_config,
+        );
+        // Update the country's doctrine
+        if let Some(country) = state.countries.get_mut(ai_country_name) {
+            country.geopolitical_doctrine = doctrine.clone();
+        }
+        // Execute doctrine — generate diplomatic actions
+        let mut rng = rand::thread_rng();
+        let actions = crate::international::ai_doctrines::execute_doctrine(
+            state,
+            ai_country_name,
+            &doctrine,
+            &doctrine_config,
+            current_turn_for_treaties,
+            &mut rng,
+        );
+        state.pending_diplomatic_actions.extend(actions);
+    }
+
+    // Drain any new diplomatic actions from AI doctrines
+    let diplo_config = state.diplomatic_config.clone();
+    crate::state::diplomatic_actions::drain_diplomatic_actions(state, &diplo_config);
+
+    // Phase 68: Process international organizations — integration progression, voting evolution.
+    let org_config = state.org_config.clone();
+    let populations: std::collections::BTreeMap<String, u64> = state.countries.iter()
+        .map(|(k, v)| (k.clone(), v.budget.population as u64))
+        .collect();
+    state.international_organizations.process_turn(
+        current_turn_for_treaties,
+        &org_config,
+        &populations,
+    );
+
+    // Phase 68: Enforce directives — apply fines for non-compliance (double-entry).
+    let fines = state.international_organizations.enforce_directives(current_turn_for_treaties);
+    for (country_name, fine_amount, reason) in fines {
+        if let Some(country) = state.countries.get_mut(&country_name) {
+            if country.budget.liquid_reserves >= fine_amount {
+                country.budget.liquid_reserves -= fine_amount;
+                // Credit to the organization that issued the directive
+                // (Find the org that has this country as a member with the directive)
+                for org in &mut state.international_organizations.organizations {
+                    if org.is_member(&country_name) {
+                        org.budget.liquid_reserves += fine_amount;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    // Phase 68: Expire sanctions that have reached their duration.
+    state.active_sanctions.expire_finished_sanctions(current_turn_for_treaties);
+
+    // Phase 68: Apply reputation damage to sanctioned countries.
+    let sanction_config = state.sanction_config.clone();
+    let rep_config = state.reputation_config.clone();
+    let sanctioned_countries: Vec<String> = state.countries.keys()
+        .filter(|name| state.active_sanctions.is_sanctioned(name, current_turn_for_treaties))
+        .cloned()
+        .collect();
+    for country_name in sanctioned_countries {
+        if let Some(country) = state.countries.get_mut(&country_name) {
+            country.global_reputation.score =
+                (country.global_reputation.score - sanction_config.reputation_damage_per_turn).max(-100.0);
+        }
+    }
 
     // Phase 44: Update market supply/demand volumes from global orders before saving.
     // This ensures the Market UI shows the latest B2B order volumes on the next turn.

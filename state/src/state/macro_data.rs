@@ -839,6 +839,9 @@ pub struct MacroData {
     pub average_wage: f64,
     /// Dominant culture name.
     pub culture: String,
+    /// English demonym for the nation's people (e.g., "Bactrians", "Nordians").
+    #[serde(default)]
+    pub demonym: String,
     /// Broader cultural group.
     pub cultural_group: String,
     /// Dominant religion.
@@ -889,6 +892,7 @@ impl Default for MacroData {
             energy_mix: EnergyMix::default(),
             average_wage: 0.0,
             culture: String::new(),
+            demonym: String::new(),
             cultural_group: String::new(),
             religion: String::new(),
             election_turn: 0,

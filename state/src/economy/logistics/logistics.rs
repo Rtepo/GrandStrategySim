@@ -1054,6 +1054,7 @@ mod tests {
             coord_y: 0.0,
             development_level: 0.0,
             parcel_ids: Vec::new(),
+            is_autonomous_republic: false,
         }
     }
 

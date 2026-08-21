@@ -8,3 +8,4 @@ export { CompaniesPage } from "./CompaniesPage";
 export { ParliamentPage } from "./ParliamentPage";
 export { GovernmentPage } from "./GovernmentPage";
 export { RegionsPage } from "./RegionsPage";
+export { DiplomacyPage } from "./DiplomacyPage";

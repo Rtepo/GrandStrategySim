@@ -524,11 +524,38 @@ pub fn execute_agrarian_reform(
 /// Check if a foreign fund can purchase a parcel under the agrarian reform law.
 ///
 /// Returns `true` if the purchase is allowed, `false` if blocked.
+///
+/// Phase 67: If `treaty_registry` is provided and the buyer's country shares an
+/// active `FinancialMarketIntegration` treaty with the seller's country, foreign
+/// ownership caps and border zone bans are bypassed (deep market integration).
 pub fn check_foreign_purchase_allowed(
     cadastre: &Cadastre,
     parcel: &ParcelChunk,
     law: &AgrarianReformLaw,
+    treaty_registry: Option<&crate::international::treaties::TreatyRegistry>,
+    buyer_country: &str,
+    seller_country: &str,
+    sanction_registry: Option<&crate::international::sanctions::SanctionRegistry>,
+    current_turn: u32,
 ) -> bool {
+    // Phase 68: Asset Freeze sanction — blocks all foreign purchases by the sanctioned country.
+    if let Some(sanctions) = sanction_registry {
+        if sanctions.has_asset_freeze(buyer_country, current_turn) {
+            return false; // Assets frozen — cannot purchase foreign land
+        }
+    }
+
+    // Phase 67: FinancialMarketIntegration treaty bypasses foreign ownership restrictions.
+    if let Some(registry) = treaty_registry {
+        if registry.has_active_clause_between(
+            buyer_country,
+            seller_country,
+            &crate::international::treaties::TreatyClause::FinancialMarketIntegration,
+        ) {
+            return true; // Deep market integration — bypass all foreign ownership checks
+        }
+    }
+
     // Check border zone ban
     if parcel.is_border_zone && law.foreign_border_zone_ban_km > 0.0 {
         return false;
@@ -1707,7 +1734,7 @@ mod tests {
         };
         // Buying 50 hectares → 50/1050 = ~4.8% foreign, well under 20% cap
         let parcel = make_parcel("R1", 50.0, ParcelOwnerType::State, "TREASURY", 0.8);
-        assert!(check_foreign_purchase_allowed(&cadastre, &parcel, &law),
+        assert!(check_foreign_purchase_allowed(&cadastre, &parcel, &law, None, "", "", None, 0),
             "Normal purchase should be allowed");
     }
 
@@ -1720,7 +1747,7 @@ mod tests {
         };
         let mut parcel = make_parcel("R1", 50.0, ParcelOwnerType::State, "TREASURY", 0.8);
         parcel.is_border_zone = true;
-        assert!(!check_foreign_purchase_allowed(&cadastre, &parcel, &law),
+        assert!(!check_foreign_purchase_allowed(&cadastre, &parcel, &law, None, "", "", None, 0),
             "Border zone purchase should be blocked for foreign funds");
     }
 
@@ -1741,7 +1768,7 @@ mod tests {
             ..Default::default()
         };
         let parcel = make_parcel("R1", 100.0, ParcelOwnerType::State, "TREASURY", 0.8);
-        assert!(!check_foreign_purchase_allowed(&cadastre, &parcel, &law),
+        assert!(!check_foreign_purchase_allowed(&cadastre, &parcel, &law, None, "", "", None, 0),
             "Purchase should be blocked when foreign cap exceeded");
     }
 

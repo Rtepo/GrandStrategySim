@@ -437,6 +437,394 @@ pub struct GlobalSnapshot {
     pub turn: u32,
     pub year: u32,
     pub countries: BTreeMap<String, CountrySnapshot>,
+    /// Phase 66: Diplomacy snapshot for the player's country.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub diplomacy: Option<DiplomacySnapshot>,
+    /// Phase 66: Foreign countries with Fog of War applied.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub foreign_countries: Vec<ForeignCountryRow>,
+}
+
+// ============================================================================
+// PHASE 66: DIPLOMACY & FOG OF WAR SNAPSHOTS
+// ============================================================================
+
+/// Phase 66/67: Diplomacy snapshot for a single country's diplomatic view.
+#[derive(Debug, Clone, Default, serde::Serialize)]
+pub struct DiplomacySnapshot {
+    /// Player country name.
+    pub country: String,
+    /// Bilateral relations with all known countries.
+    pub relations: Vec<RelationRow>,
+    /// Diplomats posted by this country.
+    pub diplomats: Vec<DiplomatRow>,
+    /// Intelligence on foreign nations.
+    pub foreign_intelligence: Vec<ForeignIntelRow>,
+    /// Phase 67: Active and pending treaties involving this country.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub treaties: Vec<TreatyRow>,
+    /// Phase 67: Global reputation score (-100 to +100).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reputation: Option<f64>,
+    /// Phase 67: Geopolitical doctrine label.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub doctrine: Option<String>,
+    /// Phase 68: International organizations the country belongs to.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub organizations: Vec<InternationalOrgRow>,
+    /// Phase 68: Active sanctions against this country.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub sanctions_against: Vec<SanctionRow>,
+}
+
+/// Phase 66: A single bilateral relation row.
+#[derive(Debug, Clone, Default, serde::Serialize)]
+pub struct RelationRow {
+    /// Partner country name.
+    pub partner: String,
+    /// Relations score (-100 to 100).
+    pub relations: i64,
+    /// Frozen turns remaining.
+    pub frozen_turns: i64,
+    /// Whether free trade is active.
+    pub free_trade: bool,
+    /// Whether a customs union is active.
+    pub customs_union: bool,
+    /// Whether an embargo is in effect.
+    pub embargo: bool,
+    /// Treaty description.
+    pub treaty_description: String,
+}
+
+/// Phase 66: A posted diplomat row.
+#[derive(Debug, Clone, Default, serde::Serialize)]
+pub struct DiplomatRow {
+    /// VIP ID.
+    pub vip_id: String,
+    /// VIP name.
+    pub name: String,
+    /// Host country.
+    pub host_country: String,
+    /// Post type label (Ambassador, Consul, Spy).
+    pub post_type: String,
+    /// Turn assigned.
+    pub assigned_turn: u32,
+    /// VIP traits.
+    pub traits: Vec<String>,
+}
+
+/// Phase 66: Intelligence on a foreign country (Fog of War filtered).
+#[derive(Debug, Clone, Default, serde::Serialize)]
+pub struct ForeignIntelRow {
+    /// Target country name.
+    pub country: String,
+    /// Intel level label.
+    pub intel_level: String,
+    /// Estimated GDP range (low, high), or null if Unknown.
+    pub estimated_gdp: Option<(f64, f64)>,
+    /// Estimated military range (low, high), or null if Unknown.
+    pub estimated_military: Option<(u32, u32)>,
+    /// Estimated treasury range (low, high), or null if Unknown.
+    pub estimated_treasury: Option<(f64, f64)>,
+    /// Turn when intel was last updated.
+    pub last_intel_turn: u32,
+}
+
+/// Phase 66: A foreign country row with Fog of War applied.
+/// Hidden stats are `None` when intel level is Unknown.
+#[derive(Debug, Clone, Default, serde::Serialize)]
+pub struct ForeignCountryRow {
+    /// Country name.
+    pub name: String,
+    /// Demonym (e.g., "Bactrians").
+    pub demonym: String,
+    /// Cultural group.
+    pub cultural_group: String,
+    /// Intel level label.
+    pub intel_level: String,
+    /// Estimated GDP range, or null if Unknown.
+    pub estimated_gdp: Option<(f64, f64)>,
+    /// Estimated military size range, or null if Unknown.
+    pub estimated_military: Option<(u32, u32)>,
+    /// Estimated treasury range, or null if Unknown.
+    pub estimated_treasury: Option<(f64, f64)>,
+    /// Relations score with player country (-100 to 100), if known.
+    pub relations: Option<i64>,
+    /// Whether government form is known.
+    pub government_known: bool,
+    /// Government form label (if known).
+    pub government_form: Option<String>,
+}
+
+/// Phase 67: A treaty row for the diplomacy snapshot.
+#[derive(Debug, Clone, Default, serde::Serialize)]
+pub struct TreatyRow {
+    /// Treaty ID.
+    pub id: String,
+    /// Treaty name.
+    pub name: String,
+    /// Status label (Proposed, Negotiating, Active, etc.).
+    pub status: String,
+    /// Participant country names.
+    pub participants: Vec<String>,
+    /// Clause labels.
+    pub clauses: Vec<String>,
+    /// Negotiation progress (0.0 to 1.0).
+    pub negotiation_progress: f64,
+    /// Diplomatic capacity cost.
+    pub diplomatic_capacity_cost: u32,
+    /// Turn initiated.
+    pub initiated_turn: u32,
+    /// Turn signed (if active/expired/abrogated).
+    pub signed_turn: Option<u32>,
+    /// Duration in turns.
+    pub duration_turns: u32,
+    /// Initiating country.
+    pub initiator: String,
+}
+
+/// Phase 68: An international organization row for the diplomacy snapshot.
+#[derive(Debug, Clone, Default, serde::Serialize)]
+pub struct InternationalOrgRow {
+    /// Organization ID.
+    pub id: String,
+    /// Organization name.
+    pub name: String,
+    /// Integration level label.
+    pub integration_level: String,
+    /// Voting mechanism label.
+    pub voting_mechanism: String,
+    /// Member state names.
+    pub member_states: Vec<String>,
+    /// Number of active directives.
+    pub directive_count: usize,
+    /// Founded turn.
+    pub founded_turn: u32,
+    /// Active sanctions enacted by this organization.
+    pub sanctions: Vec<SanctionRow>,
+}
+
+/// Phase 68: A sanction row for the diplomacy snapshot.
+#[derive(Debug, Clone, Default, serde::Serialize)]
+pub struct SanctionRow {
+    /// Sanction ID.
+    pub id: String,
+    /// Sanctioned country.
+    pub target_country: String,
+    /// Sanctioning organization name.
+    pub sanctioning_org: String,
+    /// Sanction type label.
+    pub sanction_type: String,
+    /// Turn enacted.
+    pub enacted_turn: u32,
+    /// Duration in turns.
+    pub duration_turns: u32,
+    /// Reason.
+    pub reason: String,
+    /// Whether the sanction is still active.
+    pub is_active: bool,
+}
+
+/// Phase 66: Build a diplomacy snapshot for a country.
+pub fn build_diplomacy_snapshot(
+    state: &crate::state::GameState,
+    country_name: &str,
+    diplomacy: &std::collections::HashMap<String, std::collections::HashMap<String, crate::international::DiplomaticRelation>>,
+) -> DiplomacySnapshot {
+    let mut relations = Vec::new();
+    if let Some(partners) = diplomacy.get(country_name) {
+        let mut sorted_partners: Vec<_> = partners.iter().collect();
+        sorted_partners.sort_by_key(|(k, _)| *k);
+        for (partner, rel) in sorted_partners {
+            relations.push(RelationRow {
+                partner: partner.clone(),
+                relations: rel.relations,
+                frozen_turns: rel.frozen_turns,
+                free_trade: rel.free_trade,
+                customs_union: rel.customs_union,
+                embargo: rel.ban_import || rel.ban_export,
+                treaty_description: rel.treaty_description.clone(),
+            });
+        }
+    }
+
+    let mut diplomats = Vec::new();
+    if let Some(country) = state.countries.get(country_name) {
+        if let Some(registry) = &country.politics.vip_registry {
+            let mut posted_vips: Vec<_> = registry.vips.values()
+                .filter(|v| v.diplomatic_post.is_some())
+                .collect();
+            posted_vips.sort_by_key(|v| v.id.clone());
+            for vip in posted_vips {
+                let post = vip.diplomatic_post.as_ref().unwrap();
+                diplomats.push(DiplomatRow {
+                    vip_id: vip.id.clone(),
+                    name: vip.full_name.clone(),
+                    host_country: post.host_country.clone(),
+                    post_type: format!("{:?}", post.post_type),
+                    assigned_turn: post.assigned_turn,
+                    traits: vip.traits.clone(),
+                });
+            }
+        }
+    }
+
+    let mut foreign_intelligence = Vec::new();
+    if let Some(intel_map) = state.foreign_intelligence.get(country_name) {
+        let mut sorted_intel: Vec<_> = intel_map.iter().collect();
+        sorted_intel.sort_by_key(|(k, _)| *k);
+        for (target, intel) in sorted_intel {
+            foreign_intelligence.push(ForeignIntelRow {
+                country: target.clone(),
+                intel_level: intel.intel_level.as_str().to_string(),
+                estimated_gdp: intel.estimated_gdp,
+                estimated_military: intel.estimated_military,
+                estimated_treasury: intel.estimated_treasury,
+                last_intel_turn: intel.last_intel_turn,
+            });
+        }
+    }
+
+    // Phase 67: Build treaty rows for this country
+    let mut treaties = Vec::new();
+    for treaty in state.treaty_registry.treaties_for_country(country_name) {
+        treaties.push(TreatyRow {
+            id: treaty.id.clone(),
+            name: treaty.name.clone(),
+            status: treaty.status.as_str().to_string(),
+            participants: treaty.participants.clone(),
+            clauses: treaty.clauses.iter().map(|c| c.as_str().to_string()).collect(),
+            negotiation_progress: treaty.negotiation_progress,
+            diplomatic_capacity_cost: treaty.diplomatic_capacity_cost,
+            initiated_turn: treaty.initiated_turn,
+            signed_turn: treaty.signed_turn,
+            duration_turns: treaty.duration_turns,
+            initiator: treaty.initiator.clone(),
+        });
+    }
+
+    // Phase 67: Get reputation and doctrine
+    let (reputation, doctrine) = if let Some(country) = state.countries.get(country_name) {
+        (Some(country.global_reputation.score), Some(country.geopolitical_doctrine.as_str().to_string()))
+    } else {
+        (None, None)
+    };
+
+    // Phase 68: Build organization rows for this country
+    let current_turn = state.calendar.global_turn;
+    let mut organizations = Vec::new();
+    for org in state.international_organizations.orgs_for_country(country_name) {
+        let org_sanctions: Vec<SanctionRow> = state.active_sanctions.sanctions.iter()
+            .filter(|s| s.sanctioning_org == org.id && s.is_active_at(current_turn))
+            .map(|s| SanctionRow {
+                id: s.id.clone(),
+                target_country: s.target_country.clone(),
+                sanctioning_org: org.name.clone(),
+                sanction_type: s.sanction_type.as_str().to_string(),
+                enacted_turn: s.enacted_turn,
+                duration_turns: s.duration_turns,
+                reason: s.reason.clone(),
+                is_active: s.is_active_at(current_turn),
+            })
+            .collect();
+        organizations.push(InternationalOrgRow {
+            id: org.id.clone(),
+            name: org.name.clone(),
+            integration_level: org.integration_level.as_str().to_string(),
+            voting_mechanism: org.voting_mechanism.as_str().to_string(),
+            member_states: org.member_states.clone(),
+            directive_count: org.directives.len(),
+            founded_turn: org.founded_turn,
+            sanctions: org_sanctions,
+        });
+    }
+
+    // Phase 68: Build sanctions against this country
+    let sanctions_against: Vec<SanctionRow> = state.active_sanctions.active_sanctions_against(country_name, current_turn)
+        .into_iter()
+        .map(|s| SanctionRow {
+            id: s.id.clone(),
+            target_country: s.target_country.clone(),
+            sanctioning_org: s.sanctioning_org.clone(),
+            sanction_type: s.sanction_type.as_str().to_string(),
+            enacted_turn: s.enacted_turn,
+            duration_turns: s.duration_turns,
+            reason: s.reason.clone(),
+            is_active: true,
+        })
+        .collect();
+
+    DiplomacySnapshot {
+        country: country_name.to_string(),
+        relations,
+        diplomats,
+        foreign_intelligence,
+        treaties,
+        reputation,
+        doctrine,
+        organizations,
+        sanctions_against,
+    }
+}
+
+/// Phase 66: Build foreign country rows with Fog of War applied.
+/// The player country gets full data; all others get filtered.
+pub fn build_foreign_country_rows(
+    state: &crate::state::GameState,
+    player_country: &str,
+    diplomacy: &std::collections::HashMap<String, std::collections::HashMap<String, crate::international::DiplomaticRelation>>,
+) -> Vec<ForeignCountryRow> {
+    let mut rows = Vec::new();
+    let mut sorted_names: Vec<&String> = state.countries.keys().filter(|n| *n != player_country).collect();
+    sorted_names.sort();
+
+    for name in sorted_names {
+        let country = match state.countries.get(name) {
+            Some(c) => c,
+            None => continue,
+        };
+
+        // Get intel level for this country from player's perspective
+        let intel = state.foreign_intelligence
+            .get(player_country)
+            .and_then(|m| m.get(name))
+            .cloned()
+            .unwrap_or_else(crate::international::fog_of_war::ForeignIntelligence::unknown);
+
+        let fog_result = crate::international::fog_of_war::apply_fog_of_war(
+            country.budget.gdp,
+            country.military_units.len() as u32,
+            country.budget.liquid_reserves,
+            &intel,
+        );
+
+        // Get relations if known
+        let relations = diplomacy
+            .get(player_country)
+            .and_then(|p| p.get(name))
+            .map(|r| r.relations);
+
+        let government_form = if intel.government_known {
+            Some(format!("{:?}", country.politics.government_form))
+        } else {
+            None
+        };
+
+        rows.push(ForeignCountryRow {
+            name: name.clone(),
+            demonym: country.macro_indicators.demonym.clone(),
+            cultural_group: country.macro_indicators.cultural_group.clone(),
+            intel_level: fog_result.intel_level.as_str().to_string(),
+            estimated_gdp: fog_result.gdp,
+            estimated_military: fog_result.military,
+            estimated_treasury: fog_result.treasury,
+            relations,
+            government_known: intel.government_known,
+            government_form,
+        });
+    }
+
+    rows
 }
 
 // ============================================================================
@@ -2938,5 +3326,5 @@ pub fn build_global_snapshot(
         countries.insert(name.clone(), snap);
     }
 
-    GlobalSnapshot { turn, year, countries }
+    GlobalSnapshot { turn, year, countries, diplomacy: None, foreign_countries: Vec::new() }
 }

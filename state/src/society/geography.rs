@@ -633,6 +633,12 @@ pub struct Region {
     /// Filled during cadastre generation and updated when parcels are split/merged.
     #[serde(default)]
     pub parcel_ids: Vec<crate::society::cadastre::ParcelId>,
+
+    /// Phase 65: Whether this region is an Autonomous Republic with its own
+    /// Premier and elevated separatist risk. Set during world generation based
+    /// on cultural/national distinctness.
+    #[serde(default, rename = "jest_autonomiczna")]
+    pub is_autonomous_republic: bool,
 }
 
 /// Phase 47: Default development level for old saves (conservative mid-low).
@@ -1477,6 +1483,7 @@ pub fn generate_regional_topology(country: &str, population: i64, gdp: f64, star
             coord_y: 0.0,
             development_level,
             parcel_ids: Vec::new(),
+            is_autonomous_republic: false,
         });
     }
 
@@ -1795,6 +1802,7 @@ pub fn generate_maritime_nodes(
         coord_y: 0.0,
         development_level: 0.0,
         parcel_ids: Vec::new(),
+        is_autonomous_republic: false,
     };
     maritime_nodes.insert(sea_node_id, sea_node);
 
@@ -1836,6 +1844,7 @@ pub fn generate_maritime_nodes(
         coord_y: 0.0,
         development_level: 0.0,
         parcel_ids: Vec::new(),
+        is_autonomous_republic: false,
     };
     maritime_nodes.insert(ocean_node_id, ocean_node);
 
@@ -2838,6 +2847,7 @@ mod phase30_tests {
             coord_y: 0.0,
             development_level: 0.0,
             parcel_ids: Vec::new(),
+            is_autonomous_republic: false,
         }
     }
 

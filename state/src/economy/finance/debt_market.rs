@@ -388,7 +388,14 @@ pub fn issue_treasury_securities(
     };
     // Credit spread: 0.5% base + 1% per 50% of debt-to-GDP, capped at 5%
     let credit_spread = (0.005 + (debt_to_gdp * 0.02)).min(0.05);
-    let sovereign_yield = cb_reference_rate + credit_spread;
+
+    // Phase 67: Reputation-based interest rate penalty.
+    // Low global reputation increases sovereign borrowing costs — bad-faith
+    // actors (treaty violators) pay a risk premium reflecting lower sovereign trust.
+    let reputation_config = crate::international::reputation::ReputationConfig::default();
+    let reputation_penalty = country.global_reputation.debt_interest_penalty(&reputation_config);
+
+    let sovereign_yield = cb_reference_rate + credit_spread + reputation_penalty;
 
     let coupon_rate = if is_short_term {
         0.0 // T-Bills are zero-coupon

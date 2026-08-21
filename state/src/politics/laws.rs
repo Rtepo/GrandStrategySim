@@ -300,6 +300,11 @@ pub enum LawType {
     /// Phase 23C: Transport ownership law — affects passenger transport
     /// subsidy and privatization of JST transport operators.
     Transport(crate::economy::commuting::TransportLaw),
+    /// Phase 63: Subsurface rights law — controls mining/extraction ownership rules.
+    SubsurfaceRights(crate::society::cadastre::SubsurfaceRightsLaw),
+    /// Phase 65: State structure change — alters the relationship between
+    /// central and regional governments (Unitary/Federation/Totalitarian/AutonomousRepublic).
+    StateStructureChange(crate::politics::state_structure::StateStructure),
 }
 
 /// Enact a law, mutating the country's physical economic configuration.
@@ -425,6 +430,21 @@ pub fn enact_law(
             format!(
                 "Transport law enacted: ownership={:?}, subsidy_fraction={:.2}",
                 law.ownership, country.commuting_config.public_subsidy_fraction
+            )
+        }
+        LawType::SubsurfaceRights(law) => {
+            country.subsurface_rights_law = law.clone();
+            format!(
+                "Subsurface rights law enacted: default_ownership={:?}, state_can_expropriate={}, mining_premium={:.2}",
+                law.default_ownership, law.state_can_expropriate_subsurface, law.mining_land_premium
+            )
+        }
+        LawType::StateStructureChange(new_structure) => {
+            let old_structure = country.politics.state_structure;
+            country.politics.state_structure = new_structure;
+            format!(
+                "State structure changed: {:?} → {:?}",
+                old_structure, new_structure
             )
         }
     }

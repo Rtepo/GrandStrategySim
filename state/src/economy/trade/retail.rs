@@ -1211,6 +1211,7 @@ mod tests {
             cultural_group_display: "TestGroup".into(),
             language: "test_lang".into(),
             language_family: "test_family".into(),
+            demonym: "TestCultureans".into(),
             taboos,
             obsessions,
         }

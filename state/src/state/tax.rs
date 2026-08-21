@@ -242,6 +242,27 @@ impl Default for TaxRouting {
     }
 }
 
+impl TaxRouting {
+    /// Phase 65: Creates a `TaxRouting` from a `StateStructure` and its config.
+    ///
+    /// Uses the config-driven tax retention rates — no magic numbers.
+    /// The central share is computed as the remainder to prevent
+    /// floating-point leakage.
+    pub fn from_state_structure(
+        structure: crate::politics::state_structure::StateStructure,
+        config: &crate::politics::state_structure::StateStructureConfig,
+    ) -> Self {
+        let (central, region, micro) = config.shares_for(structure);
+        Self {
+            microregion_share: micro,
+            region_share: region,
+            central_share: central,
+            national_exception: false,
+            extra: Map::new(),
+        }
+    }
+}
+
 /// Tax collection record with routing.
 #[derive(Debug, Clone, PartialEq)]
 pub struct TaxCollection {
@@ -1517,6 +1538,43 @@ mod tests {
     use super::*;
     use crate::entities::Company;
     use crate::registries::enums::Sector;
+    use crate::politics::state_structure::{StateStructure, StateStructureConfig};
+
+    #[test]
+    fn test_tax_routing_from_unitary() {
+        let config = StateStructureConfig::default();
+        let routing = TaxRouting::from_state_structure(StateStructure::Unitary, &config);
+        assert!((routing.central_share - 0.80).abs() < 1e-9);
+        assert!((routing.region_share - 0.15).abs() < 1e-9);
+        assert!((routing.microregion_share - 0.05).abs() < 1e-9);
+    }
+
+    #[test]
+    fn test_tax_routing_from_federation() {
+        let config = StateStructureConfig::default();
+        let routing = TaxRouting::from_state_structure(StateStructure::Federation, &config);
+        assert!((routing.central_share - 0.35).abs() < 1e-9);
+        assert!((routing.region_share - 0.55).abs() < 1e-9);
+        assert!((routing.microregion_share - 0.10).abs() < 1e-9);
+    }
+
+    #[test]
+    fn test_tax_routing_from_totalitarian() {
+        let config = StateStructureConfig::default();
+        let routing = TaxRouting::from_state_structure(StateStructure::Totalitarian, &config);
+        assert!((routing.central_share - 1.0).abs() < 1e-9);
+        assert!((routing.region_share - 0.0).abs() < 1e-9);
+        assert!((routing.microregion_share - 0.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn test_tax_routing_from_autonomous_republic() {
+        let config = StateStructureConfig::default();
+        let routing = TaxRouting::from_state_structure(StateStructure::AutonomousRepublic, &config);
+        assert!((routing.central_share - 0.25).abs() < 1e-9);
+        assert!((routing.region_share - 0.65).abs() < 1e-9);
+        assert!((routing.microregion_share - 0.10).abs() < 1e-9);
+    }
 
     const FIXTURE: &str = r#"{
         "income_tax": {"rate": 0.189, "structure": "liniowy"},

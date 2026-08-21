@@ -203,6 +203,8 @@ pub fn load_country_data(data_dir: &Path, country: &str) -> Result<Country, Save
         externality_config: crate::society::cadastre::ExternalityConfig::default(),
         national_zoning_quota: crate::society::cadastre::NationalZoningQuota::default(),
         subsurface_rights_law: crate::society::cadastre::SubsurfaceRightsLaw::default(),
+        global_reputation: crate::international::reputation::GlobalReputation::default(),
+        geopolitical_doctrine: crate::international::ai_doctrines::GeopoliticalDoctrine::default(),
     })
 }
 
@@ -339,6 +341,8 @@ pub fn load_game_state(data_dir: &Path) -> Result<GameState, SaveError> {
         externality_config: crate::society::cadastre::ExternalityConfig::default(),
         national_zoning_quota: crate::society::cadastre::NationalZoningQuota::default(),
         subsurface_rights_law: crate::society::cadastre::SubsurfaceRightsLaw::default(),
+        global_reputation: crate::international::reputation::GlobalReputation::default(),
+        geopolitical_doctrine: crate::international::ai_doctrines::GeopoliticalDoctrine::default(),
             },
         );
     }

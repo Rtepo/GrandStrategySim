@@ -207,7 +207,15 @@ pub fn calculate_emigrants(
 pub fn collect_migration_flows(
     countries: &HashMap<String, (&Country, &[Building], u32)>,
     turn: u32,
+    treaty_registry: Option<&crate::international::treaties::TreatyRegistry>,
 ) -> Vec<MigrationFlow> {
+    // Phase 67: Helper to check if two countries share a Schengen free movement treaty.
+    let has_schengen = |a: &str, b: &str| -> bool {
+        treaty_registry.map_or(false, |reg| {
+            reg.has_active_clause_between(a, b, &crate::international::treaties::TreatyClause::SchengenFreeMovement)
+        })
+    };
+
     // Step 1: Calculate pressure and border enforcement for each country.
     let mut pressures: HashMap<String, f64> = HashMap::new();
     let mut border_capacities: HashMap<String, f64> = HashMap::new();
@@ -221,12 +229,28 @@ pub fn collect_migration_flows(
     }
 
     // Step 2: Calculate attractiveness (inverse of pressure, weighted by GDP).
+    // Phase 67: Schengen free movement treaties boost attractiveness between participants.
     let mut attractors: Vec<(String, f64)> = countries
         .iter()
         .map(|(name, (country, _, _))| {
             let pressure = pressures[name];
             let gdp_pc = country.budget.gdp / (country.budget.population as f64).max(1.0);
-            let attractiveness = (1.0 - pressure) * (gdp_pc / 10_000.0).min(1.0).max(0.01);
+            let mut attractiveness = (1.0 - pressure) * (gdp_pc / 10_000.0).min(1.0).max(0.01);
+            // Phase 67: Schengen bonus is applied per-origin during distribution,
+            // but we also boost the base attractiveness for Schengen members
+            // since they have more open economies.
+            let schengen_partners = treaty_registry.map_or(0, |reg| {
+                reg.treaties.iter()
+                    .filter(|t| t.is_active()
+                        && t.participants.contains(name)
+                        && t.clauses.contains(&crate::international::treaties::TreatyClause::SchengenFreeMovement))
+                    .flat_map(|t| t.participants.iter())
+                    .filter(|p| *p != name && countries.contains_key(*p))
+                    .count()
+            });
+            if schengen_partners > 0 {
+                attractiveness *= 1.0 + (0.10 * schengen_partners as f64).min(0.50);
+            }
             (name.clone(), attractiveness)
         })
         .collect();
@@ -281,7 +305,10 @@ pub fn collect_migration_flows(
                     .as_ref();
                 let open_borders = migration_law.map(|m| m.open_borders).unwrap_or(false);
 
-                let actual_migrants = if open_borders {
+                // Phase 67: Schengen free movement — zero border enforcement between participants.
+                let schengen_active = has_schengen(origin_name, dest_name);
+
+                let actual_migrants = if open_borders || schengen_active {
                     dest_emigrants
                 } else {
                     (dest_emigrants as f64 * (1.0 - dest_enforcement * 0.5)) as u64
@@ -670,7 +697,7 @@ mod tests {
         countries_ref.insert("CountryA".to_string(), (&country_a, &buildings_a, 0));
         countries_ref.insert("CountryB".to_string(), (&country_b, &buildings_b, 0));
 
-        let flows = collect_migration_flows(&countries_ref, 1);
+        let flows = collect_migration_flows(&countries_ref, 1, None);
         assert!(!flows.is_empty(), "should produce migration flows");
 
         // Check conservation: total outflow = total inflow

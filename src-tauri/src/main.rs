@@ -64,6 +64,23 @@ fn main() {
             commands::cadastre_queries::get_court_backlog,
             commands::cadastre_queries::get_arbitration_cases,
             commands::cadastre_queries::get_ministry_land_report,
+            // Phase 66: Diplomacy & Fog of War
+            commands::diplomacy_queries::get_diplomacy_snapshot,
+            commands::diplomacy_queries::get_foreign_countries,
+            commands::diplomacy_queries::assign_diplomat,
+            commands::diplomacy_queries::recall_diplomat,
+            commands::diplomacy_queries::expel_diplomat,
+            commands::diplomacy_queries::send_economic_aid,
+            commands::diplomacy_queries::border_provocation,
+            // Phase 67: Treaties & reputation
+            commands::diplomacy_queries::get_active_treaties,
+            commands::diplomacy_queries::propose_treaty,
+            commands::diplomacy_queries::sign_treaty,
+            commands::diplomacy_queries::abrogate_treaty,
+            // Phase 68: Organizations & sanctions
+            commands::diplomacy_queries::get_organizations,
+            commands::diplomacy_queries::propose_sanction,
+            commands::diplomacy_queries::lift_sanction,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useGameStore } from "../store/gameStore";
 import { getGovernment } from "../hooks/useTauriCommand";
-import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Tabs } from "../components/ui";
+import { Card, CardHeader, CardTitle, CardContent, Badge, Button, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Tabs } from "../components/ui";
 import { VipHoverCard } from "../components/VipHoverCard";
 import { fmt } from "../lib/format";
 
@@ -139,6 +139,49 @@ export function GovernmentPage() {
       ),
     },
   ];
+
+  // Ministries sub-tab: detailed per-ministry budget breakdown.
+  tabs.push({
+    label: "Ministries",
+    value: "ministries",
+    content: (
+      <Card>
+        <CardHeader><CardTitle>Ministries</CardTitle></CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Ministry Name</TableHead>
+                <TableHead>Minister</TableHead>
+                <TableHead className="text-right">Budget Allocated</TableHead>
+                <TableHead className="text-right">Budget Spent</TableHead>
+                <TableHead className="text-right">Cash Remaining</TableHead>
+                <TableHead className="text-right">Reports</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {gov.cabinet.length > 0 ? (
+                gov.cabinet.map((m) => (
+                  <TableRow key={m.ministry_name}>
+                    <TableCell className="font-medium">{m.ministry_name}</TableCell>
+                    <TableCell>{m.minister_name}</TableCell>
+                    <TableCell className="text-right">{fmt(m.allocated_cash)}</TableCell>
+                    <TableCell className="text-right">{fmt(m.spent_cash)}</TableCell>
+                    <TableCell className="text-right">{fmt(m.ministry_cash)}</TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="outline" size="sm">View Reports</Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableEmpty colSpan={6} message="No ministry data" />
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    ),
+  });
 
   // Phase 54: Add Royal Family tab only for monarchies.
   if (isMonarchy && gov.royal_dynasty) {

@@ -31,6 +31,7 @@ import { RegionsPage } from "./pages/RegionsPage";
 import { StockExchangePage } from "./pages/StockExchangePage";
 import { FundsPage } from "./pages/FundsPage";
 import { LandPage } from "./pages/LandPage";
+import { DiplomacyPage } from "./pages/DiplomacyPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { useUpdater } from "./hooks/useUpdater";
@@ -48,6 +49,7 @@ const NAV_ITEMS = [
   { to: "/government", label: "Government", icon: Landmark },
   { to: "/regions", label: "Regions", icon: Map },
   { to: "/land", label: "Land", icon: Trees },
+  { to: "/diplomacy", label: "Diplomacy", icon: Globe },
 ];
 
 interface SidebarProps {
@@ -56,7 +58,7 @@ interface SidebarProps {
 }
 
 function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
-  const { gameStatus, selectedCountry, setSelectedCountry, processing, refreshStatus, bumpTurn } = useGameStore();
+  const { gameStatus, selectedCountry, setSelectedCountry, processing, refreshStatus, bumpTurn, activeMockRole, setActiveMockRole } = useGameStore();
   const queryClient = useQueryClient();
 
   const handleAdvance = async () => {
@@ -98,6 +100,23 @@ function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
             {gameStatus.countries.map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
+          </select>
+        </div>
+      )}
+
+      {gameStatus && gameStatus.has_game && (
+        <div className="p-3 border-b border-border">
+          <label className="text-xs text-muted-foreground mb-1 block">Player Role</label>
+          <select
+            value={activeMockRole}
+            onChange={(e) => setActiveMockRole(e.target.value)}
+            className="w-full bg-input text-foreground text-sm rounded px-2 py-1 border border-border"
+          >
+            <option value="Admin">Admin (Full Access)</option>
+            <option value="PrimeMinister">Prime Minister</option>
+            <option value="Minister">Minister</option>
+            <option value="Civilian">Civilian</option>
+            <option value="">— None —</option>
           </select>
         </div>
       )}
@@ -314,6 +333,7 @@ export default function App() {
             <Route path="/government" element={<GovernmentPage />} />
             <Route path="/regions" element={<RegionsPage />} />
             <Route path="/land" element={<LandPage />} />
+            <Route path="/diplomacy" element={<DiplomacyPage />} />
           </Routes>
         </ErrorBoundary>
       </main>

@@ -181,6 +181,13 @@ pub fn generate_world(
 
     let diplomacy = generate_diplomacy(&selected);
 
+    // Phase 68: Spawn the World Forum — neutral, all countries as members, Unanimity voting.
+    let world_forum = crate::international::organizations::InternationalOrganization::new_world_forum(
+        &selected,
+        0,
+    );
+    state.international_organizations.organizations.push(world_forum);
+
     state.extra.insert("current_turn".to_string(), Value::from(0));
     state.extra.insert("year".to_string(), Value::from(options.start_year as u32));
 
@@ -358,8 +365,14 @@ fn generate_country(
         externality_config: crate::society::cadastre::ExternalityConfig::default(),
         national_zoning_quota: crate::society::cadastre::NationalZoningQuota::default(),
         subsurface_rights_law: crate::society::cadastre::SubsurfaceRightsLaw::default(),
+        global_reputation: crate::international::reputation::GlobalReputation::default(),
+        geopolitical_doctrine: crate::international::ai_doctrines::GeopoliticalDoctrine::default(),
     };
     country.macro_indicators.currency = currency.prefix.clone();
+
+    // Phase 65: Assign StateStructure based on government form.
+    let state_structure = assign_state_structure(&country.politics.government_form, rng);
+    country.politics.state_structure = state_structure;
 
     let mut companies = Vec::new();  // Empty companies for bootstrap
     // Add bank companies
@@ -967,6 +980,7 @@ fn build_macro_data(
         energy_mix,
         average_wage,
         culture: name.to_string(),
+        demonym: cultural.demonym.clone(),
         cultural_group: cultural.cultural_group.clone(),
         religion: cultural.religion.clone(),
         election_turn: 0,
@@ -984,6 +998,44 @@ fn build_macro_data(
 
 fn population_f64(demographics: &Demographics) -> f64 {
     demographics.population_size.max(1.0)
+}
+
+/// Phase 65: Assign a StateStructure based on the government form.
+///
+/// Autocratic forms (Absolute Monarchy, One-Party State, Military Dictatorship,
+/// Theocracy) default to Totalitarian. Democratic forms get Unitary or Federation
+/// based on a random draw. AutonomousRepublic is not assigned at country level
+/// during generation — it is a per-region designation.
+fn assign_state_structure(
+    government_form: &crate::politics::system::GovernmentForm,
+    rng: &mut impl Rng,
+) -> crate::politics::state_structure::StateStructure {
+    use crate::politics::state_structure::StateStructure;
+    use crate::politics::system::GovernmentForm;
+
+    match government_form {
+        GovernmentForm::AbsoluteMonarchy
+        | GovernmentForm::OnePartyState
+        | GovernmentForm::MilitaryDictatorship
+        | GovernmentForm::Theocracy => StateStructure::Totalitarian,
+        GovernmentForm::ConstitutionalMonarchy
+        | GovernmentForm::DirectorialDemocracy => {
+            // Federations are more likely for these forms
+            if rng.gen::<f64>() < 0.6 {
+                StateStructure::Federation
+            } else {
+                StateStructure::Unitary
+            }
+        }
+        _ => {
+            // Parliamentary/Presidential republics: mostly unitary, sometimes federation
+            if rng.gen::<f64>() < 0.3 {
+                StateStructure::Federation
+            } else {
+                StateStructure::Unitary
+            }
+        }
+    }
 }
 
 fn build_tax_rates(gdp_total: f64, rng: &mut impl Rng) -> TaxRates {

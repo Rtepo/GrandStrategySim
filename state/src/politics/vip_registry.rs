@@ -135,6 +135,13 @@ pub enum VipRoleExtended {
     BoardChair,
     /// Phase 55: Heir to a family business (in line for CEO succession).
     Heir,
+    // ── Diplomatic (Phase 66) ──
+    /// Ambassador posted to a foreign country.
+    Ambassador,
+    /// Consul serving in a foreign country.
+    Consul,
+    /// Spy operating covertly in a foreign country.
+    Spy,
 }
 
 impl VipRoleExtended {
@@ -186,6 +193,9 @@ impl VipRoleExtended {
             VipRoleExtended::BoardMember => "Board Member",
             VipRoleExtended::BoardChair => "Board Chair",
             VipRoleExtended::Heir => "Heir",
+            VipRoleExtended::Ambassador => "Ambassador",
+            VipRoleExtended::Consul => "Consul",
+            VipRoleExtended::Spy => "Spy",
         }
     }
 
@@ -212,6 +222,9 @@ impl VipRoleExtended {
             VipRoleExtended::BoardMember,
             VipRoleExtended::BoardChair,
             VipRoleExtended::Heir,
+            VipRoleExtended::Ambassador,
+            VipRoleExtended::Consul,
+            VipRoleExtended::Spy,
         ]
     }
 }
@@ -238,6 +251,27 @@ impl VipHealth {
     pub fn aggregate(&self) -> f64 {
         (self.physical_health + self.mental_health) / 2.0
     }
+}
+
+/// Phase 66: Type of diplomatic post a VIP can be assigned to.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Default)]
+pub enum DiplomaticPostType {
+    #[default]
+    Ambassador,
+    Consul,
+    Spy,
+    MilitaryAttache,
+}
+
+/// Phase 66: A diplomatic posting for a VIP in a foreign country.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct DiplomaticPost {
+    /// Country where the VIP is posted (host country).
+    pub host_country: String,
+    /// Type of diplomatic post.
+    pub post_type: DiplomaticPostType,
+    /// Turn when this post was assigned.
+    pub assigned_turn: u32,
 }
 
 /// Unique VIP identity tracked across the entire simulation.
@@ -303,6 +337,9 @@ pub struct Vip {
     /// VIP ID of the acting replacement (if incapacitated).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub acting_replacement_id: Option<String>,
+    /// Phase 66: Diplomatic posting (if this VIP is posted abroad).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub diplomatic_post: Option<DiplomaticPost>,
 }
 
 fn default_health() -> f64 {
@@ -751,6 +788,7 @@ mod tests {
             death_turn: None,
             death_cause: None,
             acting_replacement_id: None,
+            diplomatic_post: None,
         }
     }
 

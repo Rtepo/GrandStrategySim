@@ -31,9 +31,9 @@ use std::collections::HashMap;
 #[serde(default)]
 pub struct DiplomaticRelation {
     /// Diplomatic relations score, -100 to 100.
-    pub relacje: i64,
-    /// Frozen relations counter.
-    pub zamrozenie: i64,
+    pub relations: i64,
+    /// Frozen relations counter (turns remaining).
+    pub frozen_turns: i64,
     /// Imports from this partner are blocked.
     pub ban_import: bool,
     /// Exports to this partner are blocked.
@@ -47,7 +47,7 @@ pub struct DiplomaticRelation {
     /// Both countries belong to an economic community.
     pub economic_community: bool,
     /// Active treaty description.
-    pub traktat: String,
+    pub treaty_description: String,
     /// Extra trade cost for this relationship (e.g. embargo penalty).
     pub embargo_penalty: f64,
 }
@@ -114,6 +114,14 @@ pub fn balance_global_trade(
     // Silence unused warnings while keeping the parameter for API parity.
     let _ = global_market;
 
+    // Phase 67: Extract treaty registry for CustomsUnion market merging.
+    let treaty_registry = state.treaty_registry.clone();
+
+    // Phase 68: Extract sanction registry for trade embargo enforcement.
+    let sanction_registry = state.active_sanctions.clone();
+    let sanction_config = state.sanction_config.clone();
+    let current_turn = state.calendar.global_turn;
+
     // --- Phase 1: Collect --------------------------------------------------
     let global_supply = market_orders_total_sell(market_orders);
     let global_demand = market_orders_total_buy(market_orders);
@@ -134,6 +142,36 @@ pub fn balance_global_trade(
         let (import_banned, export_banned, mut dipl_bonus) =
             diplomatic_modifiers(name, diplomacy);
 
+        // Phase 67: CustomsUnion treaty clause — merge market demand/supply.
+        // Countries sharing an active CustomsUnion treaty get a significant
+        // competitiveness boost, simulating merged market access.
+        let customs_union_partners = treaty_registry.treaties.iter()
+            .filter(|t| t.is_active() && t.has_participants(name, name)) // placeholder
+            .count();
+        let _ = customs_union_partners; // Count is via has_active_clause_between below
+
+        // Count active CustomsUnion treaties this country participates in
+        let cu_treaty_count = treaty_registry.treaties.iter()
+            .filter(|t| t.is_active()
+                && t.participants.contains(&name.to_string())
+                && t.clauses.contains(&crate::international::treaties::TreatyClause::CustomsUnion))
+            .count();
+        if cu_treaty_count > 0 {
+            // CustomsUnion provides a deep market merge: +0.15 per treaty
+            // (much stronger than the bilateral 0.05 flag bonus)
+            dipl_bonus += 0.15 * cu_treaty_count as f64;
+        }
+
+        // Phase 67: TradePreference treaty clause — tariff reduction.
+        let tp_treaty_count = treaty_registry.treaties.iter()
+            .filter(|t| t.is_active()
+                && t.participants.contains(&name.to_string())
+                && t.clauses.contains(&crate::international::treaties::TreatyClause::TradePreference))
+            .count();
+        if tp_treaty_count > 0 {
+            dipl_bonus += 0.05 * tp_treaty_count as f64;
+        }
+
         // Apply the trade doctrine from `makro.polityka.doktryna_handlowa`.
         if let Some(Value::Object(pol)) = country.macro_indicators.extra.get("polityka") {
             if let Some(Value::String(d)) = pol.get("doktryna_handlowa") {
@@ -150,13 +188,25 @@ pub fn balance_global_trade(
         comp *= 1.0 + dipl_bonus;
         comp = comp.max(0.1);
 
-        let export_weight = if export_banned {
-            0.0
+        // Phase 68: Trade Embargo sanction — set export/import weight to near-zero
+        // (smuggling leakage controlled by SanctionConfig.trade_block_modifier).
+        let is_trade_embargoed = sanction_registry.has_trade_embargo(name, current_turn);
+
+        let export_weight = if export_banned || is_trade_embargoed {
+            if is_trade_embargoed {
+                country.budget.gdp * comp * sanction_config.trade_block_modifier
+            } else {
+                0.0
+            }
         } else {
             country.budget.gdp * comp
         };
-        let import_weight = if import_banned {
-            0.0
+        let import_weight = if import_banned || is_trade_embargoed {
+            if is_trade_embargoed {
+                country.budget.gdp * sanction_config.trade_block_modifier
+            } else {
+                0.0
+            }
         } else {
             country.budget.gdp / comp
         };

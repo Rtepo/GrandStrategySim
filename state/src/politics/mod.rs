@@ -45,6 +45,7 @@ pub mod vip_registry;
 pub mod succession;
 pub mod advisory_council;
 pub mod local_legislation;
+pub mod state_structure;
 
 pub use bill_lifecycle::{process_bill_lifecycle, process_committee_stage, process_floor_vote, process_bicameral_review, process_executive_review, process_legislation_turn, deterministic_roll};
 pub use committees::{Committee, CommitteeSystem, CommitteeType};
@@ -68,8 +69,9 @@ pub use laws::{HealthcareLaw, EducationLaw, LawType, enact_law, MigrationLaw, De
 pub use free_speech::{FreeSpeechLaw, FreeSpeechLevel, AssemblyRights, PressFreedom};
 pub use names::{NamePool, VipName, generate_person_name, generate_full_vip, name_pool_for_culture, vip_to_leader};
 pub use parliament::{Parliament, Chamber, ChamberPresidium, NamedVip, VipRole, ParliamentaryClub, VoteRecord, SplinterEvent, StateOfEmergency, initialize_parliament, check_faction_splintering, assign_club_chairpersons};
-pub use vip_registry::{Vip, VipRegistry, VipRoleExtended, IncapacityStatus, DeathCause, PendingDeath, age_health_degradation, death_probability, assign_core_traits, CORE_TRAITS};
+pub use vip_registry::{Vip, VipRegistry, VipRoleExtended, IncapacityStatus, DeathCause, PendingDeath, age_health_degradation, death_probability, assign_core_traits, CORE_TRAITS, DiplomaticPost, DiplomaticPostType};
 pub use succession::{RoyalDynasty, RoyalFamilyMember, RoyalRelation, SuccessionOutcome, RegentBehavior, regent_behavior};
 pub use advisory_council::{AdvisoryCouncil, CouncilMember, CouncilType, CouncilOpinion, FactionType, calculate_council_opinion, apply_decree_against_council};
 pub use local_legislation::{UnfundedMandate, MandateFundingDecision, LocalBill, LocalProvision, LocalBillStage, vote_on_mandate_funding};
+pub use state_structure::{StateStructure, StateStructureConfig, RegionalLaw, RegionalLawType};
 pub use legislation::{BillProvision, SunsetProvision, enact_bill, process_sunset_expirations};
