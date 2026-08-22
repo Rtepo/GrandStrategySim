@@ -11,7 +11,9 @@
 //! * Building degradation: -0.1. No charity with followers: -0.1.
 //! * Clamped to [0.0, 1.0].
 
+use crate::entities::Company;
 use crate::infrastructure::cultural::{CulturalBuilding, CulturalBuildingType};
+use crate::registries::enums::Sector;
 use crate::society::culture_registry::registry as culture_registry;
 use crate::state::Country;
 use serde::{Deserialize, Serialize};
@@ -40,6 +42,9 @@ pub struct ReligiousAuthorityConfig {
     pub no_charity_min_followers: i64,
     /// Scaling factor for charity per-capita.
     pub charity_per_capita_scale: f64,
+    /// Phase 78: Minimum clergy-to-follower ratio for full authority.
+    /// Below this ratio, authority is scaled down proportionally.
+    pub min_clergy_ratio: f64,
 }
 
 impl Default for ReligiousAuthorityConfig {
@@ -55,6 +60,7 @@ impl Default for ReligiousAuthorityConfig {
             no_charity_penalty: 0.1,
             no_charity_min_followers: 1000,
             charity_per_capita_scale: 0.001,
+            min_clergy_ratio: 0.001, // 1 clergy per 1000 followers for full authority
         }
     }
 }
@@ -82,17 +88,34 @@ pub struct ReligiousAuthorityState {
 /// * State religion gets +0.3 boost.
 /// * Building condition, charity, and Holy Sites each contribute up to +0.2.
 /// * Degradation and no-charity penalties each subtract 0.1.
+/// * Phase 78: Authority is scaled by clergy-to-follower ratio. A religion
+///   with insufficient clergy has its authority reduced proportionally.
 /// * Result clamped to [0.0, 1.0].
 pub fn process_religious_authority_turn(
     country: &Country,
     cultural_buildings: &[CulturalBuilding],
     config: &ReligiousAuthorityConfig,
+    companies: &[Company],
 ) -> BTreeMap<String, f64> {
     let reg = culture_registry();
 
     // Collect all religions present in the country and count followers per religion.
     let mut religion_followers: BTreeMap<String, i64> = BTreeMap::new();
     let mut religion_charity: BTreeMap<String, f64> = BTreeMap::new();
+
+    // Phase 78: Collect clergy FTE per religion from Religion-sector companies.
+    let mut religion_clergy_fte: BTreeMap<String, f64> = BTreeMap::new();
+    for company in companies {
+        if company.sector != Sector::Religion {
+            continue;
+        }
+        if let crate::entities::legal_form::LegalForm::NonProfit(data) = &company.legal_form {
+            if !data.religion.is_empty() {
+                let rel_key = reg.religion_key_from_display(&data.religion);
+                *religion_clergy_fte.entry(rel_key).or_insert(0.0) += company.fulfilled_fte as f64;
+            }
+        }
+    }
 
     for region in &country.regions {
         for class in region.class_demographics.rural_classes.values() {
@@ -219,6 +242,21 @@ pub fn process_religious_authority_turn(
             authority += config.holy_site_boost;
         }
 
+        // Phase 78: Scale authority by clergy-to-follower ratio.
+        // A religion with insufficient clergy has reduced authority.
+        let clergy_fte = religion_clergy_fte.get(rel_key).copied().unwrap_or(0.0);
+        let clergy_ratio = if *followers > 0 {
+            clergy_fte / *followers as f64
+        } else {
+            1.0 // No followers → no clergy needed
+        };
+        let clergy_coverage = if config.min_clergy_ratio > 0.0 {
+            (clergy_ratio / config.min_clergy_ratio).min(1.0)
+        } else {
+            1.0
+        };
+        authority *= clergy_coverage;
+
         // Clamp to [0.0, 1.0].
         authority = authority.clamp(0.0, 1.0);
         result.insert(rel_key.clone(), authority);
@@ -243,13 +281,36 @@ mod tests {
         region
     }
 
+    /// Phase 78: Create a Religion-sector company with given clergy FTE.
+    fn make_clergy(religion: &str, fte: u32) -> Company {
+        let mut c = Company::default();
+        c.id = format!("clergy_{}", religion);
+        c.sector = Sector::Religion;
+        c.legal_form = crate::entities::legal_form::LegalForm::NonProfit(
+            crate::entities::legal_form::NonProfitData {
+                religion: religion.to_string(),
+                is_religious: true,
+            },
+        );
+        c.fulfilled_fte = fte;
+        c.worker_capacity = fte;
+        c
+    }
+
+    /// Phase 78: Sufficient clergy for the test population (1 per 500 followers).
+    fn sufficient_clergy(religion: &str, followers: i64) -> Vec<Company> {
+        let fte = ((followers as f64 / 500.0).ceil() as u32).max(1);
+        vec![make_clergy(religion, fte)]
+    }
+
     #[test]
     fn test_baseline_authority() {
         let mut country = Country::mock_for_tests();
-        country.regions.push(make_region("r1", "Katolicyzm", 500));
+        country.regions.push(make_region("r1", "Catholicism", 500));
         let buildings: Vec<CulturalBuilding> = vec![];
         let config = ReligiousAuthorityConfig::default();
-        let result = process_religious_authority_turn(&country, &buildings, &config);
+        let companies = sufficient_clergy("Catholicism", 500);
+        let result = process_religious_authority_turn(&country, &buildings, &config, &companies);
         let authority = result.get("catholicism").copied().unwrap_or(-1.0);
         // Baseline = 0.3, no charity + followers < 1000 → no penalty
         assert!((authority - 0.3).abs() < 0.01, "baseline authority should be 0.3, got {}", authority);
@@ -258,10 +319,11 @@ mod tests {
     #[test]
     fn test_no_charity_penalty() {
         let mut country = Country::mock_for_tests();
-        country.regions.push(make_region("r1", "Katolicyzm", 2000));
+        country.regions.push(make_region("r1", "Catholicism", 2000));
         let buildings: Vec<CulturalBuilding> = vec![];
         let config = ReligiousAuthorityConfig::default();
-        let result = process_religious_authority_turn(&country, &buildings, &config);
+        let companies = sufficient_clergy("Catholicism", 2000);
+        let result = process_religious_authority_turn(&country, &buildings, &config, &companies);
         let authority = result.get("catholicism").copied().unwrap_or(-1.0);
         // Baseline 0.3 - no_charity_penalty 0.1 = 0.2
         assert!((authority - 0.2).abs() < 0.01, "no charity with 2000 followers → 0.2, got {}", authority);
@@ -272,13 +334,14 @@ mod tests {
         let mut country = Country::mock_for_tests();
         country.politics.religious_law = "State".into();
         country.macro_indicators = MacroData {
-            religion: "Katolicyzm".into(),
+            religion: "Catholicism".into(),
             ..Default::default()
         };
-        country.regions.push(make_region("r1", "Katolicyzm", 500));
+        country.regions.push(make_region("r1", "Catholicism", 500));
         let buildings: Vec<CulturalBuilding> = vec![];
         let config = ReligiousAuthorityConfig::default();
-        let result = process_religious_authority_turn(&country, &buildings, &config);
+        let companies = sufficient_clergy("Catholicism", 500);
+        let result = process_religious_authority_turn(&country, &buildings, &config, &companies);
         let authority = result.get("catholicism").copied().unwrap_or(-1.0);
         // Baseline 0.3 + state_religion_boost 0.3 = 0.6
         assert!((authority - 0.6).abs() < 0.01, "state religion → 0.6, got {}", authority);
@@ -287,7 +350,7 @@ mod tests {
     #[test]
     fn test_building_condition_boost() {
         let mut country = Country::mock_for_tests();
-        country.regions.push(make_region("r1", "Katolicyzm", 500));
+        country.regions.push(make_region("r1", "Catholicism", 500));
         let building = CulturalBuilding {
             id: "b1".into(),
             building_type: CulturalBuildingType::Temple,
@@ -296,7 +359,8 @@ mod tests {
             ..Default::default()
         };
         let config = ReligiousAuthorityConfig::default();
-        let result = process_religious_authority_turn(&country, &[building], &config);
+        let companies = sufficient_clergy("Catholicism", 500);
+        let result = process_religious_authority_turn(&country, &[building], &config, &companies);
         let authority = result.get("catholicism").copied().unwrap_or(-1.0);
         // Baseline 0.3 + condition 1.0 * 0.2 = 0.5
         assert!((authority - 0.5).abs() < 0.01, "perfect building → 0.5, got {}", authority);
@@ -305,7 +369,7 @@ mod tests {
     #[test]
     fn test_degradation_penalty() {
         let mut country = Country::mock_for_tests();
-        country.regions.push(make_region("r1", "Katolicyzm", 500));
+        country.regions.push(make_region("r1", "Catholicism", 500));
         let building = CulturalBuilding {
             id: "b1".into(),
             building_type: CulturalBuildingType::Temple,
@@ -314,7 +378,8 @@ mod tests {
             ..Default::default()
         };
         let config = ReligiousAuthorityConfig::default();
-        let result = process_religious_authority_turn(&country, &[building], &config);
+        let companies = sufficient_clergy("Catholicism", 500);
+        let result = process_religious_authority_turn(&country, &[building], &config, &companies);
         let authority = result.get("catholicism").copied().unwrap_or(-1.0);
         // Baseline 0.3 + 0.1*0.2=0.02 - degradation 0.1 = 0.22
         assert!((authority - 0.22).abs() < 0.01, "degraded building → 0.22, got {}", authority);
@@ -325,10 +390,10 @@ mod tests {
         let mut country = Country::mock_for_tests();
         country.politics.religious_law = "State".into();
         country.macro_indicators = MacroData {
-            religion: "Katolicyzm".into(),
+            religion: "Catholicism".into(),
             ..Default::default()
         };
-        country.regions.push(make_region("r1", "Katolicyzm", 500));
+        country.regions.push(make_region("r1", "Catholicism", 500));
         let building = CulturalBuilding {
             id: "b1".into(),
             building_type: CulturalBuildingType::Temple,
@@ -344,7 +409,8 @@ mod tests {
             display_name: "Sanktuarium".into(),
         });
         let config = ReligiousAuthorityConfig::default();
-        let result = process_religious_authority_turn(&country, &[building], &config);
+        let companies = sufficient_clergy("Catholicism", 500);
+        let result = process_religious_authority_turn(&country, &[building], &config, &companies);
         let authority = result.get("catholicism").copied().unwrap_or(-1.0);
         assert!(authority <= 1.0, "authority should be clamped to 1.0, got {}", authority);
     }

@@ -12,7 +12,10 @@ use crate::registries::enums::{Commodity, Sector};
 use crate::registries::Registries;
 use crate::society::geography::GeologicalFormation;
 use crate::state::Country;
-use std::collections::{BTreeMap, HashMap};
+use rustc_hash::FxHashMap;
+use std::collections::BTreeMap;
+
+type HashMap<K, V> = FxHashMap<K, V>;
 
 /// Result of one building's production cycle.
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -89,6 +92,7 @@ fn resolve_active_method(
                 active_methods: Default::default(),
                 active_blueprint: None,
                 thermal_efficiency: pm.thermal_efficiency,
+                storage_efficiency: pm.storage_efficiency,
                 extra: Default::default(),
             };
         }
@@ -105,6 +109,7 @@ fn resolve_active_method(
         active_methods: Default::default(),
         active_blueprint: None,
         thermal_efficiency: 0.0,
+        storage_efficiency: 0.0,
         extra: Default::default(),
     }
 }
@@ -248,7 +253,12 @@ pub fn process_building_cycle(
             last_production.insert(Commodity::Energy, actual_energy);
             market_orders.add_sell(Commodity::Energy, actual_energy);
         }
-        // Emit Heat output (waste heat, if the method produces Heat)
+        // Phase 76: Emit Heat output as a LOCAL utility, NOT a global market commodity.
+        // Heat cannot be transported long distances — it must be consumed by the
+        // local district heating grid (utilities/grid.rs) from building inventory.
+        // Adding Heat to market sell orders creates supply with no matching buy
+        // demand, causing market surplus accumulation. Heat is still added to
+        // building inventory via execute_production_cycle for grid consumption.
         if let Some(&heat_target) = method.outputs.get(&Commodity::Heat) {
             // Heat output is proportional to actual energy vs target energy
             let heat_ratio = if target_energy > 0.0 {
@@ -258,15 +268,47 @@ pub fn process_building_cycle(
             };
             let actual_heat = heat_target * production_scale * heat_ratio;
             if actual_heat > 0.0 {
-                let price = price_for(Commodity::Heat, market_prices, base_wage, false);
-                output_revenue += actual_heat * price;
+                // Record Heat production for telemetry and accounting, but do NOT
+                // add it to market_orders — it's a local utility flow, not a
+                // globally tradable commodity.
                 result.outputs_produced.insert(Commodity::Heat, actual_heat);
                 last_production.insert(Commodity::Heat, actual_heat);
-                market_orders.add_sell(Commodity::Heat, actual_heat);
             }
         }
         // Suppress unused variable warning for waste_heat (it's a physical invariant)
         let _ = waste_heat;
+    } else if method.storage_efficiency > 0.0 {
+        // Phase 79: Energy storage path (pumped hydro, battery banks).
+        // Strict conservation: output_energy = input_energy * storage_efficiency.
+        // Non-Energy inputs (Water, Batteries, Components) use fixed-rate path.
+        let mut energy_input: f64 = 0.0;
+        for (&input_name, &amount_per_1k) in &method.inputs {
+            if input_name == Commodity::Energy {
+                energy_input = amount_per_1k * production_scale;
+                let price = price_for(input_name, market_prices, base_wage, true);
+                input_costs += energy_input * price;
+                result.inputs_consumed.insert(input_name, energy_input);
+                market_orders.add_buy(input_name, energy_input);
+            } else {
+                // Non-energy inputs: fixed-rate consumption
+                let amount = amount_per_1k * production_scale;
+                let price = price_for(input_name, market_prices, base_wage, true);
+                input_costs += amount * price;
+                result.inputs_consumed.insert(input_name, amount);
+                market_orders.add_buy(input_name, amount);
+            }
+        }
+
+        // Output Energy = input * storage_efficiency (physical conservation, Rule 1).
+        // storage_efficiency < 1.0 always — energy storage always loses energy.
+        let output_energy = energy_input * method.storage_efficiency;
+        if output_energy > 0.0 {
+            let price = price_for(Commodity::Energy, market_prices, base_wage, false);
+            output_revenue += output_energy * price;
+            result.outputs_produced.insert(Commodity::Energy, output_energy);
+            last_production.insert(Commodity::Energy, output_energy);
+            market_orders.add_sell(Commodity::Energy, output_energy);
+        }
     } else {
         // Standard fixed-rate production path (non-energy buildings)
         for (&input_name, amount_per_1k) in &method.inputs {
@@ -420,13 +462,12 @@ mod tests {
     use super::*;
     use crate::entities::Building;
     use crate::registries::Registries;
-    use std::collections::HashMap;
 
     #[test]
     fn process_building_cycle_computes_inputs_and_outputs() {
         let reg = Registries::native_only();
         let mut building = Building {
-            name: "Cementownia".to_string(),
+            name: "Cement Plant".to_string(),
             worker_capacity: 2000,
             current_employment: 1600,
             scale_factor: 3,
@@ -452,7 +493,7 @@ mod tests {
         let result = process_building_cycle(
             &mut building,
             &mut orders,
-            &HashMap::new(),
+            &HashMap::default(),
             1000.0,
             2020,
             &reg,

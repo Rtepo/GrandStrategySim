@@ -98,48 +98,86 @@ pub fn process_companies(
             }
         }
 
-        // Phase 24A.3: If liabilities increased (new loan taken via BankLoan),
-        // assign the loan to a commercial bank and create a proper Loan record.
+        // Phase 24A.3 / Phase 77: If liabilities increased (new loan taken via
+        // BankLoan), route through issue_loan() which enforces fractional reserve
+        // requirements. Previously this pushed loans directly to the first bank
+        // (always the State Bank) WITHOUT checking reserves — the primary source
+        // of the 8193% LDR anomaly.
         let liabilities_after = companies[i].liabilities;
         if liabilities_after > liabilities_before + 0.01 {
             let new_loan_amount = liabilities_after - liabilities_before;
-            // Find a suitable commercial bank
-            let bank_id = companies
+            let cb_clone = country.central_bank.clone();
+            let xibor = country.interbank_market.xibor;
+            let avg_wage = country.macro_indicators.average_wage.max(1.0);
+
+            // Phase 77: Try each bank in order of excess reserves (competitive
+            // allocation). If all banks fail the reserve check, revert the
+            // liability increase — the loan is refused.
+            let borrower_clone = companies[i].clone();
+            let mut loan_issued = false;
+
+            // Collect bank indices sorted by excess reserves descending
+            let mut bank_indices: Vec<(usize, f64)> = companies
                 .iter()
-                .find(|c| c.bank_type.is_some() && c.balance_sheet.is_some())
-                .map(|c| c.id.clone());
-            if let Some(bid) = bank_id {
-                companies[i].outstanding_loan_bank_id = Some(bid.clone());
-                // Create a proper Loan record in the bank's balance sheet
-                if let Some(bank) = companies.iter_mut().find(|c| c.id == bid) {
-                    if let Some(ref mut bs) = bank.balance_sheet {
-                        bs.loans_issued.push(crate::state::banking::Loan {
-                            id: format!("LOAN-CORP-{}-{}", company_id, std::time::SystemTime::now()
-                                .duration_since(std::time::UNIX_EPOCH)
-                                .unwrap_or_default()
-                                .as_nanos()),
-                            borrower_id: company_id.clone(),
-                            principal: new_loan_amount,
-                            outstanding_balance: new_loan_amount,
-                            interest_rate: market_signal.interest_rate + 0.02,
-                            term_turns: 12,
-                            turns_remaining: 12,
-                            collateral_value: Some(company_fixed_capital),
-                            loan_type: crate::state::banking::LoanType::WorkingCapital,
-                            last_payment_turn: 0,
-                            status: crate::state::banking::LoanStatus::Current,
-                            interest_type: crate::state::banking::InterestType::default(),
-                            duration_risk_premium: 0.0,
-                            base_xibor: market_signal.interest_rate,
-                            bank_margin: 0.02,
-                            securitized: false,
-                            pledged_to_covered_bond: None,
-                            extra: serde_json::Map::new(),
-                        });
-                        // Double-entry: bank's loans_issued (asset) and deposits (liability) both increase
-                        bs.deposits += new_loan_amount;
-                    }
+                .enumerate()
+                .filter(|(_, c)| c.bank_type.is_some() && c.balance_sheet.is_some())
+                .map(|(idx, c)| {
+                    let bs = c.balance_sheet.as_ref().unwrap();
+                    let required = bs.deposits * cb_clone.reserve_requirement_ratio;
+                    let effective = bs.reserves_at_central_bank - bs.cb_lombard_loans;
+                    let excess = (effective - required).max(0.0);
+                    (idx, excess)
+                })
+                .collect::<Vec<_>>();
+            bank_indices.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+
+            for (bank_idx, _) in &bank_indices {
+                let bi = *bank_idx;
+                // Phase 77: Check operational capacity (labor-based)
+                let bank_fte = companies[bi].fulfilled_fte as f64;
+                let capacity = crate::state::banking::bank_operational_capacity(bank_fte, avg_wage);
+                if capacity.max_new_loans_per_turn <= 0.0 {
+                    continue;
                 }
+                let current_assets = companies[bi].balance_sheet.as_ref().map(|bs| {
+                    bs.loans_issued.iter().map(|l| l.outstanding_balance).sum::<f64>() + bs.securities
+                }).unwrap_or(0.0);
+                if current_assets + new_loan_amount > capacity.max_asset_under_management {
+                    continue;
+                }
+
+                let bank_margin = companies[bi].loan_margin.unwrap_or(0.02);
+                let bank_id = companies[bi].id.clone();
+
+                let loan_result = crate::state::banking::issue_loan(
+                    &mut companies[bi].balance_sheet.as_mut().unwrap(),
+                    &bank_id,
+                    bank_margin,
+                    &borrower_clone,
+                    &borrower_clone.id,
+                    new_loan_amount,
+                    crate::state::banking::LoanType::WorkingCapital,
+                    12,
+                    &cb_clone,
+                    xibor,
+                );
+
+                if let Ok(lr) = loan_result {
+                    companies[i].outstanding_loan_bank_id = Some(bank_id);
+                    // Double-entry: borrower receives principal as cash
+                    companies[i].available_cash += lr.principal_amount;
+                    if let Some(ref mut ba) = companies[i].brokerage_account {
+                        ba.cash += lr.principal_amount;
+                    }
+                    loan_issued = true;
+                    break;
+                }
+            }
+
+            if !loan_issued {
+                // No bank could issue the loan — revert the liability increase.
+                // The company's expansion/investment is not funded.
+                companies[i].liabilities = liabilities_before;
             }
         }
 
@@ -465,63 +503,85 @@ pub fn process_companies(
 /// Manages strategic reserves for the Strategic Reserve Agency.
 ///
 /// This function implements the automatic commodity purchasing and release logic
-/// for the Strategic Reserve Agency based on price floors/ceilings and surplus/deficit thresholds.
+/// for the Strategic Reserve Agency based on moving-average VWAP ratios and
+/// surplus/deficit thresholds.
+///
+/// Phase 79: Triggers are now ratio-based relative to a moving-average VWAP,
+/// not static nominal price thresholds. Buy when current price falls below
+/// `buy_threshold_ratio * moving_avg_vwap` (price crash/glut). Release when
+/// current price exceeds `sell_threshold_ratio * moving_avg_vwap` (supply
+/// shock/war). Falls back to `global_market.base_price()` when insufficient
+/// VWAP history exists.
 ///
 /// # Arguments
 /// * `agency` - The Strategic Reserve Agency company
-/// * `country` - The country state (for budget and market access)
+/// * `country` - The country state (for budget access)
 /// * `global_market` - The global market for price and surplus/deficit data
+/// * `market_history` - Market history with rolling VWAP data for trigger calculations
 /// * `market_orders` - Market orders to add buy/sell orders to
 pub fn manage_strategic_reserves(
     agency: &mut Company,
     country: &mut Country,
     global_market: &GlobalMarket,
+    market_history: &crate::economy::market::market_history::MarketHistory,
     market_orders: &mut MarketOrders,
 ) {
     if let LegalForm::StrategicReserveAgency(data) = &mut agency.legal_form {
         // Purchase phase
         for (commodity_str, trigger) in &data.purchase_triggers {
-            // Parse commodity string to Commodity enum
+            // Parse commodity string to Commodity enum (Phase 79: snake_case keys)
             if let Ok(commodity) = commodity_str.parse::<crate::registries::enums::Commodity>() {
-                // Get global price and surplus
-                let global_price = global_market.base_price(commodity, 100.0);
+                let current_price = global_market.base_price(commodity, 100.0);
                 let global_surplus = global_market.surplus(commodity);
-                
-                if global_price < trigger.price_floor || global_surplus > trigger.surplus_threshold {
+
+                // Phase 79: Moving-average VWAP for shock-responsive triggers.
+                let moving_avg = crate::economy::market::market_history::moving_average_vwap(
+                    market_history, &commodity,
+                ).unwrap_or(current_price);
+
+                let buy_threshold = trigger.buy_threshold_ratio * moving_avg;
+                let surplus_triggered = global_surplus > trigger.surplus_threshold;
+
+                if current_price < buy_threshold || surplus_triggered {
                     let budget = data.budget_allocation * trigger.budget_fraction;
-                    let purchase_amount = budget / global_price.max(0.01);
-                    
+                    let purchase_amount = budget / current_price.max(0.01);
+
                     if country.budget.liquid_reserves >= budget {
                         country.budget.liquid_reserves -= budget;
-                        
-                        // Update reserves
+
+                        // Update reserves (respect physical max_capacity)
                         let current = data.commodity_reserves.get(commodity_str).copied().unwrap_or(0.0);
                         let max_capacity = data.max_capacity.get(commodity_str).copied().unwrap_or(f64::MAX);
-                        let actual_purchase = purchase_amount.min(max_capacity - current);
-                        
-                        data.commodity_reserves.insert(commodity_str.clone(), current + actual_purchase);
-                        
-                        // Add buy order to support price floor
-                        market_orders.add_buy(commodity, actual_purchase);
+                        let actual_purchase = purchase_amount.min(max_capacity - current).max(0.0);
+
+                        if actual_purchase > 0.0 {
+                            data.commodity_reserves.insert(commodity_str.clone(), current + actual_purchase);
+                            market_orders.add_buy(commodity, actual_purchase);
+                        }
                     }
                 }
             }
         }
-        
+
         // Release phase
         for (commodity_str, trigger) in &data.release_triggers {
             if let Ok(commodity) = commodity_str.parse::<crate::registries::enums::Commodity>() {
-                let global_price = global_market.base_price(commodity, 100.0);
+                let current_price = global_market.base_price(commodity, 100.0);
                 let global_deficit = (-global_market.surplus(commodity)).max(0.0);
-                
-                if global_price > trigger.price_ceiling || global_deficit > trigger.deficit_threshold {
+
+                let moving_avg = crate::economy::market::market_history::moving_average_vwap(
+                    market_history, &commodity,
+                ).unwrap_or(current_price);
+
+                let sell_threshold = trigger.sell_threshold_ratio * moving_avg;
+                let deficit_triggered = global_deficit > trigger.deficit_threshold;
+
+                if current_price > sell_threshold || deficit_triggered {
                     let available = data.commodity_reserves.get(commodity_str).copied().unwrap_or(0.0);
-                    let release_amount = (available * trigger.release_fraction).min(global_deficit);
-                    
+                    let release_amount = (available * trigger.release_fraction).min(global_deficit.max(available * 0.1));
+
                     if release_amount > 0.0 {
                         data.commodity_reserves.insert(commodity_str.clone(), available - release_amount);
-                        
-                        // Add sell order to cap price
                         market_orders.add_sell(commodity, release_amount);
                     }
                 }
@@ -934,7 +994,7 @@ pub fn apply_seasonal_furlough(company: &mut Company, season: crate::state::Seas
             && company.furloughed_workers_count > 0.0
         {
             // Transfer furloughed workers back into fulfilled_fte.
-            company.fulfilled_fte += company.furloughed_workers_count;
+            company.fulfilled_fte += company.furloughed_workers_count.round() as u32;
             company.furloughed_workers_count = 0.0;
         }
         profile.current_state = SeasonalState::Active;
@@ -944,17 +1004,17 @@ pub fn apply_seasonal_furlough(company: &mut Company, season: crate::state::Seas
 
     // Off-season: furlough
     profile.current_state = SeasonalState::Furloughed;
-    let full_demand = company.physical_fte_demand;
+    let full_demand = company.physical_fte_demand as f64;
     let standby = full_demand * profile.standby_fte_fraction;
 
     // Transfer excess workers from fulfilled_fte into furloughed_workers_count.
     // fulfilled_fte drops to the standby level — wage/production phases will
     // only see the standby crew.
-    let excess = (company.fulfilled_fte - standby).max(0.0);
+    let excess = (company.fulfilled_fte as f64 - standby).max(0.0);
     company.furloughed_workers_count = excess;
-    company.fulfilled_fte -= excess; // Drop to standby level
-    company.physical_fte_demand = standby;
-    company.target_fte_demand = standby;
+    company.fulfilled_fte = (company.fulfilled_fte as f64 - excess).max(0.0).round() as u32; // Drop to standby level
+    company.physical_fte_demand = standby.round() as u32;
+    company.target_fte_demand = standby.round() as u32;
 }
 
 /// Phase 47: Apply seasonal furlough to all companies for a country.
@@ -1041,7 +1101,7 @@ pub fn set_wage_offers(companies: &mut [Company], market_average_wage: f64) {
             brokerage_cash
         };
 
-        let effective_fte = company.target_fte_demand.max(1.0);
+        let effective_fte = (company.target_fte_demand as f64).max(1.0);
         let cash_per_fte = effective_cash / effective_fte;
 
         // Desired wage: if cash_per_fte > market average, target slightly above.
@@ -1073,7 +1133,7 @@ pub fn set_wage_offers(companies: &mut [Company], market_average_wage: f64) {
         };
 
         // Skip companies with no labor demand.
-        if company.target_fte_demand <= 0.0 {
+        if company.target_fte_demand == 0 {
             company.offered_wage_per_fte = sticky_floor;
             continue;
         }
@@ -1112,8 +1172,8 @@ mod tests {
         let mut c = Company::default();
         c.id = id.to_string();
         c.sector = sector;
-        c.target_fte_demand = fte;
-        c.physical_fte_demand = fte;
+        c.target_fte_demand = fte as u32;
+        c.physical_fte_demand = fte as u32;
         c.brokerage_account = Some(BrokerageAccount {
             cash,
             ..Default::default()
@@ -1193,11 +1253,12 @@ mod tests {
         // Target stays at 5000 (no adjustment needed). The FTE denominator
         // flooring at 1.0 is still tested by verifying the wage is computed
         // (not NaN or infinity) and equals the market average.
+        // NOTE: target_fte_demand is u32, so the smallest nonzero demand is 1.
         let mut companies = vec![company_with_cash_and_fte(
             "TINY",
             Sector::LightIndustry,
             10_000.0,
-            0.5,
+            1.0,
         )];
         set_wage_offers(&mut companies, 5000.0);
         assert!(
@@ -1261,9 +1322,9 @@ mod tests {
             standby_fte_fraction: standby_fraction,
             current_state: SeasonalState::Active,
         });
-        company.physical_fte_demand = full_fte;
-        company.target_fte_demand = full_fte;
-        company.fulfilled_fte = full_fte;
+        company.physical_fte_demand = full_fte as u32;
+        company.target_fte_demand = full_fte as u32;
+        company.fulfilled_fte = full_fte as u32;
         company.furloughed_workers_count = 0.0;
         company
     }
@@ -1279,9 +1340,9 @@ mod tests {
 
         // Standby = 100 * 0.20 = 20
         assert_eq!(company.furloughed_workers_count, 80.0, "Excess FTE should be furloughed");
-        assert_eq!(company.fulfilled_fte, 20.0, "fulfilled_fte should drop to standby");
-        assert_eq!(company.physical_fte_demand, 20.0, "physical_fte_demand should be standby");
-        assert_eq!(company.target_fte_demand, 20.0, "target_fte_demand should be standby");
+        assert_eq!(company.fulfilled_fte, 20, "fulfilled_fte should drop to standby");
+        assert_eq!(company.physical_fte_demand, 20, "physical_fte_demand should be standby");
+        assert_eq!(company.target_fte_demand, 20, "target_fte_demand should be standby");
     }
 
     #[test]
@@ -1292,13 +1353,13 @@ mod tests {
         // Furlough in Winter
         apply_seasonal_furlough(&mut company, Season::Winter);
         assert_eq!(company.furloughed_workers_count, 80.0);
-        assert_eq!(company.fulfilled_fte, 20.0);
+        assert_eq!(company.fulfilled_fte, 20);
 
         // Reactivate in Spring
         apply_seasonal_furlough(&mut company, Season::Spring);
 
         assert_eq!(company.furloughed_workers_count, 0.0, "Furlough count should be zeroed");
-        assert_eq!(company.fulfilled_fte, 100.0, "fulfilled_fte should be restored");
+        assert_eq!(company.fulfilled_fte, 100, "fulfilled_fte should be restored");
     }
 
     #[test]
@@ -1341,11 +1402,11 @@ mod tests {
 
         // Standby = 80 * 0.15 = 12
         assert_eq!(company.furloughed_workers_count, 68.0, "Excess should be furloughed in summer");
-        assert_eq!(company.fulfilled_fte, 12.0, "fulfilled_fte should be at standby");
+        assert_eq!(company.fulfilled_fte, 12, "fulfilled_fte should be at standby");
 
         // Reactivate in Autumn
         apply_seasonal_furlough(&mut company, Season::Autumn);
-        assert_eq!(company.fulfilled_fte, 80.0, "Should be fully restored in autumn");
+        assert_eq!(company.fulfilled_fte, 80, "Should be fully restored in autumn");
         assert_eq!(company.furloughed_workers_count, 0.0);
     }
 
@@ -1354,11 +1415,11 @@ mod tests {
         let active = BTreeSet::from([Season::Spring, Season::Summer, Season::Autumn]);
         let mut company = make_seasonal_company("TOUR4", active, 0.20, 100.0);
         // Manually set fulfilled_fte to standby level
-        company.fulfilled_fte = 20.0;
+        company.fulfilled_fte = 20;
 
         apply_seasonal_furlough(&mut company, Season::Winter);
 
         assert_eq!(company.furloughed_workers_count, 0.0, "No excess to furlough");
-        assert_eq!(company.fulfilled_fte, 20.0, "Should remain at standby");
+        assert_eq!(company.fulfilled_fte, 20, "Should remain at standby");
     }
 }

@@ -12,7 +12,10 @@ use crate::society::culture_registry::{registry as culture_registry, CultureDefi
 use crate::society::geography::{DemographyType, Region, RuralClass};
 use crate::society::housing::{CommercialBuilding, RetailProfile, HousingBuilding};
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, HashMap};
+use rustc_hash::FxHashMap;
+use std::collections::BTreeMap;
+
+type HashMap<K, V> = FxHashMap<K, V>;
 
 /// Store offer for B2C market (Phase 6.5)
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -93,7 +96,7 @@ impl CulturalDemandModifier {
         authority: f64,
     ) -> Self {
         let mut taboo_commodities = Vec::new();
-        let mut obsession_multipliers = HashMap::new();
+        let mut obsession_multipliers = HashMap::default();
 
         // Culture taboos scaled by authority.
         for &commodity in &culture.taboos {
@@ -165,7 +168,7 @@ pub fn compute_cultural_demand_modifier(
     let reg = culture_registry();
 
     // Determine dominant religion from region's class demographics.
-    let mut religion_counts: HashMap<String, i64> = HashMap::new();
+    let mut religion_counts: HashMap<String, i64> = HashMap::default();
     for class in region.class_demographics.rural_classes.values() {
         if !class.religion.is_empty() {
             let key = reg.religion_key_from_display(&class.religion);
@@ -192,7 +195,7 @@ pub fn compute_cultural_demand_modifier(
 
     // Determine dominant culture from region (use country-level culture as fallback).
     // For now, use a default culture definition if we can't determine one.
-    let culture_def = reg.from_key("ilirian").cloned().unwrap_or_default();
+    let culture_def = reg.from_key("Illyrian").cloned().unwrap_or_default();
 
     match religion_def {
         Some(rel) => CulturalDemandModifier::from_definitions(&culture_def, rel, authority),
@@ -205,7 +208,7 @@ pub fn compute_cultural_demand_modifier(
 fn commodity_wealth_gate(commodity: Commodity) -> f64 {
     match commodity {
         // Perishables — universal (consumed every turn)
-        Commodity::Cereal | Commodity::Vegetable | Commodity::Protein
+        Commodity::Cereal | Commodity::Vegetable
         | Commodity::Meat | Commodity::Fruit | Commodity::HealthCapacity
         | Commodity::EducationSlots | Commodity::Food | Commodity::Water => 0.0,
         // Durables — wealth-gated (purchased only when savings permit)
@@ -437,7 +440,6 @@ fn affordability_threshold(commodity: Commodity) -> f64 {
     match commodity {
         Commodity::Meat => 0.05,    // 5% of monthly wage
         Commodity::Fruit => 0.03,   // 3% of monthly wage
-        Commodity::Protein => 0.04, // 4% of monthly wage
         Commodity::Cereal => 0.10,  // 10% of monthly wage (staple)
         Commodity::Vegetable => 0.05,
         _ => 0.05,
@@ -589,7 +591,7 @@ pub fn build_consumer_demand(
 fn era_consumption_multiplier(commodity: Commodity, year: u32) -> f64 {
     match commodity {
         // Always available — subsistence and basic goods
-        Commodity::Cereal | Commodity::Vegetable | Commodity::Protein
+        Commodity::Cereal | Commodity::Vegetable
         | Commodity::Meat | Commodity::Fruit | Commodity::Clothing
         | Commodity::Furniture | Commodity::Food | Commodity::Water
         | Commodity::HealthCapacity | Commodity::EducationSlots => 1.0,
@@ -1187,7 +1189,7 @@ fn is_last_retail_failing(region_companies: &[&Company]) -> bool {
 
     // Check if the company cannot cover minimum wages for its standby crew
     let min_wage = 50.0; // Minimum wage floor
-    let min_payroll = company.fulfilled_fte * min_wage;
+    let min_payroll = company.fulfilled_fte as f64 * min_wage;
     let liquid_cash = company
         .brokerage_account
         .as_ref()
@@ -1200,7 +1202,7 @@ fn is_last_retail_failing(region_companies: &[&Company]) -> bool {
 /// operational (upkeep + minimum wages for standby crew).
 fn calculate_min_subsidy(company: &Company) -> f64 {
     let min_wage = 50.0;
-    let min_payroll = company.fulfilled_fte * min_wage;
+    let min_payroll = company.fulfilled_fte as f64 * min_wage;
     let min_upkeep = 100.0; // Minimum building upkeep per turn
     let liquid_cash = company
         .brokerage_account

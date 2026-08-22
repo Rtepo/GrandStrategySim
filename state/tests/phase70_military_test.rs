@@ -76,17 +76,24 @@ fn test_oob_generation_and_flattening() {
 
 #[test]
 fn test_asymmetric_oob_rich_vs_poor() {
+    let mut rng = rand::thread_rng();
     let rich_oob = generate_asymmetric_oob(
         "RichNation",
-        5_000_000.0,
+        5_000_000_000.0, // High total GDP
+        5000.0,           // High GDP per capita
+        4000.0,           // High average wage
         1_000_000,
         vec!["r1".to_string(), "r2".to_string()],
+        &mut rng,
     );
     let poor_oob = generate_asymmetric_oob(
         "PoorNation",
-        100_000.0,
+        30_000_000.0, // Low total GDP
+        300.0,         // Low GDP per capita
+        240.0,         // Low average wage
         100_000,
         vec!["r1".to_string()],
+        &mut rng,
     );
 
     // Rich nation should have more units
@@ -108,7 +115,7 @@ fn test_modernization_scrap_returns_physical_commodities() {
         "TEST-TANK-001".to_string(),
         UnitType::Tanks,
         1000,
-        HashMap::new(),
+        rustc_hash::FxHashMap::default(),
         "home".to_string(),
     );
     unit.equipment_reserves = UnitType::Tanks.table_of_equipment(1920);
@@ -127,7 +134,7 @@ fn test_modernization_generates_procurement_demand() {
         "TEST-TANK-002".to_string(),
         UnitType::Tanks,
         1000,
-        HashMap::new(),
+        rustc_hash::FxHashMap::default(),
         "home".to_string(),
     );
     unit.equipment_reserves = UnitType::Tanks.table_of_equipment(1920);
@@ -516,7 +523,7 @@ fn make_unit(id: &str, unit_type: UnitType, manpower: i64) -> MilitaryUnit {
         id.to_string(),
         unit_type,
         manpower,
-        HashMap::new(),
+        rustc_hash::FxHashMap::default(),
         "home".to_string(),
     )
 }

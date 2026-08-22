@@ -15,7 +15,7 @@ pub struct GovernmentForm {
 
     pub regime_type: RegimeType,
 
-    /// Length of an election cycle in years (`"cykl_wyborczy"`); `999` denotes
+    /// Length of an election cycle in years (`"election_cycle"`); `999` denotes
     /// no regular elections.
 
     pub election_cycle: u32,

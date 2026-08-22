@@ -197,7 +197,7 @@ pub fn spawn_rebel_proto_state(
         economic_policy: mother_country.economic_policy.clone(), // Inherit economic policy
         order_of_battle: crate::military::oob::OrderOfBattle::default(), // No military units initially
         military_fronts: Vec::new(), // No fronts initially
-        military_stockpile: std::collections::HashMap::new(),
+        military_stockpile: rustc_hash::FxHashMap::default(),
         military_config: crate::military::config::MilitaryCombatConfig::default(),
         war_economy: crate::military::war_economy::WarEconomyState::default(),
         at_war_with: Vec::new(),
@@ -257,7 +257,7 @@ pub fn spawn_rebel_proto_state(
         social_programs: Vec::new(),
         weather_state: crate::economy::weather::WeatherState::default(),
         maintenance_config: crate::economy::maintenance::MaintenanceConfig::default(),
-        state_forest_state: crate::economy::state_forests::forest_districtState::default(),
+        state_forest_state: crate::economy::state_forests::ForestDistrictState::default(),
         religious_authority_state: crate::society::religious_authority::ReligiousAuthorityState::default(),
         generative_goods_config: crate::economy::generative_goods_config::GenerativeGoodsConfig::default(),
         geological_formations: Vec::new(),

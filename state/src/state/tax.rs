@@ -2256,12 +2256,12 @@ mod tests {
         };
 
         let mut global_market = crate::economy::market::GlobalMarket {
-            base_prices: HashMap::new(),
-            net_surplus: HashMap::new(),
+            base_prices: rustc_hash::FxHashMap::default(),
+            net_surplus: rustc_hash::FxHashMap::default(),
             offshore_capital: 0.0,
             apostolic_see_ledger: crate::economy::market::ApostolicSeeLedger::default(),
-            supply_volume: HashMap::new(),
-            demand_volume: HashMap::new(),
+            supply_volume: rustc_hash::FxHashMap::default(),
+            demand_volume: rustc_hash::FxHashMap::default(),
         };
 
         let attempt = CapitalFlightAttempt {
@@ -2305,12 +2305,12 @@ mod tests {
         };
 
         let mut global_market = crate::economy::market::GlobalMarket {
-            base_prices: HashMap::new(),
-            net_surplus: HashMap::new(),
+            base_prices: rustc_hash::FxHashMap::default(),
+            net_surplus: rustc_hash::FxHashMap::default(),
             offshore_capital: 0.0,
             apostolic_see_ledger: crate::economy::market::ApostolicSeeLedger::default(),
-            supply_volume: HashMap::new(),
-            demand_volume: HashMap::new(),
+            supply_volume: rustc_hash::FxHashMap::default(),
+            demand_volume: rustc_hash::FxHashMap::default(),
         };
 
         let attempt = CapitalFlightAttempt {
@@ -2445,12 +2445,12 @@ mod tests {
     fn test_fdi_trigger_double_entry() {
         // Test: FDI trigger correctly drains offshore ledger without printing money
         let mut global_market = crate::economy::market::GlobalMarket {
-            base_prices: std::collections::HashMap::new(),
-            net_surplus: std::collections::HashMap::new(),
+            base_prices: rustc_hash::FxHashMap::default(),
+            net_surplus: rustc_hash::FxHashMap::default(),
             offshore_capital: 10_000_000.0, // 10M offshore
             apostolic_see_ledger: crate::economy::market::ApostolicSeeLedger::default(),
-            supply_volume: std::collections::HashMap::new(),
-            demand_volume: std::collections::HashMap::new(),
+            supply_volume: rustc_hash::FxHashMap::default(),
+            demand_volume: rustc_hash::FxHashMap::default(),
         };
 
         let fdi_trigger = FdiTrigger {
@@ -2482,12 +2482,12 @@ mod tests {
     fn test_fdi_trigger_insufficient_capital() {
         // Test: FDI does not trigger when offshore capital below threshold
         let mut global_market = crate::economy::market::GlobalMarket {
-            base_prices: std::collections::HashMap::new(),
-            net_surplus: std::collections::HashMap::new(),
+            base_prices: rustc_hash::FxHashMap::default(),
+            net_surplus: rustc_hash::FxHashMap::default(),
             offshore_capital: 1_000_000.0, // Only 1M offshore
             apostolic_see_ledger: crate::economy::market::ApostolicSeeLedger::default(),
-            supply_volume: std::collections::HashMap::new(),
-            demand_volume: std::collections::HashMap::new(),
+            supply_volume: rustc_hash::FxHashMap::default(),
+            demand_volume: rustc_hash::FxHashMap::default(),
         };
 
         let fdi_trigger = FdiTrigger {

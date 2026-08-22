@@ -113,7 +113,7 @@ pub struct MonetaryPolicyCouncil {
 /// Central Bank (Bank Centralny) - supreme monetary authority.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CentralBank {
-    /// Central Bank identifier (e.g., "BC_ILIRIA").
+    /// Central Bank identifier (e.g., "BC_Illyria").
     #[serde(default)]
     pub id: String,
     /// Display name (e.g., "Bank Centralny Ilirii").

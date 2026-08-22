@@ -237,7 +237,7 @@ mod tests {
             id: "p1".to_string(),
             project_type: ConstructionProjectType::Factory,
             micro_region_id: "r1".to_string(),
-            target_building_type: "Huta Stali".to_string(),
+            target_building_type: "Steel Mill".to_string(),
             required_materials: required,
             delivered_materials: std::collections::BTreeMap::new(),
             target_capacity_increase: 100,

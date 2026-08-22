@@ -22,7 +22,7 @@ use serde::{Deserialize, Serialize};
 
 /// A single forest tract managed by State Forests.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
-pub struct forest_districtTract {
+pub struct ForestDistrictTract {
     /// Region where this tract is located.
     #[serde(default)]
     pub region_id: String,
@@ -42,10 +42,10 @@ pub struct forest_districtTract {
 
 /// State Forests runtime state (on `Country`, Phase 15C).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
-pub struct forest_districtState {
+pub struct ForestDistrictState {
     /// All forest tracts under management.
     #[serde(default)]
-    pub tracts: Vec<forest_districtTract>,
+    pub tracts: Vec<ForestDistrictTract>,
     /// Total hectares across all tracts.
     #[serde(default)]
     pub total_hectares: f64,
@@ -62,7 +62,7 @@ pub struct forest_districtState {
 
 /// Result of processing one State Forests turn.
 #[derive(Debug, Clone, Default)]
-pub struct forest_districtTurnResult {
+pub struct ForestDistrictTurnResult {
     /// Total timber grown this turn (cubic metres).
     pub timber_growth: f64,
     /// Total timber harvested this turn (cubic metres).
@@ -86,14 +86,14 @@ fn weather_growth_modifier(country: &Country) -> f64 {
 /// Processes one State Forests turn: grow timber, harvest, and remit profits.
 ///
 /// # Arguments
-/// * `country` - Mutable country (for `forest_districtState` and `Treasury`).
+/// * `country` - Mutable country (for `ForestDistrictState` and `Treasury`).
 /// * `companies` - Mutable companies (to find the StateMonopoly forestry company
 ///   and debit its `available_cash` for the treasury transfer).
 /// * `buildings` - Buildings (to find forest_district buildings and inject timber
 ///   into their inventory).
 ///
 /// # Returns
-/// `forest_districtTurnResult` with growth, harvest, and remittance statistics.
+/// `ForestDistrictTurnResult` with growth, harvest, and remittance statistics.
 ///
 /// # Rules
 /// - Timber growth: `timber_stock += hectares * growth_rate * weather_modifier`.
@@ -106,8 +106,8 @@ pub fn process_state_forests_turn(
     country: &mut Country,
     companies: &mut [Company],
     buildings: &mut [crate::entities::Building],
-) -> forest_districtTurnResult {
-    let mut result = forest_districtTurnResult::default();
+) -> ForestDistrictTurnResult {
+    let mut result = ForestDistrictTurnResult::default();
     let weather_mod = weather_growth_modifier(country);
 
     // 1. Grow timber on all tracts
@@ -204,21 +204,21 @@ pub fn process_state_forests_turn(
     result
 }
 
-/// Creates a default `forest_districtState` with sample tracts for a new country.
+/// Creates a default `ForestDistrictState` with sample tracts for a new country.
 ///
 /// # Arguments
 /// * `region_ids` - Region IDs to create tracts for.
 /// * `hectares_per_region` - Hectares of forest per region.
 ///
 /// # Returns
-/// A `forest_districtState` populated with one tract per region.
+/// A `ForestDistrictState` populated with one tract per region.
 pub fn create_default_state_forests(
     region_ids: &[String],
     hectares_per_region: f64,
-) -> forest_districtState {
-    let tracts: Vec<forest_districtTract> = region_ids
+) -> ForestDistrictState {
+    let tracts: Vec<ForestDistrictTract> = region_ids
         .iter()
-        .map(|rid| forest_districtTract {
+        .map(|rid| ForestDistrictTract {
             region_id: rid.clone(),
             hectares: hectares_per_region,
             timber_stock: hectares_per_region * 100.0, // Initial stock
@@ -229,7 +229,7 @@ pub fn create_default_state_forests(
 
     let total_hectares = tracts.iter().map(|t| t.hectares).sum();
 
-    forest_districtState {
+    ForestDistrictState {
         tracts,
         total_hectares,
         annual_harvest: 0.0,
@@ -248,8 +248,8 @@ mod tests {
     #[test]
     fn test_timber_growth_and_harvest() {
         let mut country = Country::mock_for_tests();
-        country.state_forest_state = forest_districtState {
-            tracts: vec![forest_districtTract {
+        country.state_forest_state = ForestDistrictState {
+            tracts: vec![ForestDistrictTract {
                 region_id: "R1".to_string(),
                 hectares: 1000.0,
                 timber_stock: 50000.0,
@@ -305,8 +305,8 @@ mod tests {
     #[test]
     fn test_timber_injected_into_state_forest() {
         let mut country = Country::mock_for_tests();
-        country.state_forest_state = forest_districtState {
-            tracts: vec![forest_districtTract {
+        country.state_forest_state = ForestDistrictState {
+            tracts: vec![ForestDistrictTract {
                 region_id: "R1".to_string(),
                 hectares: 1000.0,
                 timber_stock: 5000.0,
@@ -322,7 +322,7 @@ mod tests {
                 ..Default::default()
             },
             crate::entities::Building {
-                name: "Fabryka".to_string(),
+                name: "Factory".to_string(),
                 ..Default::default()
             },
         ];
@@ -339,8 +339,8 @@ mod tests {
     #[test]
     fn test_no_harvest_when_stock_zero() {
         let mut country = Country::mock_for_tests();
-        country.state_forest_state = forest_districtState {
-            tracts: vec![forest_districtTract {
+        country.state_forest_state = ForestDistrictState {
+            tracts: vec![ForestDistrictTract {
                 region_id: "R1".to_string(),
                 hectares: 1000.0,
                 timber_stock: 0.0,

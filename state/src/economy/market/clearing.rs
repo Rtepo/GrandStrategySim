@@ -9,7 +9,10 @@ use crate::economy::market::{GlobalMarket, MarketOrders};
 use crate::registries::enums::Commodity;
 use crate::state::Country;
 use crate::state::tax::{AggregateVatRecord, TaxRouting, TaxType, route_tax_collection_to_country};
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
+
+/// Hot-path hash map alias for clearing internals.
+pub type HashMap<K, V> = FxHashMap<K, V>;
 
 /// Financial transaction for warehouse extraction (Phase 5.5).
 #[derive(Debug, Clone)]
@@ -71,7 +74,7 @@ pub fn resolve_market_prices(
     country: &Country,
     global_market: &GlobalMarket,
 ) -> HashMap<Commodity, f64> {
-    let mut local_prices = HashMap::new();
+    let mut local_prices = HashMap::default();
 
     for (good, order) in &market_orders.orders {
         let net = order.buy - order.sell;
@@ -119,9 +122,9 @@ pub fn resolve_market_prices_with_vat(
     global_market: &GlobalMarket,
     region_id: &str,
 ) -> VatMarketResult {
-    let mut local_prices = HashMap::new();
+    let mut local_prices = HashMap::default();
     let mut vat_records = Vec::new();
-    let mut seller_revenue = HashMap::new();
+    let mut seller_revenue = HashMap::default();
 
     for (good, order) in &market_orders.orders {
         let net = order.buy - order.sell;
@@ -514,7 +517,7 @@ mod tests {
     fn test_resolve_market_prices_with_vat_integration() {
         // Integration test: Full VAT market clearing with routing to treasury
         let mut market_orders = MarketOrders {
-            orders: HashMap::new(),
+            orders: HashMap::default(),
         };
 
         market_orders.orders.insert(
@@ -528,7 +531,7 @@ mod tests {
         let mut country = Country {
             tax_rates: TaxRates {
                 vat: {
-                    let mut map = HashMap::new();
+                    let mut map = std::collections::HashMap::new();
                     map.insert(
                         "industry".to_string(),
                         VatBracket {

@@ -11,7 +11,9 @@ use crate::registries::enums::RegimeType;
 use crate::registries::Registries;
 use crate::state::{Country, EmergencyPowers, RationingLevel};
 use serde_json::Value;
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
+
+type HashMap<K, V> = FxHashMap<K, V>;
 
 /// Checks emergency conditions and updates emergency powers status (Phase 10).
 ///
@@ -28,7 +30,7 @@ use std::collections::HashMap;
 ///   3+ consecutive turns of recovery to de-escalate. Prevents flickering.
 pub fn check_emergency_conditions(
     country: &mut Country,
-    market_surplus: &HashMap<Commodity, f64>,
+    market_surplus: &FxHashMap<Commodity, f64>,
 ) {
     let gdp = country.budget.gdp.max(1.0);
     let deficit_severity = country.budget.liquid_reserves / gdp;
@@ -91,7 +93,10 @@ pub fn check_emergency_conditions(
         };
         for (commodity, surplus) in market_surplus {
             if *surplus < -10000.0 {
-                let commodity_str = format!("{:?}", commodity);
+                // Phase 79: Use inventory_key() (snake_case serde key) instead of
+                // format!("{:?}", commodity) (PascalCase Debug). The consumer in
+                // retail.rs uses Commodity::try_from() which expects snake_case.
+                let commodity_str = commodity.inventory_key();
                 country.rationing_system.rationed_goods
                     .insert(commodity_str, default_level);
             }
@@ -135,7 +140,7 @@ fn count_critical_shortages(market_surplus: &HashMap<Commodity, f64>) -> u32 {
 /// * Critical rationing (25% normal) increases mortality by 15% and unrest by 20.
 /// * Emergency rationing (10% normal) increases mortality by 35% and unrest by 40.
 /// * Emergency rationing on essential goods triggers rebellion risk checks.
-/// * Essential goods: Food (Zywnosc), Coal (WegielKamienny), Energy (Energia), Medicine (Leki).
+/// * Essential goods: Food, HardCoal, Fuels, Pharmaceuticals.
 /// * Non-essential goods (Steel, Cement, Machinery) increase capitalist/aristocrat discontent instead.
 pub fn apply_rationing_consequences(country: &mut crate::state::Country) {
     if !country.rationing_system.active {
@@ -146,10 +151,10 @@ pub fn apply_rationing_consequences(country: &mut crate::state::Country) {
     let rationed_goods = country.rationing_system.rationed_goods.clone();
     
     for (commodity_str, level) in rationed_goods {
-        // Check if this is an essential good
+        // Phase 79: Essential goods use snake_case keys matching Commodity::inventory_key().
         let is_essential = matches!(
             commodity_str.as_str(),
-            "Zywnosc" | "WegielKamienny" | "Energia" | "Leki"
+            "food" | "hard_coal" | "brown_coal" | "peat" | "fuels" | "pharmaceuticals"
         );
         
         if is_essential {
@@ -949,7 +954,7 @@ mod tests {
     fn test_emergency_hysteresis_no_flicker_on_single_turn() {
         // A single turn of deficit should NOT escalate from Normal to ExciseTaxes.
         let mut country = country_with_deficit(1000.0, -250.0); // -25% → ExciseTaxes desired
-        let surplus = HashMap::new();
+        let surplus = HashMap::default();
         check_emergency_conditions(&mut country, &surplus);
         // First turn: hysteresis prevents escalation.
         assert_eq!(country.emergency_powers, crate::state::EmergencyPowers::Normal);
@@ -962,14 +967,14 @@ mod tests {
     fn test_emergency_hysteresis_deescalation_requires_3_turns() {
         // Escalate to MartialLaw, then recover — should take 3 turns to de-escalate.
         let mut country = country_with_deficit(1000.0, -900.0); // -90% → MartialLaw desired
-        let crisis_surplus = HashMap::new();
+        let crisis_surplus = HashMap::default();
         // Escalate over 2 turns.
         check_emergency_conditions(&mut country, &crisis_surplus);
         check_emergency_conditions(&mut country, &crisis_surplus);
         assert_eq!(country.emergency_powers, crate::state::EmergencyPowers::MartialLaw);
         // Now recover.
         country.budget.liquid_reserves = 0.0; // 0% → Normal desired
-        let ok_surplus = HashMap::new();
+        let ok_surplus = HashMap::default();
         check_emergency_conditions(&mut country, &ok_surplus);
         assert_eq!(country.emergency_powers, crate::state::EmergencyPowers::MartialLaw); // Still ML
         check_emergency_conditions(&mut country, &ok_surplus);
@@ -981,13 +986,13 @@ mod tests {
     #[test]
     fn test_emergency_hysteresis_recovery_resets_escalation_counter() {
         let mut country = country_with_deficit(1000.0, -250.0);
-        let crisis_surplus = HashMap::new();
+        let crisis_surplus = HashMap::default();
         // One turn of crisis — escalation counter = 1.
         check_emergency_conditions(&mut country, &crisis_surplus);
         assert_eq!(country.emergency_escalation_counter, 1);
         // Recovery — counters reset.
         country.budget.liquid_reserves = 500.0;
-        let ok_surplus = HashMap::new();
+        let ok_surplus = HashMap::default();
         check_emergency_conditions(&mut country, &ok_surplus);
         assert_eq!(country.emergency_escalation_counter, 0);
         // Another single crisis turn should NOT escalate (counter back to 1).

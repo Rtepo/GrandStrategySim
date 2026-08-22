@@ -34,8 +34,8 @@ use std::error::Error;
 use std::path::Path;
 
 const COUNTRY_NAMES: &[&str] = &[
-    "Sarmatia", "Iliria", "Helwecja", "Nordia", "Baktria", "Persja", "Lechia", "Eldoria",
-    "Wenedia", "Oksytania", "Galia", "Dacja", "Krasnowia", "Anatolia", "Iberia", "Anglia",
+    "Sarmatia", "Illyria", "Helvetia", "Nordia", "Bactria", "Persia", "Lechia", "Eldoria",
+    "Venedia", "Occitania", "Gallia", "Dacia", "Krasnovia", "Anatolia", "Iberia", "Anglia",
 ];
 
 const WEALTH_WEIGHTS: &[i32] = &[15, 25, 35, 25];
@@ -219,6 +219,14 @@ pub fn generate_world(
     let market = serde_json::json!({ "prices": prices, "orders": {} });
     std::fs::write(data_dir.join("market.json"), serde_json::to_string_pretty(&market)?)?;
 
+    // Phase 76: Populate state.market_history.global_base_prices in-memory so
+    // that pure in-memory paths (without load_from_disk) have valid reference
+    // prices for B2B order submission. Without this, get_reference_price()
+    // returns None and all B2B orders are skipped, causing a market deadlock.
+    for commodity in Commodity::all() {
+        state.market_history.global_base_prices.insert(commodity, 100.0);
+    }
+
     Ok(GeneratedWorld {
         state,
         regions,
@@ -283,7 +291,7 @@ fn generate_country(
         economic_policy: crate::state::EconomicPolicy::default(),
         order_of_battle: crate::military::oob::OrderOfBattle::default(),
         military_fronts: Vec::new(),
-        military_stockpile: std::collections::HashMap::new(),
+        military_stockpile: rustc_hash::FxHashMap::default(),
         military_config: crate::military::config::MilitaryCombatConfig::default(),
         war_economy: crate::military::war_economy::WarEconomyState::default(),
         at_war_with: Vec::new(),
@@ -343,7 +351,7 @@ fn generate_country(
         social_programs: Vec::new(),
         weather_state: crate::economy::weather::WeatherState::default(),
         maintenance_config: crate::economy::maintenance::MaintenanceConfig::default(),
-        state_forest_state: crate::economy::state_forests::forest_districtState::default(),
+        state_forest_state: crate::economy::state_forests::ForestDistrictState::default(),
         religious_authority_state: crate::society::religious_authority::ReligiousAuthorityState::default(),
         generative_goods_config: crate::economy::generative_goods_config::GenerativeGoodsConfig::default(),
         geological_formations: Vec::new(),
@@ -460,7 +468,178 @@ fn generate_country(
         );
     }
 
+    // Phase 77: List JSC companies on the stock exchange during world generation.
+    // NOTE: This is now called from generate_corporate_entities after JSC companies
+    // are actually created. The call here was operating on bootstrap bank companies
+    // only, which are never JSC.
+
     (country, currency, country_regions, companies)
+}
+
+/// Phase 77: List all JointStockCompany companies on the stock exchange.
+///
+/// For each JSC company:
+/// 1. Set an initial listing price based on fixed_capital / shares_issued.
+/// 2. Seed an AMM liquidity pool with the free-float shares + IPO cash proceeds.
+/// 3. Fund IPO proceeds from wealthy demographics (Aristocracy, Bourgeoisie),
+///    capped at 5% of each class's savings per region.
+/// 4. Unsold shares (when citizen savings are exhausted) go into the limit
+///    order book as ask orders at the listing price — NOT into the AMM.
+/// 5. Assign initial share ownership to founders and wealthy demographics.
+pub fn list_jsc_companies_on_exchange(
+    country: &mut crate::state::Country,
+    companies: &mut Vec<Company>,
+    country_regions: &HashMap<String, crate::society::geography::Region>,
+    rng: &mut impl rand::Rng,
+) {
+    use crate::entities::LegalForm;
+    use crate::securities::exchange::{
+        InstrumentType, LiquidityPool, Order, OrderBook,
+    };
+
+    for company in companies.iter_mut() {
+        // Only list JointStockCompany firms
+        let (shares_issued, free_float_pct) = match company.legal_form {
+            LegalForm::JointStockCompany(ref jsd) => {
+                (jsd.shares_issued, jsd.free_float)
+            }
+            _ => continue,
+        };
+        if shares_issued == 0 {
+            continue;
+        }
+
+        // Calculate listing price from fixed capital per share
+        let listing_price = if shares_issued > 0 {
+            (company.fixed_capital / shares_issued as f64).max(1.0)
+        } else {
+            1.0
+        };
+
+        let instrument_id = format!("EQUITY:{}", company.id);
+        let free_float_shares = (shares_issued as f64 * free_float_pct).round() as u64;
+        let founder_shares = shares_issued - free_float_shares;
+
+        // Assign founder ownership (60% to founding entity)
+        company.shares_count = shares_issued;
+        company.owners.insert(
+            format!("FOUNDER:{}", company.id),
+            founder_shares as f64 / shares_issued as f64,
+        );
+        company.free_float = free_float_pct;
+
+        // Phase 77: Fund IPO from wealthy demographics only.
+        // Draw from Aristocracy (rural) and Bourgeoisie (urban) savings,
+        // capped at 5% of each class's savings per region.
+        let company_region = company.region_id.clone();
+        let ipo_target_cash = free_float_shares as f64 * listing_price;
+
+        // Collect wealthy-class savings from the company's region
+        let mut wealthy_cash_available = 0.0_f64;
+        if let Some(region) = country_regions.get(&company_region) {
+            if let Some(aristocracy) = region.class_demographics.rural_classes.get("Aristocracy") {
+                wealthy_cash_available += aristocracy.savings * 0.05;
+            }
+            if let Some(bourgeoisie) = region.class_demographics.urban_classes.get("Bourgeoisie") {
+                wealthy_cash_available += bourgeoisie.savings * 0.05;
+            }
+        }
+
+        let (purchased_shares, unsold_shares, ipo_cash);
+        if wealthy_cash_available >= ipo_target_cash {
+            // Full IPO — all free-float shares purchased by wealthy classes
+            purchased_shares = free_float_shares;
+            unsold_shares = 0;
+            ipo_cash = ipo_target_cash;
+        } else if wealthy_cash_available > 0.0 {
+            // Partial IPO — purchase what citizens can afford
+            let mut purchased = (wealthy_cash_available / listing_price).floor() as u64;
+            purchased = purchased.min(free_float_shares);
+            purchased_shares = purchased;
+            unsold_shares = free_float_shares - purchased_shares;
+            ipo_cash = purchased_shares as f64 * listing_price;
+        } else {
+            // No wealthy savings — all shares go to order book as asks
+            purchased_shares = 0;
+            unsold_shares = free_float_shares;
+            ipo_cash = 0.0;
+        }
+
+        // Debit wealthy-class savings (proportionally from Aristocracy and Bourgeoisie)
+        if ipo_cash > 0.0 {
+            if let Some(region) = country_regions.get(&company_region) {
+                let aristo_savings = region.class_demographics.rural_classes
+                    .get("Aristocracy")
+                    .map(|d| d.savings * 0.05)
+                    .unwrap_or(0.0);
+                let bourg_savings = region.class_demographics.urban_classes
+                    .get("Bourgeoisie")
+                    .map(|d| d.savings * 0.05)
+                    .unwrap_or(0.0);
+                let total_wealthy = aristo_savings + bourg_savings;
+                if total_wealthy > 0.0 {
+                    let aristo_share = (ipo_cash * aristo_savings / total_wealthy).min(aristo_savings);
+                    let bourg_share = (ipo_cash * bourg_savings / total_wealthy).min(bourg_savings);
+                    // Debit from country-level citizen_savings as a proxy
+                    // (region-level savings are aggregated into citizen_savings)
+                    country.budget.citizen_savings = (country.budget.citizen_savings - aristo_share - bourg_share).max(0.0);
+                }
+            }
+        }
+
+        // Credit IPO proceeds to the company's brokerage account
+        if ipo_cash > 0.0 {
+            if let Some(ref mut ba) = company.brokerage_account {
+                ba.cash += ipo_cash;
+            } else {
+                company.liquid_capital += ipo_cash;
+            }
+        }
+
+        // Seed AMM liquidity pool with purchased shares + cash (valid constant-product pool)
+        if purchased_shares > 0 && ipo_cash > 0.0 {
+            let pool = LiquidityPool {
+                shares: purchased_shares,
+                cash: ipo_cash,
+                providers: {
+                    let mut p = std::collections::BTreeMap::new();
+                    p.insert("WEALTHY_CLASS_AGGREGATE".to_string(), 1.0);
+                    p
+                },
+                pool_fee: 0.001,
+                treasury_bonds: Vec::new(),
+                total_value: ipo_cash,
+            };
+            country.stock_exchange.liquidity_pools.insert(instrument_id.clone(), pool);
+        }
+
+        // Place unsold shares as limit ask orders in the order book
+        if unsold_shares > 0 {
+            let order = Order::Sell {
+                order_id: format!("IPO-ASK-{}-{}", company.id, rng.gen_range(0..100000)),
+                investor_id: format!("TREASURY:{}", company.id),
+                instrument_id: instrument_id.clone(),
+                instrument_type: InstrumentType::Equity,
+                quantity: unsold_shares,
+                limit_price: listing_price,
+                expiry_turn: u32::MAX, // No expiry — sits until bought
+            };
+            // Insert into order book
+            let ob = country.stock_exchange.order_book
+                .entry(instrument_id.clone())
+                .or_insert_with(|| OrderBook::default());
+            // Add to asks at listing price
+            if let Some(pos) = ob.asks.iter().position(|(p, _)| (*p - listing_price).abs() < 0.001) {
+                ob.asks[pos].1.push(order);
+            } else {
+                ob.asks.push((listing_price, vec![order]));
+                ob.asks.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+            }
+            if ob.best_ask <= 0.0 || listing_price < ob.best_ask {
+                ob.best_ask = listing_price;
+            }
+        }
+    }
 }
 
 /// Phase 70: Spawn a standing Order of Battle for a country based on its
@@ -494,8 +673,16 @@ fn spawn_standing_oob(
     let total_gdp: f64 = regions.values().map(|r| r.gdp).sum();
     let has_coast = regions.values().any(|r| r.geographic_traits.has_coastline);
 
+    // Phase 76: Derive GDP per capita and average wage for OOB scaling.
+    let gdp_per_capita = if total_pop > 0 {
+        total_gdp / total_pop as f64
+    } else {
+        0.0
+    };
+    let average_wage = country.macro_indicators.average_wage.max(1.0);
+
     // Collect home regions for army basing.
-    let home_regions: Vec<String> = regions.keys().take(5).cloned().collect();
+    let home_regions: Vec<String> = regions.keys().take(8).cloned().collect();
     if home_regions.is_empty() {
         return OrderOfBattle::default();
     }
@@ -504,8 +691,11 @@ fn spawn_standing_oob(
     let mut oob = generate_asymmetric_oob(
         &country.name,
         total_gdp,
+        gdp_per_capita,
+        average_wage,
         total_pop,
         home_regions.clone(),
+        rng,
     );
 
     // Helper: scale ToE by manpower and seed at 90% strength
@@ -523,8 +713,8 @@ fn spawn_standing_oob(
 
     // Helper: draw manpower proportionally from rural classes
     let draw_manpower = |regions: &HashMap<String, crate::society::geography::Region>,
-                         needed: i64| -> HashMap<crate::society::geography::RuralClass, i64> {
-        let mut origin = HashMap::new();
+                         needed: i64| -> rustc_hash::FxHashMap<crate::society::geography::RuralClass, i64> {
+        let mut origin = rustc_hash::FxHashMap::default();
         let total_rural: i64 = regions.values()
             .flat_map(|r| r.class_demographics.rural_classes.values())
             .map(|d| d.population)
@@ -569,93 +759,103 @@ fn spawn_standing_oob(
         }
     }
 
-    // Add era-appropriate specialist units as a separate army (Support Army).
-    let mut support_army = Army::new(
-        format!("ARMY-{}-SPT", country.name),
-        format!("{} Support Command", country.name),
-        home_regions[0].clone(),
-    );
+    // Phase 76: Support Army is conditional on country size.
+    // Only countries with population > 5M and sufficient GDP per capita
+    // can afford specialized artillery/tank/air/naval arms.
+    let support_army_threshold_pop = 5_000_000_i64;
+    // Phase 76: Support Army affordability — based on absolute GDP per capita
+    // thresholds (not wage-relative, since average_wage = gdp_pc × 800 in the
+    // generator, making wage-relative thresholds always fail).
+    // gdp_per_capita > 500: post-industrial economy can support specialist arms.
+    let can_afford_specialists = gdp_per_capita > 500.0;
 
-    let mut support_division = Division::new(
-        format!("DIV-{}-SPT-001", country.name),
-        "Support Division".to_string(),
-        home_regions[0].clone(),
-    );
-
-    let mut support_regiment = Regiment::new(
-        format!("REG-{}-SPT-001", country.name),
-        "Specialist Regiment".to_string(),
-        home_regions[0].clone(),
-    );
-
-    // Artillery Brigade (if year >= 1880)
-    if start_year >= 1880 {
-        let arty_manpower = (army_size / 10).max(100);
-        let mut artillery = MilitaryUnit::new(
-            format!("{}-ART-1", country.name),
-            UnitType::Artillery,
-            arty_manpower,
-            draw_manpower(regions, arty_manpower),
+    if total_pop > support_army_threshold_pop && can_afford_specialists {
+        let mut support_army = Army::new(
+            format!("ARMY-{}-SPT", country.name),
+            format!("{} Support Command", country.name),
             home_regions[0].clone(),
         );
-        artillery.equipment_reserves = make_toe(&UnitType::Artillery, arty_manpower);
-        support_regiment.add_unit(artillery);
-    }
 
-    // Tank Brigade (if year >= 1916)
-    if start_year >= 1916 {
-        let tank_manpower = (army_size / 20).max(100);
-        let mut tanks = MilitaryUnit::new(
-            format!("{}-TNK-1", country.name),
-            UnitType::Tanks,
-            tank_manpower,
-            draw_manpower(regions, tank_manpower),
+        let mut support_division = Division::new(
+            format!("DIV-{}-SPT-001", country.name),
+            "Support Division".to_string(),
             home_regions[0].clone(),
         );
-        tanks.equipment_reserves = make_toe(&UnitType::Tanks, tank_manpower);
-        support_regiment.add_unit(tanks);
-    }
 
-    // Air Wing (if year >= 1940)
-    if start_year >= 1940 {
-        let air_manpower = (army_size / 50).max(50);
-        let mut air = MilitaryUnit::new(
-            format!("{}-AIR-1", country.name),
-            UnitType::AirForce,
-            air_manpower,
-            draw_manpower(regions, air_manpower),
+        let mut support_regiment = Regiment::new(
+            format!("REG-{}-SPT-001", country.name),
+            "Specialist Regiment".to_string(),
             home_regions[0].clone(),
         );
-        air.equipment_reserves = make_toe(&UnitType::AirForce, air_manpower);
-        support_regiment.add_unit(air);
+
+        // Artillery Brigade (if year >= 1880)
+        if start_year >= 1880 {
+            let arty_manpower = (army_size / 10).max(50);
+            let mut artillery = MilitaryUnit::new(
+                format!("{}-ART-1", country.name),
+                UnitType::Artillery,
+                arty_manpower,
+                draw_manpower(regions, arty_manpower),
+                home_regions[0].clone(),
+            );
+            artillery.equipment_reserves = make_toe(&UnitType::Artillery, arty_manpower);
+            support_regiment.add_unit(artillery);
+        }
+
+        // Tank Brigade (if year >= 1916 and country can afford armored units)
+        if start_year >= 1916 && gdp_per_capita > 1000.0 {
+            let tank_manpower = (army_size / 20).max(50);
+            let mut tanks = MilitaryUnit::new(
+                format!("{}-TNK-1", country.name),
+                UnitType::Tanks,
+                tank_manpower,
+                draw_manpower(regions, tank_manpower),
+                home_regions[0].clone(),
+            );
+            tanks.equipment_reserves = make_toe(&UnitType::Tanks, tank_manpower);
+            support_regiment.add_unit(tanks);
+        }
+
+        // Air Wing (if year >= 1940 and country can afford air force)
+        if start_year >= 1940 && gdp_per_capita > 1500.0 {
+            let air_manpower = (army_size / 50).max(30);
+            let mut air = MilitaryUnit::new(
+                format!("{}-AIR-1", country.name),
+                UnitType::AirForce,
+                air_manpower,
+                draw_manpower(regions, air_manpower),
+                home_regions[0].clone(),
+            );
+            air.equipment_reserves = make_toe(&UnitType::AirForce, air_manpower);
+            support_regiment.add_unit(air);
+        }
+
+        // Naval Fleet (if coastal, year >= 1880, and country can afford navy)
+        if has_coast && start_year >= 1880 && gdp_per_capita > 800.0 {
+            let naval_manpower = (army_size / 20).max(50);
+            let coastal_region = regions.values()
+                .find(|r| r.geographic_traits.has_coastline)
+                .map(|r| r.id.clone())
+                .unwrap_or_else(|| home_regions[0].clone());
+            let mut naval = MilitaryUnit::new(
+                format!("{}-NAV-1", country.name),
+                UnitType::Naval,
+                naval_manpower,
+                draw_manpower(regions, naval_manpower),
+                coastal_region,
+            );
+            naval.equipment_reserves = make_toe(&UnitType::Naval, naval_manpower);
+            support_regiment.add_unit(naval);
+        }
+
+        // Only add the support army if it has units
+        if !support_regiment.units.is_empty() {
+            support_division.add_regiment(support_regiment);
+            support_army.add_division(support_division);
+            oob.add_army(support_army);
+        }
     }
 
-    // Naval Fleet (if coastal and year >= 1880)
-    if has_coast && start_year >= 1880 {
-        let naval_manpower = (army_size / 20).max(100);
-        let coastal_region = regions.values()
-            .find(|r| r.geographic_traits.has_coastline)
-            .map(|r| r.id.clone())
-            .unwrap_or_else(|| home_regions[0].clone());
-        let mut naval = MilitaryUnit::new(
-            format!("{}-NAV-1", country.name),
-            UnitType::Naval,
-            naval_manpower,
-            draw_manpower(regions, naval_manpower),
-            coastal_region,
-        );
-        naval.equipment_reserves = make_toe(&UnitType::Naval, naval_manpower);
-        support_regiment.add_unit(naval);
-    }
-
-    // Only add the support army if it has units
-    if !support_regiment.units.is_empty() {
-        support_division.add_regiment(support_regiment);
-        support_army.add_division(support_division);
-        oob.add_army(support_army);
-    }
-
-    let _ = rng; // rng reserved for future randomized OOB variations
     oob
 }
 
@@ -1340,11 +1540,15 @@ fn build_bank_companies(
             extra: Map::new(),
         };
 
-        // Phase 28/36: Set FTE demand and wages so banks participate in labor market.
+        // Phase 77: Scale bank FTE by deposit volume — banks managing billions
+        // need thousands of clerks, not 100. Each 500 units of deposits (relative
+        // to average_wage) require ~1 clerk. Minimum 50 FTE for smallest bank,
+        // maximum 5000 for the largest.
+        let deposits_per_clerk = base_wage * 500.0;
         let bank_fte = if is_first {
-            rng.gen_range(100..=300) as f64
+            ((total_deposits / deposits_per_clerk).round() as u32).max(500).min(5000)
         } else {
-            rng.gen_range(30..=100) as f64
+            ((total_deposits / deposits_per_clerk).round() as u32).max(50).min(2000)
         };
         let bank_wage = base_wage * 1.2; // Banks pay above-average wages
         let operating_cash = tier_1_capital * 0.1; // 10% of tier_1 for payroll
@@ -1356,7 +1560,7 @@ fn build_bank_companies(
             LegalForm::JointStockCompany(crate::entities::JointStockData::default()),
             tier_1_capital,
             operating_cash,
-            bank_fte as u32,
+            bank_fte,
         );
         company.bank_type = Some(bank_type);
         company.balance_sheet = Some(balance_sheet);
@@ -1373,10 +1577,11 @@ fn build_bank_companies(
         // inject payroll grant. Without this, banks start at 0 FTE and cannot
         // participate in the labor market, causing Banking sector employment
         // to stay at 0 for the first several turns.
-        let initial_fte = (bank_fte * 0.6).max(2.0);
+        // Phase 77: Use integer FTE (60% of target, minimum 2).
+        let initial_fte = ((bank_fte as f64 * 0.6).round() as u32).max(2);
         company.fulfilled_fte = initial_fte;
         company.prev_fulfilled_fte = initial_fte;
-        let payroll_grant = initial_fte * bank_wage * 3.0;
+        let payroll_grant = initial_fte as f64 * bank_wage * 3.0;
         company.available_cash += payroll_grant;
 
         banks.push(company);

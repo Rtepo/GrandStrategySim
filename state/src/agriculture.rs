@@ -252,8 +252,8 @@ pub fn calculate_agricultural_fte_demand(
 
         if !has_active {
             // No active crops, no funding needed
-            company.physical_fte_demand = 0.0;
-            company.target_fte_demand = 0.0;
+            company.physical_fte_demand = 0;
+            company.target_fte_demand = 0;
             company.offered_wage_per_fte = 0.0;
             return;
         }
@@ -286,18 +286,18 @@ pub fn calculate_agricultural_fte_demand(
         physical_demand += labor_fte;
     }
 
-    company.physical_fte_demand = physical_demand;
+    company.physical_fte_demand = physical_demand.round() as u32;
 
     // Calculate target demand (liquidity-clamped)
     if is_treasury_funded {
-        company.target_fte_demand = physical_demand; // Treasury covers wage bill
+        company.target_fte_demand = physical_demand.round() as u32; // Treasury covers wage bill
     } else {
         // Phase 25: Do NOT clamp target_fte_demand by liquidity here.
         // The labor market clearing does its own affordability check
         // (brokerage_account.cash / offered_wage_per_fte). Setting
         // target_fte_demand to physical_demand allows the company to
         // bid for its full labor need; the clearing will clamp it.
-        company.target_fte_demand = physical_demand;
+        company.target_fte_demand = physical_demand.round() as u32;
     }
 
     // Phase 25: Do NOT set offered_wage_per_fte here. The corporate
@@ -357,8 +357,8 @@ pub fn calculate_harvest_yield_and_rot(
         }
 
         // Calculate labor efficiency for ALL active states
-        let labor_efficiency = if company.physical_fte_demand > 0.0 {
-            (company.fulfilled_fte / company.physical_fte_demand).min(1.0)
+        let labor_efficiency = if company.physical_fte_demand > 0 {
+            (company.fulfilled_fte as f64 / company.physical_fte_demand as f64).min(1.0)
         } else {
             1.0
         };
@@ -474,7 +474,6 @@ pub fn submit_harvest_asks(
                 let commodity = match commodity_key.as_str() {
                     "Cereal" => Commodity::Cereal,
                     "Vegetable" => Commodity::Vegetable,
-                    "Protein" => Commodity::Protein,
                     "Fruit" => Commodity::Fruit,
                     "Meat" => Commodity::Meat,
                     "Seeds" => Commodity::Seeds,
@@ -488,7 +487,7 @@ pub fn submit_harvest_asks(
                 };
                 
                 // Calculate ask price with margin (lower margin for perishables)
-                let is_perishable = matches!(commodity, Commodity::Vegetable | Commodity::Protein | Commodity::Fruit | Commodity::Meat);
+                let is_perishable = matches!(commodity, Commodity::Vegetable | Commodity::Fruit | Commodity::Meat);
                 let margin = if is_perishable { 0.05 } else { 0.10 };
                 let ask_price = market_price * (1.0 + margin);
                 

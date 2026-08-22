@@ -231,8 +231,8 @@ pub fn modernize_unit(
     let mut result = ModernizationResult {
         unit_id: unit.id.clone(),
         upgrades_applied: Vec::new(),
-        scrap_recovered: HashMap::new(),
-        procurement_demand: HashMap::new(),
+        scrap_recovered: HashMap::default(),
+        procurement_demand: HashMap::default(),
         upgraded: false,
     };
 
@@ -303,8 +303,8 @@ pub fn modernize_unit(
 /// * `stockpile` - The military stockpile to add recovered commodities to.
 /// * `scrap_recovered` - The commodities recovered from scrapping.
 pub fn apply_scrap_to_stockpile(
-    stockpile: &mut HashMap<Commodity, f64>,
-    scrap_recovered: &HashMap<Commodity, f64>,
+    stockpile: &mut std::collections::HashMap<Commodity, f64>,
+    scrap_recovered: &std::collections::HashMap<Commodity, f64>,
 ) {
     for (commodity, qty) in scrap_recovered {
         if *qty > 0.0 {
@@ -321,14 +321,14 @@ pub fn apply_scrap_to_stockpile(
 mod tests {
     use super::*;
     use crate::society::geography::RuralClass;
-    use std::collections::HashMap;
+    use rustc_hash::FxHashMap as HashMap;
 
     fn make_tank_unit(year: u32) -> MilitaryUnit {
         let mut unit = MilitaryUnit::new(
             "TEST-TANK-001".to_string(),
             UnitType::Tanks,
             1000,
-            HashMap::new(),
+            HashMap::default(),
             "home".to_string(),
         );
         unit.equipment_reserves = UnitType::Tanks.table_of_equipment(year);
@@ -340,7 +340,7 @@ mod tests {
             "TEST-INF-001".to_string(),
             UnitType::Infantry,
             1000,
-            HashMap::new(),
+            HashMap::default(),
             "home".to_string(),
         );
         unit.equipment_reserves = UnitType::Infantry.table_of_equipment(year);
@@ -427,8 +427,8 @@ mod tests {
 
     #[test]
     fn test_apply_scrap_to_stockpile() {
-        let mut stockpile = HashMap::new();
-        let mut scrap = HashMap::new();
+        let mut stockpile = std::collections::HashMap::new();
+        let mut scrap = std::collections::HashMap::new();
         scrap.insert(Commodity::Steel, 100.0);
         scrap.insert(Commodity::Aluminum, 50.0);
 

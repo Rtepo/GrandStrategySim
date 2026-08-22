@@ -62,7 +62,7 @@ pub struct ConstructionTender {
     /// Micro-region where construction occurs.
     #[serde(default)]
     pub micro_region_id: String,
-    /// Target building type name (e.g. "Cementownia").
+    /// Target building type name (e.g. "Cement Plant").
     #[serde(default)]
     pub target_building_type: String,
     /// Required construction materials (BOM from `get_construction_bom`).

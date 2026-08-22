@@ -519,7 +519,7 @@ pub fn process_prison_labor_turn(
             // to their target_fte_demand.
             let total_demand: f64 = eligible_companies
                 .iter()
-                .map(|&i| companies[i].target_fte_demand.max(0.0))
+                .map(|&i| companies[i].target_fte_demand as f64)
                 .sum();
 
             if total_demand <= 0.0 {
@@ -534,7 +534,7 @@ pub fn process_prison_labor_turn(
             let mut injected_count = 0_usize;
 
             for &idx in &eligible_companies {
-                let share = companies[idx].target_fte_demand.max(0.0) / total_demand;
+                let share = companies[idx].target_fte_demand as f64 / total_demand;
                 let injected_fte = prisoner_fte_pool * share;
 
                 if injected_fte < 0.01 {
@@ -542,10 +542,8 @@ pub fn process_prison_labor_turn(
                 }
 
                 // Reduce company's labor demand by injected FTEs
-                companies[idx].target_fte_demand -= injected_fte;
-                if companies[idx].target_fte_demand < 0.0 {
-                    companies[idx].target_fte_demand = 0.0;
-                }
+                companies[idx].target_fte_demand =
+                    ((companies[idx].target_fte_demand as f64) - injected_fte).max(0.0).round() as u32;
 
                 // Company pays transfer fee to Treasury
                 let fee = injected_fte * law.private_transfer_fee;

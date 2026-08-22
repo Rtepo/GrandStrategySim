@@ -75,7 +75,7 @@ pub use osp::{process_osp_volunteer_allocation, is_osp};
 pub use migration::{sum_border_enforcement_capacity, calculate_migration_pressure, calculate_emigrants, collect_migration_flows, apply_migration_flows, process_deportations};
 pub use smuggling::{sum_customs_capacity, process_smuggling_turn, process_customs_evasion_recovery, SmugglingTurnResult};
 pub use inspectorates::{process_inspectorates_turn, InspectorateTurnResult};
-pub use state_forests::{process_state_forests_turn, create_default_state_forests, forest_districtState, forest_districtTract, forest_districtTurnResult};
+pub use state_forests::{process_state_forests_turn, create_default_state_forests, ForestDistrictState, ForestDistrictTract, ForestDistrictTurnResult};
 pub use assimilation::{process_assimilation_turn, process_religious_conversion_turn, AssimilationTurnResult, ConversionTurnResult};
 pub use religious_economy::{process_see_remittance, process_church_fund, process_see_reinvestment, process_monastery_production, ApostolicSeeConfig, SeeRemittanceResult, ChurchFundResult, SeeReinvestmentResult};
 pub use ethnic_violence::{check_pogrom_triggers, PogromConfig, PogromResult};
@@ -96,6 +96,7 @@ use crate::registries::enums::Commodity;
 use crate::registries::Registries;
 use crate::state::Country;
 use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 
 /// Context required to execute one economic turn for a single country.
 ///
@@ -127,5 +128,5 @@ pub struct CountryTurnCtx<'a> {
     /// In-memory buildings for the current turn.
     pub buildings: Vec<Building>,
     /// Cleared local market prices by commodity.
-    pub market_prices: HashMap<Commodity, f64>,
+    pub market_prices: FxHashMap<Commodity, f64>,
 }

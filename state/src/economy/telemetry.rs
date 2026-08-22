@@ -236,8 +236,8 @@ fn build_ppi_basket_weights() -> BTreeMap<Commodity, f64> {
 /// * This is a Laspeyres-style index with fixed basket quantities.
 fn compute_weighted_index(
     weights: &BTreeMap<Commodity, f64>,
-    vwap: &std::collections::HashMap<Commodity, f64>,
-    fallback_prices: &std::collections::HashMap<Commodity, f64>,
+    vwap: &rustc_hash::FxHashMap<Commodity, f64>,
+    fallback_prices: &rustc_hash::FxHashMap<Commodity, f64>,
 ) -> f64 {
     let mut total_value = 0.0;
     let mut total_weight = 0.0;
@@ -581,7 +581,7 @@ mod tests {
     use crate::state::{Country, Treasury};
     use crate::entities::Company;
     use crate::registries::enums::Sector;
-    use std::collections::HashMap;
+    use rustc_hash::FxHashMap as HashMap;
 
     // ── GDP tests ──
 
@@ -594,7 +594,7 @@ mod tests {
             net_exports: -200_000.0,
             shadow_gdp: 50_000.0,
             imputed_consumption: 0.0,
-            regional: std::collections::HashMap::new(),
+            regional: std::collections::HashMap::default(),
         };
         let gdp = compute_gdp(&acc, 1_500_000.0);
         assert!((gdp.official_gdp - 1_600_000.0).abs() < 1e-6);
@@ -642,17 +642,17 @@ mod tests {
     fn test_cpi_index_changes_with_vwap() {
         // Turn 1: base prices, no VWAP yet.
         let history_t1 = MarketHistory {
-            vwap_per_commodity: HashMap::new(),
-            last_trade_price: HashMap::new(),
+            vwap_per_commodity: HashMap::default(),
+            last_trade_price: HashMap::default(),
             global_base_prices: {
-                let mut m = HashMap::new();
+                let mut m = HashMap::default();
                 m.insert(Commodity::Cereal, 100.0);
                 m.insert(Commodity::Vegetable, 80.0);
-                m.insert(Commodity::Protein, 200.0);
                 m
             },
-            retail_vwap_per_commodity: HashMap::new(),
-            prev_net_surplus: HashMap::new(),
+            retail_vwap_per_commodity: HashMap::default(),
+            prev_net_surplus: HashMap::default(),
+            ..Default::default()
         };
         let prev = InflationIndices::default();
         let indices_t1 = compute_inflation(&history_t1, &prev);
@@ -661,17 +661,17 @@ mod tests {
 
         // Turn 2: retail VWAP prices doubled for cereal (CPI tracks B2C retail prices).
         let history_t2 = MarketHistory {
-            vwap_per_commodity: HashMap::new(),
-            last_trade_price: HashMap::new(),
+            vwap_per_commodity: HashMap::default(),
+            last_trade_price: HashMap::default(),
             global_base_prices: history_t1.global_base_prices.clone(),
             retail_vwap_per_commodity: {
-                let mut m = HashMap::new();
+                let mut m = HashMap::default();
                 m.insert(Commodity::Cereal, 200.0); // doubled
                 m.insert(Commodity::Vegetable, 80.0);
-                m.insert(Commodity::Protein, 200.0);
                 m
             },
-            prev_net_surplus: HashMap::new(),
+            prev_net_surplus: HashMap::default(),
+            ..Default::default()
         };
         let indices_t2 = compute_inflation(&history_t2, &indices_t1);
         assert!(
@@ -688,16 +688,17 @@ mod tests {
     fn test_ppi_index_reflects_producer_goods() {
         let history = MarketHistory {
             vwap_per_commodity: {
-                let mut m = HashMap::new();
+                let mut m = HashMap::default();
                 m.insert(Commodity::Steel, 500.0);
                 m.insert(Commodity::HardCoal, 150.0);
                 m.insert(Commodity::Energy, 300.0);
                 m
             },
-            last_trade_price: HashMap::new(),
-            global_base_prices: HashMap::new(),
-            retail_vwap_per_commodity: HashMap::new(),
-            prev_net_surplus: HashMap::new(),
+            last_trade_price: HashMap::default(),
+            global_base_prices: HashMap::default(),
+            retail_vwap_per_commodity: HashMap::default(),
+            prev_net_surplus: HashMap::default(),
+            ..Default::default()
         };
         let prev = InflationIndices::default();
         let indices = compute_inflation(&history, &prev);
@@ -712,15 +713,16 @@ mod tests {
     #[test]
     fn test_inflation_zero_on_first_turn() {
         let history = MarketHistory {
-            vwap_per_commodity: HashMap::new(),
-            last_trade_price: HashMap::new(),
+            vwap_per_commodity: HashMap::default(),
+            last_trade_price: HashMap::default(),
             global_base_prices: {
-                let mut m = HashMap::new();
+                let mut m = HashMap::default();
                 m.insert(Commodity::Cereal, 100.0);
                 m
             },
-            retail_vwap_per_commodity: HashMap::new(),
-            prev_net_surplus: HashMap::new(),
+            retail_vwap_per_commodity: HashMap::default(),
+            prev_net_surplus: HashMap::default(),
+            ..Default::default()
         };
         let prev = InflationIndices::default();
         let indices = compute_inflation(&history, &prev);
@@ -741,22 +743,21 @@ mod tests {
         // Prices drop back to base.
         let history = MarketHistory {
             vwap_per_commodity: {
-                let mut m = HashMap::new();
+                let mut m = HashMap::default();
                 m.insert(Commodity::Cereal, 100.0);
                 m.insert(Commodity::Vegetable, 80.0);
-                m.insert(Commodity::Protein, 200.0);
                 m
             },
-            last_trade_price: HashMap::new(),
-            global_base_prices: HashMap::new(),
+            last_trade_price: HashMap::default(),
+            global_base_prices: HashMap::default(),
             retail_vwap_per_commodity: {
-                let mut m = HashMap::new();
+                let mut m = HashMap::default();
                 m.insert(Commodity::Cereal, 100.0);
                 m.insert(Commodity::Vegetable, 80.0);
-                m.insert(Commodity::Protein, 200.0);
                 m
             },
-            prev_net_surplus: HashMap::new(),
+            prev_net_surplus: HashMap::default(),
+            ..Default::default()
         };
         let indices = compute_inflation(&history, &prev);
         assert!(

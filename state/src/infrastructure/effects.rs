@@ -346,7 +346,6 @@ fn calculate_infrastructure_funding(region: &crate::society::geography::Region) 
         healthcare: healthcare_funding,
         education: education_funding,
         care: care_funding,
-        total: healthcare_funding + education_funding + care_funding,
     }
 }
 
@@ -513,5 +512,4 @@ struct InfrastructureFunding {
     healthcare: f64,
     education: f64,
     care: f64,
-    total: f64,
 }

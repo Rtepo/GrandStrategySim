@@ -456,29 +456,6 @@ impl PropertyDeveloper {
             .map(|(k, v)| (k, v * type_multiplier))
             .collect()
     }
-    
-    /// Estimate labor requirement
-    fn estimate_labor_requirement(&self, project_type: ConstructionProjectType) -> u32 {
-        match project_type {
-            ConstructionProjectType::Residential => 10,
-            ConstructionProjectType::Commercial => 20,
-            ConstructionProjectType::UtilityNetwork => 30,
-            ConstructionProjectType::Infrastructure => 40,
-            ConstructionProjectType::SocialHousing => 12,
-            ConstructionProjectType::Factory => 25,
-            ConstructionProjectType::TransportNetwork => 50,
-            // Phase 39: Statecraft buildings
-            ConstructionProjectType::Court => 15,
-            ConstructionProjectType::CustomsOffice => 10,
-            ConstructionProjectType::Embassy => 20,
-            ConstructionProjectType::ResearchInstitute => 25,
-            ConstructionProjectType::LaborInspectorate => 12,
-            ConstructionProjectType::PublicWorksSite => 15,
-            ConstructionProjectType::NationalTheater => 20,
-            ConstructionProjectType::NationalLibrary => 18,
-            ConstructionProjectType::TransportDepot => 15,
-        }
-    }
 }
 
 /// Phase 24C.6: Evaluate market opportunities and publish construction tenders

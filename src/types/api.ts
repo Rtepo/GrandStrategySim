@@ -689,7 +689,7 @@ export type SectorRow = { sector_name: string, company_count: number,
  */
 pct_gdp_share: number, 
 /**
- * Total employment (sum of fulfilled_fte).
+ * Total employment (sum of fulfilled_fte). Phase 77: Integer headcount.
  */
 total_employment: number, 
 /**

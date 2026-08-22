@@ -13,29 +13,29 @@ use std::collections::HashMap;
 /// A single production method: labor mix, efficiency, and material flows.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct ProductionMethod {
-    /// Earliest year this method may be adopted (`"rok"`).
+    /// Earliest year this method may be adopted (`"year"`).
 
     pub year: u32,
 
     /// TechId required to unlock this method, if any
-    /// (`"wymagana_technologia"`). Stores a stable TechId (e.g. `"steam_003"`),
+    /// (`"required_tech"`). Stores a stable TechId (e.g. `"steam_003"`),
     /// never a display name — i18n safe.
     #[serde(default)]
     pub required_tech: Option<TechId>,
 
-    /// Fraction of staff who are experts (`"eksperci"`).
+    /// Fraction of staff who are experts (`"experts_ratio"`).
 
     pub experts_ratio: f64,
 
-    /// Fraction of staff who are skilled workers (`"sredni"`).
+    /// Fraction of staff who are skilled workers (`"skilled_ratio"`).
 
     pub skilled_ratio: f64,
 
-    /// Fraction of staff who are basic workers (`"szeregowi"`).
+    /// Fraction of staff who are basic workers (`"basic_ratio"`).
 
     pub basic_ratio: f64,
 
-    /// Output multiplier of this method (`"wydajnosc"`).
+    /// Output multiplier of this method (`"efficiency"`).
 
     pub efficiency: f64,
 
@@ -56,6 +56,16 @@ pub struct ProductionMethod {
     /// using fixed input quantities.
     #[serde(default)]
     pub thermal_efficiency: f64,
+
+    /// Phase 79: Round-trip storage efficiency (0.0-1.0) for energy storage methods.
+    /// Fraction of input Energy that can be recovered as output Energy.
+    /// 0.0 for non-storage methods (default). When > 0.0, `process_building_cycle()`
+    /// enforces strict conservation: `output_energy = input_energy * storage_efficiency`.
+    /// Used by `PumpedStoragePlant` (~0.72) and `BatteryBank` (~0.87).
+    /// A method should have either `thermal_efficiency > 0.0` (fuel->energy) OR
+    /// `storage_efficiency > 0.0` (energy->energy), never both.
+    #[serde(default)]
+    pub storage_efficiency: f64,
 }
 
 /// Production method slot, mirroring `ProductionMethodChoice` fields.
@@ -883,7 +893,7 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
             skilled_ratio: 0.30,
             basic_ratio: 0.60,
             efficiency: 1.0,
-            inputs: HashMap::from([(Commodity::Cereal, 1.5), (Commodity::Protein, 0.5)]),
+            inputs: HashMap::from([(Commodity::Cereal, 1.5), (Commodity::Meat, 0.3)]),
             outputs: HashMap::from([(Commodity::Seeds, 1.0)]),
             ..Default::default()
         },

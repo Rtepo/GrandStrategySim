@@ -26,7 +26,7 @@ pub enum TechType {
 /// A single node in the technology tree.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TechNode {
-    /// Display name (`"nazwa"`), e.g. `"Spawanie elektryczne"`.
+    /// Display name (`"name"`), e.g. `"Electric Welding"`.
 
     pub name: String,
 

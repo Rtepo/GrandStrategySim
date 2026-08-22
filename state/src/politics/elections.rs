@@ -315,14 +315,14 @@ pub fn calculate_upper_house_composition(
 
     if let Some(upper_house) = &constitution.upper_house {
         let method = upper_house.elections.clone();
-        if method.contains("Dziedziczne") {
-            composition.insert("Arystokracja".to_string(), interest_groups.get("Arystokracja").map(|ig| ig.total_political_weight).unwrap_or(30.0));
+        if method.contains("Hereditary") {
+            composition.insert("Aristocracy".to_string(), interest_groups.get("Aristocracy").map(|ig| ig.total_political_weight).unwrap_or(30.0));
             composition.insert("Clergy".to_string(), interest_groups.get("Clergy").map(|ig| ig.total_political_weight).unwrap_or(20.0));
             composition.insert("Armed Forces".to_string(), interest_groups.get("Armed Forces").map(|ig| ig.total_political_weight).unwrap_or(15.0));
             composition.insert("Independent Conservatives".to_string(), 35.0);
-        } else if method.contains("Mianowanie") {
+        } else if method.contains("Appointment") {
             composition.insert(ruling_party.to_string(), 60.0);
-            composition.insert("Biurokraci".to_string(), 20.0);
+            composition.insert("Bureaucrats".to_string(), 20.0);
             composition.insert("Specialists / Technocrats".to_string(), 20.0);
         } else if method.contains("Indirect") {
             let mut groups: Vec<(&String, f64)> = interest_groups.iter().map(|(k, v)| (k, v.total_political_weight)).collect();

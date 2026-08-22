@@ -4,8 +4,11 @@
 //! with strict double-entry accounting and peer-to-peer settlement.
 
 use crate::registries::enums::Commodity;
+use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+
+/// Hot-path hash map alias for order book internals.
+pub type HashMap<K, V> = FxHashMap<K, V>;
 
 /// A buy order with explicit buyer identification.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -185,8 +188,8 @@ pub fn match_orders(order_book: &mut OrderBook) {
 /// * Unmatched orders simply fail — no money moves, no inventory moves.
 pub fn match_orders_with_embargoes(
     order_book: &mut OrderBook,
-    company_country: &HashMap<String, String>,
-    diplomacy: &HashMap<String, HashMap<String, crate::international::DiplomaticRelation>>,
+    company_country: &std::collections::HashMap<String, String>,
+    diplomacy: &std::collections::HashMap<String, std::collections::HashMap<String, crate::international::DiplomaticRelation>>,
 ) {
     for commodity in order_book.bids.keys().cloned().collect::<Vec<_>>() {
         let bids = order_book.bids.get_mut(&commodity).unwrap();
@@ -320,7 +323,7 @@ pub fn submit_bid(
     commodity: Commodity,
     desired_quantity: f64,
     limit_price: f64,
-    interventions: &HashMap<Commodity, crate::state::economic_policy::PriceIntervention>,
+    interventions: &std::collections::HashMap<Commodity, crate::state::economic_policy::PriceIntervention>,
 ) {
     let mut clamped_price = limit_price;
 
@@ -383,7 +386,7 @@ pub fn submit_ask(
     commodity: Commodity,
     quantity: f64,
     limit_price: f64,
-    interventions: &HashMap<Commodity, crate::state::economic_policy::PriceIntervention>,
+    interventions: &std::collections::HashMap<Commodity, crate::state::economic_policy::PriceIntervention>,
 ) {
     let mut clamped_price = limit_price;
 

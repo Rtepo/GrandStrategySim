@@ -426,7 +426,7 @@ mod tests {
             available_cash: 100_000.0,
             ..Default::default()
         }];
-        let buildings = vec![make_building("Fabryka", 0.9, Some("C1".to_string()))];
+        let buildings = vec![make_building("Factory", 0.9, Some("C1".to_string()))];
 
         let result = process_inspectorates_turn(&mut country, &mut companies, &buildings, 1);
 
@@ -445,7 +445,7 @@ mod tests {
             ..Default::default()
         }];
         let buildings = vec![
-            make_building("Fabryka", 0.2, Some("C1".to_string())),
+            make_building("Factory", 0.2, Some("C1".to_string())),
             make_building("sanepid", 1.0, None),
         ];
         // Give sanepid building some inspection capacity output
@@ -474,7 +474,7 @@ mod tests {
             ..Default::default()
         }];
         let mut buildings = vec![
-            make_building("Fabryka", 0.1, Some("C1".to_string())),
+            make_building("Factory", 0.1, Some("C1".to_string())),
             make_building("Inspektorat", 1.0, None),
         ];
         buildings[1].last_production.insert(Commodity::BuildingInspectionCapacity, 10.0);
@@ -497,7 +497,7 @@ mod tests {
             ..Default::default()
         }];
         let mut buildings = vec![
-            make_building("Kopalnia", 0.8, Some("C1".to_string())),
+            make_building("Mine", 0.8, Some("C1".to_string())),
             make_building("environmental_inspectorate", 1.0, None),
         ];
         // High production output = high pollution proxy
@@ -522,7 +522,7 @@ mod tests {
             ..Default::default()
         }];
         let mut buildings = vec![
-            make_building("Fabryka", 0.1, Some("C1".to_string())),
+            make_building("Factory", 0.1, Some("C1".to_string())),
             make_building("sanepid", 1.0, None),
         ];
         buildings[1].last_production.insert(Commodity::SanitaryInspectionCapacity, 10.0);
@@ -547,7 +547,7 @@ mod tests {
             ..Default::default()
         }];
         let mut buildings = vec![
-            make_building("Fabryka", 0.2, Some("C1".to_string())),
+            make_building("Factory", 0.2, Some("C1".to_string())),
             make_building("sanepid", 1.0, None),
         ];
         buildings[1].last_production.insert(Commodity::SanitaryInspectionCapacity, 10.0);

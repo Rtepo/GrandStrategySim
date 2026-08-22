@@ -276,14 +276,7 @@ fn test_price_substitution_matrix_exists() {
     }
 }
 
-#[test]
-fn test_price_substitution_protein_has_cereal() {
-    let matrix = consumption_registry::price_substitution_matrix();
-    let protein_subs = matrix.get(&Commodity::Protein)
-        .expect("Protein should have substitution candidates");
-    let has_cereal = protein_subs.iter().any(|s| s.substitute == Commodity::Cereal);
-    assert!(has_cereal, "Protein should be substitutable by Cereal");
-}
+// Phase 76: test_price_substitution_protein_has_cereal removed — Protein merged into Meat.
 
 #[test]
 fn test_requires_housing_helper() {
@@ -348,7 +341,7 @@ fn test_build_consumer_demand_with_substitution() {
     demos.savings_per_capita = 500.0;
     region.class_demographics.rural_classes.insert("FreePeasant".to_string(), demos);
 
-    let mut prices = HashMap::new();
+    let mut prices = rustc_hash::FxHashMap::default();
     // Set Meat price very high relative to wage
     prices.insert(Commodity::Meat, 100.0);
     prices.insert(Commodity::Cereal, 5.0);
@@ -378,7 +371,7 @@ fn test_build_consumer_demand_homeless_no_furniture() {
     region.class_demographics.urban_classes.insert("Worker".to_string(), demos);
 
     // No housing buildings → homeless
-    let demand = build_consumer_demand(&region, 0, &HashMap::new(), 100.0, &[]);
+    let demand = build_consumer_demand(&region, 0, &rustc_hash::FxHashMap::default(), 100.0, &[]);
     let furniture_demand = demand.total_demand.get(&Commodity::Furniture).copied().unwrap_or(0.0);
     assert_eq!(furniture_demand, 0.0,
         "Homeless class should not demand Furniture (complementarity gating)");

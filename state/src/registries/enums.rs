@@ -68,7 +68,7 @@ pub enum DraftScope {
     /// Selective draft (`"selektywny"`).
 
     Selective,
-    /// Universal conscription (`"powszechny_pobÄ‚Ĺ‚r"`).
+    /// Universal conscription (`"powszechny_pobor"`).
 
     UniversalDraft,
 }
@@ -160,9 +160,9 @@ pub enum Sector {
     /// `"religion"` (churches, religious charities, religious institutions).
     Religion,
     /// PHASE 19B: `"maintenance_workshops"` (repair shops producing MaintenanceServices
-    /// from generic raw materials Ă˘â‚¬â€ť the circular-dependency-breaking maintenance sector).
+    /// from generic raw materials â€” the circular-dependency-breaking maintenance sector).
     MaintenanceWorkshops,
-    /// PHASE 32: `"government"` Ă˘â‚¬â€ť Parliament, government buildings, ministerial offices.
+    /// PHASE 32: `"government"` â€” Parliament, government buildings, ministerial offices.
     /// Employs politicians and administrative staff, consumes Paper/Energy/Services,
     /// and is funded from Treasury payroll.
     Government,
@@ -283,7 +283,7 @@ pub enum Commodity {
     InfantryFightingVehicles,
     /// "bauxite".
     Bauxite,
-    /// "batteries" Ă˘â‚¬â€ť Phase 20: Energy storage for EVs, electronics, grid storage.
+    /// "batteries" â€” Phase 20: Energy storage for EVs, electronics, grid storage.
     Batteries,
     /// "bombers".
     Bombers,
@@ -303,7 +303,7 @@ pub enum Commodity {
     HeavyTanks,
     /// "light_tanks".
     LightTanks,
-    /// "lithium" Ă˘â‚¬â€ť Phase 20: Battery feedstock; mined from brines/hard rock.
+    /// "lithium" â€” Phase 20: Battery feedstock; mined from brines/hard rock.
     Lithium,
     /// "medium_tanks".
     MediumTanks,
@@ -379,7 +379,7 @@ pub enum Commodity {
     Sand,
     /// "pistols".
     Pistols,
-    /// "plastics" Ă˘â‚¬â€ť Phase 20: Oil-derived polymer; input for Agd, Cars, packaging.
+    /// "plastics" â€” Phase 20: Oil-derived polymer; input for Agd, Cars, packaging.
     Plastics,
     /// "trains".
     Trains,
@@ -391,7 +391,7 @@ pub enum Commodity {
     Food,
     /// "radio".
     Radio,
-    /// "rare_earth_elements" Ă˘â‚¬â€ť Phase 20: Neodymium, dysprosium etc.; input for semiconductors, magnets.
+    /// "rare_earth_elements" â€” Phase 20: Neodymium, dysprosium etc.; input for semiconductors, magnets.
     RareEarthElements,
     /// "oil".
     Oil,
@@ -452,10 +452,8 @@ pub enum Commodity {
     
     Cereal,
     /// "vegetable" - Root and leaf vegetables (potatoes, carrots, tomatoes) - Phase 6.3.5
-    
+
     Vegetable,
-    /// "protein" - Legumes and oilseeds (beans, soybeans, peas) - Phase 6.3.5
-    Protein,
     /// "fodder" - Animal feed crops (alfalfa, clover, beet pulp) - Phase 6.3.5
     Fodder,
     /// "industrial_fiber" - Textile and industrial raw materials (cotton, flax, hemp) - Phase 6.3.5
@@ -464,7 +462,7 @@ pub enum Commodity {
     Chemicals,
     /// "seeds" - Agricultural seed inputs - Phase 6.4
     Seeds,
-    /// "semiconductors" Ă˘â‚¬â€ť Phase 20: Silicon-based ICs; input for ElectronicComponents, solar.
+    /// "semiconductors" â€” Phase 20: Silicon-based ICs; input for ElectronicComponents, solar.
     Semiconductors,
     /// "soda_ash" - Solvay process output - Phase 6.4
     SodaAsh,
@@ -534,13 +532,13 @@ pub enum Commodity {
     AssimilationCapacity,
     /// "religious_texts" - Books/scriptures produced by monasteries (Phase 17C).
     ReligiousTexts,
-    /// "refined_fuel" Ă˘â‚¬â€ť Phase 20: High-grade distillate from crude oil.
+    /// "refined_fuel" â€” Phase 20: High-grade distillate from crude oil.
     RefinedFuel,
     /// "religious_art" - Icons, sculptures, ritual objects produced by temples (Phase 17C).
     ReligiousArt,
     /// "information" - Media/information service for B2C consumption (Phase 18C).
     Information,
-    /// "uranium" Ă˘â‚¬â€ť Phase 21A: Nuclear fuel feedstock, mined from rift-valley deposits.
+    /// "uranium" â€” Phase 21A: Nuclear fuel feedstock, mined from rift-valley deposits.
     Uranium,
     /// "freight_capacity" - B2B freight transport service (Phase 23A).
     /// Ephemeral service commodity (like MaintenanceServices): produced and
@@ -567,7 +565,7 @@ impl Commodity {
     /// Returns the inventory key for this commodity.
     ///
     /// # Returns
-    /// * `String` Ă˘â‚¬â€ť the serde JSON key used for inventory storage.
+    /// * `String` â€” the serde JSON key used for inventory storage.
     ///
     /// # Rules
     /// * Direct replacement for `format!("{:?}", commodity)` in inventory code.
@@ -579,9 +577,9 @@ impl Commodity {
     /// Phase 41: Returns the VAT category for this commodity.
     ///
     /// Maps each commodity to one of three VAT categories:
-    /// - `"agriculture"` Ă˘â‚¬â€ť food and agricultural products (typically lower VAT)
-    /// - `"industry"` Ă˘â‚¬â€ť industrial goods, construction, energy, mining (standard VAT)
-    /// - `"services"` Ă˘â‚¬â€ť services, software, maintenance, transport (standard VAT)
+    /// - `"agriculture"` â€” food and agricultural products (typically lower VAT)
+    /// - `"industry"` â€” industrial goods, construction, energy, mining (standard VAT)
+    /// - `"services"` â€” services, software, maintenance, transport (standard VAT)
     ///
     /// The B2C clearing uses this to dynamically look up the active VAT rate
     /// from `country.tax_rates.vat` for the commodity's category.
@@ -589,11 +587,11 @@ impl Commodity {
     pub fn vat_category(&self) -> &'static str {
         use Commodity::*;
         match self {
-            // Agricultural products Ă˘â‚¬â€ť food, crops, livestock
-            Meat | Fruit | Cereal | Vegetable | Protein | Fodder | IndustrialFiber
+            // Agricultural products â€” food, crops, livestock
+            Meat | Fruit | Cereal | Vegetable | Fodder | IndustrialFiber
             | Luxury | Livestock | Fish | Food | Seeds => "agriculture",
 
-            // Services Ă˘â‚¬â€ť intangible, labor-based
+            // Services â€” intangible, labor-based
             Software | AdministrativeServices | BankingServices | ConstructionServices
             | MaintenanceServices | LocalServicesCommodity | PassengerTransport
             | RenovationServices | Information | FreightCapacity | InnovationPoints
@@ -603,7 +601,7 @@ impl Commodity {
             | BuildingInspectionCapacity | EnvironmentalInspectionCapacity
             | LaborInspectionCapacity | AssimilationCapacity => "services",
 
-            // Industrial goods Ă˘â‚¬â€ť everything else (mining, manufacturing, energy, military)
+            // Industrial goods â€” everything else (mining, manufacturing, energy, military)
             // This is the default/safest category for treasury revenue.
             _ => "industry",
         }
@@ -617,7 +615,7 @@ impl Commodity {
     /// * Machinery + vehicles: {IndustrialMachinery, ConstructionMachinery,
     ///   AgriculturalMachinery, OfficeMachinery, Trucks, Cars}.
     /// * Cars/Trucks are *also* quality consumer durables (see `is_quality_durable`)
-    ///   Ă˘â‚¬â€ť their role is determined by the transaction channel (B2B asset vs
+    ///   â€” their role is determined by the transaction channel (B2B asset vs
     ///   B2C durable), not the commodity alone.
     /// * Phase 23A: DraftAnimals are fixed assets (installed as cohorts) but
     ///   are maintained with Fodder + Water, not MaintenanceServices.
@@ -662,7 +660,7 @@ impl Commodity {
     /// (persisted in `household_durables` on `ClassDemographics`) vs. a
     /// perishable (consumed per-turn).
     ///
-    /// ALL non-consumable goods are durables Ă˘â‚¬â€ť the difference is durability,
+    /// ALL non-consumable goods are durables â€” the difference is durability,
     /// not classification. Cheap `Clothing` wears out fast (24 turns) but is
     /// still a durable holding; `LuxuryClothing` lasts 100 turns.
     pub fn is_household_durable(&self) -> bool {
@@ -692,7 +690,7 @@ impl Commodity {
             Commodity::Furniture => 240.0,       // 10 years
             Commodity::LuxuryFurniture => 300.0, // ~12.5 years
             Commodity::Cars => 120.0,            // 5 years
-            _ => f64::MAX, // Non-durables Ă˘â‚¬â€ť effectively infinite (not used)
+            _ => f64::MAX, // Non-durables â€” effectively infinite (not used)
         }
     }
 
@@ -742,7 +740,7 @@ impl Commodity {
         )
     }
 
-    /// Phase 19A: Returns `true` if a commodity is blueprint-eligible Ă˘â‚¬â€ť i.e.
+    /// Phase 19A: Returns `true` if a commodity is blueprint-eligible â€” i.e.
     /// it is either a fixed asset or a quality consumer durable (or both, like
     /// Cars/Trucks). Only blueprint-eligible outputs get `InventoryCohort`s.
     pub fn is_blueprint_eligible(&self) -> bool {
@@ -750,7 +748,7 @@ impl Commodity {
     }
 
     /// Returns all tradeable commodity variants in canonical (English) JSON order.
-    pub fn all() -> [Commodity; 140] {
+    pub fn all() -> [Commodity; 139] {
         [
             Commodity::Agd,
             Commodity::Aluminum,
@@ -846,7 +844,6 @@ impl Commodity {
             Commodity::Limestone,
             Commodity::Cereal,
             Commodity::Vegetable,
-            Commodity::Protein,
             Commodity::Fodder,
             Commodity::IndustrialFiber,
             Commodity::Luxury,
@@ -995,7 +992,6 @@ impl TryFrom<&str> for Commodity {
             "limestone" => Ok(Commodity::Limestone),
             "cereal" => Ok(Commodity::Cereal),
             "vegetable" => Ok(Commodity::Vegetable),
-            "protein" => Ok(Commodity::Protein),
             "fodder" => Ok(Commodity::Fodder),
             "industrial_fiber" => Ok(Commodity::IndustrialFiber),
             "chemicals" => Ok(Commodity::Chemicals),
@@ -1064,7 +1060,7 @@ impl From<Commodity> for String {
 /// Fuel type consumed by a power plant (`paliwo`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum FuelType {
-    /// `"wĂ„â„˘giel"`.
+    /// `"wegiel"`.
 
     Coal,
     /// `"gaz_ziemny"`.
@@ -1076,7 +1072,7 @@ pub enum FuelType {
     /// `"crops"`.
 
     AgriculturalProduce,
-    /// `"brak"` Ă˘â‚¬â€ť no fuel (renewables).
+    /// `"brak"` â€” no fuel (renewables).
 
     None_,
 }

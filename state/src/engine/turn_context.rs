@@ -17,6 +17,7 @@ use crate::state::GameState;
 use super::turn::TurnError;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 use std::fs;
 use std::path::Path;
 
@@ -202,7 +203,7 @@ struct MarketTradeStatsJson {
 #[derive(Debug, Deserialize, Serialize)]
 struct MarketJson {
     #[serde(default)]
-    prices: HashMap<Commodity, f64>,
+    prices: FxHashMap<Commodity, f64>,
     #[serde(default)]
     orders: HashMap<Commodity, MarketOrderJson>,
     #[serde(default)]
@@ -220,9 +221,9 @@ fn load_market(data_dir: &Path) -> Result<GlobalMarket, TurnError> {
     for (good, price) in parsed.prices {
         base_prices.insert(good, price);
     }
-    let mut net_surplus = HashMap::new();
-    let mut supply_volume = HashMap::new();
-    let mut demand_volume = HashMap::new();
+    let mut net_surplus = FxHashMap::default();
+    let mut supply_volume = FxHashMap::default();
+    let mut demand_volume = FxHashMap::default();
     for (good, order) in parsed.orders {
         base_prices.entry(good).or_insert(100.0);
         net_surplus.insert(good, order.sell - order.buy);
@@ -810,16 +811,16 @@ fn save_housing_buildings(data_dir: &Path, country: &str, housing_buildings: &[H
 fn default_market() -> GlobalMarket {
     GlobalMarket {
         base_prices: default_price_map(),
-        net_surplus: HashMap::new(),
+        net_surplus: FxHashMap::default(),
         offshore_capital: 0.0,
         apostolic_see_ledger: crate::economy::market::ApostolicSeeLedger::default(),
-        supply_volume: HashMap::new(),
-        demand_volume: HashMap::new(),
+        supply_volume: FxHashMap::default(),
+        demand_volume: FxHashMap::default(),
     }
 }
 
-fn default_price_map() -> HashMap<Commodity, f64> {
-    let mut prices = HashMap::new();
+fn default_price_map() -> FxHashMap<Commodity, f64> {
+    let mut prices = FxHashMap::default();
     for commodity in Commodity::all() {
         prices.insert(commodity, 100.0);
     }

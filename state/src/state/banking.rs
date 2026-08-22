@@ -806,14 +806,19 @@ pub fn issue_loan(
     let risk_premium = credit_score.risk_premium_bps / 10000.0; // Convert bps to decimal
     let interest_rate = xibor + bank_margin + risk_premium;
     
-    // Step 3: Simulate balance sheet expansion to check reserve requirement
+    // Step 3: Simulate balance sheet expansion to check reserve requirement.
+    // Phase 77: Subtract Lombard loans from effective reserves — borrowed
+    // reserves from the CB Lombard facility cannot support further credit
+    // creation. Only the bank's OWN reserves count toward lending capacity.
     let new_deposits = balance_sheet.deposits + principal;
     let required_reserves = new_deposits * central_bank.reserve_requirement_ratio;
-    
-    if balance_sheet.reserves_at_central_bank < required_reserves {
+    let effective_reserves = balance_sheet.reserves_at_central_bank - balance_sheet.cb_lombard_loans;
+
+    if effective_reserves < required_reserves {
         return Err(format!(
-            "Reserve requirement violation: need {} reserves, have {}",
-            required_reserves, balance_sheet.reserves_at_central_bank
+            "Reserve requirement violation: need {} reserves, have {} effective ({} raw - {} lombard)",
+            required_reserves, effective_reserves,
+            balance_sheet.reserves_at_central_bank, balance_sheet.cb_lombard_loans
         ));
     }
     
@@ -905,7 +910,7 @@ pub struct Bank {
     #[serde(default)]
     pub id: String,
 
-    /// Display name, e.g. "Main State Bank Iliria".
+    /// Display name, e.g. "Main State Bank Illyria".
     #[serde(default)]
     pub name: String,
 
@@ -1016,6 +1021,55 @@ impl Bank {
         }
         let capacity = self.total_deposits - required - self.issued_loans;
         capacity.max(0.0)
+    }
+}
+
+// ============================================================================
+// PHASE 77: BANK OPERATIONAL CAPACITY — LABOR & SERVICE CONSTRAINTS
+// ============================================================================
+
+/// Phase 77: Operational capacity of a bank, derived from its fulfilled labor.
+///
+/// A bank's ability to manage assets, originate loans, and handle deposits is
+/// directly proportional to its workforce. A bank with 30 employees cannot
+/// manage billions in assets — it needs thousands of clerks, tellers, and
+/// administrative staff.
+///
+/// The capacity scales with `average_wage` (not a magic nominal constant)
+/// because a clerk earning more in a high-wage economy processes proportionally
+/// larger transaction values.
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct BankCapacity {
+    /// Maximum total assets (loans + securities) the bank can manage.
+    pub max_asset_under_management: f64,
+    /// Maximum new loan principal that can be originated in a single turn.
+    pub max_new_loans_per_turn: f64,
+    /// Maximum deposit volume the bank can service per turn.
+    pub max_deposit_handling: f64,
+}
+
+/// Phase 77: Compute a bank's operational capacity from its fulfilled FTE.
+///
+/// # Arguments
+/// * `fulfilled_fte` - Number of workers currently employed by the bank.
+/// * `average_wage` - The national average wage (scales capacity dynamically).
+///
+/// # Rules
+/// * Each clerk can manage ~200× their wage in total assets (ongoing portfolio).
+/// * Each clerk can originate ~50× their wage in new loans per turn (origination workload).
+/// * Each clerk can service ~500× their wage in deposits (transaction processing).
+/// * These are structural economic ratios, not magic nominal constants.
+/// * A bank with 0 FTE has zero capacity — it cannot operate.
+pub fn bank_operational_capacity(fulfilled_fte: f64, average_wage: f64) -> BankCapacity {
+    if fulfilled_fte <= 0.0 || average_wage <= 0.0 {
+        return BankCapacity::default();
+    }
+    let fte = fulfilled_fte;
+    let wage = average_wage.max(1.0);
+    BankCapacity {
+        max_asset_under_management: fte * wage * 200.0,
+        max_new_loans_per_turn: fte * wage * 50.0,
+        max_deposit_handling: fte * wage * 500.0,
     }
 }
 
@@ -2223,61 +2277,92 @@ pub fn process_banking_turn(
     }
 
     // Step 7: New Loan Issuance
-    // Non-bank companies seek working capital loans
+    // Non-bank companies seek working capital loans.
+    // Phase 77: Competitive allocation — banks with the most excess reserves
+    // get priority. Also enforce operational capacity (labor-based) caps.
     let cb_for_loans = country.central_bank.clone();
-    let bank_ids: Vec<(String, f64)> = companies
-        .iter()
-        .filter(|c| c.bank_type.is_some() && c.balance_sheet.is_some())
-        .map(|c| {
-            let margin = c.loan_margin.unwrap_or(0.02);
-            (c.id.clone(), margin)
-        })
-        .collect();
+    let avg_wage = country.macro_indicators.average_wage.max(1.0);
 
-    for (bank_id, bank_margin) in &bank_ids {
-        // Find the bank
-        let bank_idx = companies.iter().position(|c| &c.id == bank_id);
-        if let Some(bi) = bank_idx {
-            // Find borrowers (non-bank companies with insufficient cash)
-            for borrower_idx in 0..companies.len() {
-                if borrower_idx == bi {
-                    continue;
+    // Collect bank info: (bank_idx, margin, excess_reserves, new_loans_this_turn)
+    // Sort by excess reserves descending so the most-capable bank gets first pick.
+    let mut bank_info: Vec<(usize, f64, f64, f64)> = Vec::new();
+    for (bi, c) in companies.iter().enumerate() {
+        if c.bank_type.is_none() || c.balance_sheet.is_none() {
+            continue;
+        }
+        let bs = c.balance_sheet.as_ref().unwrap();
+        let required = bs.deposits * cb_for_loans.reserve_requirement_ratio;
+        let effective_reserves = bs.reserves_at_central_bank - bs.cb_lombard_loans;
+        let excess = (effective_reserves - required).max(0.0);
+        let margin = c.loan_margin.unwrap_or(0.02);
+        bank_info.push((bi, margin, excess, 0.0_f64));
+    }
+    // Sort by excess reserves descending (most-capable bank first)
+    bank_info.sort_by(|a, b| b.2.partial_cmp(&a.2).unwrap_or(std::cmp::Ordering::Equal));
+
+    for borrower_idx in 0..companies.len() {
+        let is_bank = companies[borrower_idx].bank_type.is_some();
+        if is_bank {
+            continue;
+        }
+
+        let needed = (companies[borrower_idx].worker_capacity as f64 * 1000.0)
+            - companies[borrower_idx].available_cash;
+        if needed <= 0.0 {
+            continue;
+        }
+
+        let principal = needed.min(500_000.0); // Cap per-loan
+        let borrower_clone = companies[borrower_idx].clone();
+
+        // Try each bank in order of excess reserves until one can issue the loan
+        for entry in &mut bank_info {
+            let (bi, margin, excess, new_loans_turn) = (entry.0, entry.1, entry.2, entry.3);
+            // Check excess reserves
+            if excess < principal {
+                continue;
+            }
+            // Phase 77: Check operational capacity (labor-based)
+            let bank_fte = companies[bi].fulfilled_fte as f64;
+            let capacity = bank_operational_capacity(bank_fte, avg_wage);
+            if capacity.max_new_loans_per_turn <= 0.0 {
+                continue;
+            }
+            if new_loans_turn + principal > capacity.max_new_loans_per_turn {
+                continue;
+            }
+            // Check total asset under management cap
+            let current_assets = companies[bi].balance_sheet.as_ref().map(|bs| {
+                bs.loans_issued.iter().map(|l| l.outstanding_balance).sum::<f64>() + bs.securities
+            }).unwrap_or(0.0);
+            if current_assets + principal > capacity.max_asset_under_management {
+                continue;
+            }
+
+            let loan_result = issue_loan(
+                &mut companies[bi].balance_sheet.as_mut().unwrap(),
+                &companies[bi].id,
+                margin,
+                &borrower_clone,
+                &borrower_clone.id,
+                principal,
+                LoanType::WorkingCapital,
+                12,
+                &cb_for_loans,
+                xibor,
+            );
+
+            if let Ok(lr) = loan_result {
+                // Double-entry: borrower receives principal
+                companies[borrower_idx].available_cash += lr.principal_amount;
+                if let Some(ref mut ba) = companies[borrower_idx].brokerage_account {
+                    ba.cash += lr.principal_amount;
                 }
-                let is_bank = companies[borrower_idx].bank_type.is_some();
-                if is_bank {
-                    continue;
-                }
-
-                let needed = (companies[borrower_idx].worker_capacity as f64 * 1000.0)
-                    - companies[borrower_idx].available_cash;
-                if needed <= 0.0 {
-                    continue;
-                }
-
-                let principal = needed.min(500_000.0); // Cap per-loan
-                let borrower_clone = companies[borrower_idx].clone();
-
-                let loan_result = issue_loan(
-                    &mut companies[bi].balance_sheet.as_mut().unwrap(),
-                    bank_id,
-                    *bank_margin,
-                    &borrower_clone,
-                    &borrower_clone.id,
-                    principal,
-                    LoanType::WorkingCapital,
-                    12,
-                    &cb_for_loans,
-                    xibor,
-                );
-
-                if let Ok(lr) = loan_result {
-                    // Double-entry: borrower receives principal
-                    companies[borrower_idx].available_cash += lr.principal_amount;
-                    if let Some(ref mut ba) = companies[borrower_idx].brokerage_account {
-                        ba.cash += lr.principal_amount;
-                    }
-                    result.total_new_credit += lr.principal_amount;
-                }
+                result.total_new_credit += lr.principal_amount;
+                // Update this bank's tracking: reduce excess, increase new_loans_turn
+                entry.2 -= lr.principal_amount;
+                entry.3 += lr.principal_amount;
+                break; // Loan issued, move to next borrower
             }
         }
     }
@@ -2361,10 +2446,14 @@ pub fn process_banking_turn(
         }
     }
 
-    // Step 12 (Phase 35): B2B Micro-Loans — banks issue small working-capital
-    // loans to non-bank companies that have insufficient brokerage cash for
-    // operations. This creates actual banking activity and loan interest revenue.
+    // Step 12 (Phase 35 / Phase 77): B2B Micro-Loans — banks issue small
+    // working-capital loans to non-bank companies that have insufficient
+    // brokerage cash for operations. This creates actual banking activity and
+    // loan interest revenue.
     // Phase 40: Reserve payroll cash BEFORE lending so banks can pay tellers.
+    // Phase 77: Route through issue_loan() to enforce fractional reserve
+    // requirements. Previously this pushed loans directly to bs.loans_issued
+    // WITHOUT checking reserves — a rogue money-creation path.
     let cb_ref_rate = country.central_bank.interest_rates.reference_rate;
     let avg_wage_for_reserve = country.macro_indicators.average_wage.max(1.0);
     let n = companies.len();
@@ -2375,7 +2464,7 @@ pub fn process_banking_turn(
         // Phase 40: Compute payroll reserve before lending.
         // The bank must keep enough cash to pay its current tellers for one turn.
         let bank_wage = (avg_wage_for_reserve * 1.2).max(1.0);
-        let current_fte = companies[bank_idx].prev_fulfilled_fte.max(2.0);
+        let current_fte = (companies[bank_idx].prev_fulfilled_fte as f64).max(2.0);
         let payroll_reserve = current_fte * bank_wage;
         let bank_cash = companies[bank_idx].brokerage_account.as_ref()
             .map(|ba| ba.cash)
@@ -2395,8 +2484,17 @@ pub fn process_banking_turn(
         if lending_cap < 100.0 {
             continue;
         }
+        // Phase 77: Also cap by operational capacity (labor-based)
+        let bank_fte = companies[bank_idx].fulfilled_fte as f64;
+        let op_capacity = bank_operational_capacity(bank_fte, avg_wage_for_reserve);
+        if op_capacity.max_new_loans_per_turn <= 0.0 {
+            continue;
+        }
+        let lending_cap = lending_cap.min(op_capacity.max_new_loans_per_turn);
+
         let bank_region = companies[bank_idx].region_id.clone();
         let bank_id = companies[bank_idx].id.clone();
+        let bank_margin = companies[bank_idx].loan_margin.unwrap_or(0.02);
         let mut lent_total = 0.0;
         for borrower_idx in 0..n {
             if borrower_idx == bank_idx {
@@ -2416,32 +2514,34 @@ pub fn process_banking_turn(
             if loan_amount < 100.0 {
                 continue;
             }
-            let rate = cb_ref_rate + 0.03;
-            // Credit the borrower
-            if let Some(ba) = &mut companies[borrower_idx].brokerage_account {
-                ba.cash += loan_amount;
-            } else {
-                companies[borrower_idx].available_cash += loan_amount;
-            }
-            // Record on bank's balance sheet
-            if let Some(bs) = &mut companies[bank_idx].balance_sheet {
-                bs.loans_issued.push(Loan {
-                    borrower_id: companies[borrower_idx].id.clone(),
-                    principal: loan_amount,
-                    outstanding_balance: loan_amount,
-                    interest_rate: rate,
-                    term_turns: 24,
-                    turns_remaining: 24,
-                    last_payment_turn: current_turn,
-                    ..Loan::default()
-                });
-                bs.deposits += loan_amount;
-            }
-            lent_total += loan_amount;
-            if lent_total >= lending_cap {
-                break;
+            // Phase 77: Route through issue_loan() for reserve check
+            let borrower_clone = companies[borrower_idx].clone();
+            let loan_result = issue_loan(
+                &mut companies[bank_idx].balance_sheet.as_mut().unwrap(),
+                &bank_id,
+                bank_margin,
+                &borrower_clone,
+                &borrower_clone.id,
+                loan_amount,
+                LoanType::WorkingCapital,
+                24,
+                &country.central_bank,
+                xibor,
+            );
+            if let Ok(lr) = loan_result {
+                // Credit the borrower
+                if let Some(ba) = &mut companies[borrower_idx].brokerage_account {
+                    ba.cash += lr.principal_amount;
+                } else {
+                    companies[borrower_idx].available_cash += lr.principal_amount;
+                }
+                lent_total += lr.principal_amount;
+                if lent_total >= lending_cap {
+                    break;
+                }
             }
         }
+        let _ = cb_ref_rate;
         let _ = bank_id;
         result.total_new_credit += lent_total;
     }
@@ -2516,7 +2616,7 @@ pub fn process_banking_turn(
         // Phase 40: Reserve payroll cash before consumer lending.
         let bs_cap = bank.balance_sheet.as_ref().map(|bs| bs.total_assets() - bs.total_liabilities()).unwrap_or(0.0).max(0.0);
         let bank_wage_cons = (avg_wage_for_reserve * 1.2).max(1.0);
-        let current_fte_cons = bank.prev_fulfilled_fte.max(2.0);
+        let current_fte_cons = (bank.prev_fulfilled_fte as f64).max(2.0);
         let payroll_reserve_cons = current_fte_cons * bank_wage_cons;
         let bank_cash_cons = bank.brokerage_account.as_ref()
             .map(|ba| ba.cash)
@@ -2675,7 +2775,7 @@ pub fn process_banking_turn(
         let fte_demand = (smoothed_portfolio / 100_000.0).ceil();
         // Phase 38: Cap FTE growth at 10% per turn relative to prev_fulfilled_fte.
         // Banks start small and scale conservatively. Min 2 FTE for basic operations.
-        let prev_fte = bank.prev_fulfilled_fte.max(2.0);
+        let prev_fte = (bank.prev_fulfilled_fte as f64).max(2.0);
         let max_growth_fte = prev_fte * (1.0 + BANK_FTE_GROWTH_CAP);
         let growth_capped_demand = fte_demand.min(max_growth_fte);
         // Phase 41: Use target_wage for banks, same mechanism as other companies.
@@ -2699,7 +2799,7 @@ pub fn process_banking_turn(
             .unwrap_or(bank.available_cash);
         let payroll_budget = bank_cash * BANK_PAYROLL_FRACTION;
         let max_affordable = if bank_wage > 0.0 { payroll_budget / bank_wage } else { 0.0 };
-        bank.target_fte_demand = growth_capped_demand.min(max_affordable).max(2.0); // Min 2 FTE
+        bank.target_fte_demand = growth_capped_demand.min(max_affordable).max(2.0).round() as u32; // Min 2 FTE
         bank.physical_fte_demand = bank.target_fte_demand;
     }
 

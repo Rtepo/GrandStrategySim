@@ -1,6 +1,9 @@
 //! Military upkeep processing for conventional units
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
+use rustc_hash::FxHashMap;
+
+type HashMap<K, V> = FxHashMap<K, V>;
 
 use crate::registries::enums::Commodity;
 use crate::military::units::MilitaryUnit;
@@ -121,7 +124,7 @@ pub fn submit_defense_b2b_orders(
     available_cash: f64,
     market_prices: &HashMap<Commodity, f64>,
 ) -> Vec<Bid> {
-    let mut total_demand: HashMap<Commodity, f64> = HashMap::new();
+    let mut total_demand: HashMap<Commodity, f64> = HashMap::default();
 
     for unit in units {
         if unit.is_peasant_battalion() {
@@ -219,7 +222,7 @@ pub fn deliver_military_supplies_and_equipment(
     units: &mut [MilitaryUnit],
     military_stockpile: &mut HashMap<Commodity, f64>,
 ) -> HashMap<Commodity, f64> {
-    let mut delivered: HashMap<Commodity, f64> = HashMap::new();
+    let mut delivered: HashMap<Commodity, f64> = HashMap::default();
     for trade in trades {
         if trade.buyer_id == "MIN-DEF" {
             *delivered.entry(trade.commodity).or_insert(0.0) += trade.quantity;
@@ -275,7 +278,7 @@ pub fn deliver_military_supplies(
     trades: &[Trade],
     military_stockpile: &mut HashMap<Commodity, f64>,
 ) -> HashMap<Commodity, f64> {
-    let mut delivered = HashMap::new();
+    let mut delivered = HashMap::default();
 
     for trade in trades {
         if trade.buyer_id == "MIN-DEF" {

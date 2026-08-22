@@ -91,7 +91,7 @@ pub struct ClassToGroupMapping {
     pub urban_class_mapping: BTreeMap<String, String>,
 
     /// Maps education levels to interest groups with percentage shares
-    /// Format: "wyzsze" -> {"Studenci": 0.5, "Specialists": 0.3, "Inteligencja": 0.2}
+    /// Format: "higher" -> {"Students": 0.5, "Specialists": 0.3, "Intelligentsia": 0.2}
     #[serde(default)]
     pub education_mapping: BTreeMap<String, HashMap<String, f64>>,
 
@@ -354,32 +354,32 @@ pub fn calculate_interest_groups_power(
     // Default mobilization factors from blueprint
     let mut mobilization_factors: HashMap<String, f64> = HashMap::new();
     mobilization_factors.insert("Trade Unions".to_string(), 0.8);
-    mobilization_factors.insert("Studenci".to_string(), 0.8);
+    mobilization_factors.insert("Students".to_string(), 0.8);
     mobilization_factors.insert("Capitalists".to_string(), 0.3);
-    mobilization_factors.insert("Arystokracja".to_string(), 0.3);
+    mobilization_factors.insert("Aristocracy".to_string(), 0.3);
     mobilization_factors.insert("Petty Bourgeoisie".to_string(), 0.5);
     mobilization_factors.insert("Clergy".to_string(), 0.5);
-    mobilization_factors.insert("Agrykolane".to_string(), 0.5);
-    mobilization_factors.insert("Inteligencja".to_string(), 0.6);
+    mobilization_factors.insert("Agrarians".to_string(), 0.5);
+    mobilization_factors.insert("Intelligentsia".to_string(), 0.6);
     mobilization_factors.insert("Specialists".to_string(), 0.6);
     mobilization_factors.insert("Artisans".to_string(), 0.5);
-    mobilization_factors.insert("Biurokraci".to_string(), 0.4);
+    mobilization_factors.insert("Bureaucrats".to_string(), 0.4);
     mobilization_factors.insert("Armed Forces".to_string(), 0.7);
     mobilization_factors.insert("Internal Cliques".to_string(), 0.6);
 
     // Default radicalization factors from blueprint
     let mut radicalization_factors: HashMap<String, f64> = HashMap::new();
     radicalization_factors.insert("Trade Unions".to_string(), 0.7);
-    radicalization_factors.insert("Studenci".to_string(), 0.7);
+    radicalization_factors.insert("Students".to_string(), 0.7);
     radicalization_factors.insert("Capitalists".to_string(), 0.2);
-    radicalization_factors.insert("Arystokracja".to_string(), 0.2);
+    radicalization_factors.insert("Aristocracy".to_string(), 0.2);
     radicalization_factors.insert("Petty Bourgeoisie".to_string(), 0.4);
     radicalization_factors.insert("Clergy".to_string(), 0.4);
-    radicalization_factors.insert("Agrykolane".to_string(), 0.4);
-    radicalization_factors.insert("Inteligencja".to_string(), 0.5);
+    radicalization_factors.insert("Agrarians".to_string(), 0.4);
+    radicalization_factors.insert("Intelligentsia".to_string(), 0.5);
     radicalization_factors.insert("Specialists".to_string(), 0.4);
     radicalization_factors.insert("Artisans".to_string(), 0.3);
-    radicalization_factors.insert("Biurokraci".to_string(), 0.2);
+    radicalization_factors.insert("Bureaucrats".to_string(), 0.2);
     radicalization_factors.insert("Armed Forces".to_string(), 0.3);
     radicalization_factors.insert("Internal Cliques".to_string(), 0.8);
 
@@ -552,13 +552,13 @@ pub fn calculate_interest_groups_power_legacy(country: &Country) -> HashMap<Stri
         ("Trade Unions", zwiazki_sila.max(1.0)),
         ("Capitalists", kapitalisci_sila.max(1.0)),
         ("Petty Bourgeoisie", drobna_burzuazja_sila.max(1.0)),
-        ("Agrykolanie", agrykolanie_sila.max(1.0)),
-        ("Inteligencja", inteligencja_sila.max(1.0)),
+        ("Agrarians", agrykolanie_sila.max(1.0)),
+        ("Intelligentsia", inteligencja_sila.max(1.0)),
         ("Armed Forces", wojsko_sila.max(1.0)),
         ("Clergy", kler_sila.max(1.0)),
-        ("Studenci", studenci_sila.max(1.0)),
-        ("Arystokracja", arystokracja_sila.max(1.0)),
-        ("Biurokraci", biurokraci_sila.max(1.0)),
+        ("Students", studenci_sila.max(1.0)),
+        ("Aristocracy", arystokracja_sila.max(1.0)),
+        ("Bureaucrats", biurokraci_sila.max(1.0)),
         ("Specialists", specjalisci_sila.max(1.0)),
         ("Artisans", rzemieslnicy_sila.max(1.0)),
         ("Internal Cliques", kliki_power.max(1.0)),

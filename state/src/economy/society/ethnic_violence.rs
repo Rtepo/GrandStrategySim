@@ -450,7 +450,7 @@ mod tests {
         minority.savings_per_capita = 2.5;
 
         let mut dominant = ClassDemographics::default();
-        dominant.religion = "Katolicyzm".to_string();
+        dominant.religion = "Catholicism".to_string();
         dominant.population = 8000;
         dominant.savings = 1000.0;
         dominant.savings_per_capita = 0.125;
@@ -465,7 +465,7 @@ mod tests {
     fn test_pogrom_wealth_transfer_zero_sum() {
         let mut region = make_test_region_with_minority();
 
-        apply_wealth_transfer(&mut region, "minority_class", "rural", "Katolicyzm", 500.0);
+        apply_wealth_transfer(&mut region, "minority_class", "rural", "Catholicism", 500.0);
 
         let minority = &region.class_demographics.rural_classes["minority_class"];
         let dominant = &region.class_demographics.rural_classes["dominant_class"];
@@ -480,7 +480,7 @@ mod tests {
     fn test_pogrom_requires_high_unrest() {
         let mut country = Country::mock_for_tests();
         country.macro_indicators.social_unrest = 30.0;
-        country.macro_indicators.culture = "Iliria".to_string();
+        country.macro_indicators.culture = "Illyria".to_string();
         country.politics.civil_rights_law = "5-Year Assimilation".to_string();
 
         let config = PogromConfig::default();
@@ -493,7 +493,7 @@ mod tests {
     fn test_pogrom_blocked_by_open_citizenship() {
         let mut country = Country::mock_for_tests();
         country.macro_indicators.social_unrest = 80.0;
-        country.macro_indicators.culture = "Iliria".to_string();
+        country.macro_indicators.culture = "Illyria".to_string();
         country.politics.civil_rights_law = "Otwarte Obywatelstwo".to_string();
 
         let config = PogromConfig::default();
@@ -506,7 +506,7 @@ mod tests {
     fn test_pogrom_blocked_by_high_justice_coverage() {
         let mut country = Country::mock_for_tests();
         country.macro_indicators.social_unrest = 80.0;
-        country.macro_indicators.culture = "Iliria".to_string();
+        country.macro_indicators.culture = "Illyria".to_string();
         country.politics.civil_rights_law = "5-Year Assimilation".to_string();
 
         let mut building = crate::entities::Building::default();

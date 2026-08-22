@@ -174,8 +174,8 @@ fn commodity_count_matches() {
     let all = Commodity::all();
     assert_eq!(
         all.len(),
-        140,
-        "Commodity::all() should return 140 variants, got {}",
+        139,
+        "Commodity::all() should return 139 variants, got {}",
         all.len()
     );
 }
@@ -324,7 +324,7 @@ fn all_commodities_are_valid() {
     // All commodity variants are now considered valid schema members.
     // The is_active() filter was removed as part of the backward-compatibility purge.
     let all = Commodity::all();
-    assert_eq!(all.len(), 140, "Commodity::all() must return exactly 140 variants");
+    assert_eq!(all.len(), 139, "Commodity::all() must return exactly 139 variants");
 }
 
 /// Test 16: Phase 20 Final Audit — every sector has at least 3 Automation

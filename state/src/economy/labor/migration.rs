@@ -119,7 +119,7 @@ pub fn calculate_migration_pressure(
 
     // Phase 31: Subsistence wage pressure (avg wage below subsistence → pressure).
     let subsistence_wage = crate::politics::crisis_management::compute_subsistence_wage(
-        &std::collections::HashMap::new(), // No market prices available here; use fallback
+        &rustc_hash::FxHashMap::default(), // No market prices available here; use fallback
     );
     let subsistence_pressure = if subsistence_wage > 0.0 && avg_wage < subsistence_wage {
         (1.0 - avg_wage / subsistence_wage).min(1.0)
@@ -173,7 +173,7 @@ pub fn calculate_emigrants(
     // Phase 31: Use famine emigration rate when wage is below subsistence.
     let avg_wage = country.macro_indicators.average_wage;
     let subsistence_wage = crate::politics::crisis_management::compute_subsistence_wage(
-        &std::collections::HashMap::new(),
+        &rustc_hash::FxHashMap::default(),
     );
     let famine_mode = subsistence_wage > 0.0 && avg_wage < subsistence_wage;
     let rate = if famine_mode {

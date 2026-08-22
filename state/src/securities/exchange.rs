@@ -933,11 +933,7 @@ impl StockExchange {
             return None;
         }
 
-        let slippage = if pool.shares == 0 {
-            1.0
-        } else {
-            (quantity as f64 / pool.shares as f64) * 0.1
-        };
+        let slippage = calculate_slippage(pool, quantity);
         let base_price = pool.cash / pool.shares as f64;
         let exec_price = if is_buy {
             base_price * (1.0 + slippage)
@@ -984,26 +980,6 @@ impl StockExchange {
             price: exec_price,
             turn: 0,
         })
-    }
-
-    /// Calculate price slippage for AMM execution.
-    ///
-    /// # Arguments
-    /// * `pool` - Liquidity pool
-    /// * `quantity` - Order size
-    ///
-    /// # Returns
-    /// Slippage factor (0.0 = no slippage)
-    ///
-    /// # Rules
-    /// * Slippage increases with order size relative to pool depth
-    /// * Formula: slippage = (quantity / pool.shares) * 0.1
-    fn calculate_slippage(&self, pool: &LiquidityPool, quantity: u64) -> f64 {
-        if pool.shares == 0 {
-            return 1.0; // Maximum slippage for empty pool
-        }
-        let order_ratio = quantity as f64 / pool.shares as f64;
-        order_ratio * 0.1 // 10% slippage factor per pool-depth
     }
     
     /// Execute IPO with closed-loop capital transfer and proper dilution.
@@ -1440,6 +1416,26 @@ impl StockExchange {
             }
         }
     }
+}
+
+/// Calculate price slippage for AMM execution.
+///
+/// # Arguments
+/// * `pool` - Liquidity pool
+/// * `quantity` - Order size
+///
+/// # Returns
+/// Slippage factor (0.0 = no slippage)
+///
+/// # Rules
+/// * Slippage increases with order size relative to pool depth
+/// * Formula: slippage = (quantity / pool.shares) * 0.1
+fn calculate_slippage(pool: &LiquidityPool, quantity: u64) -> f64 {
+    if pool.shares == 0 {
+        return 1.0; // Maximum slippage for empty pool
+    }
+    let order_ratio = quantity as f64 / pool.shares as f64;
+    order_ratio * 0.1 // 10% slippage factor per pool-depth
 }
 
 #[cfg(test)]

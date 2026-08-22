@@ -18,7 +18,7 @@ pub type BuildingKind = String;
 /// Static definition of a building type.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BuildingTemplate {
-    /// GDP sector this building belongs to (`"sektor_pkb"`).
+    /// GDP sector this building belongs to (`"gdp_sector"`).
 
     pub sector: Sector,
 
@@ -30,7 +30,7 @@ pub struct BuildingTemplate {
 
     pub build_time_turns: u32,
 
-    /// Maximum number of workers employed (`"pojemnosc_pracownikow"`).
+    /// Maximum number of workers employed (`"worker_capacity"`).
 
     pub worker_capacity: u32,
 

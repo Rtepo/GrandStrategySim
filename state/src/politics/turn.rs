@@ -165,11 +165,14 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
         if let Some(ideo) = Ideology::from_name(&party.ideology) {
             party.ideology = ideo.as_str().to_string();
         }
-        // Translate Polish profile strings
+        // Translate legacy Polish profile strings (Phase 79: ideology.rs now
+        // returns English directly, but old saves may still have Polish values).
         match party.profile.as_str() {
-            "Centrum" => party.profile = "Centrist".to_string(),
+            "Skrajna Lewica" => party.profile = "Far Left".to_string(),
             "Lewica" => party.profile = "Left".to_string(),
+            "Centrum" => party.profile = "Centrist".to_string(),
             "Prawica" => party.profile = "Right".to_string(),
+            "Skrajna Prawica" => party.profile = "Far Right".to_string(),
             _ => {}
         }
         // Translate Polish economic school strings
@@ -195,7 +198,7 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
         mapping.trade_union_group = "Trade Unions".to_string();
         // Rural class mappings
         mapping.rural_class_mapping.insert("FreePeasant".to_string(), RuralClassConfig {
-            interest_group: "Agrykolanie".to_string(),
+            interest_group: "Agrarians".to_string(),
             land_value_per_capita: 500.0,
             voting_weight: 1.0,
         });
@@ -205,7 +208,7 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
             voting_weight: 1.0,
         });
         mapping.rural_class_mapping.insert("Aristocracy".to_string(), RuralClassConfig {
-            interest_group: "Arystokracja".to_string(),
+            interest_group: "Aristocracy".to_string(),
             land_value_per_capita: 5000.0,
             voting_weight: 1.0,
         });
@@ -215,12 +218,12 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
         // Education mappings
         let mut no_edu = std::collections::HashMap::new();
         no_edu.insert("Trade Unions".to_string(), 0.7);
-        no_edu.insert("Agrykolanie".to_string(), 0.3);
+        no_edu.insert("Agrarians".to_string(), 0.3);
         mapping.education_mapping.insert("brak".to_string(), no_edu);
         let mut basic_edu = std::collections::HashMap::new();
         basic_edu.insert("Trade Unions".to_string(), 0.5);
         basic_edu.insert("Petty Bourgeoisie".to_string(), 0.3);
-        basic_edu.insert("Agrykolanie".to_string(), 0.2);
+        basic_edu.insert("Agrarians".to_string(), 0.2);
         mapping.education_mapping.insert("podstawowe".to_string(), basic_edu);
         let mut sec_edu = std::collections::HashMap::new();
         sec_edu.insert("Petty Bourgeoisie".to_string(), 0.4);
@@ -229,13 +232,13 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
         mapping.education_mapping.insert("srednie".to_string(), sec_edu);
         let mut higher_edu = std::collections::HashMap::new();
         higher_edu.insert("Specialists".to_string(), 0.4);
-        higher_edu.insert("Inteligencja".to_string(), 0.3);
+        higher_edu.insert("Intelligentsia".to_string(), 0.3);
         higher_edu.insert("Petty Bourgeoisie".to_string(), 0.3);
         mapping.education_mapping.insert("wyzsze".to_string(), higher_edu);
         // Company form mappings
         mapping.company_form_mapping.insert("JointStockCompany".to_string(), "Capitalists".to_string());
         mapping.company_form_mapping.insert("SoleProprietorship".to_string(), "Petty Bourgeoisie".to_string());
-        mapping.company_form_mapping.insert("StateMonopoly".to_string(), "Biurokraci".to_string());
+        mapping.company_form_mapping.insert("StateMonopoly".to_string(), "Bureaucrats".to_string());
         mapping.company_form_mapping.insert("Cooperative".to_string(), "Trade Unions".to_string());
 
         country.politics.class_group_mapping = mapping;
@@ -398,7 +401,7 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
 
     // 3. Regime safety check for democracies.
     if form.is_democratic()
-        && (country.politics.election_method == "None" || country.politics.election_method == "None" || country.politics.parliament.is_empty())
+        && (country.politics.election_method == "None" || country.politics.parliament.is_empty())
     {
         messages.push("[REGIME REPAIR] Democratic mechanisms restored.".to_string());
         country.politics.election_method = "D'Hondt".to_string();

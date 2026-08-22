@@ -1915,16 +1915,6 @@ impl Default for ExternalityConfig {
     }
 }
 
-/// Check if two zoning designations are incompatible neighbors.
-fn are_incompatible(a: ZoningDesignation, b: ZoningDesignation) -> Option<f64> {
-    // Note: In a real spatial system, we'd check actual adjacency.
-    // For now, we use a simplified proximity model based on region-level
-    // zoning distribution. The full spatial adjacency will be wired in
-    // when the cadastre has coordinate data on parcels.
-    let _ = (a, b);
-    None
-}
-
 /// Compute the externality penalty for a parcel based on the region's
 /// zoning mix. Incompatible zoning combinations reduce parcel value.
 ///

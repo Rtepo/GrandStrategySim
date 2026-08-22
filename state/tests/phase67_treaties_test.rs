@@ -508,7 +508,7 @@ fn test_doctrine_evaluation_expansionist() {
             format!("unit-{}", i),
             sim_engine::military::UnitType::Infantry,
             100,
-            std::collections::HashMap::new(),
+            rustc_hash::FxHashMap::default(),
             "home".to_string(),
         ));
     }

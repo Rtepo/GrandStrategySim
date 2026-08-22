@@ -54,6 +54,7 @@ use crate::registries::Registries;
 use crate::state::GameState;
 use crate::society::housing::{CommercialBuilding, HousingBuilding};
 use rayon::prelude::*;
+use rustc_hash::FxHashMap;
 use std::collections::HashMap;
 use std::fmt;
 use std::path::PathBuf;
@@ -227,7 +228,7 @@ pub fn run_turn_in_memory(
                         registries,
                         country,
                         buildings,
-                        market_prices: HashMap::new(),
+                        market_prices: rustc_hash::FxHashMap::default(),
                     },
                     companies,
                     unions,
@@ -1670,18 +1671,33 @@ pub fn run_turn_in_memory(
         // wholesale mechanism — in a full implementation, wholesalers would
         // buy via B2B and distribute to stores. Here we simulate the physical
         // flow of goods from factories to retail shelves.
+        // Phase 76: Clone market_history for dynamic acquisition_cost pricing.
+        let restock_market_history = state.market_history.clone();
         tasks.par_iter_mut().for_each(|task| {
             use crate::registries::enums::Commodity;
             use crate::society::housing::{CommercialBuildingType, InventoryBatch};
 
-            // Consumer goods that retail stores should stock
+            // Phase 76: Consumer goods that retail stores should stock.
+            // Expanded from the previous 6-item list to cover all B2C-relevant
+            // commodities so that retail stores actually receive inventory
+            // for goods like Fruit, LuxuryClothing, etc.
             let consumer_goods: Vec<Commodity> = vec![
                 Commodity::Food,
                 Commodity::Cereal,
-                Commodity::Clothing,
+                Commodity::Vegetable,
                 Commodity::Meat,
+                Commodity::Fruit,
+                Commodity::Clothing,
                 Commodity::Furniture,
                 Commodity::Televisions,
+                Commodity::Radio,
+                Commodity::Agd,
+                Commodity::Cars,
+                Commodity::Luxury,
+                Commodity::LuxuryClothing,
+                Commodity::LuxuryFurniture,
+                Commodity::Fish,
+                Commodity::Livestock,
             ];
 
             // Build a map: region_id → list of (building_idx, commodity, qty)
@@ -1734,6 +1750,10 @@ pub fn run_turn_in_memory(
 
                     // Add to retail store inventory
                     let key: String = commodity.into();
+                    // Phase 76: Use dynamic reference price instead of hardcoded 100.0.
+                    // Falls back to 100.0 only if no market history exists (should not
+                    // happen after Phase 76 generator fix that seeds global_base_prices).
+                    let ref_price = market_history::get_reference_price(&commodity, &restock_market_history).unwrap_or(100.0);
                     let batch = InventoryBatch {
                         quantity: transfer_qty,
                         storage_turn: turn,
@@ -1741,7 +1761,7 @@ pub fn run_turn_in_memory(
                         accumulated_fees: 0.0,
                         warehouse_id: store.id.clone(),
                         fire_sale_discount: 0.0,
-                        acquisition_cost_per_unit: 100.0,
+                        acquisition_cost_per_unit: ref_price,
                     };
                     store.current_inventory.entry(key).or_default().push(batch);
                 }
@@ -1750,6 +1770,8 @@ pub fn run_turn_in_memory(
 
         // Update market history with VWAP
         market_history::update_vwap(&mut state.market_history, &all_trades);
+        // Phase 79: Update rolling VWAP history for SRA shock-responsive triggers.
+        market_history::update_vwap_history(&mut state.market_history, market_history::VWAP_HISTORY_WINDOW);
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 69-C: EXPIRED DECREE CLEANUP
@@ -1894,8 +1916,8 @@ pub fn run_turn_in_memory(
                             state_buildings_capacity,
                         );
                         state_company.region_id = first_region;
-                        state_company.target_fte_demand = funded_fte;
-                        state_company.physical_fte_demand = funded_fte;
+                        state_company.target_fte_demand = funded_fte.round() as u32;
+                        state_company.physical_fte_demand = funded_fte.round() as u32;
                         state_company.offered_wage_per_fte = civil_service_wage;
                         state_company.state_share = 1.0;
                         task.companies.push(state_company);
@@ -1972,10 +1994,10 @@ pub fn run_turn_in_memory(
         // turn's top-down model starts from the correct baseline.
         tasks.par_iter_mut().for_each(|task| {
             let total_fulfilled: f64 = task.companies.iter()
-                .map(|c| c.fulfilled_fte)
+                .map(|c| c.fulfilled_fte as f64)
                 .sum();
             let total_wages: f64 = task.companies.iter()
-                .map(|c| c.offered_wage_per_fte * c.fulfilled_fte)
+                .map(|c| c.offered_wage_per_fte * c.fulfilled_fte as f64)
                 .sum();
             let actual_avg_wage = if total_fulfilled > 0.0 {
                 total_wages / total_fulfilled
@@ -2004,7 +2026,7 @@ pub fn run_turn_in_memory(
             // allocate_cash_to_ministries. This avoids double-debiting.
             if let Some(idx) = task.state_employer_idx.take() {
                 if idx < task.companies.len() {
-                    let state_wages = task.companies[idx].fulfilled_fte
+                    let state_wages = task.companies[idx].fulfilled_fte as f64
                         * task.companies[idx].offered_wage_per_fte;
                     if state_wages > 0.0 {
                         // The ministry pool portion was already debited.
@@ -2047,7 +2069,7 @@ pub fn run_turn_in_memory(
             // Build a map from company_id → fulfilled_fte
             let mut fulfilled_by_company: HashMap<String, f64> = HashMap::new();
             for c in &task.companies {
-                fulfilled_by_company.insert(c.id.clone(), c.fulfilled_fte);
+                fulfilled_by_company.insert(c.id.clone(), c.fulfilled_fte as f64);
             }
             // For each building, find its owner's fulfilled_fte and distribute
             // proportionally across the owner's buildings (by worker_capacity).
@@ -3290,6 +3312,8 @@ pub fn run_turn_in_memory(
         });
 
         // Phase 10: Strategic Reserve Agency buy/sell orders (price stabilization)
+        // Phase 79: Pass market_history snapshot for moving-average VWAP triggers.
+        let market_history_snapshot = state.market_history.clone();
         tasks.par_iter_mut().for_each(|task| {
             let market_snapshot = market.clone();
             for company in &mut task.companies {
@@ -3298,6 +3322,7 @@ pub fn run_turn_in_memory(
                         company,
                         task.ctx.country,
                         &market_snapshot,
+                        &market_history_snapshot,
                         &mut task.orders,
                     );
                 }
@@ -3689,8 +3714,8 @@ pub fn run_turn_in_memory(
             let mut by_sector: HashMap<crate::registries::enums::Sector, (f64, f64)> = HashMap::new();
             for c in &task.companies {
                 let entry = by_sector.entry(c.sector).or_insert((0.0, 0.0));
-                entry.0 += c.fulfilled_fte;
-                entry.1 += c.offered_wage_per_fte * c.fulfilled_fte;
+                entry.0 += c.fulfilled_fte as f64;
+                entry.1 += c.offered_wage_per_fte * c.fulfilled_fte as f64;
             }
             for (sector, (fte, wages)) in &by_sector {
                 let avg_wage = if *fte > 0.0 { *wages / *fte } else { 0.0 };
@@ -3933,6 +3958,23 @@ pub fn run_turn_in_memory(
                 task.ctx.country,
                 &mut task.companies,
             );
+        });
+
+        // ═══════════════════════════════════════════════════════════
+        // PHASE 78: RELIGIOUS AUTHORITY COMPUTATION
+        // Computes per-religion authority scores (0.0–1.0) based on buildings,
+        // charity, holy sites, and clergy-to-follower ratio. Must run BEFORE
+        // religious conversion (which uses authority scores).
+        // ═══════════════════════════════════════════════════════════
+        tasks.par_iter_mut().for_each(|task| {
+            let config = crate::society::religious_authority::ReligiousAuthorityConfig::default();
+            let authority = crate::society::religious_authority::process_religious_authority_turn(
+                task.ctx.country,
+                &task.ctx.country.cultural_institutions,
+                &config,
+                &task.companies,
+            );
+            task.ctx.country.religious_authority_state.authority = authority;
         });
 
         // ═══════════════════════════════════════════════════════════
@@ -4898,18 +4940,18 @@ fn build_market_signal(
     country: &Country,
     orders: &MarketOrders,
     global_market: &GlobalMarket,
-    prices: &HashMap<Commodity, f64>,
+    prices: &FxHashMap<Commodity, f64>,
 ) -> MarketSignal {
     let interest_rate = country.central_bank.interest_rates.reference_rate;
 
-    let mut sector_pmi = HashMap::new();
+    let mut sector_pmi = FxHashMap::default();
     for (sector, share) in &country.budget.sectors {
         if let Some(pmi) = share.extra.get("pmi").and_then(|v| v.as_f64()) {
             sector_pmi.insert(*sector, pmi);
         }
     }
 
-    let mut demand_surplus = HashMap::new();
+    let mut demand_surplus = FxHashMap::default();
     for (good, order) in &orders.orders {
         demand_surplus.insert(*good, order.buy - order.sell);
     }

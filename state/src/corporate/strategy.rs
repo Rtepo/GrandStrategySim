@@ -421,7 +421,7 @@ fn evaluate_method_switch(ctx: &CorporateDecisionCtx) -> CorporateAction {
 /// * Gross margin per 1000 workers
 fn calculate_gross_margin(
     method: &ActiveProductionMethod,
-    market_prices: &std::collections::HashMap<crate::registries::enums::Commodity, f64>,
+    market_prices: &rustc_hash::FxHashMap<crate::registries::enums::Commodity, f64>,
     base_wage: f64,
 ) -> f64 {
     let wage_multiplier = method.experts_ratio * 3.0 + method.skilled_ratio * 2.0 + method.basic_ratio;

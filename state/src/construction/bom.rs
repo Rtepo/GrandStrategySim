@@ -150,6 +150,8 @@ fn bom_heavy_factory(era: f64) -> BTreeMap<Commodity, f64> {
     bom.insert(Commodity::Prefabricates, 200.0 * era);
     bom.insert(Commodity::ConstructionMachinery, 50.0);
     bom.insert(Commodity::Glass, 100.0);
+    bom.insert(Commodity::Asphalt, 50.0 + 50.0 * era);
+    bom.insert(Commodity::ConstructionServices, 100.0 + 50.0 * era);
     bom
 }
 
@@ -164,6 +166,7 @@ fn bom_light_factory(era: f64) -> BTreeMap<Commodity, f64> {
     bom.insert(Commodity::Prefabricates, 100.0 * era);
     bom.insert(Commodity::ConstructionMachinery, 20.0);
     bom.insert(Commodity::Glass, 50.0);
+    bom.insert(Commodity::ConstructionServices, 50.0 + 30.0 * era);
     bom
 }
 
@@ -178,6 +181,7 @@ fn bom_mine(era: f64) -> BTreeMap<Commodity, f64> {
     bom.insert(Commodity::Prefabricates, 50.0 * era);
     bom.insert(Commodity::ConstructionMachinery, 80.0);
     bom.insert(Commodity::Glass, 20.0);
+    bom.insert(Commodity::ConstructionServices, 60.0 + 40.0 * era);
     bom
 }
 
@@ -191,6 +195,7 @@ fn bom_farm(era: f64) -> BTreeMap<Commodity, f64> {
     bom.insert(Commodity::Planks, 100.0 * (1.0 - era));
     bom.insert(Commodity::Prefabricates, 30.0 * era);
     bom.insert(Commodity::ConstructionMachinery, 10.0);
+    bom.insert(Commodity::ConstructionServices, 20.0 + 10.0 * era);
     bom
 }
 
@@ -205,6 +210,7 @@ fn bom_warehouse(era: f64) -> BTreeMap<Commodity, f64> {
     bom.insert(Commodity::Prefabricates, 100.0 * era);
     bom.insert(Commodity::ConstructionMachinery, 15.0);
     bom.insert(Commodity::Glass, 50.0);
+    bom.insert(Commodity::ConstructionServices, 40.0 + 20.0 * era);
     bom
 }
 
@@ -219,6 +225,8 @@ fn bom_commercial(era: f64) -> BTreeMap<Commodity, f64> {
     bom.insert(Commodity::Prefabricates, 100.0 * era);
     bom.insert(Commodity::ConstructionMachinery, 20.0);
     bom.insert(Commodity::Glass, 200.0);
+    bom.insert(Commodity::Asphalt, 30.0 + 40.0 * era);
+    bom.insert(Commodity::ConstructionServices, 60.0 + 40.0 * era);
     bom
 }
 

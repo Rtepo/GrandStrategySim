@@ -5,8 +5,16 @@
 
 use crate::registries::enums::Commodity;
 use crate::economy::order_book::Trade;
+use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::VecDeque;
+
+/// Hot-path hash map alias for market history internals.
+pub type HashMap<K, V> = FxHashMap<K, V>;
+
+/// Phase 79: Window size for rolling VWAP history (24 turns = 2 game-years).
+/// Provides a stable baseline for SRA shock-responsive price triggers.
+pub const VWAP_HISTORY_WINDOW: usize = 24;
 
 /// Historical price data for fallback reference.
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
@@ -26,6 +34,11 @@ pub struct MarketHistory {
     /// Used by the UI to compute turn-over-turn % change in surplus.
     #[serde(default)]
     pub prev_net_surplus: HashMap<Commodity, f64>,
+    /// Phase 79: Rolling VWAP window (last N turns) per commodity.
+    /// Used by the Strategic Reserve Agency for shock-responsive price triggers.
+    /// Updated after `update_vwap()` each turn via `update_vwap_history()`.
+    #[serde(default)]
+    pub vwap_history: HashMap<Commodity, VecDeque<f64>>,
 }
 
 /// Get reference price using fallback chain.
@@ -66,8 +79,8 @@ pub fn get_reference_price(commodity: &Commodity, history: &MarketHistory) -> Op
 /// * Calculates VWAP as total value / total volume per commodity.
 /// * Updates both vwap_per_commodity and last_trade_price.
 pub fn update_vwap(history: &mut MarketHistory, trades: &[Trade]) {
-    let mut volume_per_commodity: HashMap<Commodity, f64> = HashMap::new();
-    let mut value_per_commodity: HashMap<Commodity, f64> = HashMap::new();
+    let mut volume_per_commodity: HashMap<Commodity, f64> = HashMap::default();
+    let mut value_per_commodity: HashMap<Commodity, f64> = HashMap::default();
 
     for trade in trades {
         *volume_per_commodity
@@ -111,8 +124,8 @@ pub fn update_retail_vwap(
     history: &mut MarketHistory,
     retail_prices: &[(Commodity, f64, f64)],
 ) {
-    let mut volume_per_commodity: HashMap<Commodity, f64> = HashMap::new();
-    let mut value_per_commodity: HashMap<Commodity, f64> = HashMap::new();
+    let mut volume_per_commodity: HashMap<Commodity, f64> = HashMap::default();
+    let mut value_per_commodity: HashMap<Commodity, f64> = HashMap::default();
 
     for (commodity, qty, price) in retail_prices {
         if *qty > 0.0 && *price > 0.0 {
@@ -132,4 +145,46 @@ pub fn update_retail_vwap(
             history.retail_vwap_per_commodity.insert(commodity, vwap);
         }
     }
+}
+
+/// Phase 79: Update rolling VWAP history after `update_vwap()`.
+///
+/// Pushes the current turn's VWAP for each commodity into a `VecDeque` and
+/// trims to `VWAP_HISTORY_WINDOW` entries. This provides a multi-turn moving
+/// average baseline for the Strategic Reserve Agency's shock-responsive
+/// price triggers.
+///
+/// # Arguments
+/// * `history` - Mutable reference to market history.
+/// * `max_window` - Maximum number of turns to retain (default: `VWAP_HISTORY_WINDOW`).
+pub fn update_vwap_history(history: &mut MarketHistory, max_window: usize) {
+    for (&commodity, &vwap) in &history.vwap_per_commodity {
+        let deque = history.vwap_history.entry(commodity).or_default();
+        deque.push_back(vwap);
+        while deque.len() > max_window {
+            deque.pop_front();
+        }
+    }
+}
+
+/// Phase 79: Compute the moving-average VWAP for a commodity.
+///
+/// Returns the arithmetic mean of the stored VWAP values, or `None` if
+/// insufficient data exists (empty history). Callers should fall back to
+/// `global_market.base_price()` when this returns `None`.
+///
+/// # Arguments
+/// * `history` - Market history with rolling VWAP data.
+/// * `commodity` - Commodity to query.
+///
+/// # Returns
+/// * `Some(f64)` - Average VWAP over the stored window.
+/// * `None` - No VWAP history for this commodity.
+pub fn moving_average_vwap(history: &MarketHistory, commodity: &Commodity) -> Option<f64> {
+    let deque = history.vwap_history.get(commodity)?;
+    if deque.is_empty() {
+        return None;
+    }
+    let sum: f64 = deque.iter().sum();
+    Some(sum / deque.len() as f64)
 }

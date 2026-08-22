@@ -48,6 +48,7 @@ use crate::society::geography::{Region, Megaregion};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::{HashMap, BTreeMap};
+use rustc_hash::FxHashMap;
 
 /// Season of the year for climate modifiers
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd, Serialize, Deserialize, Default)]
@@ -270,7 +271,7 @@ pub struct Country {
     pub military_fronts: Vec<crate::military::Front>,
     /// Phase 3: Central military arms depot. Filled by B2B procurement deliveries.
     #[serde(default)]
-    pub military_stockpile: HashMap<crate::registries::enums::Commodity, f64>,
+    pub military_stockpile: FxHashMap<crate::registries::enums::Commodity, f64>,
     /// Phase 3: All combat and supply parameters. No magic numbers in logic.
     #[serde(default)]
     pub military_config: crate::military::config::MilitaryCombatConfig,
@@ -478,7 +479,7 @@ pub struct Country {
     pub maintenance_config: crate::economy::maintenance::MaintenanceConfig,
     /// Phase 15C: State Forests timber management state.
     #[serde(default)]
-    pub state_forest_state: crate::economy::state_forests::forest_districtState,
+    pub state_forest_state: crate::economy::state_forests::ForestDistrictState,
     /// Phase 17A: Religious authority scores per religion.
     #[serde(default)]
     pub religious_authority_state: crate::society::religious_authority::ReligiousAuthorityState,
@@ -585,7 +586,7 @@ impl Country {
             rebellion_goals: None,
             order_of_battle: crate::military::oob::OrderOfBattle::default(),
             military_fronts: Vec::new(),
-            military_stockpile: HashMap::new(),
+            military_stockpile: rustc_hash::FxHashMap::default(),
             military_config: crate::military::config::MilitaryCombatConfig::default(),
             war_economy: crate::military::war_economy::WarEconomyState::default(),
             at_war_with: Vec::new(),
@@ -646,7 +647,7 @@ impl Country {
             social_programs: Vec::new(),
             weather_state: crate::economy::weather::WeatherState::default(),
             maintenance_config: crate::economy::maintenance::MaintenanceConfig::default(),
-            state_forest_state: crate::economy::state_forests::forest_districtState::default(),
+            state_forest_state: crate::economy::state_forests::ForestDistrictState::default(),
             religious_authority_state: crate::society::religious_authority::ReligiousAuthorityState::default(),
             generative_goods_config: crate::economy::generative_goods_config::GenerativeGoodsConfig::default(),
             geological_formations: Vec::new(),
@@ -938,7 +939,7 @@ impl CountryBuilder {
             rebellion_goals: None,
             order_of_battle: crate::military::oob::OrderOfBattle::default(),
             military_fronts: Vec::new(),
-            military_stockpile: HashMap::new(),
+            military_stockpile: rustc_hash::FxHashMap::default(),
             military_config: crate::military::config::MilitaryCombatConfig::default(),
             war_economy: crate::military::war_economy::WarEconomyState::default(),
             at_war_with: Vec::new(),
@@ -999,7 +1000,7 @@ impl CountryBuilder {
             social_programs: Vec::new(),
             weather_state: crate::economy::weather::WeatherState::default(),
             maintenance_config: crate::economy::maintenance::MaintenanceConfig::default(),
-            state_forest_state: crate::economy::state_forests::forest_districtState::default(),
+            state_forest_state: crate::economy::state_forests::ForestDistrictState::default(),
             religious_authority_state: crate::society::religious_authority::ReligiousAuthorityState::default(),
             generative_goods_config: crate::economy::generative_goods_config::GenerativeGoodsConfig::default(),
             geological_formations: Vec::new(),

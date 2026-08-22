@@ -511,6 +511,7 @@ pub const MAX_HISTORY: usize = TURNS_PER_YEAR + 1;
 ///
 /// # Example
 /// ```
+/// use sim_engine::state::macro_data::annual_to_per_turn_rate;
 /// // 18% annual interest → 0.6926% per turn (compound)
 /// let per_turn = annual_to_per_turn_rate(0.18);
 /// // After 24 turns: (1 + 0.006926)^24 ≈ 1.18 (correct)
@@ -526,6 +527,7 @@ pub fn annual_to_per_turn_rate(annual_rate: f64) -> f64 {
 ///
 /// # Example
 /// ```
+/// use sim_engine::state::macro_data::annual_to_per_turn_quantity;
 /// // 1200 units/year → 50 units/turn
 /// let per_turn = annual_to_per_turn_quantity(1200.0);
 /// ```
@@ -914,8 +916,8 @@ mod tests {
         "labor_market": {"unemployment_rate": 7.3},
         "health_statistics": {"service_quality": 55.0},
         "education_statistics": {"infrastructure_base": 59.5},
-        "average_wage": 660.6, "culture": "Iliria", "cultural_group": "germanic",
-        "religion": "Protestantyzm", "demographics": {"birth_rate": 18.2},
+        "average_wage": 660.6, "culture": "Illyria", "cultural_group": "germanic",
+        "religion": "Protestantism", "demographics": {"birth_rate": 18.2},
         "przestepczosc": {"korupcja": 20.0}
     }"#;
 

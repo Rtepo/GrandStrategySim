@@ -103,7 +103,7 @@ pub fn consumption_registry() -> &'static BTreeMap<String, ConsumptionBasket> {
                             let mut subsistence = BTreeMap::new();
                             subsistence.insert(Commodity::Cereal, 0.15); // kg per turn
                             subsistence.insert(Commodity::Vegetable, 0.10);
-                            subsistence.insert(Commodity::Protein, 0.05);
+                            subsistence.insert(Commodity::Meat, 0.03);
                             subsistence.insert(Commodity::HealthCapacity, 0.02); // Phase 7: Health service need
                             subsistence
                         },
@@ -133,8 +133,7 @@ pub fn consumption_registry() -> &'static BTreeMap<String, ConsumptionBasket> {
                             let mut subsistence = BTreeMap::new();
                             subsistence.insert(Commodity::Cereal, 0.18);
                             subsistence.insert(Commodity::Vegetable, 0.12);
-                            subsistence.insert(Commodity::Protein, 0.08);
-                            subsistence.insert(Commodity::Meat, 0.02); // Phase 74: modest meat consumption
+                            subsistence.insert(Commodity::Meat, 0.07); // Phase 76: merged Protein (0.08) + Meat (0.02), reduced for density
                             subsistence.insert(Commodity::Fruit, 0.02); // Phase 74: modest fruit consumption
                             subsistence.insert(Commodity::HealthCapacity, 0.03); // Phase 7: Health service need
                             subsistence.insert(Commodity::EducationSlots, 0.01); // Phase 7: Education service need
@@ -175,8 +174,7 @@ pub fn consumption_registry() -> &'static BTreeMap<String, ConsumptionBasket> {
                             let mut subsistence = BTreeMap::new();
                             subsistence.insert(Commodity::Cereal, 0.16);
                             subsistence.insert(Commodity::Vegetable, 0.11);
-                            subsistence.insert(Commodity::Protein, 0.06);
-                            subsistence.insert(Commodity::Meat, 0.01); // Phase 74: bare minimum meat
+                            subsistence.insert(Commodity::Meat, 0.05); // Phase 76: merged Protein (0.06) + Meat (0.01)
                             subsistence.insert(Commodity::HealthCapacity, 0.025); // Phase 7: Health service need
                             subsistence.insert(Commodity::EducationSlots, 0.008); // Phase 7: Education service need
                             subsistence
@@ -215,11 +213,10 @@ pub fn consumption_registry() -> &'static BTreeMap<String, ConsumptionBasket> {
                             let mut subsistence = BTreeMap::new();
                             subsistence.insert(Commodity::Cereal, 0.25);
                             subsistence.insert(Commodity::Vegetable, 0.20);
-                            subsistence.insert(Commodity::Protein, 0.15);
                             subsistence.insert(Commodity::Luxury, 0.05);
                             subsistence.insert(Commodity::HealthCapacity, 0.05); // Phase 7: Health service need
                             subsistence.insert(Commodity::EducationSlots, 0.02); // Phase 7: Education service need
-                            subsistence.insert(Commodity::Meat, 0.08); // Phase 20: Meat
+                            subsistence.insert(Commodity::Meat, 0.17); // Phase 76: merged Protein (0.15) + Meat (0.08), reduced for density
                             subsistence.insert(Commodity::Fruit, 0.05); // Phase 20: Fruit
                             subsistence
                         },
@@ -272,10 +269,9 @@ pub fn consumption_registry() -> &'static BTreeMap<String, ConsumptionBasket> {
                             let mut subsistence = BTreeMap::new();
                             subsistence.insert(Commodity::Cereal, 0.20);
                             subsistence.insert(Commodity::Vegetable, 0.15);
-                            subsistence.insert(Commodity::Protein, 0.10);
                             subsistence.insert(Commodity::HealthCapacity, 0.04); // Phase 7: Health service need
                             subsistence.insert(Commodity::EducationSlots, 0.015); // Phase 7: Education service need
-                            subsistence.insert(Commodity::Meat, 0.03); // Phase 20: Meat
+                            subsistence.insert(Commodity::Meat, 0.09); // Phase 76: merged Protein (0.10) + Meat (0.03), reduced for density
                             subsistence
                         },
                     );
@@ -316,10 +312,9 @@ pub fn consumption_registry() -> &'static BTreeMap<String, ConsumptionBasket> {
                             let mut subsistence = BTreeMap::new();
                             subsistence.insert(Commodity::Cereal, 0.22);
                             subsistence.insert(Commodity::Vegetable, 0.18);
-                            subsistence.insert(Commodity::Protein, 0.12);
                             subsistence.insert(Commodity::HealthCapacity, 0.04);
                             subsistence.insert(Commodity::EducationSlots, 0.02);
-                            subsistence.insert(Commodity::Meat, 0.06);
+                            subsistence.insert(Commodity::Meat, 0.15); // Phase 76: merged Protein (0.12) + Meat (0.06), reduced for density
                             subsistence.insert(Commodity::Fruit, 0.04);
                             subsistence
                         },
@@ -371,10 +366,9 @@ pub fn consumption_registry() -> &'static BTreeMap<String, ConsumptionBasket> {
                             let mut subsistence = BTreeMap::new();
                             subsistence.insert(Commodity::Cereal, 0.21);
                             subsistence.insert(Commodity::Vegetable, 0.16);
-                            subsistence.insert(Commodity::Protein, 0.11);
                             subsistence.insert(Commodity::HealthCapacity, 0.04);
                             subsistence.insert(Commodity::EducationSlots, 0.018);
-                            subsistence.insert(Commodity::Meat, 0.04);
+                            subsistence.insert(Commodity::Meat, 0.12); // Phase 76: merged Protein (0.11) + Meat (0.04), reduced for density
                             subsistence.insert(Commodity::Fruit, 0.03);
                             subsistence
                         },
@@ -433,19 +427,7 @@ pub fn substitution_matrix() -> &'static BTreeMap<Commodity, Vec<Substitution>> 
         let mut m = BTreeMap::new();
 
         // Protein deficit can be covered by Cereal (monoculture peasant diet)
-        m.insert(
-            Commodity::Protein,
-            vec![
-                Substitution {
-                    donor: Commodity::Cereal,
-                    ratio: 2.5, // 2.5 kg grain covers 1 kg protein deficit
-                },
-                Substitution {
-                    donor: Commodity::Vegetable,
-                    ratio: 3.0, // 3 kg vegetables cover 1 kg protein deficit
-                },
-            ],
-        );
+        // Phase 76: Protein merged into Meat — substitution entries removed.
 
         // Vegetable deficit can be covered by Cereal
         m.insert(
@@ -551,26 +533,7 @@ pub fn price_substitution_matrix() -> &'static BTreeMap<Commodity, Vec<PriceSubs
             ],
         );
 
-        // Protein → Cereal / Vegetable
-        m.insert(
-            Commodity::Protein,
-            vec![
-                PriceSubstitution {
-                    primary: Commodity::Protein,
-                    substitute: Commodity::Cereal,
-                    equivalence_ratio: 0.4,
-                    elasticity_coefficient: 0.9,
-                    max_substitution: 0.7,
-                },
-                PriceSubstitution {
-                    primary: Commodity::Protein,
-                    substitute: Commodity::Vegetable,
-                    equivalence_ratio: 0.33,
-                    elasticity_coefficient: 0.9,
-                    max_substitution: 0.7,
-                },
-            ],
-        );
+        // Phase 76: Protein merged into Meat — price substitution entries removed.
 
         m
     })

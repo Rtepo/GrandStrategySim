@@ -253,11 +253,11 @@ impl Ideology {
     /// The compatibility profile used for party descriptions.
     pub fn profile(self) -> &'static str {
         match self {
-            Ideology::OrthodoxMarxism | Ideology::MarxismLeninism | Ideology::Maoism => "Skrajna Lewica",
-            Ideology::SocialDemocracy | Ideology::GreenPolitics => "Lewica",
-            Ideology::ClassicalLiberalism | Ideology::Agrarianism | Ideology::SocialLiberalism => "Centrum",
-            Ideology::ChristianDemocracy | Ideology::SocialConservatism | Ideology::Neoconservatism | Ideology::NationalConservatism => "Prawica",
-            Ideology::Neoliberalism | Ideology::AnarchoCapitalism | Ideology::Fascism => "Skrajna Prawica",
+            Ideology::OrthodoxMarxism | Ideology::MarxismLeninism | Ideology::Maoism => "Far Left",
+            Ideology::SocialDemocracy | Ideology::GreenPolitics => "Left",
+            Ideology::ClassicalLiberalism | Ideology::Agrarianism | Ideology::SocialLiberalism => "Centrist",
+            Ideology::ChristianDemocracy | Ideology::SocialConservatism | Ideology::Neoconservatism | Ideology::NationalConservatism => "Right",
+            Ideology::Neoliberalism | Ideology::AnarchoCapitalism | Ideology::Fascism => "Far Right",
         }
     }
 
@@ -285,21 +285,21 @@ impl Ideology {
     /// Weighted electorate base groups for this ideology.
     pub fn base_weights(self) -> &'static [(&'static str, f64)] {
         match self {
-            Ideology::OrthodoxMarxism => &[("Trade Unions", 0.5), ("Studenci", 0.3)],
-            Ideology::MarxismLeninism => &[("Trade Unions", 0.4), ("Biurokraci", 0.3), ("Armed Forces", 0.2)],
-            Ideology::Maoism => &[("Agrykolanie", 0.6), ("Trade Unions", 0.2)],
-            Ideology::SocialDemocracy => &[("Trade Unions", 0.5), ("Specialists", 0.3), ("Inteligencja", 0.2)],
-            Ideology::GreenPolitics => &[("Studenci", 0.5), ("Inteligencja", 0.3), ("Specialists", 0.2)],
+            Ideology::OrthodoxMarxism => &[("Trade Unions", 0.5), ("Students", 0.3)],
+            Ideology::MarxismLeninism => &[("Trade Unions", 0.4), ("Bureaucrats", 0.3), ("Armed Forces", 0.2)],
+            Ideology::Maoism => &[("Agrarians", 0.6), ("Trade Unions", 0.2)],
+            Ideology::SocialDemocracy => &[("Trade Unions", 0.5), ("Specialists", 0.3), ("Intelligentsia", 0.2)],
+            Ideology::GreenPolitics => &[("Students", 0.5), ("Intelligentsia", 0.3), ("Specialists", 0.2)],
             Ideology::ClassicalLiberalism => &[("Capitalists", 0.5), ("Petty Bourgeoisie", 0.3), ("Specialists", 0.2)],
-            Ideology::SocialLiberalism => &[("Specialists", 0.4), ("Inteligencja", 0.3), ("Petty Bourgeoisie", 0.3)],
-            Ideology::Agrarianism => &[("Agrykolanie", 0.7), ("Artisans", 0.3)],
-            Ideology::ChristianDemocracy => &[("Clergy", 0.5), ("Artisans", 0.3), ("Agrykolanie", 0.2)],
-            Ideology::SocialConservatism => &[("Arystokracja", 0.4), ("Clergy", 0.4), ("Armed Forces", 0.2)],
+            Ideology::SocialLiberalism => &[("Specialists", 0.4), ("Intelligentsia", 0.3), ("Petty Bourgeoisie", 0.3)],
+            Ideology::Agrarianism => &[("Agrarians", 0.7), ("Artisans", 0.3)],
+            Ideology::ChristianDemocracy => &[("Clergy", 0.5), ("Artisans", 0.3), ("Agrarians", 0.2)],
+            Ideology::SocialConservatism => &[("Aristocracy", 0.4), ("Clergy", 0.4), ("Armed Forces", 0.2)],
             Ideology::Neoconservatism => &[("Capitalists", 0.4), ("Armed Forces", 0.3), ("Petty Bourgeoisie", 0.3)],
             Ideology::Neoliberalism => &[("Capitalists", 0.6), ("Specialists", 0.3), ("Petty Bourgeoisie", 0.1)],
-            Ideology::NationalConservatism => &[("Armed Forces", 0.4), ("Arystokracja", 0.3), ("Artisans", 0.3)],
+            Ideology::NationalConservatism => &[("Armed Forces", 0.4), ("Aristocracy", 0.3), ("Artisans", 0.3)],
             Ideology::AnarchoCapitalism => &[("Capitalists", 0.5), ("Petty Bourgeoisie", 0.5)],
-            Ideology::Fascism => &[("Biurokraci", 0.4), ("Armed Forces", 0.3), ("Petty Bourgeoisie", 0.3)],
+            Ideology::Fascism => &[("Bureaucrats", 0.4), ("Armed Forces", 0.3), ("Petty Bourgeoisie", 0.3)],
         }
     }
 

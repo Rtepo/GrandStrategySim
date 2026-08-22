@@ -150,9 +150,15 @@ pub fn generate_corporate_entities(
         return Ok(());
     }
     
-    // Create Strategic Reserve Agency (Phase 2)
-    let reserve_agency = create_strategic_reserve_agency(country, start_year);
+    // Create Strategic Reserve Agency (Phase 2, Phase 79: physical warehouses + 8 commodities)
+    let country_regions_vec: Vec<Region> = country_regions.iter().map(|r| (*r).clone()).collect();
+    let (mut reserve_agency, reserve_warehouses) = create_strategic_reserve_agency(
+        country, start_year, total_population, base_wage, &country_regions_vec, &mut idgen, registries,
+    );
+    let reserve_building_ids: Vec<String> = reserve_warehouses.iter().map(|b| b.id.clone()).collect();
+    reserve_agency.building_ids = reserve_building_ids;
     all_companies.push(reserve_agency);
+    all_buildings.extend(reserve_warehouses);
 
     // Phase 20A: Seed minimum viable supply chain Ă˘â‚¬â€ť guarantee at least one
     // building per critical sector per region, regardless of budget shares.
@@ -432,7 +438,7 @@ pub fn generate_corporate_entities(
         registries,
         country,
         buildings: all_buildings,
-        market_prices: HashMap::new(),
+        market_prices: rustc_hash::FxHashMap::default(),
     };
     update_gdp_shares_from_employment(&mut ctx);
 
@@ -608,34 +614,20 @@ pub fn generate_corporate_entities(
         }
     }
 
-    // Phase 56: Create initial order book entries and liquidity pools for listed companies.
-    for company in &all_companies {
-        if company.legal_form.is_listed() && company.shares_count > 0 && company.share_price > 0.0 {
-            let instrument_id = format!("EQUITY:{}", company.id);
-            // Create order book with initial spread around share price.
-            let mut book = crate::securities::exchange::OrderBook::default();
-            book.best_bid = company.share_price * 0.99;
-            book.best_ask = company.share_price * 1.01;
-            country.stock_exchange.order_book.insert(instrument_id.clone(), book);
-
-            // Create initial AMM liquidity pool with seed liquidity.
-            let free_float_shares = (company.shares_count as f64 * company.legal_form.free_float()) as u64;
-            if free_float_shares > 0 {
-                let pool_cash = free_float_shares as f64 * company.share_price;
-                country.stock_exchange.liquidity_pools.insert(
-                    instrument_id,
-                    crate::securities::exchange::LiquidityPool {
-                        shares: free_float_shares,
-                        cash: pool_cash,
-                        providers: BTreeMap::new(),
-                        pool_fee: country.securities_config.transaction_fee_rate,
-                        treasury_bonds: Vec::new(),
-                        total_value: pool_cash,
-                    },
-                );
-            }
-        }
-    }
+    // Phase 77: List JSC companies on the stock exchange with real IPO funding.
+    // Replaces the old Phase 56 code that created AMM pools with phantom cash
+    // (pool_cash was invented from nowhere, violating double-entry accounting).
+    // The new approach:
+    // 1. Funds IPO from wealthy demographics (Aristocracy, Bourgeoisie)
+    // 2. Creates AMM pools only if both shares and cash are funded
+    // 3. Places unsold shares as limit sell orders in the order book
+    // 4. Assigns founder ownership
+    let country_regions_map: HashMap<String, crate::society::geography::Region> = regions
+        .iter()
+        .filter(|(_, r)| r.owner_country == country.name)
+        .map(|(k, v)| (k.clone(), v.clone()))
+        .collect();
+    super::list_jsc_companies_on_exchange(country, &mut all_companies, &country_regions_map, rng);
 
     // Re-save companies with CEO assignments so they persist to disk.
     // Group by sector for the save call.
@@ -820,33 +812,60 @@ fn generate_region_companies(
         let company_capital = company_fixed + company_liquid;
 
         let is_national_champion = actual_capacity > 25_000;
+        // Phase 77: Increase JSC proportion — rank 1-5 and national champions
+        // are JSC (was 1-2 only, national champions were Consortium).
+        // This ensures ~25-50% of companies are publicly traded.
         let (label, legal_form, shares_count) = match (is_national_champion, rank) {
             (true, _) => (
                 "National Champion",
-                LegalForm::Consortium(ConsortiumData::default()),
-                0,
-            ),
-            (false, 1..=2) => (
-                "Corporation",
                 LegalForm::JointStockCompany(JointStockData {
                     shares_issued: 1_000_000,
-                    // Phase 56: Top JSC firms are listed at generation with 20-40% free float.
-                    free_float: if rank == 1 { 0.40 } else { 0.20 },
+                    // Phase 77: National champions have 40% free float.
+                    free_float: 0.40,
                     dividend_per_share: 0.0,
                     board_independence: 0.5,
                     board_members: Vec::new(),
                 }),
                 1_000_000,
             ),
-            (false, 3..=5) => (
-                "Cooperative",
-                LegalForm::Cooperative(CooperativeData {
-                    member_count: actual_capacity,
-                    patronage_pool: 0.0,
-                    federation_id: None,
+            (false, 1..=5) => (
+                "Corporation",
+                LegalForm::JointStockCompany(JointStockData {
+                    shares_issued: 1_000_000,
+                    // Phase 77: Top JSC firms are listed at generation with 20-40% free float.
+                    free_float: if rank <= 2 { 0.40 } else { 0.20 },
+                    dividend_per_share: 0.0,
+                    board_independence: 0.5,
+                    board_members: Vec::new(),
                 }),
-                0,
+                1_000_000,
             ),
+            (false, 6..=10) => {
+                // Phase 77: 50/50 split between Cooperative and FamilyBusiness
+                if rng.gen::<f64>() > 0.5 {
+                    (
+                        "Cooperative",
+                        LegalForm::Cooperative(CooperativeData {
+                            member_count: actual_capacity,
+                            patronage_pool: 0.0,
+                            federation_id: None,
+                        }),
+                        0,
+                    )
+                } else {
+                    (
+                        "Enterprise",
+                        LegalForm::FamilyBusiness(FamilyBusinessData {
+                            dynasty_id: None,
+                            successor_generation: 0,
+                            family_retained_share: 1.0,
+                            heir_vip_ids: Vec::new(),
+                            succession_crisis: false,
+                        }),
+                        0,
+                    )
+                }
+            }
             _ => (
                 "Enterprise",
                 LegalForm::FamilyBusiness(FamilyBusinessData {
@@ -913,16 +932,16 @@ fn generate_region_companies(
             fund_type: None,
             fund_ledger: None,
             temporary_disruption_modifier: 0.0,
-            target_fte_demand: actual_capacity as f64,
+            target_fte_demand: actual_capacity,
             offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0),
             prev_offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0).max(50.0),
             wage_arrears: 0.0,
             productivity_penalty: 0.0,
             target_wage: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(50.0),
             is_striking: false,
-            fulfilled_fte: 0.0,
-            prev_fulfilled_fte: 0.0,
-            physical_fte_demand: actual_capacity as f64,
+            fulfilled_fte: 0,
+            prev_fulfilled_fte: 0,
+            physical_fte_demand: actual_capacity,
             is_in_receivership: false,
             agricultural_profile: None,
             rd_budget: 0.0,
@@ -945,8 +964,8 @@ fn generate_region_companies(
         // Phase 42: Genesis Labor Fix — pre-populate workforce and inject payroll grant.
         let initial_wage = (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(50.0);
         let initial_fte = (actual_capacity as f64 * 0.6).round().max(2.0); // Phase 43: min 2.0 FTE floor
-        company.fulfilled_fte = initial_fte;
-        company.prev_fulfilled_fte = initial_fte;
+        company.fulfilled_fte = initial_fte as u32;
+        company.prev_fulfilled_fte = initial_fte as u32;
         // Genesis Payroll Grant: 3 turns of wages for the initial workforce.
         let payroll_grant = initial_fte * initial_wage * 3.0;
         company.available_cash = company_liquid + payroll_grant;
@@ -1183,6 +1202,43 @@ fn generate_company_name(
     } else {
         format!("{surname} {suffix} {legal}")
     }
+}
+
+/// Phase 79: Look up a production method by name from a sector's method registry.
+///
+/// Searches the `BuildingMethods` for the given sector key and returns an
+/// `ActiveProductionMethod` matching the given method name, if found and
+/// available at `current_year`.
+fn find_storage_method_by_name(
+    registries: &Registries,
+    sector_key: &str,
+    method_name: &str,
+    current_year: u32,
+) -> Option<ActiveProductionMethod> {
+    let methods = registries.production_methods.get(sector_key)?;
+    let pm = methods.production.get(method_name)?;
+    if pm.year > current_year {
+        return None;
+    }
+    Some(ActiveProductionMethod {
+        year: pm.year,
+        experts_ratio: pm.experts_ratio,
+        skilled_ratio: pm.skilled_ratio,
+        basic_ratio: pm.basic_ratio,
+        efficiency: pm.efficiency,
+        inputs: pm.inputs.iter().map(|(&k, &v)| (k, v)).collect(),
+        outputs: pm.outputs.iter().map(|(&k, &v)| (k, v)).collect(),
+        active_methods: crate::state::treasury::ProductionMethodChoice {
+            automation: String::new(),
+            production: method_name.to_string(),
+            organization: String::new(),
+            extra: Map::new(),
+        },
+        active_blueprint: None,
+        thermal_efficiency: pm.thermal_efficiency,
+        storage_efficiency: pm.storage_efficiency,
+        extra: Default::default(),
+    })
 }
 
 fn method_from_ratios(
@@ -2067,16 +2123,16 @@ fn create_seed_company_with_explicit_method(
         fund_type: None,
         fund_ledger: None,
         temporary_disruption_modifier: 0.0,
-        target_fte_demand: actual_capacity as f64,
+        target_fte_demand: actual_capacity,
         offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0),
         prev_offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0).max(50.0),
         wage_arrears: 0.0,
         productivity_penalty: 0.0,
         target_wage: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(50.0),
         is_striking: false,
-        fulfilled_fte: 0.0,
-        prev_fulfilled_fte: 0.0,
-        physical_fte_demand: actual_capacity as f64,
+        fulfilled_fte: 0,
+        prev_fulfilled_fte: 0,
+        physical_fte_demand: actual_capacity,
         is_in_receivership: false,
         agricultural_profile: None,
         rd_budget: 0.0,
@@ -2099,8 +2155,8 @@ fn create_seed_company_with_explicit_method(
     // Phase 42: Genesis Labor Fix — pre-populate workforce and inject payroll grant.
     let initial_wage = (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(50.0);
     let initial_fte = (actual_capacity as f64 * 0.6).round().max(2.0); // Phase 43: min 2.0 FTE floor
-    company.fulfilled_fte = initial_fte;
-    company.prev_fulfilled_fte = initial_fte;
+    company.fulfilled_fte = initial_fte as u32;
+    company.prev_fulfilled_fte = initial_fte as u32;
     let payroll_grant = initial_fte * initial_wage * 3.0;
     company.available_cash += payroll_grant;
 
@@ -2344,16 +2400,16 @@ fn create_seed_company(
         fund_type: None,
         fund_ledger: None,
         temporary_disruption_modifier: 0.0,
-        target_fte_demand: actual_capacity as f64,
+        target_fte_demand: actual_capacity,
         offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0),
         prev_offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0).max(50.0),
         wage_arrears: 0.0,
         productivity_penalty: 0.0,
         target_wage: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(50.0),
         is_striking: false,
-        fulfilled_fte: 0.0,
-        prev_fulfilled_fte: 0.0,
-        physical_fte_demand: actual_capacity as f64,
+        fulfilled_fte: 0,
+        prev_fulfilled_fte: 0,
+        physical_fte_demand: actual_capacity,
         is_in_receivership: false,
         agricultural_profile: None,
         rd_budget: 0.0,
@@ -2402,8 +2458,8 @@ fn create_seed_company(
     // Phase 42: Genesis Labor Fix — pre-populate workforce and inject payroll grant.
     let initial_wage = (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(50.0);
     let initial_fte = (actual_capacity as f64 * 0.6).round().max(2.0); // Phase 43: min 2.0 FTE floor
-    company.fulfilled_fte = initial_fte;
-    company.prev_fulfilled_fte = initial_fte;
+    company.fulfilled_fte = initial_fte as u32;
+    company.prev_fulfilled_fte = initial_fte as u32;
     let payroll_grant = initial_fte * initial_wage * 3.0;
     company.available_cash += payroll_grant;
     let current_employment = (initial_fte / scale_factor as f64) as u32;
@@ -2609,99 +2665,234 @@ fn estimated_base_price(commodity: Commodity) -> f64 {
     }
 }
 
-/// Creates a Strategic Reserve Agency for the country (Phase 2).
+/// Creates a Strategic Reserve Agency for the country (Phase 2, Phase 79).
+///
+/// Phase 79 changes:
+/// * Commodity keys use English snake_case (parseable by `Commodity::from_str()`).
+/// * Energy removed — the SRA stockpiles Fuels, not Energy. Energy storage is
+///   handled by dedicated `PumpedStoragePlant` / `BatteryBank` buildings.
+/// * Mandate expanded to 8 commodities: Food, HardCoal, BrownCoal, Peat, Oil,
+///   Ammunition, Steel, Pharmaceuticals.
+/// * Triggers are ratio-based relative to moving-average VWAP (no magic numbers).
+/// * Physical warehouse buildings are generated and assigned to the SRA.
+/// * Capacity and budget scale to `total_population` and `average_wage`.
 ///
 /// # Arguments
 /// * `country` - The country to create the agency for
 /// * `start_year` - The starting year for the simulation
+/// * `total_population` - Total population across all regions
+/// * `average_wage` - Current average wage for macro-scaling
+/// * `regions` - Country regions for distributed warehouse placement
+/// * `idgen` - ID generator for building IDs
 ///
 /// # Returns
-/// * A Company with LegalForm::StrategicReserveAgency
-fn create_strategic_reserve_agency(country: &Country, start_year: u32) -> Company {
+/// * A tuple of (Company with LegalForm::StrategicReserveAgency, Vec<Building> warehouses)
+fn create_strategic_reserve_agency(
+    country: &Country,
+    start_year: u32,
+    total_population: i64,
+    average_wage: f64,
+    regions: &[Region],
+    idgen: &mut IdGen,
+    registries: &Registries,
+) -> (Company, Vec<Building>) {
     let agency_id = format!("STRATEGIC_RESERVE_{}", country.name);
-    
-    // Initialize purchase triggers for key commodities
+
+    // Phase 79: 8-commodity mandate with ratio-based triggers.
+    // Buy when price < 0.75 * moving_avg_vwap (glut), sell when price > 1.5 * moving_avg_vwap (shock).
+    // surplus_threshold and deficit_threshold are scaled to total_population.
+    let pop_f = total_population.max(1) as f64;
+    let surplus_scale = pop_f * 0.01;  // 1% of population as surplus/deficit threshold
+    let deficit_scale = pop_f * 0.005; // 0.5% of population as deficit threshold
+
+    // (commodity_key, budget_fraction, surplus_threshold_factor, deficit_threshold_factor)
+    let commodity_config: &[(&str, f64, f64, f64)] = &[
+        ("food",            0.15, 1.0,  1.0),  // basic survival
+        ("hard_coal",       0.12, 0.5,  0.5),  // primary industrial fuel
+        ("brown_coal",      0.08, 0.5,  0.5),  // lower-tier fuel
+        ("peat",            0.05, 0.3,  0.3),  // lowest-tier fuel
+        ("oil",             0.15, 0.3,  0.3),  // strategic military/industrial fuel
+        ("ammunition",      0.15, 0.2,  0.2),  // defense
+        ("steel",           0.15, 0.3,  0.3),  // industry
+        ("pharmaceuticals", 0.15, 0.2,  0.2),  // healthcare
+    ];
+
     let mut purchase_triggers = BTreeMap::new();
-    purchase_triggers.insert(
-        "WegielKamienny".to_string(),
-        PurchaseTrigger {
-            price_floor: 50.0,
-            surplus_threshold: 10000.0,
-            budget_fraction: 0.3,
-        }
-    );
-    purchase_triggers.insert(
-        "Energia".to_string(),
-        PurchaseTrigger {
-            price_floor: 80.0,
-            surplus_threshold: 5000.0,
-            budget_fraction: 0.3,
-        }
-    );
-    purchase_triggers.insert(
-        "Zywnosc".to_string(),
-        PurchaseTrigger {
-            price_floor: 30.0,
-            surplus_threshold: 20000.0,
-            budget_fraction: 0.4,
-        }
-    );
-    
-    // Initialize release triggers for key commodities
     let mut release_triggers = BTreeMap::new();
-    release_triggers.insert(
-        "WegielKamienny".to_string(),
-        ReleaseTrigger {
-            price_ceiling: 150.0,
-            deficit_threshold: 5000.0,
-            release_fraction: 0.5,
-        }
-    );
-    release_triggers.insert(
-        "Energia".to_string(),
-        ReleaseTrigger {
-            price_ceiling: 200.0,
-            deficit_threshold: 3000.0,
-            release_fraction: 0.5,
-        }
-    );
-    release_triggers.insert(
-        "Zywnosc".to_string(),
-        ReleaseTrigger {
-            price_ceiling: 100.0,
-            deficit_threshold: 10000.0,
-            release_fraction: 0.5,
-        }
-    );
-    
-    // Initialize max capacity for each commodity
+
+    for &(key, budget_frac, surp_factor, def_factor) in commodity_config {
+        purchase_triggers.insert(
+            key.to_string(),
+            PurchaseTrigger {
+                buy_threshold_ratio: 0.75,  // Buy when price < 75% of moving avg VWAP
+                surplus_threshold: surplus_scale * surp_factor,
+                budget_fraction: budget_frac,
+            },
+        );
+        release_triggers.insert(
+            key.to_string(),
+            ReleaseTrigger {
+                sell_threshold_ratio: 1.5,  // Release when price > 150% of moving avg VWAP
+                deficit_threshold: deficit_scale * def_factor,
+                release_fraction: 0.5,
+            },
+        );
+    }
+
+    // Phase 79: Physical warehouse generation.
+    // One warehouse per region, capacity scaled to population and wage.
+    // Total capacity = num_regions * (pop_per_region * wage * 0.1)
+    let num_regions = regions.len().max(1);
+    let pop_per_region = pop_f / num_regions as f64;
+    let capacity_per_warehouse = (pop_per_region * average_wage * 0.1).max(1000.0);
+    let total_warehouse_capacity = capacity_per_warehouse * num_regions as f64;
+
+    // Distribute total capacity across 8 commodities (percentages sum to 1.0).
+    let capacity_shares: &[(&str, f64)] = &[
+        ("food",            0.25),
+        ("hard_coal",       0.15),
+        ("brown_coal",      0.10),
+        ("peat",            0.05),
+        ("oil",             0.15),
+        ("ammunition",      0.10),
+        ("steel",           0.10),
+        ("pharmaceuticals", 0.10),
+    ];
     let mut max_capacity = BTreeMap::new();
-    max_capacity.insert("WegielKamienny".to_string(), 100000.0);
-    max_capacity.insert("Energia".to_string(), 50000.0);
-    max_capacity.insert("Zywnosc".to_string(), 200000.0);
-    
-    Company {
+    for &(key, share) in capacity_shares {
+        max_capacity.insert(key.to_string(), total_warehouse_capacity * share);
+    }
+
+    // Generate warehouse buildings — one per region.
+    let mut warehouses = Vec::new();
+    for region in regions {
+        let building_id = idgen.next_building();
+        let staff = ((capacity_per_warehouse / 10000.0).clamp(50.0, 500.0)) as u32;
+        let building = Building {
+            id: building_id,
+            name: "Strategic Reserve Warehouse".to_string(),
+            owner_id: agency_id.clone(),
+            year_built: start_year.saturating_sub(5),
+            sector: Sector::PublicServices,
+            worker_capacity: staff,
+            current_employment: (staff as f64 * 0.9) as u32,
+            reserve: 0.0,
+            active_method: ActiveProductionMethod::default(),
+            accidents_last_year: 0,
+            strike: false,
+            scale_factor: 1,
+            building_capacity: staff,
+            region_id: region.id.clone(),
+            cluster_info: ClusterInfo {
+                region_id: region.id.clone(),
+                scale_factor: 1,
+                sector: Sector::PublicServices,
+                owner_id: agency_id.clone(),
+                extra: Map::new(),
+            },
+            last_production: BTreeMap::new(),
+            last_profit: 0.0,
+            condition: 1.0,
+            is_heritage_site: false,
+            experience_level: None,
+            aggregated_stats: AggregatedStats::default(),
+            structural_defect: 0.0,
+            land_hectares: 0.0,
+            extra: Map::new(),
+            inventory: BTreeMap::new(),
+            inventory_capacity: capacity_per_warehouse,
+            active_project: None,
+            landfill_data: None,
+            deposit_id: None,
+            fixed_assets: Vec::new(),
+        };
+        warehouses.push(building);
+    }
+
+    // Phase 79: 2.7 — Optionally generate energy storage buildings for grid stabilization.
+    // Pumped Storage Plant (available 1907) and Battery Bank Storage (available 1990).
+    // These are production buildings that buffer grid energy with round-trip losses,
+    // replacing the broken approach of hoarding Energy in warehouses.
+    if start_year >= 1907 && !regions.is_empty() {
+        let storage_region = &regions[0];
+        let storage_id = idgen.next_building();
+        let storage_staff = 80u32;
+        // Look up the "Pumped Storage Plant" method from the energy sector registry.
+        let storage_method = find_storage_method_by_name(registries, "energy", "Pumped Storage Plant", start_year)
+            .unwrap_or_else(|| method_from_ratios(
+                0.15, 0.30, 0.55,
+                BTreeMap::from([
+                    (Commodity::Energy, 100.0),
+                    (Commodity::Water, 20.0),
+                    (Commodity::MechanicalComponents, 5.0),
+                ]),
+                BTreeMap::from([(Commodity::Energy, 72.0)]),
+                1907,
+            ));
+        warehouses.push(Building {
+            id: storage_id,
+            name: "Pumped Storage Plant".to_string(),
+            owner_id: agency_id.clone(),
+            year_built: start_year.saturating_sub(5),
+            sector: Sector::PublicServices,
+            worker_capacity: storage_staff,
+            current_employment: (storage_staff as f64 * 0.9) as u32,
+            reserve: 0.0,
+            active_method: storage_method,
+            accidents_last_year: 0,
+            strike: false,
+            scale_factor: 1,
+            building_capacity: storage_staff,
+            region_id: storage_region.id.clone(),
+            cluster_info: ClusterInfo {
+                region_id: storage_region.id.clone(),
+                scale_factor: 1,
+                sector: Sector::PublicServices,
+                owner_id: agency_id.clone(),
+                extra: Map::new(),
+            },
+            last_production: BTreeMap::new(),
+            last_profit: 0.0,
+            condition: 1.0,
+            is_heritage_site: false,
+            experience_level: None,
+            aggregated_stats: AggregatedStats::default(),
+            structural_defect: 0.0,
+            land_hectares: 0.0,
+            extra: Map::new(),
+            inventory: BTreeMap::new(),
+            inventory_capacity: 0.0, // Storage buildings don't store commodities
+            active_project: None,
+            landfill_data: None,
+            deposit_id: None,
+            fixed_assets: Vec::new(),
+        });
+    }
+
+    let budget_alloc = country.budget.nominal_budget * 0.05;
+
+    let company = Company {
         id: agency_id,
         file_stem: "strategic_reserve".to_string(),
-        name: "Agencja Rezerw Strategicznych".to_string(),
+        name: "Strategic Reserve Agency".to_string(),
         sector: Sector::PublicServices,
         region_id: country.name.clone(),
         legal_form: LegalForm::StrategicReserveAgency(StrategicReserveData {
             commodity_reserves: BTreeMap::new(),
             purchase_triggers,
             release_triggers,
-            budget_allocation: country.budget.nominal_budget * 0.05,
+            budget_allocation: budget_alloc,
             max_capacity,
         }),
         state_share: 1.0,
         fixed_capital: 0.0,
-        liquid_capital: country.budget.nominal_budget * 0.05,
+        liquid_capital: budget_alloc,
         available_cash: 0.0,
         debit_cash: 0.0,
         credit_cash: 0.0,
         unfilled_bid_prices: std::collections::HashMap::new(),
         liabilities: 0.0,
-        company_capital: country.budget.nominal_budget * 0.05,
+        company_capital: budget_alloc,
         shares_count: 0,
         share_price: 0.0,
         shareholders: BTreeMap::new(),
@@ -2709,7 +2900,7 @@ fn create_strategic_reserve_agency(country: &Country, start_year: u32) -> Compan
         financial_history: Vec::new(),
         safety_level: 0.5,
         union_id: None,
-        building_ids: Vec::new(),
+        building_ids: Vec::new(), // Will be set by caller
         plants: Vec::new(),
         scale_factor: 1,
         worker_capacity: 0,
@@ -2726,16 +2917,16 @@ fn create_strategic_reserve_agency(country: &Country, start_year: u32) -> Compan
         fund_type: None,
         fund_ledger: None,
         temporary_disruption_modifier: 0.0,
-        target_fte_demand: 0.0,
+        target_fte_demand: 0,
         offered_wage_per_fte: 0.0,
         prev_offered_wage_per_fte: 0.0,
         wage_arrears: 0.0,
         productivity_penalty: 0.0,
         target_wage: 0.0,
         is_striking: false,
-        fulfilled_fte: 0.0,
-        prev_fulfilled_fte: 0.0,
-        physical_fte_demand: 0.0,
+        fulfilled_fte: 0,
+        prev_fulfilled_fte: 0,
+        physical_fte_demand: 0,
         is_in_receivership: false,
         agricultural_profile: None,
         rd_budget: 0.0,
@@ -2753,7 +2944,9 @@ fn create_strategic_reserve_agency(country: &Country, start_year: u32) -> Compan
         ceo_vip_id: None,
         eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
         extra: Map::new(),
-    }
+    };
+
+    (company, warehouses)
 }
 
 fn state_building_recipe(name: &str, start_year: u32) -> (String, ActiveProductionMethod) {
@@ -2934,16 +3127,16 @@ fn generate_retail_stores(
             fund_type: None,
             fund_ledger: None,
             temporary_disruption_modifier: 0.0,
-            target_fte_demand: base_capacity as f64,
+            target_fte_demand: base_capacity,
             offered_wage_per_fte: (company_liquid * 0.6 / (base_capacity as f64).max(1.0)).max(1.0),
             prev_offered_wage_per_fte: (company_liquid * 0.6 / (base_capacity as f64).max(1.0)).max(1.0).max(50.0),
             wage_arrears: 0.0,
             productivity_penalty: 0.0,
             target_wage: (company_liquid * 0.6 / (base_capacity as f64).max(1.0)).max(50.0),
             is_striking: false,
-            fulfilled_fte: 0.0,
-            prev_fulfilled_fte: 0.0,
-            physical_fte_demand: base_capacity as f64,
+            fulfilled_fte: 0,
+            prev_fulfilled_fte: 0,
+            physical_fte_demand: base_capacity,
             is_in_receivership: false,
             agricultural_profile: None,
             rd_budget: 0.0,
@@ -2966,8 +3159,8 @@ fn generate_retail_stores(
         // Phase 42: Genesis Labor Fix — pre-populate workforce and inject payroll grant.
         let initial_wage = (company_liquid * 0.6 / (base_capacity as f64).max(1.0)).max(50.0);
         let initial_fte = (base_capacity as f64 * 0.6).round().max(2.0); // Phase 43: min 2.0 FTE floor
-        company.fulfilled_fte = initial_fte;
-        company.prev_fulfilled_fte = initial_fte;
+        company.fulfilled_fte = initial_fte as u32;
+        company.prev_fulfilled_fte = initial_fte as u32;
         let payroll_grant = initial_fte * initial_wage * 3.0;
         company.available_cash = company_liquid + payroll_grant;
 
@@ -2978,8 +3171,7 @@ fn generate_retail_stores(
         let seed_goods = [
             (Commodity::Cereal, 30.0 * production_scale.max(1.0)),
             (Commodity::Vegetable, 20.0 * production_scale.max(1.0)),
-            (Commodity::Protein, 15.0 * production_scale.max(1.0)),
-            (Commodity::Meat, 10.0 * production_scale.max(1.0)),
+            (Commodity::Meat, 20.0 * production_scale.max(1.0)),
             (Commodity::Fruit, 8.0 * production_scale.max(1.0)),
             (Commodity::Clothing, 10.0 * production_scale.max(1.0)),
             (Commodity::Furniture, 5.0 * production_scale.max(1.0)),
@@ -3260,16 +3452,16 @@ fn generate_tourism_entities(
                 fund_type: None,
                 fund_ledger: None,
                 temporary_disruption_modifier: 0.0,
-                target_fte_demand: 50.0,
+                target_fte_demand: 50,
                 offered_wage_per_fte: base_wage * 0.5,
                 prev_offered_wage_per_fte: (base_wage * 0.5).max(50.0),
                 wage_arrears: 0.0,
                 productivity_penalty: 0.0,
                 target_wage: (base_wage * 0.5).max(50.0),
                 is_striking: false,
-                fulfilled_fte: 0.0,
-                prev_fulfilled_fte: 0.0,
-                physical_fte_demand: 50.0,
+                fulfilled_fte: 0,
+                prev_fulfilled_fte: 0,
+                physical_fte_demand: 50,
                 is_in_receivership: false,
                 agricultural_profile: None,
                 rd_budget: 0.0,
@@ -3294,8 +3486,8 @@ fn generate_tourism_entities(
             // Phase 42: Genesis Labor Fix
             let hosp_wage = (base_wage * 0.5).max(50.0);
             let hosp_fte = 30.0; // 60% of 50.0 target
-            company.fulfilled_fte = hosp_fte;
-            company.prev_fulfilled_fte = hosp_fte;
+            company.fulfilled_fte = hosp_fte as u32;
+            company.prev_fulfilled_fte = hosp_fte as u32;
             company.available_cash += hosp_fte * hosp_wage * 3.0;
             hospitality_companies.push(company);
         }
@@ -3519,7 +3711,7 @@ fn generate_charity_entities(
     for region in country_regions {
         // One secular NGO per region.
         let ngo_id = idgen.next_company();
-        let ngo_name = format!("Fundacja Dobroczynna {}", region.id);
+        let ngo_name = format!("Charitable Foundation {}", region.id);
         let ngo_capacity = rng.gen_range(5..=10);
         let ngo = create_charity_company(
             ngo_id.clone(),
@@ -3538,7 +3730,7 @@ fn generate_charity_entities(
         // One religious charity per region (if country has a dominant religion).
         if !religion.is_empty() {
             let church_id = idgen.next_company();
-            let church_name = format!("Parafia {} ({})", region.id, religion);
+            let church_name = format!("Parish {} ({})", region.id, religion);
             let church_capacity = rng.gen_range(3..=8);
             let church = create_charity_company(
                 church_id.clone(),
@@ -3579,7 +3771,7 @@ fn generate_charity_entities(
             let monastery_chance = if is_rural { 0.7 } else { 0.3 };
             if rng.gen::<f64>() < monastery_chance {
                 let monastery_company_id = idgen.next_company();
-                let monastery_name = format!("Klasztor {} ({})", region.id, religion);
+                let monastery_name = format!("Monastery {} ({})", region.id, religion);
                 let monastery_capacity = rng.gen_range(5..=15);
                 let monastery = create_charity_company(
                     monastery_company_id.clone(),
@@ -3725,16 +3917,16 @@ fn create_charity_company(
         fund_type: None,
         fund_ledger: None,
         temporary_disruption_modifier: 0.0,
-        target_fte_demand: worker_capacity as f64,
+        target_fte_demand: worker_capacity,
         offered_wage_per_fte: subsistence_wage,
         prev_offered_wage_per_fte: subsistence_wage.max(50.0),
         wage_arrears: 0.0,
         productivity_penalty: 0.0,
         target_wage: subsistence_wage.max(50.0),
         is_striking: false,
-        fulfilled_fte: 0.0,
-        prev_fulfilled_fte: 0.0,
-        physical_fte_demand: worker_capacity as f64,
+        fulfilled_fte: 0,
+        prev_fulfilled_fte: 0,
+        physical_fte_demand: worker_capacity,
         is_in_receivership: false,
         agricultural_profile: None,
         rd_budget: 0.0,
@@ -3753,60 +3945,6 @@ fn create_charity_company(
         eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
         extra: serde_json::Map::new(),
     }
-}
-
-/// Phase 21A: Find a geological deposit in the region that produces the same
-/// commodity as the mining building's active method output.
-///
-/// # Returns
-/// A deposit ID string (`"{formation_id}/{commodity_key}"`) if a matching
-/// discovered deposit is found, or `None`.
-fn find_mining_deposit_for_region(
-    formations: &[GeologicalFormation],
-    region_id: &str,
-    building: &Building,
-) -> Option<String> {
-    // Get the building's output commodities from its active method.
-    let output_commodities: BTreeSet<Commodity> = building.active_method
-        .outputs
-        .keys()
-        .copied()
-        .collect();
-
-    if output_commodities.is_empty() {
-        return None;
-    }
-
-    // Search formations overlapping this region for a matching deposit.
-    for formation in formations {
-        if !formation.overlapping_regions.contains(&region_id.to_string()) {
-            continue;
-        }
-        for (key, deposit) in &formation.resource_deposits {
-            if deposit.discovered && deposit.current_reserves > 0.0
-                && output_commodities.contains(&deposit.commodity)
-            {
-                return Some(format!("{}/{}", formation.id, key));
-            }
-        }
-    }
-
-    // Fallback: if no discovered deposit matches, link to any deposit
-    // (even undiscovered) that produces the right commodity. The depth/quality
-    // gating in the production cycle will reduce output until exploration
-    // discovers it.
-    for formation in formations {
-        if !formation.overlapping_regions.contains(&region_id.to_string()) {
-            continue;
-        }
-        for (key, deposit) in &formation.resource_deposits {
-            if output_commodities.contains(&deposit.commodity) {
-                return Some(format!("{}/{}", formation.id, key));
-            }
-        }
-    }
-
-    None
 }
 
 // ============================================================================
@@ -4007,16 +4145,16 @@ pub fn generate_investment_funds(
             fund_type: Some(chosen_type),
             fund_ledger: Some(ledger),
             temporary_disruption_modifier: 0.0,
-            target_fte_demand: 10.0,
+            target_fte_demand: 10,
             offered_wage_per_fte: 5000.0,
             prev_offered_wage_per_fte: 5000.0,
             wage_arrears: 0.0,
             productivity_penalty: 0.0,
             target_wage: 5000.0,
             is_striking: false,
-            fulfilled_fte: 0.0,
-            prev_fulfilled_fte: 0.0,
-            physical_fte_demand: 10.0,
+            fulfilled_fte: 0,
+            prev_fulfilled_fte: 0,
+            physical_fte_demand: 10,
             is_in_receivership: false,
             agricultural_profile: None,
             rd_budget: 0.0,

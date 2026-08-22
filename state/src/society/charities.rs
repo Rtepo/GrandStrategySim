@@ -76,6 +76,18 @@ pub fn process_charity_fundraising(
             _ => continue,
         };
 
+        // Phase 78: Gate fundraising by staff capacity.
+        // A charity with no fulfilled staff cannot run collection drives.
+        // Staffing ratio = fulfilled_fte / worker_capacity (capped at 1.0).
+        let staffing_ratio = if company.worker_capacity > 0 {
+            (company.fulfilled_fte as f64 / company.worker_capacity as f64).min(1.0)
+        } else {
+            0.0
+        };
+        if staffing_ratio <= 0.0 {
+            continue;
+        }
+
         let mut total_collected = 0.0;
 
         for region in &mut country.regions {
@@ -91,7 +103,7 @@ pub fn process_charity_fundraising(
                     if per_capita > avg_wage * 2.0 && demographics.savings > 0.0 {
                         let factor = solidarity_factor(cultural_group);
                         let donation = demographics.savings * 0.01 * factor;
-                        let donation = donation.min(demographics.savings);
+                        let donation = (donation * staffing_ratio).min(demographics.savings);
                         demographics.savings -= donation;
                         total_collected += donation;
                     }
@@ -104,7 +116,7 @@ pub fn process_charity_fundraising(
                     {
                         let factor = devotion_factor(cultural_group);
                         let donation = demographics.savings * 0.005 * factor;
-                        let donation = donation.min(demographics.savings);
+                        let donation = (donation * staffing_ratio).min(demographics.savings);
                         demographics.savings -= donation;
                         total_collected += donation;
                     }
@@ -121,7 +133,7 @@ pub fn process_charity_fundraising(
                     if per_capita > avg_wage * 2.0 && demographics.savings > 0.0 {
                         let factor = solidarity_factor(cultural_group);
                         let donation = demographics.savings * 0.01 * factor;
-                        let donation = donation.min(demographics.savings);
+                        let donation = (donation * staffing_ratio).min(demographics.savings);
                         demographics.savings -= donation;
                         total_collected += donation;
                     }
@@ -133,7 +145,7 @@ pub fn process_charity_fundraising(
                     {
                         let factor = devotion_factor(cultural_group);
                         let donation = demographics.savings * 0.005 * factor;
-                        let donation = donation.min(demographics.savings);
+                        let donation = (donation * staffing_ratio).min(demographics.savings);
                         demographics.savings -= donation;
                         total_collected += donation;
                     }
@@ -193,11 +205,23 @@ pub fn process_charity_distribution(
             _ => continue,
         };
 
+        // Phase 78: Gate distribution by staff capacity.
+        // A charity with no fulfilled staff cannot distribute aid.
+        let staffing_ratio = if company.worker_capacity > 0 {
+            (company.fulfilled_fte as f64 / company.worker_capacity as f64).min(1.0)
+        } else {
+            0.0
+        };
+        if staffing_ratio <= 0.0 {
+            continue;
+        }
+
         let distributable = company
             .brokerage_account
             .as_ref()
             .map(|b| b.cash)
-            .unwrap_or(company.available_cash);
+            .unwrap_or(company.available_cash)
+            * staffing_ratio;
         if distributable <= 0.0 {
             continue;
         }
@@ -303,6 +327,10 @@ mod tests {
             cash,
             ..Default::default()
         });
+        // Phase 78: Set fulfilled_fte = worker_capacity so tests reflect
+        // a fully-staffed charity (staffing_ratio = 1.0).
+        c.worker_capacity = 10;
+        c.fulfilled_fte = 10;
         c
     }
 
@@ -318,7 +346,7 @@ mod tests {
         let mut wealthy = ClassDemographics::default();
         wealthy.population = 100;
         wealthy.savings = 50000.0; // 500 per capita > 2 * 100 = 200
-        wealthy.religion = "Katolicyzm".to_string();
+        wealthy.religion = "Catholicism".to_string();
         region
             .class_demographics
             .rural_classes
@@ -328,7 +356,7 @@ mod tests {
         let mut poor = ClassDemographics::default();
         poor.population = 200;
         poor.savings = 2000.0; // 10 per capita < 100 = avg_wage
-        poor.religion = "Katolicyzm".to_string();
+        poor.religion = "Catholicism".to_string();
         region
             .class_demographics
             .rural_classes
@@ -363,11 +391,11 @@ mod tests {
     #[test]
     fn test_religion_fundraising_collects_from_co_religionists() {
         let mut country = make_country_with_classes();
-        let mut companies = vec![make_charity(Sector::Religion, "Katolicyzm", 0.0)];
+        let mut companies = vec![make_charity(Sector::Religion, "Catholicism", 0.0)];
 
         process_charity_fundraising(&mut companies, &mut country, 1);
 
-        // Should collect 0.5% from Katolicyzm classes (aristocracy: 50000, free_peasant: 2000).
+        // Should collect 0.5% from Catholicism classes (aristocracy: 50000, free_peasant: 2000).
         // Total = 0.005 * (50000 + 2000) * devotion(1.0) = 260.
         let ba_cash = companies[0].brokerage_account.as_ref().map(|b| b.cash).unwrap_or(0.0);
         assert!(ba_cash > 200.0 && ba_cash < 300.0);
@@ -404,11 +432,11 @@ mod tests {
     #[test]
     fn test_religion_distribution_excludes_other_religion() {
         let mut country = make_country_with_classes();
-        let mut companies = vec![make_charity(Sector::Religion, "Katolicyzm", 1000.0)];
+        let mut companies = vec![make_charity(Sector::Religion, "Catholicism", 1000.0)];
 
         process_charity_distribution(&mut companies, &mut country, 1);
 
-        // Only Katolicyzm poor classes: free_peasant (pop 200).
+        // Only Catholicism poor classes: free_peasant (pop 200).
         // landless_laborer (Islam) excluded.
         // Per capita = 1000/200 = 5.0.
         // Check that landless_laborer did NOT receive anything.

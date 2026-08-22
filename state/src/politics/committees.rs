@@ -538,12 +538,12 @@ fn build_unpopular_rider(faction: &str) -> BillProvision {
             sector: "HeavyIndustry".to_string(),
             scope: "labor_protections".to_string(),
         },
-        "Agrykolanie" | "Peasants" => BillProvision::TaxRateChange {
+        "Agrarians" | "Peasants" => BillProvision::TaxRateChange {
             income_tax: None,
             vat: Some(0.25),
             corporate_tax: None,
         },
-        "Inteligencja" => BillProvision::Deregulation {
+        "Intelligentsia" => BillProvision::Deregulation {
             sector: "Education".to_string(),
             scope: "academic_tenure".to_string(),
         },

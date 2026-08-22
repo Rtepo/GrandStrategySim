@@ -262,26 +262,26 @@ impl Climate {
             Climate::Mountainous => {
                 limits.insert("coal_mine".to_string(), (base_mines as f64 * rng.gen_range(1.0..3.0)) as i64);
                 limits.insert("iron_mine".to_string(), (base_mines as f64 * rng.gen_range(1.5..3.5)) as i64);
-                limits.insert("Kopalnia Boksytu".to_string(), (base_mines as f64 * rng.gen_range(0.5..2.0)) as i64);
-                limits.insert("Kopalnie Metali Kolorowych".to_string(), (base_mines as f64 * rng.gen_range(1.0..2.5)) as i64);
-                limits.insert("Szyby Naftowe".to_string(), (base_mines as f64 * rng.gen_range(0.0..0.5)) as i64);
-                limits.insert("Kopalnie Gazu Ziemnego".to_string(), (base_mines as f64 * rng.gen_range(0.0..0.5)) as i64);
+                limits.insert("bauxite_mine".to_string(), (base_mines as f64 * rng.gen_range(0.5..2.0)) as i64);
+                limits.insert("nonferrous_metal_mines".to_string(), (base_mines as f64 * rng.gen_range(1.0..2.5)) as i64);
+                limits.insert("oil_wells".to_string(), (base_mines as f64 * rng.gen_range(0.0..0.5)) as i64);
+                limits.insert("natural_gas_wells".to_string(), (base_mines as f64 * rng.gen_range(0.0..0.5)) as i64);
             }
             Climate::Desert => {
                 limits.insert("coal_mine".to_string(), (base_mines as f64 * rng.gen_range(0.0..1.0)) as i64);
                 limits.insert("iron_mine".to_string(), (base_mines as f64 * rng.gen_range(0.5..1.5)) as i64);
-                limits.insert("Kopalnia Boksytu".to_string(), (base_mines as f64 * rng.gen_range(0.0..1.0)) as i64);
-                limits.insert("Kopalnie Metali Kolorowych".to_string(), (base_mines as f64 * rng.gen_range(0.5..1.5)) as i64);
-                limits.insert("Szyby Naftowe".to_string(), (base_mines as f64 * rng.gen_range(2.0..5.0)) as i64);
-                limits.insert("Kopalnie Gazu Ziemnego".to_string(), (base_mines as f64 * rng.gen_range(1.5..4.0)) as i64);
+                limits.insert("bauxite_mine".to_string(), (base_mines as f64 * rng.gen_range(0.0..1.0)) as i64);
+                limits.insert("nonferrous_metal_mines".to_string(), (base_mines as f64 * rng.gen_range(0.5..1.5)) as i64);
+                limits.insert("oil_wells".to_string(), (base_mines as f64 * rng.gen_range(2.0..5.0)) as i64);
+                limits.insert("natural_gas_wells".to_string(), (base_mines as f64 * rng.gen_range(1.5..4.0)) as i64);
             }
             Climate::Fertile => {
                 limits.insert("coal_mine".to_string(), (base_mines as f64 * rng.gen_range(1.0..2.0)) as i64);
                 limits.insert("iron_mine".to_string(), (base_mines as f64 * rng.gen_range(0.5..1.5)) as i64);
-                limits.insert("Kopalnia Boksytu".to_string(), (base_mines as f64 * rng.gen_range(0.0..0.5)) as i64);
-                limits.insert("Kopalnie Metali Kolorowych".to_string(), (base_mines as f64 * rng.gen_range(0.2..1.0)) as i64);
-                limits.insert("Szyby Naftowe".to_string(), (base_mines as f64 * rng.gen_range(0.2..1.0)) as i64);
-                limits.insert("Kopalnie Gazu Ziemnego".to_string(), (base_mines as f64 * rng.gen_range(0.5..1.5)) as i64);
+                limits.insert("bauxite_mine".to_string(), (base_mines as f64 * rng.gen_range(0.0..0.5)) as i64);
+                limits.insert("nonferrous_metal_mines".to_string(), (base_mines as f64 * rng.gen_range(0.2..1.0)) as i64);
+                limits.insert("oil_wells".to_string(), (base_mines as f64 * rng.gen_range(0.2..1.0)) as i64);
+                limits.insert("natural_gas_wells".to_string(), (base_mines as f64 * rng.gen_range(0.5..1.5)) as i64);
             }
             Climate::Balanced => {
                 for key in limits.keys().cloned().collect::<Vec<_>>() {
@@ -298,10 +298,10 @@ fn base_mine_template() -> BTreeMap<String, i64> {
     BTreeMap::from([
         ("coal_mine".to_string(), 0),
         ("iron_mine".to_string(), 0),
-        ("Kopalnia Boksytu".to_string(), 0),
-        ("Kopalnie Metali Kolorowych".to_string(), 0),
-        ("Szyby Naftowe".to_string(), 0),
-        ("Kopalnie Gazu Ziemnego".to_string(), 0),
+        ("bauxite_mine".to_string(), 0),
+        ("nonferrous_metal_mines".to_string(), 0),
+        ("oil_wells".to_string(), 0),
+        ("natural_gas_wells".to_string(), 0),
     ])
 }
 
@@ -653,7 +653,7 @@ pub struct HolySite {
     /// Pilgrimage attractiveness (0.0–1.0, higher = more famous).
     #[serde(default)]
     pub pilgrimage_attractiveness: f64,
-    /// Display name for localization (Polish).
+    /// Display name for localization.
     #[serde(default)]
     pub display_name: String,
 }
@@ -865,7 +865,7 @@ pub struct ClassDemographics {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub brokerage_account: Option<crate::securities::BrokerageAccount>,
 
-    /// Phase 13: Religion practiced by this demographic class (e.g., "Katolicyzm", "Islam").
+    /// Phase 13: Religion practiced by this demographic class (e.g., "Catholicism", "Islam").
     /// Defaults to country-level religion if empty (migration on load).
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub religion: String,
@@ -1688,27 +1688,6 @@ fn generate_class_demographics(region_pop: i64, start_year: u32, development_lev
         rural_classes,
         urban_classes,
     }
-}
-
-fn build_adjacency_graph(regions: &[Region]) -> HashMap<String, Vec<String>> {
-    let mut graph = HashMap::new();
-    let n = regions.len();
-    for (i, region) in regions.iter().enumerate() {
-        let mut neighbors = Vec::new();
-        if n > 1 {
-            neighbors.push(regions[(i + 1) % n].id.clone());
-            neighbors.push(regions[(i + n - 1) % n].id.clone());
-        }
-        if region.is_capital && n > 1 {
-            for other in regions {
-                if other.id != region.id && !neighbors.contains(&other.id) {
-                    neighbors.push(other.id.clone());
-                }
-            }
-        }
-        graph.insert(region.id.clone(), neighbors);
-    }
-    graph
 }
 
 /// Build structured edges for regions (new graph-based system).

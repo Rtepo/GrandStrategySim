@@ -306,10 +306,10 @@ mod tests {
 
     fn dummy_country() -> Country {
         let mut country = Country::mock_for_tests();
-        country.name = "Iliria".to_string();
+        country.name = "Illyria".to_string();
         country.budget = treasury_with_employment();
         country.macro_indicators = serde_json::from_str(
-            r#"{"inflation":0.0,"gini":0.0,"social_unrest":0.0,"wealth_bracket":"high","productivity":1.0,"currency":"ILI","energy_mix":{"coal":0.0,"natural_gas":0.0,"uranium":0.0,"renewables":1.0},"average_wage":1.0,"culture":"Iliria","cultural_group":"","religion":""}"#,
+            r#"{"inflation":0.0,"gini":0.0,"social_unrest":0.0,"wealth_bracket":"high","productivity":1.0,"currency":"ILI","energy_mix":{"coal":0.0,"natural_gas":0.0,"uranium":0.0,"renewables":1.0},"average_wage":1.0,"culture":"Illyria","cultural_group":"","religion":""}"#,
         )
         .unwrap();
         country.tax_rates = serde_json::from_str(
@@ -321,13 +321,13 @@ mod tests {
 
     fn dummy_ctx<'a>(country: &'a mut Country, registries: &'a Registries) -> CountryTurnCtx<'a> {
         CountryTurnCtx {
-            country_name: "Iliria".to_string(),
+            country_name: "Illyria".to_string(),
             turn: 0,
             year: 2020,
             registries,
             country,
             buildings: Vec::new(),
-            market_prices: std::collections::HashMap::new(),
+            market_prices: rustc_hash::FxHashMap::default(),
         }
     }
 

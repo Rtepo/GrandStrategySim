@@ -1,9 +1,10 @@
 #![allow(missing_docs)]
 
 use crate::international::DiplomaticRelation;
-use crate::politics::vip_registry::{DiplomaticPostType, VipRoleExtended};
+use crate::politics::vip_registry::DiplomaticPostType;
 use crate::state::GameState;
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Generates the full bilateral diplomacy matrix for a set of countries.
@@ -44,8 +45,48 @@ pub fn generate_diplomacy(countries: &[String]) -> HashMap<String, HashMap<Strin
     diplomacy
 }
 
+/// Phase 78: Diplomatic post capacity configuration.
+///
+/// Defines the maximum number of diplomats of each type that a country
+/// can post to a single host country. These are structural limits based
+/// on diplomatic protocol, not magic numbers.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct DiplomaticPostCap {
+    /// Maximum ambassadors per host country (1 — only one chief of mission).
+    pub ambassador: usize,
+    /// Maximum consuls per host country (2 — consular representation).
+    pub consul: usize,
+    /// Maximum spies per host country (3 — higher risk justifies more).
+    pub spy: usize,
+    /// Maximum military attachés per host country (1 — single defense liaison).
+    pub military_attache: usize,
+}
+
+impl Default for DiplomaticPostCap {
+    fn default() -> Self {
+        Self {
+            ambassador: 1,
+            consul: 2,
+            spy: 3,
+            military_attache: 1,
+        }
+    }
+}
+
+impl DiplomaticPostCap {
+    /// Returns the cap for a given diplomatic post type.
+    pub fn for_post_type(&self, post_type: &DiplomaticPostType) -> usize {
+        match post_type {
+            DiplomaticPostType::Ambassador => self.ambassador,
+            DiplomaticPostType::Consul => self.consul,
+            DiplomaticPostType::Spy => self.spy,
+            DiplomaticPostType::MilitaryAttache => self.military_attache,
+        }
+    }
+}
+
 /// Phase 66: Count diplomats of a given type posted from `home` to `host`.
-fn count_diplomats(state: &GameState, home: &str, host: &str, post_type: &DiplomaticPostType) -> usize {
+pub fn count_diplomats(state: &GameState, home: &str, host: &str, post_type: &DiplomaticPostType) -> usize {
     let Some(country) = state.countries.get(home) else {
         return 0;
     };

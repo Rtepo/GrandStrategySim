@@ -54,15 +54,6 @@ pub fn perishability_registry() -> &'static HashMap<Commodity, PerishabilityProf
             },
         );
         m.insert(
-            Commodity::Protein,
-            PerishabilityProfile {
-                max_turns_general: 10,
-                decay_rate_general: 0.10,
-                max_turns_cold: 20,
-                decay_rate_cold: 0.05,
-            },
-        );
-        m.insert(
             Commodity::Fodder,
             PerishabilityProfile {
                 max_turns_general: 8,

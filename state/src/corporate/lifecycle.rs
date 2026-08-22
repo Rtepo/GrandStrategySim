@@ -8,7 +8,9 @@ use crate::economy::market::MarketSignal;
 use crate::entities::{Building, Company, FamilyBusinessData, LegalForm};
 use crate::registries::enums::Sector;
 use crate::state::Country;
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
+
+type HashMap<K, V> = FxHashMap<K, V>;
 
 /// CompanyLifecycle service manages organic birth and death of companies.
 ///
@@ -141,7 +143,7 @@ impl CompanyLifecycle {
                         format!("building_{}", building.id),
                         company_fixed_capital,
                         company_id.clone(),
-                        HashMap::new(),
+                        std::collections::HashMap::new(),
                         &crate::state::BankruptcyPolicy::with_defaults(),
                     );
                     building.owner_id.clear();
@@ -322,10 +324,10 @@ mod tests {
 
         let market_signal = MarketSignal {
             interest_rate: 0.20, // Too high
-            sector_pmi: HashMap::new(),
-            demand_surplus: HashMap::new(),
-            global_surplus: HashMap::new(),
-            prices: HashMap::new(),
+            sector_pmi: HashMap::default(),
+            demand_surplus: HashMap::default(),
+            global_surplus: HashMap::default(),
+            prices: HashMap::default(),
             stock_confidence: 50.0,
             stock_index: 1000.0,
         };
@@ -351,10 +353,10 @@ mod tests {
 
         let market_signal = MarketSignal {
             interest_rate: 0.05,
-            sector_pmi: HashMap::new(),
-            demand_surplus: HashMap::new(),
-            global_surplus: HashMap::new(),
-            prices: HashMap::new(),
+            sector_pmi: HashMap::default(),
+            demand_surplus: HashMap::default(),
+            global_surplus: HashMap::default(),
+            prices: HashMap::default(),
             stock_confidence: 50.0,
             stock_index: 1000.0,
         };

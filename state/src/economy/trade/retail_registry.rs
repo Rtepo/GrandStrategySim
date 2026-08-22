@@ -92,14 +92,6 @@ pub fn commodity_profile_map() -> &'static BTreeMap<Commodity, CommodityProfile>
             },
         );
         m.insert(
-            Commodity::Protein,
-            CommodityProfile {
-                attractiveness_multiplier: 1.3,
-                storage_sqm_per_unit: 0.03,
-                perishable: true,
-            },
-        );
-        m.insert(
             Commodity::Fruit,
             CommodityProfile {
                 attractiveness_multiplier: 1.15,
@@ -280,7 +272,7 @@ pub fn is_compatible(profile: StoreProfile, commodity: Commodity) -> bool {
         ),
         StoreProfile::Butcher => matches!(
             commodity,
-            Commodity::Meat | Commodity::Protein | Commodity::Fish
+            Commodity::Meat | Commodity::Fish
         ),
         StoreProfile::Bakery => matches!(commodity, Commodity::Cereal | Commodity::Food),
         StoreProfile::Clothing => matches!(

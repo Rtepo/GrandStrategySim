@@ -396,8 +396,9 @@ pub struct Company {
     #[serde(default)]
     pub temporary_disruption_modifier: f64,
     /// Phase 6.2: Target FTE demand for this turn (before liquidity clamping)
+    /// Phase 77: Changed from f64 to u32 — humans are discrete units.
     #[serde(default)]
-    pub target_fte_demand: f64,
+    pub target_fte_demand: u32,
     /// Phase 6.2: Offered wage per FTE (currency units per FTE)
     #[serde(default)]
     pub offered_wage_per_fte: f64,
@@ -428,16 +429,19 @@ pub struct Company {
     #[serde(default)]
     pub is_striking: bool,
     /// Phase 6.2: FTE actually secured after market clearing
+    /// Phase 77: Changed from f64 to u32 — humans are discrete units.
     #[serde(default)]
-    pub fulfilled_fte: f64,
+    pub fulfilled_fte: u32,
     /// Phase 37: FTE secured in the previous turn. Used for hiring frictions
     /// (max 15% growth per turn) and severance pay calculations.
+    /// Phase 77: Changed from f64 to u32 — humans are discrete units.
     #[serde(default)]
-    pub prev_fulfilled_fte: f64,
+    pub prev_fulfilled_fte: u32,
     /// Phase 6.3: Physical FTE demand (raw requirement before liquidity clamping)
     /// Used for rot calculation to prevent "Broke Farmer Exploit"
+    /// Phase 77: Changed from f64 to u32 — humans are discrete units.
     #[serde(default)]
-    pub physical_fte_demand: f64,
+    pub physical_fte_demand: u32,
     /// Phase 6.3: Receivership status (Commissionership) for bankrupt agricultural companies
     #[serde(default)]
     pub is_in_receivership: bool,
@@ -642,16 +646,16 @@ impl Company {
             fund_type: None,
             fund_ledger: None,
             temporary_disruption_modifier: 0.0,
-            target_fte_demand: worker_capacity as f64,
+            target_fte_demand: worker_capacity,
             offered_wage_per_fte: 0.0,
             prev_offered_wage_per_fte: 0.0,
             wage_arrears: 0.0,
             productivity_penalty: 0.0,
             target_wage: 0.0,
             is_striking: false,
-            fulfilled_fte: 0.0,
-            prev_fulfilled_fte: 0.0,
-            physical_fte_demand: worker_capacity as f64,
+            fulfilled_fte: 0,
+            prev_fulfilled_fte: 0,
+            physical_fte_demand: worker_capacity,
             is_in_receivership: false,
             agricultural_profile: None,
             rd_budget: 0.0,
@@ -732,25 +736,25 @@ pub struct ClusterInfo {
     pub extra: Map<String, Value>,
 }
 
-/// The active production method stored on a building (`"aktywna_metoda"`).
+/// The active production method stored on a building (`"active_method"`).
 ///
 /// This is the concrete, runtime method selected for the building. Inputs and
 /// outputs are strictly typed as [`Commodity`] keys.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct ActiveProductionMethod {
-    /// Year this method becomes available (`"rok"`).
+    /// Year this method becomes available (`"year"`).
     #[serde(default)]
     pub year: u32,
-    /// Expert labor ratio (`"eksperci"`).
+    /// Expert labor ratio (`"experts_ratio"`).
     #[serde(default)]
     pub experts_ratio: f64,
-    /// Skilled labor ratio (`"sredni"`).
+    /// Skilled labor ratio (`"skilled_ratio"`).
     #[serde(default)]
     pub skilled_ratio: f64,
-    /// Basic labor ratio (`"szeregowi"`).
+    /// Basic labor ratio (`"basic_ratio"`).
     #[serde(default)]
     pub basic_ratio: f64,
-    /// Efficiency multiplier (`"wydajnosc"`).
+    /// Efficiency multiplier (`"efficiency"`).
     #[serde(default = "default_efficiency")]
     pub efficiency: f64,
     /// Per-1000-worker inputs consumed (`"inputs"`).
@@ -775,6 +779,12 @@ pub struct ActiveProductionMethod {
     /// based on the actual `calorific_value_mj_per_unit()` of input fuels.
     #[serde(default)]
     pub thermal_efficiency: f64,
+    /// Phase 79: Round-trip storage efficiency (0.0-1.0) for energy storage methods.
+    /// Fraction of input Energy recovered as output Energy. 0.0 for non-storage
+    /// methods (default). Used by `process_building_cycle()` to enforce strict
+    /// conservation: `output_energy = input_energy * storage_efficiency`.
+    #[serde(default)]
+    pub storage_efficiency: f64,
     /// Any additional method fields.
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -784,46 +794,46 @@ fn default_efficiency() -> f64 {
     1.0
 }
 
-/// A single building / production site (`budynek`).
+/// A single building / production site (`building`).
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct Building {
     /// Building identifier (`"id"`).
     #[serde(default)]
     pub id: String,
-    /// Building name / kind (`"nazwa"`), e.g. `Cementownia`.
+    /// Building name / kind (`"name"`), e.g. `Cement Plant`.
     #[serde(default)]
     pub name: String,
-    /// Owner company id (`"wlasciciel_id"`).
+    /// Owner company id (`"owner_id"`).
     #[serde(default)]
     pub owner_id: String,
-    /// Year built (`"rok_budowy"`).
+    /// Year built (`"year_built"`).
     #[serde(default)]
     pub year_built: u32,
-    /// GDP sector (`"sektor_pkb"`).
+    /// GDP sector (`"gdp_sector"`).
     #[serde(default)]
     pub sector: Sector,
-    /// Worker capacity (`"pojemnosc_pracownikow"`).
+    /// Worker capacity (`"worker_capacity"`).
     #[serde(default)]
     pub worker_capacity: u32,
-    /// Current employment (`"zatrudnienie_aktualne"`).
+    /// Current employment (`"current_employment"`).
     #[serde(default)]
     pub current_employment: u32,
-    /// Cash reserve of the building (`"rezerwa_zakladowa"`).
+    /// Cash reserve of the building (`"reserve"`).
     #[serde(default)]
     pub reserve: f64,
-    /// Active production method (`"aktywna_metoda"`).
+    /// Active production method (`"active_method"`).
     #[serde(default)]
     pub active_method: ActiveProductionMethod,
-    /// Accidents in the last year (`"wypadki_ost_rok"`).
+    /// Accidents in the last year (`"accidents_last_year"`).
     #[serde(default)]
     pub accidents_last_year: u32,
-    /// Whether the building is on strike (`"strajk"`).
+    /// Whether the building is on strike (`"strike"`).
     #[serde(default)]
     pub strike: bool,
     /// Cluster scale factor (`"scale_factor"`).
     #[serde(default)]
     pub scale_factor: u32,
-    /// Building construction capacity (`"pojemnosc_budowlana"`).
+    /// Building construction capacity (`"building_capacity"`).
     #[serde(default)]
     pub building_capacity: u32,
     /// Region id (`"region_id"`).
@@ -832,10 +842,10 @@ pub struct Building {
     /// Cluster metadata (`"cluster_info"`).
     #[serde(default)]
     pub cluster_info: ClusterInfo,
-    /// Last turn production by commodity (`"ostatnia_produkcja"`).
+    /// Last turn production by commodity (`"last_production"`).
     #[serde(default)]
     pub last_production: BTreeMap<Commodity, f64>,
-    /// Last turn profit (`"rentownosc_ost_rok"`).
+    /// Last turn profit (`"last_profit"`).
     #[serde(default)]
     pub last_profit: f64,
     /// Building condition (0.0-1.0), degrades over time, restored by maintenance.
@@ -850,7 +860,7 @@ pub struct Building {
     /// Whether this building is a protected heritage site.
     #[serde(default)]
     pub is_heritage_site: bool,
-    /// Experience level, e.g. for military bases (`"poziom_doswiadczenia"`).
+    /// Experience level, e.g. for military bases (`"experience_level"`).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub experience_level: Option<f64>,
     /// Aggregate production/employment statistics for the cluster.

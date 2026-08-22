@@ -174,8 +174,8 @@ fn trigger_strikes(
         // Phase 41: Trigger strike if >10% layoff (FTE drop from prev to current).
         let prev_fte = company.prev_fulfilled_fte;
         let current_fte = company.fulfilled_fte;
-        if prev_fte > 0.0 {
-            let layoff_pct = (prev_fte - current_fte) / prev_fte;
+        if prev_fte > 0 {
+            let layoff_pct = (prev_fte as f64 - current_fte as f64) / prev_fte as f64;
             if layoff_pct > 0.10 {
                 company.is_striking = true;
                 strikes_triggered += 1;
@@ -203,11 +203,11 @@ fn pay_strike_benefits(union: &mut Union, companies: &mut [Company], country: &m
     for company in companies.iter() {
         if company.is_striking && company.union_id.as_ref() == Some(&union.id) {
             let striking_fte = company.fulfilled_fte;
-            total_strike_pay += striking_fte * strike_pay_per_fte;
+            total_strike_pay += striking_fte as f64 * strike_pay_per_fte;
             // Phase 41: We need to credit the savings of the workers' class.
             // For simplicity, credit to the urban working class in the company's region.
             // The actual class is tracked by the labor market; we use a reasonable default.
-            striking_company_regions.push((company.region_id.clone(), "Robotnicy".to_string(), striking_fte));
+            striking_company_regions.push((company.region_id.clone(), "Robotnicy".to_string(), striking_fte as f64));
         }
     }
 

@@ -852,11 +852,11 @@ mod tests {
             min_age: None,
             max_age: None,
             nationality: None,
-            religion: Some("Katolicyzm".to_string()),
+            religion: Some("Catholicism".to_string()),
         };
         let class = ClassDemographics {
             population: 100,
-            religion: "Katolicyzm".to_string(),
+            religion: "Catholicism".to_string(),
             ..Default::default()
         };
         let (eligible, _) = check_eligibility(&target, &class, 10.0);
@@ -869,7 +869,7 @@ mod tests {
             min_age: None,
             max_age: None,
             nationality: None,
-            religion: Some("Katolicyzm".to_string()),
+            religion: Some("Catholicism".to_string()),
         };
         let class = ClassDemographics {
             population: 100,

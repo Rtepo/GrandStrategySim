@@ -446,7 +446,7 @@ mod tests {
             id.to_string(),
             unit_type,
             manpower,
-            HashMap::new(),
+            rustc_hash::FxHashMap::default(),
             "home".to_string(),
         )
     }

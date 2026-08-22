@@ -13,7 +13,9 @@ use crate::registries::enums::{Commodity, Sector};
 use crate::society::geography::{ClassDemographics, RuralClass, Region};
 use crate::military::units::{MilitaryUnit, UnitType};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
+
+type HashMap<K, V> = FxHashMap<K, V>;
 
 // ============================================================================
 // CONSCRIPTION LEVEL
@@ -386,8 +388,8 @@ pub fn execute_conscription(
     // Collect recruits from each region's demographics
     // We iterate regions, and for each region, iterate rural and urban classes
     let mut total_recruits: i64 = 0;
-    let mut manpower_origin: HashMap<RuralClass, i64> = HashMap::new();
-    let mut regional_breakdown: HashMap<String, i64> = HashMap::new();
+    let mut manpower_origin: HashMap<RuralClass, i64> = HashMap::default();
+    let mut regional_breakdown: HashMap<String, i64> = HashMap::default();
 
     // First pass: calculate how many recruits each region/class provides
     // We collect the data first, then mutate, to avoid borrow issues

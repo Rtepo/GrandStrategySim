@@ -20,7 +20,10 @@ use crate::economy::production::ProductionResult;
 use crate::economy::transfer_settler::{credit_company_by_id, debit_company_by_id};
 use crate::entities::{Building, Company};
 use crate::registries::enums::{Commodity, Sector};
-use std::collections::{BTreeMap, HashMap};
+use rustc_hash::FxHashMap;
+use std::collections::BTreeMap;
+
+type HashMap<K, V> = FxHashMap<K, V>;
 
 /// Dynamically compute aggregate inventory for a company by iterating its buildings.
 ///
@@ -184,7 +187,22 @@ pub fn submit_company_b2b_orders(
 
         // Compute inventory utilization for dynamic pricing
         let utilization = compute_inventory_utilization(company, buildings);
-        let markup = calculate_dynamic_markup(utilization, config);
+        let dynamic_markup = calculate_dynamic_markup(utilization, config);
+
+        // Phase 76: Bootstrap pricing when no VWAP exists (Turn 0 condition).
+        // When the market has no transaction history, the dynamic markup would
+        // set seller asks at 3× reference (scarcity pricing for empty inventory),
+        // while buyers bid at 1.05× reference. This spread never crosses, so no
+        // trades execute and no VWAP is ever established — a deadlock.
+        // Bootstrap: use min_markup_ratio (0.0) so sellers ask at ref×1.0 while
+        // buyers bid at ref×1.05, guaranteeing spread crossing on Turn 0.
+        let is_bootstrap = market_history.vwap_per_commodity.is_empty()
+            && market_history.last_trade_price.is_empty();
+        let markup = if is_bootstrap {
+            config.min_markup_ratio
+        } else {
+            dynamic_markup
+        };
 
         // Maximum cash to encumber for input purchases
         let max_encumber = liquid * config.max_cash_encumbrance_ratio;
@@ -370,7 +388,7 @@ pub fn submit_company_b2b_orders(
             let production_scale = building.current_employment as f64 / 1000.0;
 
             // Calculate unit cost for this building's output
-            let mut ref_prices: HashMap<Commodity, f64> = HashMap::new();
+            let mut ref_prices: HashMap<Commodity, f64> = HashMap::default();
             for (&input_commodity, _) in &method.inputs {
                 if let Some(price) = get_reference_price(&input_commodity, market_history) {
                     ref_prices.insert(input_commodity, price);
@@ -385,12 +403,16 @@ pub fn submit_company_b2b_orders(
                     continue;
                 }
 
-                // Phase 37: Per-commodity sell price with fallback chain:
+                // Phase 37/76: Per-commodity sell price with fallback chain:
                 // 1. unit_cost * (1 + markup) — cost-based pricing
                 // 2. get_reference_price(commodity) * (1 + markup) — market-based
                 // 3. global_base_prices[commodity] * (1 + min_markup) — floor price
                 // This ensures producers always submit asks when they have workers,
                 // breaking the "no VWAP → no asks → no trades → no VWAP" deadlock.
+                //
+                // Phase 76 Rule 8 Enforcement: A rational actor NEVER sells below
+                // actual unit_cost. The final ask price is clamped to
+                // max(sell_price, unit_cost) when unit_cost > 0.0.
                 let sell_price = if unit_cost > 0.0 {
                     unit_cost * (1.0 + markup)
                 } else if let Some(ref_p) = get_reference_price(&commodity, market_history) {
@@ -399,6 +421,14 @@ pub fn submit_company_b2b_orders(
                     base_p * (1.0 + config.min_markup_ratio)
                 } else {
                     continue;
+                };
+
+                // Phase 76: Rule 8 — Rational Actor Pricing Floor.
+                // Never sell below actual production cost.
+                let sell_price = if unit_cost > 0.0 {
+                    sell_price.max(unit_cost)
+                } else {
+                    sell_price
                 };
 
                 if sell_price <= 0.0 {
@@ -637,9 +667,9 @@ pub fn settle_trades_with_tariffs(
     companies: &mut [Company],
     buildings: &mut [Building],
     country: &mut crate::state::Country,
-    company_country: &HashMap<String, String>,
-    diplomacy: &HashMap<String, HashMap<String, crate::international::DiplomaticRelation>>,
-    country_to_currency: &HashMap<String, String>,
+    company_country: &std::collections::HashMap<String, String>,
+    diplomacy: &std::collections::HashMap<String, std::collections::HashMap<String, crate::international::DiplomaticRelation>>,
+    country_to_currency: &std::collections::HashMap<String, String>,
 ) -> Vec<String> {
     // Phase 1: Standard settlement (cash + inventory)
     let messages = settle_trades(trades, companies, buildings);
@@ -913,7 +943,7 @@ pub fn execute_production_cycle(
     companies: &mut [Company],
     config: &B2bOrderConfig,
     sector_filter: Option<Sector>,
-    efficiency_penalties: Option<&HashMap<String, f64>>,
+    efficiency_penalties: Option<&std::collections::HashMap<String, f64>>,
     gen_config: &crate::economy::generative_goods_config::GenerativeGoodsConfig,
     frontier_year: u32,
 ) -> Vec<ProductionResult> {
@@ -971,7 +1001,7 @@ pub fn execute_production_cycle(
         }
 
         // Consume inputs (skip fixed-asset commodities — they're not consumed).
-        let mut inputs_consumed: HashMap<Commodity, f64> = HashMap::new();
+        let mut inputs_consumed: HashMap<Commodity, f64> = HashMap::default();
         for (&commodity, &qty_per_1k) in &method.inputs {
             if commodity.is_fixed_asset() {
                 continue;
@@ -991,7 +1021,7 @@ pub fn execute_production_cycle(
         }
 
         // Produce outputs (multiplied by the Phase 19B machinery capacity factor).
-        let mut outputs_produced: HashMap<Commodity, f64> = HashMap::new();
+        let mut outputs_produced: HashMap<Commodity, f64> = HashMap::default();
         for (&commodity, &qty_per_1k) in &method.outputs {
             let produced = qty_per_1k * production_scale * fulfillment_ratio * efficiency * machinery_factor;
             if produced > 0.0 {
@@ -1001,7 +1031,7 @@ pub fn execute_production_cycle(
         }
 
         // Fix 1.21: Track the financial value of destroyed overflow inventory.
-        let unit_cost_for_writeoff = calculate_unit_cost(building, &HashMap::new(), 0.0);
+        let unit_cost_for_writeoff = calculate_unit_cost(building, &HashMap::default(), 0.0);
         let mut inventory_write_down: f64 = 0.0;
         // Phase 29: Track total overflow costs (storage fees + write-downs)
         // for ROI-driven warehouse construction decisions.
@@ -1133,7 +1163,7 @@ pub fn execute_production_cycle(
         // The B2B/B2C cash flows are settled separately via settle_trades and
         // settle_b2c_clearing, but the ProductionResult must reflect the value
         // of outputs produced and inputs consumed for financial statements.
-        let unit_cost = calculate_unit_cost(building, &HashMap::new(), 0.0);
+        let unit_cost = calculate_unit_cost(building, &HashMap::default(), 0.0);
         let input_costs: f64 = inputs_consumed
             .iter()
             .map(|(&commodity, &qty)| {
@@ -1449,7 +1479,7 @@ pub fn submit_fixed_asset_purchase_bids(
             //   replacement_demand = count * (1.0 - condition)
             // This represents the quantity of new machinery needed to restore
             // the building's production capacity to full.
-            let mut replacement_needed: std::collections::HashMap<Commodity, f64> = std::collections::HashMap::new();
+            let mut replacement_needed: std::collections::HashMap<Commodity, f64> = std::collections::HashMap::default();
             for cohort in &building.fixed_assets {
                 if cohort.is_scrapped() {
                     continue;

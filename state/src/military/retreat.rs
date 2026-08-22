@@ -306,7 +306,7 @@ mod tests {
             id.to_string(),
             unit_type,
             manpower,
-            std::collections::HashMap::new(),
+            rustc_hash::FxHashMap::default(),
             "home".to_string(),
         );
         // Add some equipment for retreat loss testing

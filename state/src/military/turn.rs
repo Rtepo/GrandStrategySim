@@ -1,6 +1,8 @@
 //! Military turn processing and war management
 
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
+
+type HashMap<K, V> = FxHashMap<K, V>;
 
 use crate::infrastructure::CapacityType;
 use crate::military::combat::{resolve_battle, process_wounded, process_dead, process_deserters};
@@ -211,7 +213,7 @@ fn process_peasant_devastation(
 ) -> Vec<String> {
     let mut messages = Vec::new();
 
-    let mut peasant_regions: HashMap<String, f64> = HashMap::new();
+    let mut peasant_regions: HashMap<String, f64> = HashMap::default();
     for unit in units {
         if unit.is_peasant_battalion() {
             let foraging_intensity = unit.stats.supply / 100.0;

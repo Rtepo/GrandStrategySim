@@ -232,6 +232,17 @@ pub fn drain_diplomatic_actions(
                 post_type,
                 assigned_turn,
             } => {
+                // Phase 78: Check diplomatic post cap before assignment.
+                // A country cannot post more diplomats of a given type to a
+                // host than the DiplomaticPostCap allows.
+                let cap = crate::international::diplomacy::DiplomaticPostCap::default();
+                let current_count = crate::international::diplomacy::count_diplomats(
+                    state, &home_country, &host_country, &post_type,
+                );
+                if current_count >= cap.for_post_type(&post_type) {
+                    continue; // Cap reached — cannot post another diplomat of this type
+                }
+
                 // Check sufficient funds for diplomat assignment cost
                 let home = state.countries.get_mut(&home_country);
                 if let Some(home) = home {
@@ -578,5 +589,59 @@ mod tests {
         let vip = registry.vips.get("VIP-000001").unwrap();
         assert!(vip.diplomatic_post.is_none(), "Post should be cleared on expulsion");
         assert!(!vip.roles.contains(&VipRoleExtended::Ambassador), "Role should be removed");
+    }
+
+    /// Phase 78: Verify that a second ambassador assignment to the same host
+    /// is rejected due to the DiplomaticPostCap (max 1 ambassador per host).
+    #[test]
+    fn test_assign_diplomat_cap_reached() {
+        let mut state = GameState::default();
+        let mut home = Country::mock_for_tests();
+        home.name = "HomeLand".to_string();
+        home.budget.liquid_reserves = 1_000_000.0;
+
+        let mut registry = VipRegistry::default();
+        // VIP-1 already has an ambassador post to ForeignLand
+        let mut vip1 = Vip {
+            id: "VIP-000001".to_string(),
+            full_name: "First Ambassador".to_string(),
+            ..Vip::default()
+        };
+        vip1.diplomatic_post = Some(crate::politics::vip_registry::DiplomaticPost {
+            host_country: "ForeignLand".to_string(),
+            post_type: DiplomaticPostType::Ambassador,
+            assigned_turn: 1,
+        });
+        vip1.roles.push(VipRoleExtended::Ambassador);
+        registry.vips.insert("VIP-000001".to_string(), vip1);
+
+        // VIP-2 tries to become a second ambassador to the same host
+        let vip2 = Vip {
+            id: "VIP-000002".to_string(),
+            full_name: "Second Ambassador".to_string(),
+            ..Vip::default()
+        };
+        registry.vips.insert("VIP-000002".to_string(), vip2);
+
+        home.politics.vip_registry = Some(registry);
+        state.countries.insert("HomeLand".to_string(), home);
+
+        state.pending_diplomatic_actions.push(DiplomaticAction::AssignDiplomat {
+            vip_id: "VIP-000002".to_string(),
+            home_country: "HomeLand".to_string(),
+            host_country: "ForeignLand".to_string(),
+            post_type: DiplomaticPostType::Ambassador,
+            assigned_turn: 5,
+        });
+
+        let config = DiplomaticConfig::default();
+        drain_diplomatic_actions(&mut state, &config);
+
+        // VIP-2 should NOT have a diplomatic post (cap reached)
+        let home = state.countries.get("HomeLand").unwrap();
+        let registry = home.politics.vip_registry.as_ref().unwrap();
+        let vip2 = registry.vips.get("VIP-000002").unwrap();
+        assert!(vip2.diplomatic_post.is_none(),
+            "Second ambassador should not be assigned — cap of 1 reached");
     }
 }

@@ -191,7 +191,7 @@ pub fn resolve_regional_labor_market(
     let mut bids: Vec<LaborBid> = Vec::new();
     for company in region_companies {
         // Reset fulfilled_fte
-        company.fulfilled_fte = 0.0;
+        company.fulfilled_fte = 0;
 
         // Liquidity clamping
         // Phase 33: Fall back to available_cash if no brokerage_account.
@@ -206,7 +206,7 @@ pub fn resolve_regional_labor_market(
             0.0
         };
 
-        let mut clamped_demand = company.target_fte_demand.min(max_affordable_fte);
+        let mut clamped_demand = (company.target_fte_demand as f64).min(max_affordable_fte);
 
         // Phase 40: FTE retention floor — companies can retain up to 90% of
         // prev_fulfilled_fte even with zero cash, by accruing wage arrears.
@@ -223,9 +223,9 @@ pub fn resolve_regional_labor_market(
             .map(|p| p.current_state == crate::entities::SeasonalState::Furloughed)
             .unwrap_or(false)
         {
-            company.target_fte_demand // standby level
+            company.target_fte_demand as f64 // standby level
         } else {
-            company.prev_fulfilled_fte // normal: 90% of last turn's workforce
+            company.prev_fulfilled_fte as f64 // normal: 90% of last turn's workforce
         };
         let retention_floor = retention_base * FTE_RETENTION_FLOOR;
         if max_affordable_fte < retention_floor && retention_floor > 0.0 {
@@ -239,8 +239,8 @@ pub fn resolve_regional_labor_market(
         // This prevents the ±100% employment swings that destabilize GDP.
         const MAX_HIRING_GROWTH_RATE: f64 = 0.15;
         const SMALL_COMPANY_FTE_THRESHOLD: f64 = 10.0;
-        if company.prev_fulfilled_fte >= SMALL_COMPANY_FTE_THRESHOLD {
-            let max_hireable = company.prev_fulfilled_fte * (1.0 + MAX_HIRING_GROWTH_RATE);
+        if company.prev_fulfilled_fte as f64 >= SMALL_COMPANY_FTE_THRESHOLD {
+            let max_hireable = company.prev_fulfilled_fte as f64 * (1.0 + MAX_HIRING_GROWTH_RATE);
             clamped_demand = clamped_demand.min(max_hireable);
         }
 
@@ -409,7 +409,7 @@ pub fn resolve_regional_labor_market(
 
         // Update company with actual secured FTE (may be less than target due to clamping)
         if let Some(company) = companies.iter_mut().find(|c| c.id == bid.company_id) {
-            company.fulfilled_fte = total_secured_by_company;
+            company.fulfilled_fte = total_secured_by_company.round() as u32;
         }
 
         remaining_pool -= total_secured_by_company;
@@ -441,7 +441,7 @@ pub fn resolve_regional_labor_market(
             // Strike benefits are paid by the union in process_unions.
             continue;
         }
-        let wage_payment = company.fulfilled_fte * company.offered_wage_per_fte;
+        let wage_payment = company.fulfilled_fte as f64 * company.offered_wage_per_fte;
 
         // Compute how much cash is actually available
         let available_cash = company.brokerage_account
@@ -517,7 +517,7 @@ pub fn resolve_regional_labor_market(
     const SEVERANCE_CASH_CAP_RATIO: f64 = 0.30; // Max 30% of cash on severance
     let mut total_severance_to_workers: f64 = 0.0;
     for company in companies.iter_mut().filter(|c| c.region_id == region.id) {
-        let laid_off = company.prev_fulfilled_fte - company.fulfilled_fte;
+        let laid_off = company.prev_fulfilled_fte as f64 - company.fulfilled_fte as f64;
         if laid_off <= 0.0 || company.offered_wage_per_fte <= 0.0 {
             continue;
         }
@@ -700,7 +700,7 @@ mod tests {
         c.id = id.to_string();
         c.region_id = region.to_string();
         c.offered_wage_per_fte = wage;
-        c.target_fte_demand = demand;
+        c.target_fte_demand = demand as u32;
         c.sector = Sector::Agriculture;
         if let Some(ref mut ba) = c.brokerage_account {
             ba.cash = cash;
@@ -733,7 +733,7 @@ mod tests {
 
         // Company demanded 20 FTE, local pool 10 + commuter 5 = 15 available.
         // Should fulfill 15 (or close to it).
-        assert!(companies[0].fulfilled_fte >= 14.0, "fulfilled_fte = {}", companies[0].fulfilled_fte);
+        assert!(companies[0].fulfilled_fte >= 14, "fulfilled_fte = {}", companies[0].fulfilled_fte);
         // Commuter wages should be tracked.
         assert!(alloc.commuter_fte > 0.0, "commuter_fte = {}", alloc.commuter_fte);
         assert!(alloc.commuter_wages > 0.0, "commuter_wages = {}", alloc.commuter_wages);

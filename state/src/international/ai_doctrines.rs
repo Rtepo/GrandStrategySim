@@ -294,7 +294,7 @@ mod tests {
                 format!("unit-{}", i),
                 crate::military::UnitType::Infantry,
                 100,
-                std::collections::HashMap::new(),
+                rustc_hash::FxHashMap::default(),
                 "home".to_string(),
             ));
         }

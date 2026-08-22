@@ -139,7 +139,7 @@ pub fn generate_party_name(
     let mut components = Vec::new();
 
     // Phase 41: Prepend country adjective (50% probability) for immersion.
-    // e.g., "Ilirian Conservative League" instead of just "Conservative League".
+    // e.g., "Illyrian Conservative League" instead of just "Conservative League".
     if rng.gen::<f64>() < 0.5 {
         let adjective = country_adjective(country_name);
         components.push(adjective);
@@ -182,7 +182,7 @@ pub fn generate_party_name(
 /// Phase 41: Derive a country adjective from the country name.
 ///
 /// Simple heuristic: strip common suffixes and add "-ian" or "-ic".
-/// e.g., "Iliria" → "Ilirian", "Germania" → "Germanian", "Poland" → "Polish".
+/// e.g., "Illyria" → "Illyrian", "Germania" → "Germanian", "Poland" → "Polish".
 fn country_adjective(country_name: &str) -> String {
     let name = country_name.trim();
     if name.is_empty() {

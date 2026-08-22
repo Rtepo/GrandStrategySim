@@ -1303,10 +1303,20 @@ fn era4_commercial() -> HashMap<TechId, TechNode> {
         "Rechargeable lithium-ion battery manufacturing.",
         TechType::Commercial, &["lithium_001", "semi_003"],
         &[("heavy_industry", &[("production", "Battery Production")])]);
-    tech(&mut m, "batt_003", "Grid Energy Storage", 2000, 200,
-        "Utility-scale battery storage for grid stabilization.",
-        TechType::Commercial, &["batt_001", "auto3_007"],
-        &[("energy", &[("production", "Battery Storage Facility")])]);
+    // Phase 79: Pumped Storage Hydropower (1907) — first built in Schaffhausen, Switzerland.
+    tech(&mut m, "pstrg_001", "Pumped Storage Hydropower", 1907, 120,
+        "Reversible hydroelectric facility for grid energy buffering.",
+        TechType::Commercial, &["electf_001", "electr_004"],
+        &[("energy", &[("production", "Pumped Storage Plant")])]);
+    // Phase 79: Grid-Scale Battery Storage (1990) — replaces the old batt_003 unlock.
+    tech(&mut m, "batt_002", "Grid-Scale Battery Storage", 1990, 160,
+        "Utility-scale battery banks for grid stabilization and load shifting.",
+        TechType::Commercial, &["batt_001", "elecf_002"],
+        &[("energy", &[("production", "Battery Bank Storage")])]);
+    tech(&mut m, "batt_003", "Advanced Grid Energy Storage", 2000, 200,
+        "Next-generation utility-scale battery storage for grid stabilization.",
+        TechType::Commercial, &["batt_002", "auto3_007"],
+        &[("energy", &[("production", "Battery Bank Storage")])]);
 
     m
 }

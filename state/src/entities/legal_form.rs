@@ -339,34 +339,43 @@ pub struct StrategicReserveData {
     pub max_capacity: std::collections::BTreeMap<String, f64>,
 }
 
-/// Purchase trigger conditions for strategic reserves
+/// Purchase trigger conditions for strategic reserves.
+///
+/// Phase 79: Triggers are now ratio-based relative to a moving-average VWAP,
+/// not static nominal price thresholds. This ensures the SRA remains
+/// inflation-proof across eras (Rule 2: no magic numbers).
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct PurchaseTrigger {
-    /// Buy when price falls below this threshold
+    /// Buy when current price falls below this ratio of the moving-average VWAP.
+    /// E.g., 0.75 means buy when price < 0.75 * moving_avg_vwap (price crash/glut).
     #[serde(default)]
-    pub price_floor: f64,
-    
-    /// Buy when global surplus exceeds this threshold
+    pub buy_threshold_ratio: f64,
+
+    /// Buy when global surplus exceeds this threshold (physical units).
     #[serde(default)]
     pub surplus_threshold: f64,
-    
-    /// Fraction of budget allocation to spend per purchase
+
+    /// Fraction of budget allocation to spend per purchase.
     #[serde(default)]
     pub budget_fraction: f64,
 }
 
-/// Release trigger conditions for strategic reserves
+/// Release trigger conditions for strategic reserves.
+///
+/// Phase 79: Triggers are now ratio-based relative to a moving-average VWAP,
+/// not static nominal price thresholds.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct ReleaseTrigger {
-    /// Release when price exceeds this threshold
+    /// Release when current price exceeds this ratio of the moving-average VWAP.
+    /// E.g., 1.5 means release when price > 1.5 * moving_avg_vwap (supply shock/war).
     #[serde(default)]
-    pub price_ceiling: f64,
-    
-    /// Release when global deficit exceeds this threshold
+    pub sell_threshold_ratio: f64,
+
+    /// Release when global deficit exceeds this threshold (physical units).
     #[serde(default)]
     pub deficit_threshold: f64,
-    
-    /// Fraction of reserves to release per trigger
+
+    /// Fraction of reserves to release per trigger.
     #[serde(default)]
     pub release_fraction: f64,
 }

@@ -163,9 +163,21 @@ pub fn process_church_fund(
             continue;
         }
 
-        let maintenance_cost = maintenance_per_building * building.capacity.max(1.0).min(100.0) / 100.0;
-
+        // Phase 78: Only pay maintenance for buildings whose owning company
+        // has fulfilled staff (clergy). A church with no clergy cannot receive
+        // state funds for an empty building.
         if let Some(ref owner_id) = building.owner_company_id {
+            let has_staff = companies
+                .iter()
+                .find(|c| &c.id == owner_id)
+                .map(|c| c.fulfilled_fte > 0)
+                .unwrap_or(false);
+            if !has_staff {
+                result.buildings_unfunded += 1;
+                continue;
+            }
+
+            let maintenance_cost = maintenance_per_building * building.capacity.max(1.0).min(100.0) / 100.0;
             let affordable = country.budget.liquid_reserves.min(maintenance_cost);
             if affordable > 0.0 {
                 country.budget.liquid_reserves -= affordable;
@@ -319,17 +331,29 @@ pub fn process_monastery_production(
             continue;
         }
 
-        // Estimate production value based on capacity and condition.
+        // Phase 78: Gate production by owning company's labor.
+        // labor_efficiency = fulfilled_fte / building.capacity (capped at 1.0).
+        // A monastery with no monks produces nothing.
+        let owner_id = building.owner_company_id.as_ref().unwrap().clone();
+        let owner_fte = companies
+            .iter()
+            .find(|c| c.id == owner_id)
+            .map(|c| c.fulfilled_fte as f64)
+            .unwrap_or(0.0);
+        let labor_efficiency = (owner_fte / building.capacity.max(1.0)).min(1.0);
+        if labor_efficiency <= 0.0 {
+            continue;
+        }
+
+        // Estimate production value based on capacity, condition, and labor.
         let production_scale = building.capacity.max(1.0).min(100.0) / 100.0;
         let condition_factor = building.condition;
-        let base_output_value = 100.0 * production_scale * condition_factor;
+        let base_output_value = 100.0 * production_scale * condition_factor * labor_efficiency;
 
         // Credit the owning company via TransferSettler (simulated B2B revenue).
-        if let Some(ref owner_id) = building.owner_company_id {
-            let credited = credit_company_by_id(companies, owner_id, base_output_value);
-            if credited {
-                total_value += base_output_value;
-            }
+        let credited = credit_company_by_id(companies, &owner_id, base_output_value);
+        if credited {
+            total_value += base_output_value;
         }
     }
 
@@ -361,7 +385,7 @@ mod tests {
     #[test]
     fn test_secular_remittance_debits_building_cash() {
         let mut country = Country::mock_for_tests();
-        country.macro_indicators.religion = "Katolicyzm".to_string();
+        country.macro_indicators.religion = "Catholicism".to_string();
         country.cultural_institutions = vec![
             make_test_building(1000.0, 500.0, None),
             make_test_building(2000.0, 300.0, None),
@@ -388,7 +412,7 @@ mod tests {
     #[test]
     fn test_state_religion_remittance_debits_treasury() {
         let mut country = Country::mock_for_tests();
-        country.macro_indicators.religion = "Katolicyzm".to_string();
+        country.macro_indicators.religion = "Catholicism".to_string();
         country.budget.liquid_reserves = 100000.0;
         country.cultural_institutions = vec![
             make_test_building(1000.0, 500.0, None),
@@ -421,6 +445,9 @@ mod tests {
         let mut company = Company::default();
         company.id = "religious_co_1".to_string();
         company.sector = crate::registries::enums::Sector::Religion;
+        // Phase 78: Set fulfilled_fte > 0 so the church fund gate passes.
+        company.fulfilled_fte = 5;
+        company.worker_capacity = 10;
         let mut companies = vec![company];
 
         let law = ReligiousLaw {
@@ -483,6 +510,9 @@ mod tests {
         let mut company = Company::default();
         company.id = "monastery_co_1".to_string();
         company.sector = crate::registries::enums::Sector::Religion;
+        // Phase 78: Set fulfilled_fte to match building capacity (50) for full labor efficiency.
+        company.fulfilled_fte = 50;
+        company.worker_capacity = 50;
         let mut companies = vec![company];
 
         let value = process_monastery_production(&mut [building], &mut companies);

@@ -4,7 +4,10 @@
 //! `GlobalMarket` used by the clearing loop in `economy::clearing`.
 
 use crate::registries::enums::{Commodity, Sector};
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
+
+/// Hot-path hash map alias for market internals.
+pub type HashMap<K, V> = FxHashMap<K, V>;
 
 /// One side of a market tally: total buy and sell orders for a single good.
 #[derive(Debug, Clone, Copy, PartialEq, Default)]

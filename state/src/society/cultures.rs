@@ -39,7 +39,7 @@ const CULTURAL_GROUPS: &[(&str, CulturalGroup)] = &[
     (
         "slavic",
         CulturalGroup {
-            nations: &["Lechia", "Sarmatia", "Wenedia", "Krasnowia"],
+            nations: &["Lechia", "Sarmatia", "Venedia", "Krasnovia"],
             obsessions: &["agriculture", "heavy_industry"],
             taboos: &["export_services"],
         },
@@ -47,7 +47,7 @@ const CULTURAL_GROUPS: &[(&str, CulturalGroup)] = &[
     (
         "germanic",
         CulturalGroup {
-            nations: &["Nordia", "Anglia", "Helwecja"],
+            nations: &["Nordia", "Anglia", "Helvetia"],
             obsessions: &["heavy_industry", "export_services"],
             taboos: &["agriculture"],
         },
@@ -55,7 +55,7 @@ const CULTURAL_GROUPS: &[(&str, CulturalGroup)] = &[
     (
         "latin",
         CulturalGroup {
-            nations: &["Galia", "Iberia", "Oksytania", "Dacja"],
+            nations: &["Gallia", "Iberia", "Occitania", "Dacia"],
             obsessions: &["local_services", "light_industry"],
             taboos: &["extractive_sector"],
         },
@@ -63,7 +63,7 @@ const CULTURAL_GROUPS: &[(&str, CulturalGroup)] = &[
     (
         "middle_eastern",
         CulturalGroup {
-            nations: &["Persja", "Baktria", "Anatolia", "Eldoria"],
+            nations: &["Persia", "Bactria", "Anatolia", "Eldoria"],
             obsessions: &["extractive_sector", "local_services"],
             taboos: &["heavy_industry"],
         },
@@ -71,7 +71,7 @@ const CULTURAL_GROUPS: &[(&str, CulturalGroup)] = &[
     (
         "balkan",
         CulturalGroup {
-            nations: &["Iliria", "Tracja", "Pannonia", "Dardania"],
+            nations: &["Illyria", "Thracia", "Pannonia", "Dardania"],
             obsessions: &["agriculture", "light_industry"],
             taboos: &["export_services"],
         },
@@ -101,21 +101,18 @@ fn all_nations() -> Vec<&'static str> {
 /// Generates an English demonym from a nation name using suffix rules.
 ///
 /// # Rules
-/// * Ends in "cja" → replace with "cians" (Helwecja → Helwecians)
-/// * Ends in "sja" → replace with "sians" (Persja → Persians)
-/// * Ends in "tja" → replace with "tians" (Tracja → Tracians)
-/// * Ends in "ia" → replace with "ians" (Baktria → Baktrians, Nordia → Nordians)
+/// * Ends in "tia" → replace with "tians" (Helvetia → Helvetians)
+/// * Ends in "sia" → replace with "sians" (Persia → Persians)
+/// * Ends in "ia" → replace with "ians" (Bactria → Bactrians, Nordia → Nordians)
 /// * Ends in "a" → replace with "ans" (rare fallback)
 /// * Ends in "s" or "x" → unchanged (already plural-sounding)
 /// * Default → append "s"
 pub fn generate_demonym(nation: &str) -> String {
     let lower = nation.to_lowercase();
-    if lower.ends_with("cja") {
-        format!("{}cians", &nation[..nation.len() - 3])
-    } else if lower.ends_with("sja") {
-        format!("{}sians", &nation[..nation.len() - 3])
-    } else if lower.ends_with("tja") {
+    if lower.ends_with("tia") {
         format!("{}tians", &nation[..nation.len() - 3])
+    } else if lower.ends_with("sia") {
+        format!("{}sians", &nation[..nation.len() - 3])
     } else if lower.ends_with("ia") {
         format!("{}ians", &nation[..nation.len() - 2])
     } else if lower.ends_with("a") {
@@ -303,7 +300,7 @@ mod tests {
 
     #[test]
     fn test_demonym_ia_suffix() {
-        assert_eq!(generate_demonym("Baktria"), "Baktrians");
+        assert_eq!(generate_demonym("Bactria"), "Bactrians");
         assert_eq!(generate_demonym("Nordia"), "Nordians");
         assert_eq!(generate_demonym("Lechia"), "Lechians");
         assert_eq!(generate_demonym("Sarmatia"), "Sarmatians");
@@ -314,19 +311,15 @@ mod tests {
     }
 
     #[test]
-    fn test_demonym_cja_suffix() {
-        assert_eq!(generate_demonym("Helwecja"), "Helwecians");
-        assert_eq!(generate_demonym("Dacja"), "Dacians");
+    fn test_demonym_tia_suffix() {
+        assert_eq!(generate_demonym("Helvetia"), "Helvetians");
+        assert_eq!(generate_demonym("Dacia"), "Dacians");
+        assert_eq!(generate_demonym("Thracia"), "Thracians");
     }
 
     #[test]
-    fn test_demonym_sja_suffix() {
-        assert_eq!(generate_demonym("Persja"), "Persians");
-    }
-
-    #[test]
-    fn test_demonym_tja_suffix() {
-        assert_eq!(generate_demonym("Tracja"), "Tracians");
+    fn test_demonym_sia_suffix() {
+        assert_eq!(generate_demonym("Persia"), "Persians");
     }
 
     #[test]

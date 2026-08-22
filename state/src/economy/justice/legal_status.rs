@@ -265,8 +265,8 @@ pub fn trigger_shadow_employment(
         }
         // Phase 34: Raise unmet demand threshold from 50% to 80%.
         // Only trigger shadow employment when labor demand is severely unmet.
-        let unmet_demand = (company.target_fte_demand - company.fulfilled_fte).max(0.0);
-        if unmet_demand < company.target_fte_demand * 0.8 {
+        let unmet_demand = (company.target_fte_demand as f64 - company.fulfilled_fte as f64).max(0.0);
+        if unmet_demand < company.target_fte_demand as f64 * 0.8 {
             continue;
         }
         // Skip if no cash to pay shadow wages

@@ -28,7 +28,9 @@ use crate::politics::parliament::StateOfEmergency;
 use crate::politics::system::{GovernmentForm, Politics};
 use crate::registries::enums::{Commodity, Sector};
 use crate::state::Country;
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
+
+type HashMap<K, V> = FxHashMap<K, V>;
 
 // ============================================================================
 // CRISIS ACTION CLASSIFICATION (Phase 32)
@@ -1609,7 +1611,7 @@ mod tests {
 
     #[test]
     fn subsistence_wage_uses_commodity_food_enum() {
-        let mut prices = HashMap::new();
+        let mut prices = HashMap::default();
         prices.insert(Commodity::Food, 75.0);
         let sw = compute_subsistence_wage(&prices);
         // 200/24 * 75 = 625.0
@@ -1618,7 +1620,7 @@ mod tests {
 
     #[test]
     fn subsistence_wage_fallback_when_no_price() {
-        let prices = HashMap::new();
+        let prices = HashMap::default();
         let sw = compute_subsistence_wage(&prices);
         // Fallback food price = 50.0, so 200/24 * 50 = 416.67
         assert!((sw - (200.0 / 24.0 * 50.0)).abs() < 1e-9);
@@ -2006,7 +2008,7 @@ mod tests {
         country.macro_indicators.labor_market.unemployment_rate = 20.0; // 20%
         country.macro_indicators.average_wage = 300.0; // Low wage
 
-        let mut prices = HashMap::new();
+        let mut prices = HashMap::default();
         prices.insert(Commodity::Food, 100.0);
 
         let indicators = detect_crisis(&country, &prices, 0, 0);

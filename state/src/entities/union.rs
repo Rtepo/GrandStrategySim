@@ -36,7 +36,7 @@ pub struct Union {
     /// Union identifier.
     #[serde(default)]
     pub id: String,
-    /// Union name (`"nazwa"`).
+    /// Union name (`"name"`).
     #[serde(default)]
     pub name: String,
     /// Scope of the union.

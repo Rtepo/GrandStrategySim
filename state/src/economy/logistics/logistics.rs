@@ -214,7 +214,7 @@ fn edge_fuel_cost_per_km(
     edge: &crate::society::geography::Edge,
     overlay: &TransportNetworkOverlay,
     config: &FreightLogisticsConfig,
-    fuel_prices: &HashMap<Commodity, f64>,
+    fuel_prices: &rustc_hash::FxHashMap<Commodity, f64>,
 ) -> f64 {
     match edge.edge_type {
         EdgeType::LandBorder | EdgeType::River if !edge.is_navigable => {
@@ -255,7 +255,7 @@ fn edge_weight(
     edge: &crate::society::geography::Edge,
     overlay: &TransportNetworkOverlay,
     config: &FreightLogisticsConfig,
-    fuel_prices: &HashMap<Commodity, f64>,
+    fuel_prices: &rustc_hash::FxHashMap<Commodity, f64>,
 ) -> f64 {
     let friction = edge_friction(from_region, to_region_id, edge, overlay, config);
     let fuel_cost = edge_fuel_cost_per_km(from_region, to_region_id, edge, overlay, config, fuel_prices);
@@ -292,7 +292,7 @@ pub fn compute_freight_route(
     regions: &[Region],
     overlay: &TransportNetworkOverlay,
     config: &FreightLogisticsConfig,
-    fuel_prices: &HashMap<Commodity, f64>,
+    fuel_prices: &rustc_hash::FxHashMap<Commodity, f64>,
     diplomacy: &HashMap<String, HashMap<String, DiplomaticRelation>>,
     buyer_country: &str,
     seller_country: &str,
@@ -613,8 +613,6 @@ struct FreightProcurementResult {
     freight_producer_idx: Option<usize>,
     /// Freight capacity consumed from the producer.
     capacity_consumed: f64,
-    /// Freight cost paid by the buyer.
-    freight_cost: f64,
     /// Reason for failure (if not secured).
     failure_reason: Option<DeferredReason>,
 }
@@ -645,7 +643,7 @@ pub fn procure_freight_and_split_trades(
     overlay: &mut TransportNetworkOverlay,
     config: &FreightLogisticsConfig,
     country: &mut Country,
-    fuel_prices: &HashMap<Commodity, f64>,
+    fuel_prices: &rustc_hash::FxHashMap<Commodity, f64>,
     diplomacy: &HashMap<String, HashMap<String, DiplomaticRelation>>,
     company_country: &HashMap<String, String>,
 ) -> (Vec<Trade>, Vec<DeferredTrade>) {
@@ -773,7 +771,6 @@ pub fn procure_freight_and_split_trades(
                             secured: true,
                             freight_producer_idx: Some(producer_idx),
                             capacity_consumed: capacity_needed,
-                            freight_cost: total_cost,
                             failure_reason: None,
                         }
                     }
@@ -781,14 +778,12 @@ pub fn procure_freight_and_split_trades(
                         secured: false,
                         freight_producer_idx: Some(producer_idx),
                         capacity_consumed: 0.0,
-                        freight_cost: 0.0,
                         failure_reason: Some(DeferredReason::UnaffordableFreight),
                     },
                     Err(_) => FreightProcurementResult {
                         secured: false,
                         freight_producer_idx: Some(producer_idx),
                         capacity_consumed: 0.0,
-                        freight_cost: 0.0,
                         failure_reason: Some(DeferredReason::NoFreightCapacity),
                     },
                 }
@@ -798,7 +793,6 @@ pub fn procure_freight_and_split_trades(
                     secured: false,
                     freight_producer_idx: None,
                     capacity_consumed: 0.0,
-                    freight_cost: 0.0,
                     failure_reason: Some(DeferredReason::NoFreightCapacity),
                 }
             }
@@ -1068,8 +1062,8 @@ mod tests {
     }
 
     /// Helper: empty fuel prices (no fuel cost impact).
-    fn empty_fuel_prices() -> HashMap<Commodity, f64> {
-        HashMap::new()
+    fn empty_fuel_prices() -> rustc_hash::FxHashMap<Commodity, f64> {
+        rustc_hash::FxHashMap::default()
     }
 
     /// Helper: empty diplomacy (no blockades).
@@ -1393,7 +1387,7 @@ mod tests {
         let overlay = TransportNetworkOverlay::default();
         // Two paths: r1→r2 direct (100km land) vs r1→r3→r2 (50+50km land)
         // With high fuel prices, the shorter route should be preferred.
-        let mut fuel_prices = HashMap::new();
+        let mut fuel_prices = rustc_hash::FxHashMap::default();
         fuel_prices.insert(Commodity::Fuels, 10.0); // High fuel price
         let regions = vec![
             make_region("r1", vec![

@@ -98,8 +98,8 @@ pub struct SectorRow {
     pub company_count: usize,
     /// Percentage share of total wages paid (proxy for GDP share).
     pub pct_gdp_share: f64,
-    /// Total employment (sum of fulfilled_fte).
-    pub total_employment: f64,
+    /// Total employment (sum of fulfilled_fte). Phase 77: Integer headcount.
+    pub total_employment: u32,
     /// Average wage in this sector.
     pub average_wage: f64,
     /// Phase 28: PMI (Purchasing Managers Index) for this sector (0-100).
@@ -1124,7 +1124,7 @@ pub struct CompanyRow {
     pub name: String,
     pub sector: String,
     pub region: String,
-    pub fulfilled_fte: f64,
+    pub fulfilled_fte: u32,
     pub average_wage: f64,
     pub seasonal_state: String,
     pub wage_arrears: f64,
@@ -1145,8 +1145,8 @@ pub struct CompanyDetail {
     /// Phase 54: Resolved CEO ideology from the VIP registry.
     pub ceo_ideology: Option<String>,
     pub union_id: Option<String>,
-    pub fulfilled_fte: f64,
-    pub fte_demand: f64,
+    pub fulfilled_fte: u32,
+    pub fte_demand: u32,
     pub average_wage: f64,
     pub seasonal_state: String,
     pub furloughed_workers_count: f64,
@@ -3032,12 +3032,13 @@ fn aggregate_sectors(companies: &[Company], country: &Country) -> Vec<SectorRow>
     use std::collections::HashMap;
 
     // Accumulate per-sector: (count, total_fte, total_wages)
-    let mut by_sector: HashMap<Sector, (usize, f64, f64)> = HashMap::new();
+    // Phase 77: total_fte is u32 (integer headcount), total_wages is f64
+    let mut by_sector: HashMap<Sector, (usize, u32, f64)> = HashMap::new();
     for c in companies {
-        let entry = by_sector.entry(c.sector).or_insert((0, 0.0, 0.0));
+        let entry = by_sector.entry(c.sector).or_insert((0, 0, 0.0));
         entry.0 += 1;
         entry.1 += c.fulfilled_fte;
-        entry.2 += c.offered_wage_per_fte * c.fulfilled_fte;
+        entry.2 += c.offered_wage_per_fte * c.fulfilled_fte as f64;
     }
 
     let total_wages: f64 = by_sector.values().map(|(_, _, w)| *w).sum();
@@ -3064,7 +3065,8 @@ fn aggregate_sectors(companies: &[Company], country: &Country) -> Vec<SectorRow>
     let mut rows: Vec<SectorRow> = by_sector
         .iter()
         .map(|(sector, (count, fte, wages))| {
-            let avg_wage = if *fte > 0.0 { *wages / *fte } else { 0.0 };
+            let fte_f = *fte as f64;
+            let avg_wage = if fte_f > 0.0 { *wages / fte_f } else { 0.0 };
             let pct_share = if total_wages > 0.0 {
                 (*wages / total_wages) * 100.0
             } else {
@@ -3074,7 +3076,7 @@ fn aggregate_sectors(companies: &[Company], country: &Country) -> Vec<SectorRow>
 
             // Phase 28: Compute ToT deltas vs previous turn.
             let employment_tot = prev_employment.get(sector).and_then(|prev| {
-                if *prev > 0.0 { Some(((*fte - *prev) / *prev) * 100.0) } else { None }
+                if *prev > 0.0 { Some(((fte_f - *prev) / *prev) * 100.0) } else { None }
             });
             let wage_tot = prev_avg_wage.get(sector).and_then(|prev| {
                 if *prev > 0.0 { Some(((avg_wage - *prev) / *prev) * 100.0) } else { None }

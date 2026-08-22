@@ -22,7 +22,10 @@
 //! - `total_manpower()` — sum of all unit manpower
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
+
+type HashMap<K, V> = FxHashMap<K, V>;
+use rand::Rng;
 
 use crate::military::units::{MilitaryUnit, UnitType};
 
@@ -364,7 +367,7 @@ impl OrderOfBattle {
 
     /// Count units by type, returning a HashMap.
     pub fn count_by_type(&self) -> HashMap<UnitType, usize> {
-        let mut counts = HashMap::new();
+        let mut counts = HashMap::default();
         for unit in self.all_units() {
             *counts.entry(unit.unit_type).or_insert(0) += 1;
         }
@@ -450,7 +453,7 @@ pub fn generate_oob(config: &OobGenerationConfig) -> OrderOfBattle {
                         _ => UnitType::Infantry,
                     };
 
-                    let mut manpower_origin = std::collections::HashMap::new();
+                    let mut manpower_origin = std::collections::HashMap::default();
                     manpower_origin.insert(
                         crate::society::geography::RuralClass::FreePeasant,
                         config.base_unit_manpower,
@@ -486,42 +489,117 @@ pub fn generate_oob(config: &OobGenerationConfig) -> OrderOfBattle {
 ///
 /// # Arguments
 /// * `country_name` - Name of the country.
-/// * `gdp` - Country GDP (determines richness).
+/// * `gdp` - Country total GDP (determines military budget).
+/// * `gdp_per_capita` - GDP per capita (determines richness and equipment level).
+/// * `average_wage` - Average wage (determines cost of maintaining an army).
 /// * `population` - Country population (determines manpower pool).
 /// * `home_regions` - Regions to base armies in.
+/// * `rng` - Random number generator for OOB variation.
 ///
 /// # Returns
 /// A populated `OrderOfBattle` scaled to the country's economic capacity.
+///
+/// # Scaling Model (Phase 76)
+/// All thresholds are derived from `average_wage` and `gdp_per_capita` —
+/// no hardcoded nominal constants (Rule 2).
+/// * `army_cost_threshold = average_wage × 10000` — cost of maintaining one army.
+/// * `military_budget = gdp × military_spending_share` where share scales
+///   inversely with gdp_per_capita (poor countries spend a larger fraction).
+/// * `army_count = (military_budget / army_cost_threshold).max(1).min(8)`.
+/// * `divisions_per_army` scales with manpower pool / army_count.
+/// * `regiments_per_division` and `units_per_regiment` scale continuously
+///   with gdp_per_capita rather than binary thresholds.
+/// * `base_unit_manpower` is derived from population / total_units with no
+///   upper clamp — large countries have larger units.
 pub fn generate_asymmetric_oob(
     country_name: &str,
     gdp: f64,
+    gdp_per_capita: f64,
+    average_wage: f64,
     population: i64,
     home_regions: Vec<String>,
+    rng: &mut impl rand::Rng,
 ) -> OrderOfBattle {
-    // Derive army structure from GDP and population — no magic numbers.
-    // Army count scales with GDP (richer countries support more armies).
-    // Base: 1 army per 500k GDP, capped by available regions.
-    let gdp_based_armies = (gdp / 500_000.0).floor() as usize;
-    let army_count = gdp_based_armies
+    // Phase 76: Derived scaling — no hardcoded nominal thresholds.
+    // Army cost = average_wage × 10000 (annual cost of equipping and paying
+    // 10,000 soldiers at the country's wage level).
+    let army_cost_threshold = (average_wage * 10_000.0).max(1.0);
+
+    // Military spending share: poorer countries spend a larger fraction of
+    // GDP on military (inverse relationship with gdp_per_capita).
+    // At gdp_pc = 300 (very poor): share ≈ 5%
+    // At gdp_pc = 5000 (rich): share ≈ 1.5%
+    let military_spending_share = (0.06 - gdp_per_capita * 0.000009).max(0.015).min(0.06);
+    let military_budget = gdp * military_spending_share;
+
+    // Army count: scale with military budget / army cost, capped at 8.
+    let army_count = ((military_budget / army_cost_threshold).floor() as usize)
         .max(1)
-        .min(home_regions.len().max(1));
+        .min(8)
+        .min(home_regions.len().max(8));
 
-    // Divisions per army scales with population.
-    // Base: 1 division per 100k population per army.
-    let pop_based_divisions = ((population as f64 / 100_000.0) / army_count as f64).floor() as usize;
-    let divisions_per_army = pop_based_divisions.max(1).min(5);
+    // Conscription rate: poorer countries conscript a larger fraction.
+    // At gdp_pc = 300: rate ≈ 2% (0.02)
+    // At gdp_pc = 5000: rate ≈ 0.5% (0.005)
+    let conscription_rate = (0.025 - gdp_per_capita * 0.000004).max(0.005).min(0.025);
+    let manpower_pool = (population as f64 * conscription_rate) as i64;
 
-    // Regiments per division: richer countries have more regiments.
-    let regiments_per_division = if gdp > 1_000_000.0 { 3 } else { 2 };
+    // Division size: standard division ~5000 soldiers.
+    let division_size = 5000_i64;
+    let total_divisions = (manpower_pool / division_size).max(1) as usize;
+    let divisions_per_army = (total_divisions / army_count).max(1).min(10);
 
-    // Units per regiment: richer countries have more units.
-    let units_per_regiment = if gdp > 2_000_000.0 { 4 } else { 2 };
+    // Regiments per division: scale continuously with gdp_per_capita.
+    // Phase 76: Use absolute gdp_per_capita thresholds (not wage-relative,
+    // since average_wage = gdp_pc × 800 in the generator).
+    // gdp_pc < 500: 2 regiments (minimal)
+    // gdp_pc 500–2000: 3 regiments
+    // gdp_pc 2000–5000: 4 regiments
+    // gdp_pc > 5000: 5 regiments
+    let regiments_per_division = if gdp_per_capita < 500.0 {
+        2
+    } else if gdp_per_capita < 2000.0 {
+        3
+    } else if gdp_per_capita < 5000.0 {
+        4
+    } else {
+        5
+    };
 
-    // Base manpower per unit: derived from population / total_units.
+    // Units per regiment: scale continuously with gdp_per_capita.
+    // gdp_pc < 500: 2 units (minimal)
+    // gdp_pc 500–2000: 3 units
+    // gdp_pc 2000–5000: 4 units
+    // gdp_pc > 5000: 5 units
+    let units_per_regiment = if gdp_per_capita < 500.0 {
+        2
+    } else if gdp_per_capita < 2000.0 {
+        3
+    } else if gdp_per_capita < 5000.0 {
+        4
+    } else {
+        5
+    };
+
+    // Base manpower per unit: derived from manpower_pool / total_units.
+    // No upper clamp — large countries have larger units. Lower bound of 10
+    // (not 100) so tiny countries get appropriately tiny units.
     let total_units = army_count * divisions_per_army * regiments_per_division * units_per_regiment;
-    let base_unit_manpower = (population / total_units as i64).max(100).min(5000);
+    let base_unit_manpower = (manpower_pool / total_units as i64).max(10);
 
-    // Unit type distribution: rich countries get tanks/artillery, poor get infantry.
+    // Phase 76: Add ±10% RNG variation to structure counts so countries with
+    // similar GDP/population don't have identical OOB.
+    let divisions_per_army = (((divisions_per_army as f64)
+        * (1.0 + rng.gen_range(-0.1..0.1))).round() as usize).max(1);
+    let regiments_per_division = (((regiments_per_division as f64)
+        * (1.0 + rng.gen_range(-0.1..0.1))).round() as usize).max(2);
+    let units_per_regiment = (((units_per_regiment as f64)
+        * (1.0 + rng.gen_range(-0.1..0.1))).round() as usize).max(2);
+
+    // Recompute total_units after variation
+    let total_units = army_count * divisions_per_army * regiments_per_division * units_per_regiment;
+    let base_unit_manpower = (manpower_pool / total_units as i64).max(10);
+
     let config = OobGenerationConfig {
         army_count,
         divisions_per_army,
@@ -534,8 +612,14 @@ pub fn generate_asymmetric_oob(
 
     let mut oob = generate_oob(&config);
 
-    // For poor countries (low GDP), replace some tanks with peasant battalions.
-    if gdp < 500_000.0 {
+    // For poor countries (low GDP per capita), replace tanks with infantry.
+    // Threshold: gdp_per_capita below 1000 indicates pre-industrial economy
+    // that cannot support armored vehicle production.
+    // This is an absolute economic development threshold, not a wage-relative
+    // one, because average_wage = gdp_pc × 800 in the generator, making
+    // wage-relative thresholds always fail.
+    let tank_affordability_threshold = 1000.0;
+    if gdp_per_capita < tank_affordability_threshold {
         for army in &mut oob.armies {
             for division in &mut army.divisions {
                 for regiment in &mut division.regiments {
@@ -716,11 +800,15 @@ mod tests {
 
     #[test]
     fn test_asymmetric_oob_rich_country() {
+        let mut rng = rand::thread_rng();
         let oob = generate_asymmetric_oob(
             "RichCountry",
-            5_000_000.0, // High GDP
+            5_000_000_000.0, // High total GDP
+            5000.0,           // High GDP per capita
+            4000.0,           // High average wage
             1_000_000,
             vec!["r1".to_string(), "r2".to_string(), "r3".to_string()],
+            &mut rng,
         );
         // Rich country should have tanks
         let tanks = oob.collect_units_by_type(UnitType::Tanks);
@@ -730,11 +818,15 @@ mod tests {
 
     #[test]
     fn test_asymmetric_oob_poor_country() {
+        let mut rng = rand::thread_rng();
         let oob = generate_asymmetric_oob(
             "PoorCountry",
-            200_000.0, // Low GDP
+            30_000_000.0, // Low total GDP
+            300.0,         // Low GDP per capita
+            240.0,         // Low average wage (gdp_pc * 800)
             100_000,
             vec!["r1".to_string()],
+            &mut rng,
         );
         // Poor country should have NO tanks (converted to infantry)
         let tanks = oob.collect_units_by_type(UnitType::Tanks);

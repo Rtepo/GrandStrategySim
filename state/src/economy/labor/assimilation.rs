@@ -498,8 +498,8 @@ mod tests {
     #[test]
     fn test_no_education_no_integration_zero_assimilation() {
         let mut country = Country::mock_for_tests();
-        country.macro_indicators.culture = "Iliria".into();
-        country.macro_indicators.demographics.ethnic_composition.insert("Iliria".into(), 0.7);
+        country.macro_indicators.culture = "Illyria".into();
+        country.macro_indicators.demographics.ethnic_composition.insert("Illyria".into(), 0.7);
         country.macro_indicators.demographics.ethnic_composition.insert("Weneda".into(), 0.3);
         country.politics.civil_rights_law = "5-Year Assimilation".into();
 
@@ -516,8 +516,8 @@ mod tests {
     #[test]
     fn test_education_only_partial_assimilation() {
         let mut country = Country::mock_for_tests();
-        country.macro_indicators.culture = "Iliria".into();
-        country.macro_indicators.demographics.ethnic_composition.insert("Iliria".into(), 0.7);
+        country.macro_indicators.culture = "Illyria".into();
+        country.macro_indicators.demographics.ethnic_composition.insert("Illyria".into(), 0.7);
         country.macro_indicators.demographics.ethnic_composition.insert("Weneda".into(), 0.3);
         country.politics.civil_rights_law = "5-Year Assimilation".into();
 
@@ -525,7 +525,7 @@ mod tests {
         region.id = "test_region".into();
         let mut class = ClassDemographics::default();
         class.population = 1000;
-        class.religion = "Katolicyzm".into();
+        class.religion = "Catholicism".into();
         region.class_demographics.rural_classes.insert("peasants".into(), class);
         country.regions = vec![region];
 
@@ -544,8 +544,8 @@ mod tests {
     #[test]
     fn test_integration_only_partial_assimilation() {
         let mut country = Country::mock_for_tests();
-        country.macro_indicators.culture = "Iliria".into();
-        country.macro_indicators.demographics.ethnic_composition.insert("Iliria".into(), 0.7);
+        country.macro_indicators.culture = "Illyria".into();
+        country.macro_indicators.demographics.ethnic_composition.insert("Illyria".into(), 0.7);
         country.macro_indicators.demographics.ethnic_composition.insert("Weneda".into(), 0.3);
         country.politics.civil_rights_law = "5-Year Assimilation".into();
 
@@ -553,7 +553,7 @@ mod tests {
         region.id = "test_region".into();
         let mut class = ClassDemographics::default();
         class.population = 1000;
-        class.religion = "Katolicyzm".into();
+        class.religion = "Catholicism".into();
         region.class_demographics.rural_classes.insert("peasants".into(), class);
         country.regions = vec![region];
 
@@ -575,8 +575,8 @@ mod tests {
     #[test]
     fn test_both_channels_full_assimilation() {
         let mut country = Country::mock_for_tests();
-        country.macro_indicators.culture = "Iliria".into();
-        country.macro_indicators.demographics.ethnic_composition.insert("Iliria".into(), 0.7);
+        country.macro_indicators.culture = "Illyria".into();
+        country.macro_indicators.demographics.ethnic_composition.insert("Illyria".into(), 0.7);
         country.macro_indicators.demographics.ethnic_composition.insert("Weneda".into(), 0.3);
         country.politics.civil_rights_law = "5-Year Assimilation".into();
 
@@ -584,7 +584,7 @@ mod tests {
         region.id = "test_region".into();
         let mut class = ClassDemographics::default();
         class.population = 1000;
-        class.religion = "Katolicyzm".into();
+        class.religion = "Catholicism".into();
         region.class_demographics.rural_classes.insert("peasants".into(), class);
         country.regions = vec![region];
 
@@ -610,8 +610,8 @@ mod tests {
     #[test]
     fn test_segregation_blocks_assimilation() {
         let mut country = Country::mock_for_tests();
-        country.macro_indicators.culture = "Iliria".into();
-        country.macro_indicators.demographics.ethnic_composition.insert("Iliria".into(), 0.7);
+        country.macro_indicators.culture = "Illyria".into();
+        country.macro_indicators.demographics.ethnic_composition.insert("Illyria".into(), 0.7);
         country.macro_indicators.demographics.ethnic_composition.insert("Weneda".into(), 0.3);
         country.politics.civil_rights_law = "Segregacja".into();
 
@@ -630,11 +630,11 @@ mod tests {
     #[test]
     fn test_syncretism_bounding_limit() {
         let mut country = Country::mock_for_tests();
-        country.macro_indicators.culture = "Iliria".into();
+        country.macro_indicators.culture = "Illyria".into();
         country.politics.civil_rights_law = "5-Year Assimilation".into();
 
         // Pre-fill with 3 syncretic cultures (at the limit).
-        country.macro_indicators.demographics.ethnic_composition.insert("Iliria".into(), 0.3);
+        country.macro_indicators.demographics.ethnic_composition.insert("Illyria".into(), 0.3);
         country.macro_indicators.demographics.ethnic_composition.insert("SYNCRETIC_A_B".into(), 0.1);
         country.macro_indicators.demographics.ethnic_composition.insert("SYNCRETIC_C_D".into(), 0.1);
         country.macro_indicators.demographics.ethnic_composition.insert("SYNCRETIC_E_F".into(), 0.1);
@@ -667,8 +667,8 @@ mod tests {
     #[test]
     fn test_syncretic_engine_key_format() {
         // Verify the engine key format is SYNCRETIC_{A}_{B} with uppercase.
-        let key = format!("SYNCRETIC_{}_{}", "ilirian".to_uppercase(), "wenetian".to_uppercase());
-        assert_eq!(key, "SYNCRETIC_ILIRIAN_WENETIAN");
+        let key = format!("SYNCRETIC_{}_{}", "Illyrian".to_uppercase(), "wenetian".to_uppercase());
+        assert_eq!(key, "SYNCRETIC_ILLYRIAN_WENETIAN");
     }
 
     // === RELIGIOUS CONVERSION TESTS ===
@@ -676,7 +676,7 @@ mod tests {
     #[test]
     fn test_no_conversion_at_baseline_authority() {
         let mut country = Country::mock_for_tests();
-        country.regions.push(make_region_with_religion("r1", "Katolicyzm", 500));
+        country.regions.push(make_region_with_religion("r1", "Catholicism", 500));
 
         let authority: BTreeMap<String, f64> = BTreeMap::from([
             ("catholicism".into(), 0.3),
@@ -695,8 +695,8 @@ mod tests {
     fn test_high_authority_attracts_converts() {
         let mut country = Country::mock_for_tests();
         // Two regions with different religions.
-        country.regions.push(make_region_with_religion("r1", "Katolicyzm", 2000));
-        country.regions.push(make_region_with_religion("r2", "Protestantyzm", 2000));
+        country.regions.push(make_region_with_religion("r1", "Catholicism", 2000));
+        country.regions.push(make_region_with_religion("r2", "Protestantism", 2000));
 
         let authority: BTreeMap<String, f64> = BTreeMap::from([
             ("catholicism".into(), 0.8),
@@ -713,7 +713,7 @@ mod tests {
     #[test]
     fn test_low_authority_apostasy() {
         let mut country = Country::mock_for_tests();
-        country.regions.push(make_region_with_religion("r1", "Katolicyzm", 5000));
+        country.regions.push(make_region_with_religion("r1", "Catholicism", 5000));
 
         let authority: BTreeMap<String, f64> = BTreeMap::from([
             ("catholicism".into(), 0.1),
@@ -729,8 +729,8 @@ mod tests {
     #[test]
     fn test_holy_site_amplifies_conversion() {
         let mut country = Country::mock_for_tests();
-        country.regions.push(make_region_with_religion("r1", "Katolicyzm", 2000));
-        country.regions.push(make_region_with_religion("r2", "Protestantyzm", 2000));
+        country.regions.push(make_region_with_religion("r1", "Catholicism", 2000));
+        country.regions.push(make_region_with_religion("r2", "Protestantism", 2000));
 
         // Add holy site to r1 for catholicism.
         country.regions[0].holy_site = Some(crate::society::geography::HolySite {
@@ -748,8 +748,8 @@ mod tests {
 
         // Now test without holy site.
         let mut country2 = Country::mock_for_tests();
-        country2.regions.push(make_region_with_religion("r1", "Katolicyzm", 2000));
-        country2.regions.push(make_region_with_religion("r2", "Protestantyzm", 2000));
+        country2.regions.push(make_region_with_religion("r1", "Catholicism", 2000));
+        country2.regions.push(make_region_with_religion("r2", "Protestantism", 2000));
 
         let result_without_hs = process_religious_conversion_turn(&mut country2, &authority);
 

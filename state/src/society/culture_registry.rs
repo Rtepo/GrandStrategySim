@@ -1,7 +1,7 @@
 //! Culture and religion registry with English engine keys.
 //!
 //! Provides static definitions for cultures and religions used in the game.
-//! All engine-internal keys are English. Polish display names are stored
+//! All engine-internal keys are English. English display names are stored
 //! alongside for serde bridging and UI display.
 //!
 //! # Rules
@@ -17,9 +17,9 @@ use std::sync::OnceLock;
 /// Static definition of a culture.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct CultureDefinition {
-    /// Engine key (e.g., "ilirian", "wenetian").
+    /// Engine key (e.g., "Illyrian", "wenetian").
     pub key: String,
-    /// Polish display name (e.g., "Iliria", "Weneda").
+    /// English display name (e.g., "Illyria", "Venedia").
     pub display_name: String,
     /// Engine key for cultural group (e.g., "slavic", "germanic").
     pub cultural_group: String,
@@ -46,7 +46,7 @@ pub struct CultureDefinition {
 pub struct ReligionDefinition {
     /// Engine key (e.g., "catholicism", "islam", "protestantism").
     pub key: String,
-    /// Polish display name (e.g., "Katolicyzm", "Islam").
+    /// English display name (e.g., "Catholicism", "Islam").
     pub display_name: String,
     /// Engine key for religious group (e.g., "christianity", "islamic").
     pub religious_group: String,
@@ -92,7 +92,7 @@ impl CultureRegistry {
         self.religions.get(key)
     }
 
-    /// Look up a culture by Polish display name (for save-file bridging).
+    /// Look up a culture by English display name (for save-file bridging).
     ///
     /// # Returns
     /// `Some(&CultureDefinition)` if found, `None` otherwise.
@@ -101,7 +101,7 @@ impl CultureRegistry {
         self.cultures.get(key)
     }
 
-    /// Look up a religion by Polish display name (for save-file bridging).
+    /// Look up a religion by English display name (for save-file bridging).
     ///
     /// # Returns
     /// `Some(&ReligionDefinition)` if found, `None` otherwise.
@@ -110,7 +110,7 @@ impl CultureRegistry {
         self.religions.get(key)
     }
 
-    /// Get the engine key for a culture from its Polish display name.
+    /// Get the engine key for a culture from its English display name.
     ///
     /// # Returns
     /// Engine key string, or the original input if no mapping exists.
@@ -121,7 +121,7 @@ impl CultureRegistry {
             .unwrap_or_else(|| display_name.to_lowercase().replace(' ', "_"))
     }
 
-    /// Get the engine key for a religion from its Polish display name.
+    /// Get the engine key for a religion from its English display name.
     ///
     /// # Returns
     /// Engine key string, or the original input if no mapping exists.
@@ -146,7 +146,7 @@ impl CultureRegistry {
 /// Compute cultural distance between two cultures.
 ///
 /// Distance ∈ [0.0, 1.0]: 0.0 = identical, 1.0 = maximally distant.
-/// All comparisons use engine keys, never Polish display strings.
+/// All comparisons use engine keys, never English display strings.
 ///
 /// # Rules
 /// * Language family difference: +0.4
@@ -234,7 +234,7 @@ fn build_cultures() -> HashMap<String, CultureDefinition> {
         },
         CultureDefinition {
             key: "wenetian".into(),
-            display_name: "Wenedia".into(),
+            display_name: "Venedia".into(),
             cultural_group: "slavic".into(),
             cultural_group_display: "Slavic".into(),
             language: "wenetian".into(),
@@ -245,7 +245,7 @@ fn build_cultures() -> HashMap<String, CultureDefinition> {
         },
         CultureDefinition {
             key: "krasnovian".into(),
-            display_name: "Krasnowia".into(),
+            display_name: "Krasnovia".into(),
             cultural_group: "slavic".into(),
             cultural_group_display: "Slavic".into(),
             language: "krasnovian".into(),
@@ -279,7 +279,7 @@ fn build_cultures() -> HashMap<String, CultureDefinition> {
         },
         CultureDefinition {
             key: "helvetian".into(),
-            display_name: "Helwecja".into(),
+            display_name: "Helvetia".into(),
             cultural_group: "germanic".into(),
             cultural_group_display: "Germanic".into(),
             language: "helvetian".into(),
@@ -291,7 +291,7 @@ fn build_cultures() -> HashMap<String, CultureDefinition> {
         // Latin group
         CultureDefinition {
             key: "gallian".into(),
-            display_name: "Galia".into(),
+            display_name: "Gallia".into(),
             cultural_group: "latin".into(),
             cultural_group_display: "Latin".into(),
             language: "gallian".into(),
@@ -313,7 +313,7 @@ fn build_cultures() -> HashMap<String, CultureDefinition> {
         },
         CultureDefinition {
             key: "occitan".into(),
-            display_name: "Oksytania".into(),
+            display_name: "Occitania".into(),
             cultural_group: "latin".into(),
             cultural_group_display: "Latin".into(),
             language: "occitan".into(),
@@ -324,7 +324,7 @@ fn build_cultures() -> HashMap<String, CultureDefinition> {
         },
         CultureDefinition {
             key: "dacian".into(),
-            display_name: "Dacja".into(),
+            display_name: "Dacia".into(),
             cultural_group: "latin".into(),
             cultural_group_display: "Latin".into(),
             language: "dacian".into(),
@@ -336,7 +336,7 @@ fn build_cultures() -> HashMap<String, CultureDefinition> {
         // Middle Eastern group
         CultureDefinition {
             key: "persian".into(),
-            display_name: "Persja".into(),
+            display_name: "Persia".into(),
             cultural_group: "middle_eastern".into(),
             cultural_group_display: "Middle Eastern".into(),
             language: "persian".into(),
@@ -347,7 +347,7 @@ fn build_cultures() -> HashMap<String, CultureDefinition> {
         },
         CultureDefinition {
             key: "bactrian".into(),
-            display_name: "Baktria".into(),
+            display_name: "Bactria".into(),
             cultural_group: "middle_eastern".into(),
             cultural_group_display: "Middle Eastern".into(),
             language: "bactrian".into(),
@@ -380,11 +380,11 @@ fn build_cultures() -> HashMap<String, CultureDefinition> {
         },
         // Balkan group
         CultureDefinition {
-            key: "ilirian".into(),
-            display_name: "Iliria".into(),
+            key: "Illyrian".into(),
+            display_name: "Illyria".into(),
             cultural_group: "balkan".into(),
             cultural_group_display: "Balkan".into(),
-            language: "ilirian".into(),
+            language: "Illyrian".into(),
             language_family: "slavic".into(),
             demonym: String::new(),
             taboos: vec![],
@@ -392,7 +392,7 @@ fn build_cultures() -> HashMap<String, CultureDefinition> {
         },
         CultureDefinition {
             key: "thracian".into(),
-            display_name: "Tracja".into(),
+            display_name: "Thracia".into(),
             cultural_group: "balkan".into(),
             cultural_group_display: "Balkan".into(),
             language: "thracian".into(),
@@ -432,7 +432,7 @@ fn build_religions() -> HashMap<String, ReligionDefinition> {
     let defs = vec![
         ReligionDefinition {
             key: "catholicism".into(),
-            display_name: "Katolicyzm".into(),
+            display_name: "Catholicism".into(),
             religious_group: "christianity".into(),
             taboos: vec![],
             obsessions: vec![(Commodity::Luxury, 1.2), (Commodity::Paper, 1.1)],
@@ -462,7 +462,7 @@ fn build_religions() -> HashMap<String, ReligionDefinition> {
         },
         ReligionDefinition {
             key: "protestantism".into(),
-            display_name: "Protestantyzm".into(),
+            display_name: "Protestantism".into(),
             religious_group: "christianity".into(),
             taboos: vec![Commodity::Luxury],
             obsessions: vec![(Commodity::Paper, 1.2)],
@@ -472,7 +472,7 @@ fn build_religions() -> HashMap<String, ReligionDefinition> {
         },
         ReligionDefinition {
             key: "undeclared".into(),
-            display_name: "Ateizm / Agnostycyzm".into(),
+            display_name: "Atheism / Agnosticism".into(),
             religious_group: "secular".into(),
             taboos: vec![],
             obsessions: vec![],
@@ -482,7 +482,7 @@ fn build_religions() -> HashMap<String, ReligionDefinition> {
         },
         ReligionDefinition {
             key: "folk_beliefs".into(),
-            display_name: "Wierzenia Ludowe".into(),
+            display_name: "Folk Beliefs".into(),
             religious_group: "animist".into(),
             taboos: vec![],
             obsessions: vec![(Commodity::Luxury, 1.3)],
@@ -492,7 +492,7 @@ fn build_religions() -> HashMap<String, ReligionDefinition> {
         },
         ReligionDefinition {
             key: "shamanism".into(),
-            display_name: "Szamanizm".into(),
+            display_name: "Shamanism".into(),
             religious_group: "animist".into(),
             taboos: vec![],
             obsessions: vec![(Commodity::Luxury, 1.25)],
@@ -522,7 +522,7 @@ mod tests {
     #[test]
     fn test_registry_lookups() {
         let reg = registry();
-        assert!(reg.from_key("ilirian").is_some());
+        assert!(reg.from_key("Illyrian").is_some());
         assert!(reg.from_key("nonexistent").is_none());
         assert!(reg.religion_from_key("catholicism").is_some());
         assert!(reg.religion_from_key("nonexistent").is_none());
@@ -531,11 +531,11 @@ mod tests {
     #[test]
     fn test_display_name_bridging() {
         let reg = registry();
-        let culture = reg.from_display_name("Iliria");
+        let culture = reg.from_display_name("Illyria");
         assert!(culture.is_some());
-        assert_eq!(culture.unwrap().key, "ilirian");
+        assert_eq!(culture.unwrap().key, "Illyrian");
 
-        let religion = reg.religion_from_display_name("Katolicyzm");
+        let religion = reg.religion_from_display_name("Catholicism");
         assert!(religion.is_some());
         assert_eq!(religion.unwrap().key, "catholicism");
     }
@@ -543,7 +543,7 @@ mod tests {
     #[test]
     fn test_cultural_distance_identical() {
         let reg = registry();
-        let a = reg.from_key("ilirian").unwrap();
+        let a = reg.from_key("Illyrian").unwrap();
         let distance = cultural_distance(a, a);
         assert!((distance - 0.0).abs() < 0.01, "identical cultures should have ~0 distance, got {}", distance);
     }
@@ -551,7 +551,7 @@ mod tests {
     #[test]
     fn test_cultural_distance_different_group() {
         let reg = registry();
-        let a = reg.from_key("ilirian").unwrap();
+        let a = reg.from_key("Illyrian").unwrap();
         let b = reg.from_key("nordian").unwrap();
         let distance = cultural_distance(a, b);
         assert!(distance > 0.5, "different group + different family should be > 0.5, got {}", distance);
@@ -560,7 +560,7 @@ mod tests {
     #[test]
     fn test_cultural_distance_same_group_different_nation() {
         let reg = registry();
-        let a = reg.from_key("ilirian").unwrap();
+        let a = reg.from_key("Illyrian").unwrap();
         let b = reg.from_key("thracian").unwrap();
         let distance = cultural_distance(a, b);
         assert!(distance < 0.3, "same group + same family should be < 0.3, got {}", distance);
@@ -569,8 +569,8 @@ mod tests {
     #[test]
     fn test_culture_key_from_display() {
         let reg = registry();
-        assert_eq!(reg.culture_key_from_display("Iliria"), "ilirian");
-        assert_eq!(reg.religion_key_from_display("Katolicyzm"), "catholicism");
+        assert_eq!(reg.culture_key_from_display("Illyria"), "Illyrian");
+        assert_eq!(reg.religion_key_from_display("Catholicism"), "catholicism");
     }
 
     #[test]

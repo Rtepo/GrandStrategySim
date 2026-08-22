@@ -1,7 +1,9 @@
 //! Military units and unit types with demographic tracking
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
+
+type HashMap<K, V> = FxHashMap<K, V>;
 
 use crate::registries::enums::Commodity;
 use crate::society::geography::RuralClass;
@@ -112,33 +114,33 @@ impl UnitType {
     pub fn commodity_upkeep(&self) -> HashMap<Commodity, f64> {
         match self {
             UnitType::Infantry => {
-                let mut upkeep = HashMap::new();
+                let mut upkeep = HashMap::default();
                 upkeep.insert(Commodity::Ammunition, 5.0);
                 upkeep.insert(Commodity::Fuels, 1.0);
                 upkeep
             }
             UnitType::Tanks => {
-                let mut upkeep = HashMap::new();
+                let mut upkeep = HashMap::default();
                 upkeep.insert(Commodity::Ammunition, 15.0);
                 upkeep.insert(Commodity::Fuels, 20.0);
                 upkeep.insert(Commodity::Steel, 5.0);
                 upkeep
             }
             UnitType::Artillery => {
-                let mut upkeep = HashMap::new();
+                let mut upkeep = HashMap::default();
                 upkeep.insert(Commodity::Ammunition, 25.0);
                 upkeep.insert(Commodity::Fuels, 2.0);
                 upkeep
             }
             UnitType::AirForce => {
-                let mut upkeep = HashMap::new();
+                let mut upkeep = HashMap::default();
                 upkeep.insert(Commodity::Ammunition, 10.0);
                 upkeep.insert(Commodity::Fuels, 50.0);
                 upkeep.insert(Commodity::ElectronicComponents, 5.0);
                 upkeep
             }
             UnitType::Naval => {
-                let mut upkeep = HashMap::new();
+                let mut upkeep = HashMap::default();
                 upkeep.insert(Commodity::Ammunition, 20.0);
                 upkeep.insert(Commodity::Fuels, 40.0);
                 upkeep.insert(Commodity::Steel, 10.0);
@@ -146,7 +148,7 @@ impl UnitType {
             }
             UnitType::PeasantBattalion => {
                 // CRITICAL: Peasant battalions have ZERO commodity upkeep
-                HashMap::new()
+                HashMap::default()
             }
         }
     }
@@ -512,7 +514,7 @@ impl MilitaryUnit {
             location: home_region,
             experience: 0.0,
             equipment_quality: 50.0,
-            stockpile: HashMap::new(),
+            stockpile: HashMap::default(),
             equipment_reserves: Vec::new(),
         }
     }
@@ -549,14 +551,14 @@ impl MilitaryUnit {
     /// HashMap of RuralClass to casualties deducted from that class
     pub fn apply_casualties(&mut self, casualties: i64) -> HashMap<RuralClass, i64> {
         if casualties <= 0 || self.manpower <= 0 {
-            return HashMap::new();
+            return HashMap::default();
         }
         
         let actual_casualties = casualties.min(self.manpower);
         self.manpower -= actual_casualties;
         
         // Deduct casualties proportionally from demographic origin
-        let mut demographic_casualties = HashMap::new();
+        let mut demographic_casualties = HashMap::default();
         let total_origin: i64 = self.manpower_origin.values().sum();
         
         if total_origin > 0 {
@@ -600,7 +602,7 @@ impl MilitaryUnit {
         config: &MilitaryCombatConfig,
     ) -> HashMap<Commodity, f64> {
         let per_turn_upkeep = self.calculate_commodity_upkeep();
-        let mut drawn = HashMap::new();
+        let mut drawn = HashMap::default();
 
         for (commodity, per_turn_rate) in &per_turn_upkeep {
             let capacity = per_turn_rate * config.unit_supply_capacity_turns;
@@ -696,7 +698,7 @@ impl MilitaryUnit {
     /// # Returns
     /// HashMap of RuralClass to survivor count (to be re-added to population)
     pub fn disband(&mut self) -> HashMap<RuralClass, i64> {
-        let mut survivors = HashMap::new();
+        let mut survivors = HashMap::default();
         let total_origin: i64 = self.manpower_origin.values().sum();
 
         if total_origin > 0 && self.manpower > 0 {

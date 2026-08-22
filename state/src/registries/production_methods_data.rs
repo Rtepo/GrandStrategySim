@@ -31,6 +31,7 @@ fn pm(
         inputs: inputs.iter().copied().collect(),
         outputs: outputs.iter().copied().collect(),
         thermal_efficiency: 0.0,
+        storage_efficiency: 0.0,
     }
 }
 
@@ -59,6 +60,37 @@ fn pm_thermal(
         inputs: inputs.iter().copied().collect(),
         outputs: outputs.iter().copied().collect(),
         thermal_efficiency,
+        storage_efficiency: 0.0,
+    }
+}
+
+/// Phase 79: Helper for energy storage production methods with round-trip
+/// storage efficiency. Sets `storage_efficiency` > 0.0, which triggers
+/// strict conservation in `process_building_cycle()`: output_energy =
+/// input_energy * storage_efficiency. Used by PumpedStoragePlant and BatteryBank.
+#[allow(clippy::too_many_arguments)]
+fn pm_storage(
+    year: u32,
+    tech: Option<&str>,
+    experts: f64,
+    skilled: f64,
+    basic: f64,
+    eff: f64,
+    inputs: &[(Commodity, f64)],
+    outputs: &[(Commodity, f64)],
+    storage_efficiency: f64,
+) -> ProductionMethod {
+    ProductionMethod {
+        year,
+        required_tech: tech.map(|s| s.to_string()),
+        experts_ratio: experts,
+        skilled_ratio: skilled,
+        basic_ratio: basic,
+        efficiency: eff,
+        inputs: inputs.iter().copied().collect(),
+        outputs: outputs.iter().copied().collect(),
+        thermal_efficiency: 0.0,
+        storage_efficiency,
     }
 }
 
@@ -282,10 +314,10 @@ fn agriculture_methods() -> BuildingMethods {
         pm(1880, None, 0.02, 0.10, 0.88, 1.0,
            &[(Commodity::Seeds, 5.0), (Commodity::Water, 8.0), (Commodity::Food, 2.0)],
            &[(Commodity::Vegetable, 18.0)]));
-    m.insert(MethodSlot::Production, "Protein Farming".into(),
+    m.insert(MethodSlot::Production, "Pulse & Legume Farming".into(),
         pm(1880, None, 0.03, 0.12, 0.85, 1.0,
            &[(Commodity::Seeds, 6.0), (Commodity::Water, 10.0), (Commodity::Food, 2.0)],
-           &[(Commodity::Protein, 12.0)]));
+           &[(Commodity::Meat, 6.0)]));
     m.insert(MethodSlot::Production, "Orchard Cultivation".into(),
         pm(1885, None, 0.03, 0.12, 0.85, 1.1,
            &[(Commodity::Seeds, 4.0), (Commodity::Water, 8.0), (Commodity::Food, 2.0)],
@@ -401,7 +433,7 @@ fn heavy_industry_methods() -> BuildingMethods {
            &[(Commodity::Bricks, 25.0)]));
     m.insert(MethodSlot::Production, "Glass Making".into(),
         pm(1880, None, 0.05, 0.20, 0.75, 1.0,
-           &[(Commodity::Sand, 20.0), (Commodity::SodaAsh, 5.0), (Commodity::Energy, 12.0)],
+           &[(Commodity::Sand, 20.0), (Commodity::SodaAsh, 5.0), (Commodity::Lead, 2.0), (Commodity::Energy, 12.0)],
            &[(Commodity::Glass, 18.0)]));
     m.insert(MethodSlot::Production, "Aluminum Smelting".into(),
         pm(1900, Some("metall_006"), 0.15, 0.35, 0.50, 1.5,
@@ -639,7 +671,7 @@ fn heavy_industry_methods() -> BuildingMethods {
            &[(Commodity::TowedArtillery, 4.0)]));
     m.insert(MethodSlot::Production, "Ammunition Surge Production".into(),
         pm(1916, None, 0.18, 0.32, 0.50, 0.9,
-           &[(Commodity::Steel, 20.0), (Commodity::Chemicals, 25.0), (Commodity::Fuels, 8.0)],
+           &[(Commodity::Steel, 20.0), (Commodity::Chemicals, 25.0), (Commodity::Fuels, 8.0), (Commodity::Lead, 10.0)],
            &[(Commodity::Ammunition, 40.0)]));
     m.insert(MethodSlot::Production, "Gunpowder Conversion".into(),
         pm(1880, None, 0.15, 0.30, 0.55, 0.8,
@@ -698,7 +730,7 @@ fn light_industry_methods() -> BuildingMethods {
            &[(Commodity::Agd, 12.0)]));
     m.insert(MethodSlot::Production, "Food Processing".into(),
         pm(1880, None, 0.05, 0.20, 0.75, 1.0,
-           &[(Commodity::Cereal, 10.0), (Commodity::Vegetable, 5.0), (Commodity::Protein, 3.0), (Commodity::Livestock, 3.0), (Commodity::Energy, 3.0)],
+           &[(Commodity::Cereal, 10.0), (Commodity::Vegetable, 5.0), (Commodity::Meat, 2.0), (Commodity::Livestock, 3.0), (Commodity::Energy, 3.0)],
            &[(Commodity::Food, 18.0)]));
     m.insert(MethodSlot::Production, "Textile Mill".into(),
         pm(1880, None, 0.05, 0.20, 0.75, 1.0,
@@ -771,7 +803,7 @@ fn armaments_methods() -> BuildingMethods {
     // (1930), leaving a 1925 start year with zero Ammunition supply.
     m.insert(MethodSlot::Production, "Cartridge Manufacturing".into(),
         pm(1880, None, 0.15, 0.30, 0.55, 1.0,
-           &[(Commodity::Steel, 8.0), (Commodity::Chemicals, 5.0), (Commodity::Gunpowder, 10.0)],
+           &[(Commodity::Steel, 8.0), (Commodity::Chemicals, 5.0), (Commodity::Gunpowder, 10.0), (Commodity::Lead, 6.0)],
            &[(Commodity::Ammunition, 25.0)]));
     m.insert(MethodSlot::Production, "Tank Production".into(),
         pm(1916, Some("arm_002"), 0.25, 0.40, 0.35, 2.0,
@@ -960,10 +992,22 @@ fn energy_methods() -> BuildingMethods {
         pm(1980, Some("advman_004"), 0.25, 0.40, 0.35, 4.0,
            &[(Commodity::MechanicalComponents, 8.0), (Commodity::ElectronicComponents, 3.0), (Commodity::Water, 5.0)],
            &[(Commodity::Energy, 100.0)]));
-    m.insert(MethodSlot::Production, "Battery Storage Facility".into(),
-        pm(2000, Some("batt_003"), 0.20, 0.40, 0.40, 3.0,
-           &[(Commodity::Batteries, 5.0), (Commodity::ElectronicComponents, 3.0), (Commodity::Energy, 10.0)],
-           &[(Commodity::Energy, 80.0)]));
+    // Phase 79: Pumped Storage Plant — first built 1907 in Switzerland.
+    // Consumes Energy (pumping water uphill) and outputs Energy (releasing it).
+    // Round-trip efficiency ~72% (28% lost to friction, turbine losses, evaporation).
+    m.insert(MethodSlot::Production, "Pumped Storage Plant".into(),
+        pm_storage(1907, Some("pstrg_001"), 0.15, 0.30, 0.55, 1.5,
+           &[(Commodity::Energy, 100.0), (Commodity::Water, 20.0), (Commodity::MechanicalComponents, 5.0)],
+           &[(Commodity::Energy, 72.0)],
+           0.72));  // 72% round-trip efficiency
+    // Phase 79: Battery Bank Storage — replaces the broken "Battery Storage Facility"
+    // which consumed 10 Energy and produced 80 Energy (8x energy creation violation).
+    // Round-trip efficiency ~87% for modern lithium-ion grid storage.
+    m.insert(MethodSlot::Production, "Battery Bank Storage".into(),
+        pm_storage(1990, Some("batt_002"), 0.20, 0.40, 0.40, 2.0,
+           &[(Commodity::Energy, 100.0), (Commodity::Batteries, 5.0), (Commodity::ElectronicComponents, 3.0)],
+           &[(Commodity::Energy, 87.0)],
+           0.87));  // 87% round-trip efficiency
     m.insert(MethodSlot::Automation, "Manual Stoking".into(),
         pm(1880, None, 0.05, 0.20, 0.75, 1.0, &[(Commodity::Food, 5.0)], &[]));
     m.insert(MethodSlot::Automation, "Mechanical Stokers".into(),
