@@ -230,6 +230,11 @@ pub fn submit_company_b2b_orders(
                 if commodity.is_fixed_asset() {
                     continue;
                 }
+                // Phase 80: Skip local utility commodities (Energy, Heat).
+                // These are distributed by the grid, not procured via B2B market.
+                if commodity.is_local_utility() {
+                    continue;
+                }
 
                 let desired_qty = qty_per_1k * production_scale;
                 if desired_qty <= 0.0 {
@@ -402,18 +407,36 @@ pub fn submit_company_b2b_orders(
                 if sell_qty <= 0.0 {
                     continue;
                 }
+                // Phase 80: Skip local utility commodities (Energy, Heat).
+                // These are distributed by the grid, not sold on the B2B market.
+                if commodity.is_local_utility() {
+                    continue;
+                }
 
-                // Phase 37/76: Per-commodity sell price with fallback chain:
+                // Phase 37/76/80: Per-commodity sell price with fallback chain:
                 // 1. unit_cost * (1 + markup) — cost-based pricing
                 // 2. get_reference_price(commodity) * (1 + markup) — market-based
                 // 3. global_base_prices[commodity] * (1 + min_markup) — floor price
                 // This ensures producers always submit asks when they have workers,
                 // breaking the "no VWAP → no asks → no trades → no VWAP" deadlock.
                 //
-                // Phase 76 Rule 8 Enforcement: A rational actor NEVER sells below
-                // actual unit_cost. The final ask price is clamped to
-                // max(sell_price, unit_cost) when unit_cost > 0.0.
-                let sell_price = if unit_cost > 0.0 {
+                // Phase 80: Bootstrap override — when no VWAP exists (turn 0),
+                // use reference_price * (1 + min_markup) as the sell price for ALL
+                // commodities, ignoring unit_cost. This guarantees that the sell
+                // price can cross the buy bid of ref_price * (1 + buy_premium).
+                // Without this, manufactured goods with high unit_cost (e.g. Trains
+                // at ~333,000) never cross the buy bid (~105) and the market deadlocks.
+                // Once VWAP is established (turn 1+), the rational-actor floor takes over.
+                let sell_price = if is_bootstrap {
+                    // Bootstrap: use reference price with minimal markup to guarantee crossing
+                    if let Some(ref_p) = get_reference_price(&commodity, market_history) {
+                        ref_p * (1.0 + config.min_markup_ratio)
+                    } else if let Some(base_p) = market_history.global_base_prices.get(&commodity).copied() {
+                        base_p * (1.0 + config.min_markup_ratio)
+                    } else {
+                        continue;
+                    }
+                } else if unit_cost > 0.0 {
                     unit_cost * (1.0 + markup)
                 } else if let Some(ref_p) = get_reference_price(&commodity, market_history) {
                     ref_p * (1.0 + markup)
@@ -424,8 +447,8 @@ pub fn submit_company_b2b_orders(
                 };
 
                 // Phase 76: Rule 8 — Rational Actor Pricing Floor.
-                // Never sell below actual production cost.
-                let sell_price = if unit_cost > 0.0 {
+                // Never sell below actual production cost (except during bootstrap).
+                let sell_price = if !is_bootstrap && unit_cost > 0.0 {
                     sell_price.max(unit_cost)
                 } else {
                     sell_price
@@ -994,11 +1017,20 @@ pub fn execute_production_cycle(
         fulfillment_ratio = fulfillment_ratio.clamp(0.0, 1.0);
 
         // Apply blackout efficiency penalty (Wave 3 only)
+        // Phase 81: IndustrialBuff is a negative penalty (buff). The buff
+        // increases effective production but CANNOT bypass physical BOM
+        // availability. The fulfillment_ratio is re-clamped to [0, 1] after
+        // the buff is applied — cheap energy cannot synthesize matter.
         if let Some(penalties) = efficiency_penalties {
             if let Some(&penalty) = penalties.get(&building.id) {
                 fulfillment_ratio *= (1.0 - penalty).max(0.0);
             }
         }
+
+        // Phase 81: Re-clamp fulfillment_ratio to [0, 1] after any buff/penalty.
+        // This prevents the IndustrialBuff from pushing fulfillment above 1.0,
+        // which would allow output beyond physical input availability.
+        fulfillment_ratio = fulfillment_ratio.clamp(0.0, 1.0);
 
         // Consume inputs (skip fixed-asset commodities — they're not consumed).
         let mut inputs_consumed: HashMap<Commodity, f64> = HashMap::default();
@@ -1154,7 +1186,13 @@ pub fn execute_production_cycle(
             );
         }
 
-        // Update last_production
+        // Phase 80: Clear last_production BEFORE inserting actual production.
+        // process_building_cycle_with_geology (called earlier in the turn) sets
+        // last_production with FULL output quantities (no inventory check). If we
+        // don't clear, commodities with 0 actual production retain their phantom
+        // values from the market-order generation step — causing the UI to show
+        // e.g. 800 Trains "produced" despite zero Steel being available.
+        building.last_production.clear();
         for (&commodity, &qty) in &outputs_produced {
             building.last_production.insert(commodity, qty);
         }

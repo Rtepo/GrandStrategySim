@@ -1252,6 +1252,28 @@ fn era4_commercial() -> HashMap<TechId, TechNode> {
     tech(&mut m, "renew_003", "Fuel Cells", 1990, 180,
         "Hydrogen-oxygen fuel cell systems.",
         TechType::Commercial, &["synth_001", "electr_005"], &[]);
+
+    // --- Phase 81: Energy-specific tech nodes ---
+    tech(&mut m, "cool_001", "Cooling Tower Technology", 1950, 80,
+        "Closed-loop cooling towers for thermal power plants, reducing water dependency.",
+        TechType::Commercial, &["thermo_003"],
+        &[("coal_fired_plant", &[("production", "Closed-Loop Cooling Tower")])]);
+    tech(&mut m, "cool_002", "Dry Cooling Systems", 1970, 120,
+        "Air-cooled condensers eliminating water needs for thermal plants.",
+        TechType::Commercial, &["cool_001"],
+        &[("coal_fired_plant", &[("production", "Air-Cooled Condenser")])]);
+    tech(&mut m, "wind_001", "Offshore Wind Technology", 2000, 150,
+        "Offshore wind farm design and installation.",
+        TechType::Commercial, &["renew_002"],
+        &[("wind_farm", &[("production", "Offshore Wind Farm")])]);
+    tech(&mut m, "solar_002", "Concentrated Solar Power", 2000, 140,
+        "Thermal solar concentration with storage for smoother output.",
+        TechType::Commercial, &["renew_001"],
+        &[("solar_plant", &[("production", "Concentrated Solar")])]);
+    tech(&mut m, "biogas_001", "Anaerobic Digestion", 1930, 90,
+        "Biogas production from agricultural waste via anaerobic digestion.",
+        TechType::Commercial, &["chem_005"],
+        &[("biogas_plant", &[("production", "Anaerobic Digester")])]);
     tech(&mut m, "renew_004", "Geothermal Power", 1985, 150,
         "Geothermal well drilling and power generation.",
         TechType::Commercial, &["mining_008", "thermo_005"], &[]);

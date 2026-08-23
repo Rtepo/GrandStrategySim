@@ -219,12 +219,12 @@ pub fn generate_world(
     let market = serde_json::json!({ "prices": prices, "orders": {} });
     std::fs::write(data_dir.join("market.json"), serde_json::to_string_pretty(&market)?)?;
 
-    // Phase 76: Populate state.market_history.global_base_prices in-memory so
-    // that pure in-memory paths (without load_from_disk) have valid reference
-    // prices for B2B order submission. Without this, get_reference_price()
-    // returns None and all B2B orders are skipped, causing a market deadlock.
+    // Phase 80: Populate state.market_history.global_base_prices with
+    // commodity-specific prices from estimated_base_price(). The flat 100.0
+    // used previously caused B2B spread deadlock for manufactured goods
+    // (unit_cost >> 105.0 buy bid → spread never crosses → no trades).
     for commodity in Commodity::all() {
-        state.market_history.global_base_prices.insert(commodity, 100.0);
+        state.market_history.global_base_prices.insert(commodity, corporate::estimated_base_price(commodity));
     }
 
     Ok(GeneratedWorld {
@@ -377,6 +377,7 @@ fn generate_country(
         subsurface_rights_law: crate::society::cadastre::SubsurfaceRightsLaw::default(),
         global_reputation: crate::international::reputation::GlobalReputation::default(),
         geopolitical_doctrine: crate::international::ai_doctrines::GeopoliticalDoctrine::default(),
+        power_grid_state: crate::energy::PowerGridState::default(),
     };
     country.macro_indicators.currency = currency.prefix.clone();
 
@@ -472,6 +473,10 @@ fn generate_country(
     // NOTE: This is now called from generate_corporate_entities after JSC companies
     // are actually created. The call here was operating on bootstrap bank companies
     // only, which are never JSC.
+
+    // Phase 81: Initialize the power grid based on era and development.
+    // This creates HV lines (era-scaled) and LV/MV capacities (development-scaled).
+    crate::energy::grid::init_power_grid(&mut country, start_year.as_year(), rng);
 
     (country, currency, country_regions, companies)
 }
@@ -1540,15 +1545,19 @@ fn build_bank_companies(
             extra: Map::new(),
         };
 
-        // Phase 77: Scale bank FTE by deposit volume — banks managing billions
+        // Phase 77/80: Scale bank FTE by deposit volume — banks managing billions
         // need thousands of clerks, not 100. Each 500 units of deposits (relative
-        // to average_wage) require ~1 clerk. Minimum 50 FTE for smallest bank,
-        // maximum 5000 for the largest.
+        // to average_wage) require ~1 clerk.
+        // Phase 80 FIX: Previous minimum of 50 for non-first banks was far too
+        // small. A nation of 10M should have banks with 500+ clerks, not 50.
+        // Scale minimum by population: max(50, population/100_000) for non-first,
+        // max(500, population/20_000) for the first (state) bank.
         let deposits_per_clerk = base_wage * 500.0;
+        let pop = treasury.population.max(1) as u32;
         let bank_fte = if is_first {
-            ((total_deposits / deposits_per_clerk).round() as u32).max(500).min(5000)
+            ((total_deposits / deposits_per_clerk).round() as u32).max(pop / 20_000).max(500).min(5000)
         } else {
-            ((total_deposits / deposits_per_clerk).round() as u32).max(50).min(2000)
+            ((total_deposits / deposits_per_clerk).round() as u32).max(pop / 100_000).max(50).min(2000)
         };
         let bank_wage = base_wage * 1.2; // Banks pay above-average wages
         let operating_cash = tier_1_capital * 0.1; // 10% of tier_1 for payroll
@@ -1577,8 +1586,9 @@ fn build_bank_companies(
         // inject payroll grant. Without this, banks start at 0 FTE and cannot
         // participate in the labor market, causing Banking sector employment
         // to stay at 0 for the first several turns.
-        // Phase 77: Use integer FTE (60% of target, minimum 2).
-        let initial_fte = ((bank_fte as f64 * 0.6).round() as u32).max(2);
+        // Phase 80: Use 80% of target (up from 60%) — established banks start
+        // well-staffed. Minimum 2 to avoid zero-FTE edge cases.
+        let initial_fte = ((bank_fte as f64 * 0.8).round() as u32).max(2);
         company.fulfilled_fte = initial_fte;
         company.prev_fulfilled_fte = initial_fte;
         let payroll_grant = initial_fte as f64 * bank_wage * 3.0;

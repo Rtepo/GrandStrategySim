@@ -563,6 +563,10 @@ pub struct Country {
     pub global_reputation: crate::international::reputation::GlobalReputation,
     /// Phase 67: Geopolitical doctrine guiding AI diplomatic behavior.
     pub geopolitical_doctrine: crate::international::ai_doctrines::GeopoliticalDoctrine,
+    /// Phase 81: Power grid state — HV lines, LV/MV capacities, spot prices,
+    /// load shedding tiers, and overproduction tiers per region.
+    #[serde(default)]
+    pub power_grid_state: crate::energy::PowerGridState,
 }
 
 impl Country {
@@ -673,6 +677,7 @@ impl Country {
             subsurface_rights_law: crate::society::cadastre::SubsurfaceRightsLaw::default(),
             global_reputation: crate::international::reputation::GlobalReputation::default(),
             geopolitical_doctrine: crate::international::ai_doctrines::GeopoliticalDoctrine::default(),
+            power_grid_state: crate::energy::PowerGridState::default(),
         }
     }
 
@@ -1026,6 +1031,7 @@ impl CountryBuilder {
             subsurface_rights_law: crate::society::cadastre::SubsurfaceRightsLaw::default(),
             global_reputation: crate::international::reputation::GlobalReputation::default(),
             geopolitical_doctrine: crate::international::ai_doctrines::GeopoliticalDoctrine::default(),
+            power_grid_state: crate::energy::PowerGridState::default(),
         }
     }
 }

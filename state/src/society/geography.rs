@@ -636,11 +636,22 @@ pub struct Region {
     /// on cultural/national distinctness.
     #[serde(default)]
     pub is_autonomous_republic: bool,
+
+    /// Phase 81: Elevation difference in meters (for pumped storage feasibility).
+    /// Pumped storage requires significant elevation difference between two points.
+    /// 0.0 = flat terrain (no pumped storage possible).
+    #[serde(default = "default_elevation_difference")]
+    pub elevation_difference_m: f64,
 }
 
 /// Phase 47: Default development level for old saves (conservative mid-low).
 fn default_development_level() -> f64 {
     0.3
+}
+
+/// Phase 81: Default elevation difference (0.0 = flat terrain).
+fn default_elevation_difference() -> f64 {
+    0.0
 }
 
 /// Holy site associated with a specific religion.
@@ -678,6 +689,13 @@ pub struct GeographicTraits {
     /// Set by construction, not by geography, but stored here for routing.
     #[serde(default)]
     pub has_airport: bool,
+    /// Phase 81: Region has water available for cooling thermal power plants.
+    /// Computed from `has_navigable_river || has_coastline` during generation.
+    #[serde(default)]
+    pub water_for_cooling: bool,
+    /// Phase 81: Region has geothermal potential (volcanic/mountainous areas).
+    #[serde(default)]
+    pub has_geothermal_potential: bool,
 }
 
 /// Rural demographic class with distinct economic behavior
@@ -1488,6 +1506,7 @@ pub fn generate_regional_topology(country: &str, population: i64, gdp: f64, star
             development_level,
             parcel_ids: Vec::new(),
             is_autonomous_republic: false,
+            elevation_difference_m: 0.0,
         });
     }
 
@@ -1799,6 +1818,7 @@ pub fn generate_maritime_nodes(
         development_level: 0.0,
         parcel_ids: Vec::new(),
         is_autonomous_republic: false,
+        elevation_difference_m: 0.0,
     };
     maritime_nodes.insert(sea_node_id, sea_node);
 
@@ -1840,6 +1860,7 @@ pub fn generate_maritime_nodes(
         development_level: 0.0,
         parcel_ids: Vec::new(),
         is_autonomous_republic: false,
+        elevation_difference_m: 0.0,
     };
     maritime_nodes.insert(ocean_node_id, ocean_node);
 
@@ -2824,6 +2845,7 @@ mod phase30_tests {
             development_level: 0.0,
             parcel_ids: Vec::new(),
             is_autonomous_republic: false,
+            elevation_difference_m: 0.0,
         }
     }
 

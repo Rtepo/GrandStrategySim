@@ -283,6 +283,7 @@ pub fn spawn_rebel_proto_state(
         subsurface_rights_law: crate::society::cadastre::SubsurfaceRightsLaw::default(),
         global_reputation: crate::international::reputation::GlobalReputation::default(),
         geopolitical_doctrine: crate::international::ai_doctrines::GeopoliticalDoctrine::default(),
+        power_grid_state: crate::energy::PowerGridState::default(),
     };
     
     // Set rebel government type based on rebellion type

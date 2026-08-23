@@ -3641,3 +3641,243 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
         pow_camps,
     }
 }
+
+// ============================================================================
+// Phase 81: Energy Grid Snapshot
+// ============================================================================
+
+/// Phase 81: Energy grid snapshot for the Energy dashboard.
+///
+/// Role-gated: foreign observers see only public aggregate data (national
+/// supply/demand/capacity), not detailed plant counts, spot prices, or
+/// interconnector flows. The backend strips classified fields before
+/// serialization based on the observer's role and country.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct EnergyGridSnapshot {
+    /// National total electricity supply (MW).
+    pub national_supply_mw: f64,
+    /// National total electricity demand (MW).
+    pub national_demand_mw: f64,
+    /// National total nameplate capacity (MW).
+    pub national_nameplate_capacity_mw: f64,
+    /// National overproduction tier (string representation).
+    pub national_overproduction_tier: String,
+    /// National load-shed tier (string representation).
+    pub national_load_shed_tier: String,
+    /// Regional energy info (detail level depends on observer role).
+    pub regions: Vec<RegionEnergyInfo>,
+    /// Active power plant counts by type (zero-count types omitted).
+    pub active_power_plants: Vec<PlantTypeCount>,
+    /// National generation mix (fraction by plant type).
+    pub generation_mix: Vec<GenerationMixEntry>,
+    /// Average national grid condition (0.0 = collapsed, 1.0 = pristine).
+    pub average_grid_condition: f64,
+    /// Interconnector flows (only visible to authorized domestic observers).
+    pub interconnector_flows: Vec<InterconnectorFlowInfo>,
+    /// Whether this snapshot is classified (foreign observer).
+    pub is_classified: bool,
+}
+
+/// Phase 81: Regional energy information.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct RegionEnergyInfo {
+    /// Region ID.
+    pub region_id: String,
+    /// Region display name.
+    pub region_name: String,
+    /// Regional supply (MW).
+    pub supply_mw: f64,
+    /// Regional demand (MW).
+    pub demand_mw: f64,
+    /// Maximum production capacity (MW).
+    pub max_production_capacity_mw: f64,
+    /// Average spot price (currency per MWh).
+    /// `None` for foreign observers (classified).
+    pub average_spot_price: Option<f64>,
+    /// Load-shed tier (string).
+    pub load_shed_tier: String,
+    /// Overproduction tier (string).
+    pub overproduction_tier: String,
+    /// Grid condition (0.0–1.0).
+    pub grid_condition: f64,
+}
+
+/// Phase 81: Active power plant count by type.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct PlantTypeCount {
+    /// Plant type (string representation).
+    pub plant_type: String,
+    /// Number of active plants of this type.
+    pub count: usize,
+    /// Total nameplate capacity (MW) for this plant type.
+    pub total_capacity_mw: f64,
+}
+
+/// Phase 81: Generation mix entry (fraction of total supply by plant type).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct GenerationMixEntry {
+    /// Plant type (string representation).
+    pub plant_type: String,
+    /// Fraction of total national supply (0.0–1.0).
+    pub fraction: f64,
+}
+
+/// Phase 81: Interconnector flow information.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct InterconnectorFlowInfo {
+    /// Source region ID.
+    pub from_region: String,
+    /// Destination region ID.
+    pub to_region: String,
+    /// Flow magnitude (MW). Positive = from→to, negative = to→from.
+    pub flow_mw: f64,
+    /// Line condition (0.0–1.0).
+    pub condition: f64,
+    /// Transmission loss fraction (0.0–1.0).
+    pub loss_fraction: f64,
+}
+
+/// Phase 81: Build an `EnergyGridSnapshot` from a country's power grid state.
+///
+/// Applies role-gating: if the observer is foreign (not from this country),
+/// spot prices and interconnector flows are stripped (set to `None`/empty).
+pub fn build_energy_grid_snapshot(
+    country: &crate::state::Country,
+    buildings: &[crate::entities::Building],
+    observer_country: Option<&str>,
+    _observer_role: Option<&str>,
+) -> EnergyGridSnapshot {
+    use crate::energy::types::{LoadShedTier, OverproductionTier, PowerPlantType};
+    use std::collections::HashMap;
+
+    let grid = &country.power_grid_state;
+    let is_foreign = observer_country.map_or(true, |c| c != country.name);
+
+    // Aggregate national supply/demand/capacity from grid state.
+    let mut national_supply = 0.0_f64;
+    let mut national_demand = 0.0_f64;
+    let mut national_capacity = 0.0_f64;
+
+    // Collect plant counts by type.
+    let mut plant_counts: HashMap<PowerPlantType, (usize, f64)> = HashMap::new();
+
+    // Count plants from buildings.
+    for building in buildings {
+        if building.sector != crate::registries::enums::Sector::Energy {
+            continue;
+        }
+        if let Some(meta) = crate::energy::grid::get_plant_metadata(building) {
+            let entry = plant_counts.entry(meta.plant_type).or_insert((0, 0.0));
+            entry.0 += 1;
+            entry.1 += meta.nameplate_capacity_mw;
+            national_capacity += meta.nameplate_capacity_mw;
+        }
+    }
+
+    // Build regional info.
+    let mut regions: Vec<RegionEnergyInfo> = Vec::new();
+    for region in &country.regions {
+        let supply = grid.region_supply_mw.get(&region.id).copied().unwrap_or(0.0);
+        let demand = grid.region_demand_mw.get(&region.id).copied().unwrap_or(0.0);
+        let max_cap = grid.region_max_capacity_mw.get(&region.id).copied().unwrap_or(0.0);
+        let spot = grid.spot_prices.get(&region.id).copied().unwrap_or(0.0);
+        let shed = grid.load_shed_tiers.get(&region.id).copied().unwrap_or(LoadShedTier::Normal);
+        let overprod = grid.overproduction_tiers.get(&region.id).copied().unwrap_or(OverproductionTier::Normal);
+        let lv_cond = grid.region_lv_condition.get(&region.id).copied().unwrap_or(1.0);
+        let mv_cond = grid.region_mv_condition.get(&region.id).copied().unwrap_or(1.0);
+        let grid_cond = lv_cond.min(mv_cond);
+
+        national_supply += supply;
+        national_demand += demand;
+
+        regions.push(RegionEnergyInfo {
+            region_id: region.id.clone(),
+            region_name: region.id.clone(),
+            supply_mw: supply,
+            demand_mw: demand,
+            max_production_capacity_mw: max_cap,
+            average_spot_price: if is_foreign { None } else { Some(spot) },
+            load_shed_tier: format!("{:?}", shed),
+            overproduction_tier: format!("{:?}", overprod),
+            grid_condition: grid_cond,
+        });
+    }
+
+    // Build plant type counts (omit zero-count types).
+    let mut active_power_plants: Vec<PlantTypeCount> = plant_counts
+        .into_iter()
+        .filter(|(_, (count, _))| *count > 0)
+        .map(|(pt, (count, cap))| PlantTypeCount {
+            plant_type: format!("{:?}", pt),
+            count,
+            total_capacity_mw: cap,
+        })
+        .collect();
+    active_power_plants.sort_by(|a, b| a.plant_type.cmp(&b.plant_type));
+
+    // Build generation mix.
+    let total_supply = national_supply.max(0.001);
+    let mut generation_mix: Vec<GenerationMixEntry> = Vec::new();
+    // TODO: Track per-type generation. For now, use capacity as proxy.
+    for plant in &active_power_plants {
+        generation_mix.push(GenerationMixEntry {
+            plant_type: plant.plant_type.clone(),
+            fraction: plant.total_capacity_mw / total_supply,
+        });
+    }
+
+    // Build interconnector flows (classified for foreign observers).
+    let interconnector_flows: Vec<InterconnectorFlowInfo> = if is_foreign {
+        Vec::new()
+    } else {
+        grid.hv_lines
+            .iter()
+            .map(|line| {
+                let loss = crate::energy::grid::transmission_loss(line);
+                InterconnectorFlowInfo {
+                    from_region: line.from_region.clone(),
+                    to_region: line.to_region.clone(),
+                    flow_mw: line.current_flow_mw,
+                    condition: line.condition,
+                    loss_fraction: loss,
+                }
+            })
+            .collect()
+    };
+
+    // Calculate average grid condition.
+    let avg_cond: f64 = {
+        let mut sum = 0.0;
+        let mut count = 0.0;
+        for region in &country.regions {
+            let lv = grid.region_lv_condition.get(&region.id).copied().unwrap_or(1.0);
+            let mv = grid.region_mv_condition.get(&region.id).copied().unwrap_or(1.0);
+            sum += lv.min(mv);
+            count += 1.0;
+        }
+        if count > 0.0 { sum / count } else { 1.0 }
+    };
+
+    // National tiers (worst case across regions).
+    let national_shed = grid.load_shed_tiers.values().max().cloned().unwrap_or(LoadShedTier::Normal);
+    let national_overprod = grid.overproduction_tiers.values().max().cloned().unwrap_or(OverproductionTier::Normal);
+
+    EnergyGridSnapshot {
+        national_supply_mw: national_supply,
+        national_demand_mw: national_demand,
+        national_nameplate_capacity_mw: national_capacity,
+        national_overproduction_tier: format!("{:?}", national_overprod),
+        national_load_shed_tier: format!("{:?}", national_shed),
+        regions,
+        active_power_plants,
+        generation_mix,
+        average_grid_condition: avg_cond,
+        interconnector_flows,
+        is_classified: is_foreign,
+    }
+}

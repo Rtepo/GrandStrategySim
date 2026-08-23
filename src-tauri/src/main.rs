@@ -83,6 +83,7 @@ fn main() {
             commands::diplomacy_queries::lift_sanction,
             // Phase 73: Military & Crisis dashboard (read-only)
             commands::military_queries::get_military_dashboard,
+            commands::energy_queries::get_energy_grid,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

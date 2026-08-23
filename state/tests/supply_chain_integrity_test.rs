@@ -94,11 +94,17 @@ fn no_orphan_b2c_demand() {
 
 /// Test 3: Every sector has at least one production method with non-empty
 /// outputs.
+/// Phase 81: `energy_automation` and `energy_organization` are shared slot-only
+/// registries (no Production methods) and are excluded from this check.
 #[test]
 fn every_sector_has_nonempty_output_method() {
     let methods = default_production_methods();
 
     for (sector_key, building_methods) in &methods {
+        // Phase 81: Skip shared energy slot registries (no Production methods).
+        if sector_key == "energy_automation" || sector_key == "energy_organization" {
+            continue;
+        }
         let has_output = building_methods
             .production
             .values()
@@ -174,8 +180,8 @@ fn commodity_count_matches() {
     let all = Commodity::all();
     assert_eq!(
         all.len(),
-        139,
-        "Commodity::all() should return 139 variants, got {}",
+        143,
+        "Commodity::all() should return 143 variants, got {}",
         all.len()
     );
 }
@@ -324,16 +330,28 @@ fn all_commodities_are_valid() {
     // All commodity variants are now considered valid schema members.
     // The is_active() filter was removed as part of the backward-compatibility purge.
     let all = Commodity::all();
-    assert_eq!(all.len(), 139, "Commodity::all() must return exactly 139 variants");
+    assert_eq!(all.len(), 143, "Commodity::all() must return exactly 143 variants");
 }
 
 /// Test 16: Phase 20 Final Audit — every sector has at least 3 Automation
 /// methods with no temporal gap > 40 years between consecutive methods.
+/// Phase 81: Plant-type-specific energy registries (coal_fired_plant, etc.)
+/// use shared `energy_automation` and `energy_organization` registries, so
+/// they are excluded from this audit.
 #[test]
 fn every_sector_has_automation_progression() {
     let methods = default_production_methods();
+    let plant_type_registries: &[&str] = &[
+        "coal_fired_plant", "lignite_fired_plant", "oil_gas_plant", "nuclear_plant",
+        "solar_plant", "wind_farm", "hydro_plant", "pumped_storage", "battery_storage",
+        "geothermal_plant", "biomass_plant", "biogas_plant",
+        "energy_automation", "energy_organization",
+    ];
 
     for (sector_key, building_methods) in &methods {
+        if plant_type_registries.contains(&sector_key.as_str()) {
+            continue;
+        }
         let mut auto_years: Vec<u32> = building_methods.automation.values()
             .map(|pm| pm.year)
             .collect();
@@ -362,11 +380,21 @@ fn every_sector_has_automation_progression() {
 
 /// Test 17: Phase 20 Final Audit — every sector has at least 3 Organization
 /// methods with no temporal gap > 50 years between consecutive methods.
+/// Phase 81: Plant-type-specific energy registries are excluded (see above).
 #[test]
 fn every_sector_has_organization_progression() {
     let methods = default_production_methods();
+    let plant_type_registries: &[&str] = &[
+        "coal_fired_plant", "lignite_fired_plant", "oil_gas_plant", "nuclear_plant",
+        "solar_plant", "wind_farm", "hydro_plant", "pumped_storage", "battery_storage",
+        "geothermal_plant", "biomass_plant", "biogas_plant",
+        "energy_automation", "energy_organization",
+    ];
 
     for (sector_key, building_methods) in &methods {
+        if plant_type_registries.contains(&sector_key.as_str()) {
+            continue;
+        }
         let mut org_years: Vec<u32> = building_methods.organization.values()
             .map(|pm| pm.year)
             .collect();

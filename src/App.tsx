@@ -17,6 +17,7 @@ import {
   PiggyBank,
   Trees,
   Shield,
+  Zap,
 } from "lucide-react";
 import { useGameStore } from "./store/gameStore";
 import { advanceTurn, newGame } from "./hooks/useTauriCommand";
@@ -34,6 +35,7 @@ import { FundsPage } from "./pages/FundsPage";
 import { LandPage } from "./pages/LandPage";
 import { DiplomacyPage } from "./pages/DiplomacyPage";
 import { MilitaryPage } from "./pages/MilitaryPage";
+import { EnergyPage } from "./pages/EnergyPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { useUpdater } from "./hooks/useUpdater";
@@ -53,6 +55,7 @@ const NAV_ITEMS = [
   { to: "/land", label: "Land", icon: Trees },
   { to: "/diplomacy", label: "Diplomacy", icon: Globe },
   { to: "/military", label: "Military", icon: Shield },
+  { to: "/energy", label: "Energy", icon: Zap },
 ];
 
 interface SidebarProps {
@@ -321,6 +324,7 @@ export default function App() {
             <Route path="/land" element={<LandPage />} />
             <Route path="/diplomacy" element={<DiplomacyPage />} />
             <Route path="/military" element={<MilitaryPage />} />
+            <Route path="/energy" element={<EnergyPage />} />
           </Routes>
         </ErrorBoundary>
       </main>

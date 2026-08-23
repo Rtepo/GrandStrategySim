@@ -66,7 +66,7 @@ pub struct WeatherState {
 }
 
 /// Temporary modifiers applied to `SeasonalModifiers` by a weather event.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct WeatherModifier {
     /// Multiplier applied to agriculture yield (1.0 = no change).
     pub agriculture_multiplier: f64,
@@ -76,6 +76,22 @@ pub struct WeatherModifier {
     pub energy_multiplier: f64,
     /// Multiplier applied to construction efficiency (1.0 = no change).
     pub construction_multiplier: f64,
+    /// Phase 81: Multiplier applied to wind power generation (1.0 = normal,
+    /// 0.0 = no wind, 2.0 = storm boost).
+    pub wind_multiplier: f64,
+    /// Phase 81: Multiplier applied to solar power generation (1.0 = normal,
+    /// 0.0 = dark, 1.5 = clear sky).
+    pub solar_multiplier: f64,
+    /// Phase 81: Cooling water availability for thermal plants (1.0 = normal,
+    /// 0.3 = drought-restricted).
+    pub cooling_water_availability: f64,
+}
+
+impl Default for WeatherModifier {
+    /// Phase 81: Default is neutral (all multipliers = 1.0).
+    fn default() -> Self {
+        Self::neutral()
+    }
 }
 
 impl WeatherModifier {
@@ -86,6 +102,9 @@ impl WeatherModifier {
             tourism_multiplier: 1.0,
             energy_multiplier: 1.0,
             construction_multiplier: 1.0,
+            wind_multiplier: 1.0,
+            solar_multiplier: 1.0,
+            cooling_water_availability: 1.0,
         }
     }
 }
@@ -200,30 +219,45 @@ pub fn weather_modifier(event_type: WeatherEventType, severity: f64) -> WeatherM
             tourism_multiplier: 1.0 - s * 0.2,
             energy_multiplier: 1.0 + s * 0.15,
             construction_multiplier: 1.0 - s * 0.1,
+            wind_multiplier: 1.0 - s * 0.1,
+            solar_multiplier: 1.0 + s * 0.2,
+            cooling_water_availability: 1.0 - s * 0.7,
         },
         WeatherEventType::Flood => WeatherModifier {
             agriculture_multiplier: 1.0 - s * 0.4,
             tourism_multiplier: 1.0 - s * 0.5,
             energy_multiplier: 1.0 - s * 0.1,
             construction_multiplier: 1.0 - s * 0.5,
+            wind_multiplier: 1.0 + s * 0.3,
+            solar_multiplier: 1.0 - s * 0.8,
+            cooling_water_availability: 1.0 + s * 0.1,
         },
         WeatherEventType::EarlyFrost => WeatherModifier {
             agriculture_multiplier: 1.0 - s * 0.5,
             tourism_multiplier: 1.0 - s * 0.1,
             energy_multiplier: 1.0 + s * 0.3,
             construction_multiplier: 1.0 - s * 0.3,
+            wind_multiplier: 1.0 - s * 0.1,
+            solar_multiplier: 1.0 - s * 0.3,
+            cooling_water_availability: 1.0 - s * 0.2,
         },
         WeatherEventType::Heatwave => WeatherModifier {
             agriculture_multiplier: 1.0 - s * 0.3,
             tourism_multiplier: 1.0 + s * 0.2,
             energy_multiplier: 1.0 + s * 0.25,
             construction_multiplier: 1.0 - s * 0.2,
+            wind_multiplier: 1.0 - s * 0.2,
+            solar_multiplier: 1.0 + s * 0.3,
+            cooling_water_availability: 1.0 - s * 0.4,
         },
         WeatherEventType::Storm => WeatherModifier {
             agriculture_multiplier: 1.0 - s * 0.2,
             tourism_multiplier: 1.0 - s * 0.6,
             energy_multiplier: 1.0 + s * 0.05,
             construction_multiplier: 1.0 - s * 0.4,
+            wind_multiplier: 1.0 + s * 1.5,
+            solar_multiplier: 1.0 - s * 0.9,
+            cooling_water_availability: 1.0,
         },
     }
 }
@@ -305,6 +339,9 @@ pub fn get_region_weather_modifier(
             combined.tourism_multiplier *= m.tourism_multiplier;
             combined.energy_multiplier *= m.energy_multiplier;
             combined.construction_multiplier *= m.construction_multiplier;
+            combined.wind_multiplier *= m.wind_multiplier;
+            combined.solar_multiplier *= m.solar_multiplier;
+            combined.cooling_water_availability *= m.cooling_water_availability;
         }
     }
     combined

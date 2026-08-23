@@ -3,6 +3,7 @@ pub mod bank_queries;
 pub mod cadastre_queries;
 pub mod company_queries;
 pub mod diplomacy_queries;
+pub mod energy_queries;
 pub mod governance_queries;
 pub mod macro_queries;
 pub mod military_queries;

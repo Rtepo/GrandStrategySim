@@ -246,12 +246,17 @@ pub fn process_building_cycle(
         let waste_heat = total_fuel_mj * (1.0 - method.thermal_efficiency);
 
         // Emit Energy output (actual, not target)
+        // Phase 80: Energy is a LOCAL grid utility, NOT a global B2B commodity.
+        // Record it for telemetry and grid distribution, but do NOT add it to
+        // market sell orders. The grid distribution system (utilities/grid.rs)
+        // handles routing Energy to consuming buildings.
         if actual_energy > 0.0 {
             let price = price_for(Commodity::Energy, market_prices, base_wage, false);
             output_revenue += actual_energy * price;
             result.outputs_produced.insert(Commodity::Energy, actual_energy);
             last_production.insert(Commodity::Energy, actual_energy);
-            market_orders.add_sell(Commodity::Energy, actual_energy);
+            // Phase 80: Removed market_orders.add_sell(Commodity::Energy, ...)
+            // Energy is distributed locally, not traded on the global B2B market.
         }
         // Phase 76: Emit Heat output as a LOCAL utility, NOT a global market commodity.
         // Heat cannot be transported long distances — it must be consumed by the
@@ -307,7 +312,8 @@ pub fn process_building_cycle(
             output_revenue += output_energy * price;
             result.outputs_produced.insert(Commodity::Energy, output_energy);
             last_production.insert(Commodity::Energy, output_energy);
-            market_orders.add_sell(Commodity::Energy, output_energy);
+            // Phase 80: Removed market_orders.add_sell(Commodity::Energy, ...)
+            // Energy is a local grid utility, not a global B2B commodity.
         }
     } else {
         // Standard fixed-rate production path (non-energy buildings)

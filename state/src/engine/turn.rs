@@ -1506,25 +1506,48 @@ pub fn run_turn_in_memory(
             );
         });
 
-        // Phase 8.1: Grid Distribution — convert Commodity::Energy/Heat to capacity
-        tasks.par_iter_mut().for_each(|task| {
-            let utility_config = task.ctx.country.utility_config.clone();
-            let _dist_result = crate::utilities::grid::distribute_utilities(
-                &mut task.ctx.country.regions,
-                &mut task.ctx.buildings,
-                &mut task.housing_buildings,
-                &mut task.commercial_buildings,
-                &utility_config,
-                current_season,
-            );
-        });
+        // Phase 8.1: Grid Distribution — Phase 81: New energy grid distribution.
+        // Replaces the old distribute_utilities for electricity. The new system
+        // performs DC flow balancing, overproduction handling, and load shedding.
+        // Water/heat distribution still uses the old distribute_utilities.
+        let grid_penalties_per_task: Vec<std::collections::HashMap<String, f64>> =
+            tasks.par_iter_mut().enumerate().map(|(i, task)| {
+                let utility_config = task.ctx.country.utility_config.clone();
+                // Phase 81: New energy grid distribution (electricity only).
+                let grid_result = crate::energy::grid::distribute_grid_power(
+                    &mut task.ctx.country,
+                    &mut task.ctx.buildings,
+                    &task.housing_buildings,
+                    &task.commercial_buildings,
+                    current_season,
+                );
+                // Phase 81: Degrade grid condition based on load factor.
+                crate::energy::grid::degrade_grid_condition(
+                    &mut task.ctx.country.power_grid_state,
+                    &grid_result.interconnector_flows,
+                );
+                // Phase 80: Still distribute water/heat via the old system.
+                let _dist_result = crate::utilities::grid::distribute_utilities(
+                    &mut task.ctx.country.regions,
+                    &mut task.ctx.buildings,
+                    &mut task.housing_buildings,
+                    &mut task.commercial_buildings,
+                    &utility_config,
+                    current_season,
+                );
+                grid_result.building_efficiency_penalties
+            })
+            .collect();
 
         // Phase 8.2: Utility Consumption — calculate deficits, penalties, billing
-        // Collect efficiency penalties per task for Wave 3
+        // Collect efficiency penalties per task for Wave 3.
+        // Phase 81: Merge grid penalties (load shedding + industrial buff) with
+        // utility consumption penalties (water/sewage). Grid penalties take
+        // precedence for electricity-related buildings.
         let mut task_penalties: Vec<std::collections::HashMap<String, f64>> = Vec::new();
         {
             let mut penalties_per_task: Vec<std::collections::HashMap<String, f64>> = Vec::new();
-            tasks.iter_mut().for_each(|task| {
+            tasks.iter_mut().enumerate().for_each(|(task_idx, task)| {
                 let utility_config = task.ctx.country.utility_config.clone();
                 let pricing_config = task.ctx.country.utility_pricing_config.clone();
                 let result = crate::utilities::consumption::process_utility_consumption(
@@ -1536,7 +1559,24 @@ pub fn run_turn_in_memory(
                     &pricing_config,
                     current_season,
                 );
-                penalties_per_task.push(result.building_efficiency_penalties);
+                // Phase 81: Merge grid penalties with utility consumption penalties.
+                let mut merged = result.building_efficiency_penalties;
+                if let Some(grid_pens) = grid_penalties_per_task.get(task_idx) {
+                    for (building_id, penalty) in grid_pens {
+                        // Grid penalties (load shedding = positive, industrial buff = negative)
+                        // take precedence over utility consumption penalties.
+                        let existing = merged.get(building_id).copied().unwrap_or(0.0);
+                        // For load shedding (positive), take the max (worst case).
+                        // For industrial buff (negative), it overrides any positive penalty
+                        // since the buff means the building has surplus energy.
+                        if *penalty < 0.0 {
+                            merged.insert(building_id.clone(), *penalty);
+                        } else {
+                            merged.insert(building_id.clone(), existing.max(*penalty));
+                        }
+                    }
+                }
+                penalties_per_task.push(merged);
             });
             task_penalties = penalties_per_task;
         }
@@ -4567,13 +4607,15 @@ pub fn run_turn_in_memory(
         }
     }
 
-    // Phase 44: Update market supply/demand volumes from global orders before saving.
-    // This ensures the Market UI shows the latest B2B order volumes on the next turn.
-    market.supply_volume.clear();
-    market.demand_volume.clear();
+    // Phase 44/80: Update market supply/demand volumes from global orders.
+    // Phase 80 FIX: Do NOT clear demand_volume/supply_volume — they already
+    // contain B2C consumer demand aggregated at line 2514. Clearing wipes all
+    // B2C demand, causing the UI to show 0.00 for HealthCapacity, EducationSlots,
+    // Clothing, Furniture, Fruit, and all other consumer goods.
+    // Instead, MERGE B2B order volumes into the existing B2C volumes.
     for (&good, order) in &global_orders.orders {
-        market.supply_volume.insert(good, order.sell);
-        market.demand_volume.insert(good, order.buy);
+        *market.supply_volume.entry(good).or_insert(0.0) += order.sell;
+        *market.demand_volume.entry(good).or_insert(0.0) += order.buy;
     }
     // No disk persistence — entities stay in ctx.
 

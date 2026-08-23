@@ -322,7 +322,7 @@ pub fn education_building_templates() -> HashMap<BuildingKind, BuildingTemplate>
             },
         ),
         (
-            "university Medyczny".to_string(),
+            "medical_university".to_string(),
             BuildingTemplate {
                 sector: Sector::MedicalServices,
                 build_cost: 3_000_000,
@@ -415,7 +415,7 @@ pub fn healthcare_building_templates() -> HashMap<BuildingKind, BuildingTemplate
 pub fn municipal_building_templates() -> HashMap<BuildingKind, BuildingTemplate> {
     HashMap::from([
         (
-            "Ratusz".to_string(),
+            "city_hall".to_string(),
             BuildingTemplate {
                 sector: Sector::PublicAdministration,
                 build_cost: 500_000,

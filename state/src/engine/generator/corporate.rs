@@ -259,11 +259,20 @@ pub fn generate_corporate_entities(
     }
 
     // State-owned public-service buildings.
+    // Phase 80: All keys are strict snake_case — no Title Case, no spaces.
+    // Phase 80: Expanded from 4 to 9 building types to ensure all critical
+    // state infrastructure (justice, security, intelligence, borders, customs,
+    // education, religion) is generated at game start.
     let state_buildings = [
-        ("Military Base", 4000u32),
-        ("Police Station", 200u32),
-        ("Court", 150u32),
-        ("Service Headquarters", 250u32),
+        ("military_base", 4000u32),
+        ("police_station", 200u32),
+        ("courthouse", 150u32),
+        ("service_headquarters", 250u32),
+        ("intelligence_hq", 100u32),
+        ("border_guard", 80u32),
+        ("customs_office", 60u32),
+        ("university", 300u32),
+        ("monastery_scriptorium", 50u32),
     ];
     let public_sector = sector_json_name(Sector::PublicServices);
     for (region, (name, base_capacity)) in country_regions.iter().cycle().zip(state_buildings.iter().cycle()).take(country_regions.len() * state_buildings.len()) {
@@ -2230,24 +2239,98 @@ fn create_seed_energy_company(
     idgen: &mut IdGen,
     rng: &mut impl Rng,
 ) -> (Company, Building) {
-    // 50% chance: use the best available method (may require advanced inputs).
-    if rng.gen::<f64>() < 0.5 {
-        return create_seed_company(
-            Sector::Energy,
-            region,
-            target_workers,
-            start_year,
-            registries,
-            idgen,
-            rng,
-        );
+    // Phase 81: Use specialized power plant generation.
+    create_specialized_power_plant(
+        region,
+        target_workers,
+        start_year,
+        registries,
+        idgen,
+        rng,
+    )
+}
+
+/// Phase 81: Create a specialized power plant with `PowerPlantMetadata`.
+///
+/// Determines the plant type based on geographic constraints and era,
+/// selects the best available production method for that plant type,
+/// and stores `PowerPlantMetadata` in the building's `extra` map.
+fn create_specialized_power_plant(
+    region: &Region,
+    target_workers: u32,
+    start_year: u32,
+    registries: &Registries,
+    idgen: &mut IdGen,
+    rng: &mut impl Rng,
+) -> (Company, Building) {
+    use crate::energy::generation::{
+        available_plant_types, nameplate_per_plant, plant_count,
+        target_regional_capacity_mw, workers_per_plant,
+    };
+    use crate::energy::types::{CoolingType, PowerPlantMetadata, PowerPlantType};
+
+    // Determine geographic constraints.
+    let has_coast = region.geographic_traits.has_coastline;
+    let has_river = region.geographic_traits.has_navigable_river;
+    let has_water = has_coast || has_river;
+
+    // Check for coal deposits in this region.
+    let has_coal_deposit = false; // TODO: query geological_formations for coal deposits.
+    let has_uranium = false; // TODO: query geological_formations for uranium.
+    let has_geothermal = false; // TODO: check for volcanic formations.
+    let has_forest = false; // TODO: check for forest tracts.
+    let has_livestock = false; // TODO: check for livestock production.
+
+    // Get available plant types.
+    let plant_types = available_plant_types(
+        start_year,
+        has_coal_deposit,
+        has_water,
+        has_forest,
+        has_livestock,
+        has_uranium,
+        has_geothermal,
+    );
+
+    // Pick a plant type (weighted random selection).
+    let total_weight: f64 = plant_types.iter().map(|(_, w)| *w).sum();
+    let mut roll = rng.gen_range(0.0..total_weight.max(0.001));
+    let mut selected_type = PowerPlantType::BiomassFired; // Fallback.
+    for (pt, w) in &plant_types {
+        roll -= w;
+        if roll <= 0.0 {
+            selected_type = *pt;
+            break;
+        }
     }
 
-    // 50% chance: use a fallback method that only needs basic inputs.
-    // Pick the best fallback method (highest year Ă˘â€°Â¤ start_year) that does NOT
-    // require ElectronicComponents or NaturalGas as inputs.
-    let sector_key = sector_json_name(Sector::Energy);
-    let fallback = registries.production_methods.get(&sector_key)
+    // Determine cooling type for thermal plants.
+    let cooling_type = if selected_type.is_thermal() {
+        if !has_water {
+            CoolingType::AirCooled
+        } else if start_year >= 1950 && rng.gen::<f64>() < 0.3 {
+            CoolingType::ClosedLoop
+        } else {
+            CoolingType::OnceThrough
+        }
+    } else {
+        CoolingType::OnceThrough // Irrelevant for non-thermal.
+    };
+
+    // Calculate nameplate capacity.
+    let nameplate = nameplate_per_plant(start_year);
+    let average_wage = 500.0; // Fallback — TODO: pass actual average_wage.
+    let target_mw = target_regional_capacity_mw(
+        region.population as f64,
+        region.development_level,
+        average_wage,
+        start_year,
+    );
+    let _plant_count = plant_count(target_mw, start_year);
+
+    // Select the best available production method for this plant type.
+    let sector_key = selected_type.registry_key();
+    let method = registries.production_methods.get(sector_key)
         .and_then(|methods| {
             methods.production.values()
                 .filter(|pm| pm.year <= start_year)
@@ -2261,19 +2344,10 @@ fn create_seed_energy_company(
                         }
                     }
                 })
-                .filter(|pm| {
-                    // Exclude methods that need advanced inputs.
-                    !pm.inputs.iter().any(|(c, _)| {
-                        *c == Commodity::ElectronicComponents
-                            || *c == Commodity::NaturalGas
-                            || *c == Commodity::Semiconductors
-                            || *c == Commodity::Silicon
-                    })
-                })
                 .max_by_key(|pm| pm.year)
         });
 
-    match fallback {
+    let (company, mut building) = match method {
         Some(pm) => {
             let method = method_from_ratios(
                 pm.experts_ratio,
@@ -2283,20 +2357,34 @@ fn create_seed_energy_company(
                 pm.outputs.iter().map(|(k, v)| (*k, *v)).collect(),
                 pm.year,
             );
+            let building_name = match selected_type {
+                PowerPlantType::CoalFired => "Coal-Fired Power Plant",
+                PowerPlantType::LigniteFired => "Lignite Power Plant",
+                PowerPlantType::OilGas => "Oil/Gas Power Plant",
+                PowerPlantType::Nuclear => "Nuclear Power Plant",
+                PowerPlantType::Solar => "Solar Power Plant",
+                PowerPlantType::Wind => "Wind Farm",
+                PowerPlantType::Hydro => "Hydroelectric Plant",
+                PowerPlantType::PumpedStorage => "Pumped Storage Plant",
+                PowerPlantType::BatteryStorage => "Battery Storage Facility",
+                PowerPlantType::Geothermal => "Geothermal Plant",
+                PowerPlantType::BiomassFired => "Biomass Power Plant",
+                PowerPlantType::BiogasPlant => "Biogas Plant",
+            };
             create_seed_company_with_explicit_method(
                 Sector::Energy,
                 region,
-                target_workers,
+                target_workers.max(workers_per_plant(start_year)),
                 start_year,
                 registries,
                 idgen,
                 rng,
-                &default_building_name(Sector::Energy),
+                building_name,
                 &method,
             )
         }
         None => {
-            // No fallback found Ă˘â‚¬â€ť use the default best method.
+            // Fallback to default energy company creation.
             create_seed_company(
                 Sector::Energy,
                 region,
@@ -2307,7 +2395,24 @@ fn create_seed_energy_company(
                 rng,
             )
         }
-    }
+    };
+
+    // Store PowerPlantMetadata in the building's extra map.
+    let metadata = PowerPlantMetadata {
+        plant_type: selected_type,
+        cooling_type,
+        has_cooling_upgrade: cooling_type == CoolingType::ClosedLoop,
+        fuel_source_deposit_id: None,
+        water_source_region: if has_water { Some(region.id.clone()) } else { None },
+        nameplate_capacity_mw: nameplate,
+        capacity_factor: 0.5,
+    };
+    building.extra.insert(
+        PowerPlantMetadata::EXTRA_KEY.to_string(),
+        metadata.to_json(),
+    );
+
+    (company, building)
 }
 
 /// Phase 20: Minimum workers for a seed building in a sector, scaled by region population.
@@ -2635,7 +2740,7 @@ fn seed_inventory(
 
 /// Phase 27: Estimated base price for a commodity, used for seed inventory
 /// cost calculation. Returns a rough unit price Ă˘â‚¬â€ť not the actual market price.
-fn estimated_base_price(commodity: Commodity) -> f64 {
+pub fn estimated_base_price(commodity: Commodity) -> f64 {
     match commodity {
         Commodity::Food => 50.0,
         Commodity::Fuels => 80.0,
@@ -2981,11 +3086,11 @@ fn state_building_recipe(name: &str, start_year: u32) -> (String, ActiveProducti
                     (Commodity::AdministrativeServices, 2.0),
                     (Commodity::Paper, 2.0),
                 ]),
-                BTreeMap::new(),
+                BTreeMap::from([(Commodity::SecurityCapacity, 20.0)]),
                 year,
             ),
         ),
-        "Court" => (
+        "courthouse" => (
             name.to_string(),
             method_from_ratios(
                 0.40,
@@ -2995,11 +3100,11 @@ fn state_building_recipe(name: &str, start_year: u32) -> (String, ActiveProducti
                     (Commodity::Paper, 5.0),
                     (Commodity::AdministrativeServices, 5.0),
                 ]),
-                BTreeMap::new(),
+                BTreeMap::from([(Commodity::JusticeCapacity, 18.0)]),
                 year,
             ),
         ),
-        "Service Headquarters" => (
+        "service_headquarters" => (
             name.to_string(),
             method_from_ratios(
                 0.30,
@@ -3012,6 +3117,77 @@ fn state_building_recipe(name: &str, start_year: u32) -> (String, ActiveProducti
                     (Commodity::AdministrativeServices, 5.0),
                 ]),
                 BTreeMap::new(),
+                year,
+            ),
+        ),
+        "intelligence_hq" => (
+            name.to_string(),
+            method_from_ratios(
+                0.30,
+                0.50,
+                0.20,
+                BTreeMap::from([
+                    (Commodity::ElectronicComponents, 10.0),
+                    (Commodity::Rifles, 2.0),
+                    (Commodity::Cars, 3.0),
+                    (Commodity::AdministrativeServices, 5.0),
+                ]),
+                BTreeMap::from([(Commodity::IntelligenceCapacity, 8.0)]),
+                year,
+            ),
+        ),
+        "border_guard" => (
+            name.to_string(),
+            method_from_ratios(
+                0.05,
+                0.25,
+                0.70,
+                BTreeMap::from([
+                    (Commodity::Food, 10.0),
+                    (Commodity::Rifles, 1.0),
+                ]),
+                BTreeMap::from([(Commodity::BorderEnforcementCapacity, 10.0)]),
+                year,
+            ),
+        ),
+        "customs_office" => (
+            name.to_string(),
+            method_from_ratios(
+                0.10,
+                0.30,
+                0.60,
+                BTreeMap::from([
+                    (Commodity::Food, 8.0),
+                    (Commodity::Paper, 2.0),
+                ]),
+                BTreeMap::from([(Commodity::CustomsCapacity, 10.0)]),
+                year,
+            ),
+        ),
+        "university" => (
+            name.to_string(),
+            method_from_ratios(
+                0.40,
+                0.40,
+                0.20,
+                BTreeMap::from([
+                    (Commodity::Paper, 20.0),
+                    (Commodity::Chemicals, 10.0),
+                ]),
+                BTreeMap::from([(Commodity::InnovationPoints, 5.0)]),
+                year,
+            ),
+        ),
+        "monastery_scriptorium" => (
+            name.to_string(),
+            method_from_ratios(
+                0.20,
+                0.50,
+                0.30,
+                BTreeMap::from([
+                    (Commodity::Paper, 5.0),
+                ]),
+                BTreeMap::from([(Commodity::ReligiousTexts, 5.0)]),
                 year,
             ),
         ),
@@ -3712,7 +3888,11 @@ fn generate_charity_entities(
         // One secular NGO per region.
         let ngo_id = idgen.next_company();
         let ngo_name = format!("Charitable Foundation {}", region.id);
-        let ngo_capacity = rng.gen_range(5..=10);
+        // Phase 80: Scale NGO capacity by region population. A region with
+        // 500K people should have ~50 staff, not 5-10. Formula:
+        // max(10, population/50_000).min(500).
+        let region_pop = region.population.max(1) as u32;
+        let ngo_capacity = (region_pop / 50_000).max(10).min(500);
         let ngo = create_charity_company(
             ngo_id.clone(),
             ngo_name,
@@ -3924,8 +4104,11 @@ fn create_charity_company(
         productivity_penalty: 0.0,
         target_wage: subsistence_wage.max(50.0),
         is_striking: false,
-        fulfilled_fte: 0,
-        prev_fulfilled_fte: 0,
+        // Phase 80: Pre-populate 70% of workforce so NGOs can operate from turn 1.
+        // Previously 0, which meant NGOs couldn't participate in the labor market
+        // until donations arrived organically — leaving them dead for many turns.
+        fulfilled_fte: ((worker_capacity as f64 * 0.7).round() as u32).max(1),
+        prev_fulfilled_fte: ((worker_capacity as f64 * 0.7).round() as u32).max(1),
         physical_fte_demand: worker_capacity,
         is_in_receivership: false,
         agricultural_profile: None,

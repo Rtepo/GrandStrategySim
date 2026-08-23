@@ -105,6 +105,22 @@ pub fn default_production_methods() -> HashMap<String, BuildingMethods> {
     registry.insert("armaments_industry".to_string(), armaments_methods());
     registry.insert("construction".to_string(), construction_methods());
     registry.insert("energy".to_string(), energy_methods());
+    // Phase 81: Plant-type-specific energy production method registries.
+    registry.insert("coal_fired_plant".to_string(), coal_fired_plant_methods());
+    registry.insert("lignite_fired_plant".to_string(), lignite_fired_plant_methods());
+    registry.insert("oil_gas_plant".to_string(), oil_gas_plant_methods());
+    registry.insert("nuclear_plant".to_string(), nuclear_plant_methods());
+    registry.insert("solar_plant".to_string(), solar_plant_methods());
+    registry.insert("wind_farm".to_string(), wind_farm_methods());
+    registry.insert("hydro_plant".to_string(), hydro_plant_methods());
+    registry.insert("pumped_storage".to_string(), pumped_storage_methods());
+    registry.insert("battery_storage".to_string(), battery_storage_methods());
+    registry.insert("geothermal_plant".to_string(), geothermal_plant_methods());
+    registry.insert("biomass_plant".to_string(), biomass_plant_methods());
+    registry.insert("biogas_plant".to_string(), biogas_plant_methods());
+    // Phase 81: Shared automation and organization methods for all energy plant types.
+    registry.insert("energy_automation".to_string(), energy_automation_methods());
+    registry.insert("energy_organization".to_string(), energy_organization_methods());
     registry.insert("transport_logistics".to_string(), transport_methods());
     registry.insert("media_and_entertainment".to_string(), media_methods());
     registry.insert("medical_services".to_string(), medical_methods());
@@ -1030,6 +1046,265 @@ fn energy_methods() -> BuildingMethods {
     m.insert(MethodSlot::Organization, "Grid Management".into(),
         pm(1960, Some("cs_004"), 0.25, 0.40, 0.35, 2.5,
            &[(Commodity::Food, 5.0), (Commodity::Software, 3.0)], &[]));
+    m
+}
+
+// === Phase 81: Plant-Type-Specific Energy Production Methods ===
+
+/// Coal-fired power plant production methods (era-based progression).
+fn coal_fired_plant_methods() -> BuildingMethods {
+    let mut m = BuildingMethods::default();
+    m.insert(MethodSlot::Production, "Subcritical Boiler".into(),
+        pm_thermal(1880, None, 0.10, 0.25, 0.65, 1.0,
+           &[(Commodity::HardCoal, 20.0), (Commodity::Water, 10.0)],
+           &[(Commodity::Energy, 30.0), (Commodity::Heat, 10.0)],
+           0.15));
+    m.insert(MethodSlot::Production, "Supercritical Boiler".into(),
+        pm_thermal(1930, Some("steam_005"), 0.15, 0.30, 0.55, 2.0,
+           &[(Commodity::HardCoal, 15.0), (Commodity::Water, 8.0), (Commodity::MechanicalComponents, 3.0)],
+           &[(Commodity::Energy, 60.0), (Commodity::Heat, 15.0)],
+           0.25));
+    m.insert(MethodSlot::Production, "Ultra-Supercritical Boiler".into(),
+        pm_thermal(1960, Some("auto3_002"), 0.20, 0.35, 0.45, 3.0,
+           &[(Commodity::HardCoal, 12.0), (Commodity::Water, 6.0), (Commodity::ElectronicComponents, 5.0)],
+           &[(Commodity::Energy, 100.0), (Commodity::Heat, 20.0)],
+           0.38));
+    m.insert(MethodSlot::Production, "Integrated Gasification".into(),
+        pm_thermal(1990, Some("advman_004"), 0.25, 0.40, 0.35, 4.0,
+           &[(Commodity::HardCoal, 10.0), (Commodity::Water, 5.0), (Commodity::Semiconductors, 3.0)],
+           &[(Commodity::Energy, 130.0), (Commodity::Heat, 25.0)],
+           0.45));
+    // Cooling upgrade variants (alternative Production methods).
+    m.insert(MethodSlot::Production, "Closed-Loop Cooling Tower".into(),
+        pm_thermal(1950, Some("cool_001"), 0.20, 0.35, 0.45, 2.8,
+           &[(Commodity::HardCoal, 15.0), (Commodity::Water, 4.0), (Commodity::CoolingTower, 2.0)],
+           &[(Commodity::Energy, 80.0), (Commodity::Heat, 15.0)],
+           0.30));
+    m.insert(MethodSlot::Production, "Air-Cooled Condenser".into(),
+        pm_thermal(1970, Some("cool_002"), 0.20, 0.35, 0.45, 2.7,
+           &[(Commodity::HardCoal, 16.0), (Commodity::CoolingTower, 2.0)],
+           &[(Commodity::Energy, 76.0), (Commodity::Heat, 15.0)],
+           0.28));
+    m
+}
+
+/// Lignite-fired power plant production methods.
+fn lignite_fired_plant_methods() -> BuildingMethods {
+    let mut m = BuildingMethods::default();
+    m.insert(MethodSlot::Production, "Lignite Dryer Boiler".into(),
+        pm_thermal(1880, None, 0.10, 0.25, 0.65, 1.0,
+           &[(Commodity::BrownCoal, 30.0), (Commodity::Water, 10.0)],
+           &[(Commodity::Energy, 25.0), (Commodity::Heat, 8.0)],
+           0.12));
+    m.insert(MethodSlot::Production, "Pre-Dried Lignite".into(),
+        pm_thermal(1950, Some("steam_005"), 0.15, 0.30, 0.55, 1.8,
+           &[(Commodity::BrownCoal, 20.0), (Commodity::Water, 8.0), (Commodity::MechanicalComponents, 3.0)],
+           &[(Commodity::Energy, 50.0), (Commodity::Heat, 12.0)],
+           0.20));
+    m.insert(MethodSlot::Production, "Fluidized Bed Lignite".into(),
+        pm_thermal(1980, Some("auto3_002"), 0.20, 0.35, 0.45, 2.5,
+           &[(Commodity::BrownCoal, 15.0), (Commodity::Water, 6.0), (Commodity::ElectronicComponents, 4.0)],
+           &[(Commodity::Energy, 75.0), (Commodity::Heat, 18.0)],
+           0.28));
+    m
+}
+
+/// Oil/gas power plant production methods.
+fn oil_gas_plant_methods() -> BuildingMethods {
+    let mut m = BuildingMethods::default();
+    m.insert(MethodSlot::Production, "Diesel Generator".into(),
+        pm_thermal(1910, Some("auto_002"), 0.15, 0.30, 0.55, 2.0,
+           &[(Commodity::Fuels, 15.0), (Commodity::MechanicalComponents, 5.0)],
+           &[(Commodity::Energy, 90.0)],
+           0.35));
+    m.insert(MethodSlot::Production, "Gas Turbine".into(),
+        pm_thermal(1940, Some("auto3_001"), 0.20, 0.35, 0.45, 2.5,
+           &[(Commodity::NaturalGas, 15.0), (Commodity::Water, 5.0)],
+           &[(Commodity::Energy, 120.0), (Commodity::Heat, 20.0)],
+           0.30));
+    m.insert(MethodSlot::Production, "Combined Cycle".into(),
+        pm_thermal(1975, Some("auto3_007"), 0.25, 0.40, 0.35, 3.5,
+           &[(Commodity::NaturalGas, 12.0), (Commodity::ElectronicComponents, 5.0), (Commodity::Water, 4.0)],
+           &[(Commodity::Energy, 200.0), (Commodity::Heat, 30.0)],
+           0.55));
+    m
+}
+
+/// Nuclear power plant production methods.
+fn nuclear_plant_methods() -> BuildingMethods {
+    let mut m = BuildingMethods::default();
+    m.insert(MethodSlot::Production, "PWR Reactor".into(),
+        pm_thermal(1955, Some("nucp_001"), 0.30, 0.45, 0.25, 5.0,
+           &[(Commodity::Uranium, 5.0), (Commodity::Water, 20.0), (Commodity::ElectronicComponents, 10.0)],
+           &[(Commodity::Energy, 200.0)],
+           0.33));
+    m.insert(MethodSlot::Production, "BWR Reactor".into(),
+        pm_thermal(1960, Some("nucp_002"), 0.30, 0.45, 0.25, 5.5,
+           &[(Commodity::Uranium, 4.0), (Commodity::Water, 15.0), (Commodity::ElectronicComponents, 8.0)],
+           &[(Commodity::Energy, 220.0)],
+           0.34));
+    m.insert(MethodSlot::Production, "Fast Breeder".into(),
+        pm_thermal(1975, Some("nucp_006"), 0.35, 0.45, 0.20, 6.0,
+           &[(Commodity::Uranium, 3.0), (Commodity::Water, 12.0), (Commodity::ElectronicComponents, 12.0)],
+           &[(Commodity::Energy, 280.0)],
+           0.40));
+    m
+}
+
+/// Solar power plant production methods.
+fn solar_plant_methods() -> BuildingMethods {
+    let mut m = BuildingMethods::default();
+    m.insert(MethodSlot::Production, "Photovoltaic Array".into(),
+        pm(1990, Some("advman_004"), 0.25, 0.40, 0.35, 4.0,
+           &[(Commodity::ElectronicComponents, 10.0), (Commodity::Silicon, 5.0)],
+           &[(Commodity::Energy, 150.0)]));
+    m.insert(MethodSlot::Production, "Concentrated Solar".into(),
+        pm(2000, Some("solar_002"), 0.30, 0.40, 0.30, 4.5,
+           &[(Commodity::ElectronicComponents, 8.0), (Commodity::Steel, 10.0), (Commodity::Silicon, 3.0)],
+           &[(Commodity::Energy, 180.0), (Commodity::Heat, 30.0)]));
+    m
+}
+
+/// Wind farm production methods.
+fn wind_farm_methods() -> BuildingMethods {
+    let mut m = BuildingMethods::default();
+    m.insert(MethodSlot::Production, "Onshore Wind Farm".into(),
+        pm(1990, Some("advman_005"), 0.20, 0.35, 0.45, 3.5,
+           &[(Commodity::MechanicalComponents, 10.0), (Commodity::ElectronicComponents, 5.0), (Commodity::Steel, 8.0)],
+           &[(Commodity::Energy, 120.0)]));
+    m.insert(MethodSlot::Production, "Offshore Wind Farm".into(),
+        pm(2000, Some("wind_001"), 0.25, 0.40, 0.35, 4.5,
+           &[(Commodity::MechanicalComponents, 15.0), (Commodity::ElectronicComponents, 8.0), (Commodity::Steel, 15.0)],
+           &[(Commodity::Energy, 200.0)]));
+    m
+}
+
+/// Hydroelectric power plant production methods.
+fn hydro_plant_methods() -> BuildingMethods {
+    let mut m = BuildingMethods::default();
+    m.insert(MethodSlot::Production, "Run-of-River Hydro".into(),
+        pm(1890, Some("elecf_002"), 0.15, 0.30, 0.55, 2.0,
+           &[(Commodity::Water, 15.0), (Commodity::MechanicalComponents, 5.0)],
+           &[(Commodity::Energy, 60.0)]));
+    m.insert(MethodSlot::Production, "Reservoir Hydro".into(),
+        pm(1920, Some("elecf_005"), 0.20, 0.35, 0.45, 2.5,
+           &[(Commodity::Water, 20.0), (Commodity::MechanicalComponents, 8.0), (Commodity::Steel, 5.0)],
+           &[(Commodity::Energy, 90.0)]));
+    m
+}
+
+/// Pumped storage plant production methods.
+fn pumped_storage_methods() -> BuildingMethods {
+    let mut m = BuildingMethods::default();
+    m.insert(MethodSlot::Production, "Pumped Storage Plant".into(),
+        pm_storage(1907, Some("pstrg_001"), 0.15, 0.30, 0.55, 1.5,
+           &[(Commodity::Energy, 100.0), (Commodity::Water, 20.0), (Commodity::MechanicalComponents, 5.0)],
+           &[(Commodity::Energy, 72.0)],
+           0.72));
+    m
+}
+
+/// Battery storage production methods.
+fn battery_storage_methods() -> BuildingMethods {
+    let mut m = BuildingMethods::default();
+    m.insert(MethodSlot::Production, "Battery Bank Storage".into(),
+        pm_storage(1990, Some("batt_002"), 0.20, 0.40, 0.40, 2.0,
+           &[(Commodity::Energy, 100.0), (Commodity::Batteries, 5.0), (Commodity::ElectronicComponents, 3.0)],
+           &[(Commodity::Energy, 87.0)],
+           0.87));
+    m
+}
+
+/// Geothermal plant production methods.
+fn geothermal_plant_methods() -> BuildingMethods {
+    let mut m = BuildingMethods::default();
+    m.insert(MethodSlot::Production, "Geothermal Plant".into(),
+        pm(1980, Some("advman_004"), 0.25, 0.40, 0.35, 3.5,
+           &[(Commodity::MechanicalComponents, 8.0), (Commodity::ElectronicComponents, 3.0), (Commodity::Water, 5.0)],
+           &[(Commodity::Energy, 100.0)]));
+    m
+}
+
+/// Biomass-fired plant production methods (early/rural electrification).
+fn biomass_plant_methods() -> BuildingMethods {
+    let mut m = BuildingMethods::default();
+    m.insert(MethodSlot::Production, "Wood-Fired Boiler".into(),
+        pm_thermal(1880, None, 0.10, 0.25, 0.65, 1.0,
+           &[(Commodity::Timber, 15.0), (Commodity::Planks, 10.0), (Commodity::Peat, 8.0), (Commodity::Water, 5.0)],
+           &[(Commodity::Energy, 20.0), (Commodity::Heat, 8.0)],
+           0.10));
+    m.insert(MethodSlot::Production, "Automated Biomass".into(),
+        pm_thermal(1950, Some("auto3_001"), 0.15, 0.30, 0.55, 1.5,
+           &[(Commodity::Timber, 12.0), (Commodity::Planks, 8.0), (Commodity::Peat, 5.0), (Commodity::Water, 4.0), (Commodity::MechanicalComponents, 3.0)],
+           &[(Commodity::Energy, 40.0), (Commodity::Heat, 12.0)],
+           0.18));
+    m.insert(MethodSlot::Production, "Co-Firing Biomass".into(),
+        pm_thermal(1990, Some("advman_004"), 0.20, 0.35, 0.45, 2.0,
+           &[(Commodity::Timber, 8.0), (Commodity::HardCoal, 8.0), (Commodity::Water, 4.0), (Commodity::ElectronicComponents, 3.0)],
+           &[(Commodity::Energy, 60.0), (Commodity::Heat, 15.0)],
+           0.22));
+    m
+}
+
+/// Biogas plant production methods (agricultural waste).
+fn biogas_plant_methods() -> BuildingMethods {
+    let mut m = BuildingMethods::default();
+    m.insert(MethodSlot::Production, "Anaerobic Digester".into(),
+        pm_thermal(1930, Some("chem_005"), 0.15, 0.30, 0.55, 1.5,
+           &[(Commodity::Livestock, 10.0), (Commodity::Food, 5.0), (Commodity::Water, 3.0)],
+           &[(Commodity::Energy, 25.0), (Commodity::Heat, 10.0)],
+           0.15));
+    m.insert(MethodSlot::Production, "Upgraded Biogas".into(),
+        pm_thermal(1980, Some("auto3_004"), 0.20, 0.35, 0.45, 2.0,
+           &[(Commodity::Livestock, 8.0), (Commodity::Food, 4.0), (Commodity::Water, 2.0), (Commodity::ElectronicComponents, 3.0)],
+           &[(Commodity::Energy, 40.0), (Commodity::Heat, 12.0)],
+           0.25));
+    m
+}
+
+/// Phase 81: Shared automation methods for all energy plant types.
+fn energy_automation_methods() -> BuildingMethods {
+    let mut m = BuildingMethods::default();
+    m.insert(MethodSlot::Automation, "Manual Stoking".into(),
+        pm(1880, None, 0.05, 0.20, 0.75, 1.0, &[(Commodity::Food, 5.0)], &[]));
+    m.insert(MethodSlot::Automation, "Mechanical Stokers".into(),
+        pm(1890, Some("steam_003"), 0.10, 0.25, 0.65, 1.5,
+           &[(Commodity::MechanicalComponents, 3.0)], &[]));
+    m.insert(MethodSlot::Automation, "Pulverized Coal Burners".into(),
+        pm(1920, Some("steam_005"), 0.15, 0.30, 0.55, 1.8,
+           &[(Commodity::Energy, 5.0), (Commodity::MechanicalComponents, 2.0)], &[]));
+    m.insert(MethodSlot::Automation, "Automated Boiler Control".into(),
+        pm(1950, Some("auto3_001"), 0.20, 0.35, 0.45, 2.5,
+           &[(Commodity::ElectronicComponents, 3.0)], &[]));
+    m.insert(MethodSlot::Automation, "SCADA Systems".into(),
+        pm(1985, Some("cs_005"), 0.30, 0.45, 0.25, 4.0,
+           &[(Commodity::ElectronicComponents, 8.0), (Commodity::Software, 5.0)], &[]));
+    m.insert(MethodSlot::Automation, "AI Grid Optimization".into(),
+        pm(2010, Some("cs_008"), 0.35, 0.45, 0.20, 6.0,
+           &[(Commodity::Semiconductors, 5.0), (Commodity::Software, 8.0)], &[]));
+    m
+}
+
+/// Phase 81: Shared organization methods for all energy plant types.
+fn energy_organization_methods() -> BuildingMethods {
+    let mut m = BuildingMethods::default();
+    m.insert(MethodSlot::Organization, "Shift Operation".into(),
+        pm(1880, None, 0.05, 0.20, 0.75, 1.0, &[(Commodity::Food, 5.0)], &[]));
+    m.insert(MethodSlot::Organization, "State Utility Model".into(),
+        pm(1900, None, 0.10, 0.25, 0.65, 1.2,
+           &[(Commodity::Food, 5.0), (Commodity::Paper, 2.0)], &[]));
+    m.insert(MethodSlot::Organization, "Centralized Dispatch".into(),
+        pm(1920, Some("elecf_005"), 0.15, 0.30, 0.55, 1.5,
+           &[(Commodity::Food, 5.0), (Commodity::Paper, 3.0)], &[]));
+    m.insert(MethodSlot::Organization, "Grid Management".into(),
+        pm(1960, Some("cs_004"), 0.25, 0.40, 0.35, 2.5,
+           &[(Commodity::Food, 5.0), (Commodity::Software, 3.0)], &[]));
+    m.insert(MethodSlot::Organization, "Privatized Grid".into(),
+        pm(1990, Some("cs_005"), 0.25, 0.40, 0.35, 2.0,
+           &[(Commodity::Food, 5.0), (Commodity::Software, 5.0)], &[]));
+    m.insert(MethodSlot::Organization, "Independent System Operator".into(),
+        pm(2000, Some("cs_008"), 0.30, 0.45, 0.25, 3.0,
+           &[(Commodity::Food, 5.0), (Commodity::Software, 8.0)], &[]));
     m
 }
 

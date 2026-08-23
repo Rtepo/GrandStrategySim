@@ -963,7 +963,7 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    registry.insert("Court".to_string(), court_methods);
+    registry.insert("prosecutor_office".to_string(), court_methods);
 
     // CustomsOffice — Treasury: facilitates tariff collection
     let mut customs_methods = BuildingMethods::default();
@@ -982,7 +982,7 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    registry.insert("CustomsOffice".to_string(), customs_methods);
+    registry.insert("customs_office_treasury".to_string(), customs_methods);
 
     // Embassy — Foreign Affairs: diplomatic output
     let mut embassy_methods = BuildingMethods::default();
@@ -1002,7 +1002,7 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    registry.insert("Embassy".to_string(), embassy_methods);
+    registry.insert("embassy".to_string(), embassy_methods);
 
     // ResearchInstitute — Science: produces ResearchOutput
     let mut research_methods = BuildingMethods::default();
@@ -1023,7 +1023,7 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    registry.insert("ResearchInstitute".to_string(), research_methods);
+    registry.insert("research_institute".to_string(), research_methods);
 
     // LaborInspectorate — Labor: enforces labor regulations
     let mut labor_inspectorate_methods = BuildingMethods::default();
@@ -1043,7 +1043,7 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    registry.insert("LaborInspectorate".to_string(), labor_inspectorate_methods);
+    registry.insert("labor_inspectorate".to_string(), labor_inspectorate_methods);
 
     // PublicWorksSite — Labor: public employment program
     let mut public_works_methods = BuildingMethods::default();
@@ -1065,7 +1065,7 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    registry.insert("PublicWorksSite".to_string(), public_works_methods);
+    registry.insert("public_works_site".to_string(), public_works_methods);
 
     // NationalTheater — Culture: produces CulturalOutput
     let mut theater_methods = BuildingMethods::default();
@@ -1086,7 +1086,7 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    registry.insert("NationalTheater".to_string(), theater_methods);
+    registry.insert("national_theater".to_string(), theater_methods);
 
     // NationalLibrary — Culture: produces CulturalOutput (knowledge)
     let mut library_methods = BuildingMethods::default();
@@ -1106,7 +1106,7 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    registry.insert("NationalLibrary".to_string(), library_methods);
+    registry.insert("national_library".to_string(), library_methods);
 
     // TransportDepot — Transport: public transport hub
     let mut transport_depot_methods = BuildingMethods::default();
@@ -1128,7 +1128,7 @@ pub fn industrial_production_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    registry.insert("TransportDepot".to_string(), transport_depot_methods);
+    registry.insert("transport_depot".to_string(), transport_depot_methods);
 
     // -- Phase 17C: Monastery/Temple Production Methods --
     // These are used by CulturalBuilding (not Building), linked via production_method field.

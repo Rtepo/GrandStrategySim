@@ -61,6 +61,7 @@ pub mod corporate;
 pub mod construction;
 pub mod data;
 pub mod economy;
+pub mod energy;
 pub mod engine;
 pub mod entities;
 pub mod government;

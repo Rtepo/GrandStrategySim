@@ -550,6 +550,15 @@ pub enum Commodity {
     /// early-game transport and agriculture. Maintained with Fodder + Water
     /// instead of MaintenanceServices.
     DraftAnimals,
+    /// "cooling_tower" — Phase 81: Fixed asset for closed-loop cooling upgrade
+    /// on thermal power plants. Makes the plant drought-resistant.
+    CoolingTower,
+    /// "photovoltaic_panels" — Phase 81: Consumer good for microgeneration (Wave 2).
+    PhotovoltaicPanels,
+    /// "insulation" — Phase 81: Consumer good for energy efficiency (Wave 2).
+    Insulation,
+    /// "led_lighting" — Phase 81: Consumer good for energy efficiency (Wave 2).
+    LedLighting,
 }
 
 impl std::fmt::Display for Commodity {
@@ -631,7 +640,20 @@ impl Commodity {
                 | Commodity::Cars
                 | Commodity::DraftAnimals
                 | Commodity::Trains
+                | Commodity::CoolingTower
         )
+    }
+
+    /// Phase 80: Returns `true` if this commodity is a local utility that
+    /// cannot be transported and must NOT appear on the global B2B market.
+    ///
+    /// Energy (electricity) and Heat are local grid utilities — they are
+    /// distributed by the grid distribution system (`utilities/grid.rs`),
+    /// not traded on the global B2B commodity market. Placing them on the
+    /// B2B market creates phantom supply with no matching demand, causing
+    /// huge surpluses that distort the market UI.
+    pub fn is_local_utility(&self) -> bool {
+        matches!(self, Commodity::Energy | Commodity::Heat)
     }
 
     /// Phase 19C: Returns `true` if this commodity is a quality consumer
@@ -713,6 +735,8 @@ impl Commodity {
             Commodity::HardCoal => 25.0,
             Commodity::BrownCoal => 10.0,
             Commodity::Peat => 6.0,
+            Commodity::Timber => 8.0,
+            Commodity::Planks => 7.0,
             Commodity::Oil => 42.0,
             Commodity::NaturalGas => 55.0,
             Commodity::Fuels => 34.0,
@@ -748,7 +772,7 @@ impl Commodity {
     }
 
     /// Returns all tradeable commodity variants in canonical (English) JSON order.
-    pub fn all() -> [Commodity; 139] {
+    pub fn all() -> [Commodity; 143] {
         [
             Commodity::Agd,
             Commodity::Aluminum,
@@ -889,6 +913,10 @@ impl Commodity {
             Commodity::Ammonia,
             Commodity::FreightCapacity,
             Commodity::DraftAnimals,
+            Commodity::CoolingTower,
+            Commodity::PhotovoltaicPanels,
+            Commodity::Insulation,
+            Commodity::LedLighting,
         ]
     }
 }
@@ -1037,6 +1065,10 @@ impl TryFrom<&str> for Commodity {
             "uranium" => Ok(Commodity::Uranium),
             "freight_capacity" => Ok(Commodity::FreightCapacity),
             "draft_animals" => Ok(Commodity::DraftAnimals),
+            "cooling_tower" => Ok(Commodity::CoolingTower),
+            "photovoltaic_panels" => Ok(Commodity::PhotovoltaicPanels),
+            "insulation" => Ok(Commodity::Insulation),
+            "led_lighting" => Ok(Commodity::LedLighting),
             _ => Err(format!("unknown commodity: {s}")),
         }
     }

@@ -359,6 +359,60 @@ export type DynastyMemberRow = { vip_id: string, name: string, relation: string,
 export type EmergencySnapshot = { active: boolean, reason: string, turns_remaining: number, parliament_suspended: boolean, };
 
 /**
+ * Phase 81: Energy grid snapshot for the Energy dashboard.
+ *
+ * Role-gated: foreign observers see only public aggregate data (national
+ * supply/demand/capacity), not detailed plant counts, spot prices, or
+ * interconnector flows. The backend strips classified fields before
+ * serialization based on the observer's role and country.
+ */
+export type EnergyGridSnapshot = { 
+/**
+ * National total electricity supply (MW).
+ */
+national_supply_mw: number, 
+/**
+ * National total electricity demand (MW).
+ */
+national_demand_mw: number, 
+/**
+ * National total nameplate capacity (MW).
+ */
+national_nameplate_capacity_mw: number, 
+/**
+ * National overproduction tier (string representation).
+ */
+national_overproduction_tier: string, 
+/**
+ * National load-shed tier (string representation).
+ */
+national_load_shed_tier: string, 
+/**
+ * Regional energy info (detail level depends on observer role).
+ */
+regions: Array<RegionEnergyInfo>, 
+/**
+ * Active power plant counts by type (zero-count types omitted).
+ */
+active_power_plants: Array<PlantTypeCount>, 
+/**
+ * National generation mix (fraction by plant type).
+ */
+generation_mix: Array<GenerationMixEntry>, 
+/**
+ * Average national grid condition (0.0 = collapsed, 1.0 = pristine).
+ */
+average_grid_condition: number, 
+/**
+ * Interconnector flows (only visible to authorized domestic observers).
+ */
+interconnector_flows: Array<InterconnectorFlowInfo>, 
+/**
+ * Whether this snapshot is classified (foreign observer).
+ */
+is_classified: boolean, };
+
+/**
  * Phase 35: Finance tab data — treasury, ministries, tax, debt, CB, banks,
  * consumer debt, and shadow economy. Reuses existing snapshot data rather
  * than creating disconnected accounting.
@@ -390,6 +444,19 @@ export type FxBasketEntry = { currency: string, amount: number, exchange_rate: n
 export type GameStatus = { has_game: boolean, turn: number, year: number, processing: boolean, countries: Array<string>, };
 
 /**
+ * Phase 81: Generation mix entry (fraction of total supply by plant type).
+ */
+export type GenerationMixEntry = { 
+/**
+ * Plant type (string representation).
+ */
+plant_type: string, 
+/**
+ * Fraction of total national supply (0.0–1.0).
+ */
+fraction: number, };
+
+/**
  * Phase 55: Governance detail for a company (board, succession, financial metrics).
  */
 export type GovernanceDetail = { company_id: string, company_name: string, is_listed: boolean, shares_count: bigint, share_price: number, market_cap: number, eps: number, pe_ratio: number, dividend_yield: number, open_price: number, close_price: number, board_members: Array<BoardMemberRow>, has_board: boolean, board_independence: number, is_family_business: boolean, successor_generation: number, heir_count: number, succession_crisis: boolean, heirs: Array<BoardMemberRow>, };
@@ -415,6 +482,31 @@ royal_dynasty: RoyalDynastySnapshot | null, };
  * Infrastructure link summary.
  */
 export type InfrastructureRow = { link_id: string, condition: number, capacity: number, };
+
+/**
+ * Phase 81: Interconnector flow information.
+ */
+export type InterconnectorFlowInfo = { 
+/**
+ * Source region ID.
+ */
+from_region: string, 
+/**
+ * Destination region ID.
+ */
+to_region: string, 
+/**
+ * Flow magnitude (MW). Positive = from→to, negative = to→from.
+ */
+flow_mw: number, 
+/**
+ * Line condition (0.0–1.0).
+ */
+condition: number, 
+/**
+ * Transmission loss fraction (0.0–1.0).
+ */
+loss_fraction: number, };
 
 /**
  * KIO appeal summary.
@@ -605,6 +697,23 @@ vips: Array<VipRow>,
 committees: Array<CommitteeRow>, };
 
 /**
+ * Phase 81: Active power plant count by type.
+ */
+export type PlantTypeCount = { 
+/**
+ * Plant type (string representation).
+ */
+plant_type: string, 
+/**
+ * Number of active plants of this type.
+ */
+count: number, 
+/**
+ * Total nameplate capacity (MW) for this plant type.
+ */
+total_capacity_mw: number, };
+
+/**
  * POW camp statistics for a single country.
  */
 export type PowCampRow = { 
@@ -650,6 +759,48 @@ head_vip_id: string | null, council_factions: Array<[string, number]>,
  * Phase 54: Total council seats/mandates (sum of all factions).
  */
 total_council_seats: number, budget_reserves: number, budget_tax_revenue: number, budget_property_tax: number, budget_expenditures: number, budget_balance: number, debt_total: number, debt_to_revenue_ratio: number, credit_rating: string, active_mandates: Array<MandateSummary>, infrastructure_avg_condition: number, sector_employment: Array<[string, number]>, durable_cohorts: Array<DurableCohortSummary>, };
+
+/**
+ * Phase 81: Regional energy information.
+ */
+export type RegionEnergyInfo = { 
+/**
+ * Region ID.
+ */
+region_id: string, 
+/**
+ * Region display name.
+ */
+region_name: string, 
+/**
+ * Regional supply (MW).
+ */
+supply_mw: number, 
+/**
+ * Regional demand (MW).
+ */
+demand_mw: number, 
+/**
+ * Maximum production capacity (MW).
+ */
+max_production_capacity_mw: number, 
+/**
+ * Average spot price (currency per MWh).
+ * `None` for foreign observers (classified).
+ */
+average_spot_price: number | null, 
+/**
+ * Load-shed tier (string).
+ */
+load_shed_tier: string, 
+/**
+ * Overproduction tier (string).
+ */
+overproduction_tier: string, 
+/**
+ * Grid condition (0.0–1.0).
+ */
+grid_condition: number, };
 
 /**
  * Phase 54: A region option for the Companies tab region filter dropdown.
