@@ -75,15 +75,13 @@ impl Landfill {
     pub fn process_waste(&mut self, waste_input: f64) -> WasteProcessingResult {
         let has_incinerator = self.upgrades.contains(&LandfillUpgrade::IncineratorModule);
         let has_recycling = self.upgrades.contains(&LandfillUpgrade::RecyclingModule);
-        
-        let mut waste_destroyed = 0.0;
+
         let mut commodities_recovered = BTreeMap::new();
-        let mut pollution = 0.0;
-        
+
         // Base processing (compaction only)
         let base_processed = waste_input.min(self.processing_capacity);
-        waste_destroyed = base_processed * 0.3; // 30% volume reduction via compaction
-        pollution = base_processed * 0.05; // Low pollution from compaction
+        let mut waste_destroyed = base_processed * 0.3; // 30% volume reduction via compaction
+        let mut pollution = base_processed * 0.05; // Low pollution from compaction
         
         // Incinerator module: destroys 90% of waste, generates pollution
         if has_incinerator {
@@ -182,13 +180,11 @@ impl LandfillData {
         let has_incinerator = self.upgrades.contains(&LandfillUpgrade::IncineratorModule);
         let has_recycling = self.upgrades.contains(&LandfillUpgrade::RecyclingModule);
 
-        let mut waste_destroyed = 0.0;
         let mut commodities_recovered = BTreeMap::new();
-        let mut pollution = 0.0;
 
         let base_processed = waste_input.min(self.processing_capacity);
-        waste_destroyed = base_processed * 0.3;
-        pollution = base_processed * 0.05;
+        let mut waste_destroyed = base_processed * 0.3;
+        let mut pollution = base_processed * 0.05;
 
         if has_incinerator {
             let incinerated = base_processed * 0.9;

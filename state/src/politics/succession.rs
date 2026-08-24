@@ -194,7 +194,7 @@ pub fn regent_behavior(regent: &crate::politics::vip_registry::Vip) -> RegentBeh
 
 use crate::state::Country;
 use crate::politics::system::GovernmentForm;
-use crate::politics::vip_registry::{VipRegistry, VipRoleExtended, DeathCause, Vip};
+use crate::politics::vip_registry::{VipRegistry, VipRoleExtended, DeathCause};
 
 /// Process a death/incapacity event for a Head of State.
 ///
@@ -221,7 +221,7 @@ pub fn process_succession<R: rand::Rng>(
 ) -> (SuccessionOutcome, Vec<String>) {
     let mut messages = Vec::new();
 
-    let gov_form = country.politics.government_form.clone();
+    let gov_form = country.politics.government_form;
     messages.push(format!(
         "[SUCCESSION] Processing {} death (cause: {:?}) for {:?} regime.",
         deceased_vip_id, death_cause, gov_form
@@ -259,7 +259,7 @@ fn monarchy_succession<R: rand::Rng>(
     country: &mut Country,
     vip_registry: &mut VipRegistry,
     deceased_vip_id: &str,
-    current_turn: u32,
+    _current_turn: u32,
     rng: &mut R,
     messages: &mut Vec<String>,
 ) -> SuccessionOutcome {
@@ -346,7 +346,7 @@ fn select_regent<R: rand::Rng>(
     dynasty: &RoyalDynasty,
     vip_registry: &VipRegistry,
     deceased_vip_id: &str,
-    rng: &mut R,
+    _rng: &mut R,
 ) -> Option<String> {
     // Prefer consort, then sibling, then cousin.
     let mut candidates: Vec<&RoyalFamilyMember> = dynasty.members.iter()
@@ -388,8 +388,8 @@ fn select_regent<R: rand::Rng>(
 fn democratic_succession(
     country: &mut Country,
     vip_registry: &mut VipRegistry,
-    deceased_vip_id: &str,
-    current_turn: u32,
+    _deceased_vip_id: &str,
+    _current_turn: u32,
     messages: &mut Vec<String>,
 ) -> SuccessionOutcome {
     // For parliamentary democracies: Speaker takes over as acting Head of State,
@@ -422,10 +422,10 @@ fn democratic_succession(
 
 /// Military dictatorship succession: power struggle among generals.
 fn military_succession<R: rand::Rng>(
-    country: &mut Country,
+    _country: &mut Country,
     vip_registry: &mut VipRegistry,
-    deceased_vip_id: &str,
-    current_turn: u32,
+    _deceased_vip_id: &str,
+    _current_turn: u32,
     rng: &mut R,
     messages: &mut Vec<String>,
 ) -> SuccessionOutcome {
@@ -459,10 +459,10 @@ fn military_succession<R: rand::Rng>(
 
 /// Theocratic succession: conclave/synod.
 fn theocratic_succession<R: rand::Rng>(
-    country: &mut Country,
+    _country: &mut Country,
     vip_registry: &mut VipRegistry,
-    deceased_vip_id: &str,
-    current_turn: u32,
+    _deceased_vip_id: &str,
+    _current_turn: u32,
     rng: &mut R,
     messages: &mut Vec<String>,
 ) -> SuccessionOutcome {
@@ -495,8 +495,8 @@ fn theocratic_succession<R: rand::Rng>(
 fn one_party_succession(
     country: &mut Country,
     vip_registry: &mut VipRegistry,
-    deceased_vip_id: &str,
-    current_turn: u32,
+    _deceased_vip_id: &str,
+    _current_turn: u32,
     messages: &mut Vec<String>,
 ) -> SuccessionOutcome {
     // In a one-party state, the ruling party's internal organization selects
@@ -789,7 +789,7 @@ mod tests {
         });
 
         let mut rng = rand::thread_rng();
-        let (outcome, msgs) = process_succession(
+        let (outcome, _msgs) = process_succession(
             &mut country, &mut registry, &monarch_id,
             &DeathCause::OldAge, 10, &mut rng,
         );
@@ -815,7 +815,7 @@ mod tests {
             roles: vec![VipRoleExtended::HeadOfState],
             ..Default::default()
         });
-        let speaker_id = registry.register_new(Vip {
+        let _speaker_id = registry.register_new(Vip {
             full_name: "Speaker Anna".to_string(),
             age: 55,
             roles: vec![VipRoleExtended::Speaker],
@@ -823,7 +823,7 @@ mod tests {
         });
 
         let mut rng = rand::thread_rng();
-        let (outcome, msgs) = process_succession(
+        let (outcome, _msgs) = process_succession(
             &mut country, &mut registry, &hos_id,
             &DeathCause::Illness, 10, &mut rng,
         );
@@ -849,13 +849,13 @@ mod tests {
             roles: vec![VipRoleExtended::HeadOfState],
             ..Default::default()
         });
-        let gen1_id = registry.register_new(Vip {
+        let _gen1_id = registry.register_new(Vip {
             full_name: "General Piotr".to_string(),
             age: 50,
             roles: vec![VipRoleExtended::MilitaryCommander],
             ..Default::default()
         });
-        let gen2_id = registry.register_new(Vip {
+        let _gen2_id = registry.register_new(Vip {
             full_name: "General Anna".to_string(),
             age: 55,
             roles: vec![VipRoleExtended::MilitaryCommander],
@@ -863,7 +863,7 @@ mod tests {
         });
 
         let mut rng = rand::thread_rng();
-        let (outcome, msgs) = process_succession(
+        let (outcome, _msgs) = process_succession(
             &mut country, &mut registry, &dictator_id,
             &DeathCause::Coup, 5, &mut rng,
         );
@@ -871,7 +871,7 @@ mod tests {
         match outcome {
             SuccessionOutcome::PowerStruggle { contenders, duration_turns } => {
                 assert_eq!(contenders.len(), 2);
-                assert!(duration_turns >= 2 && duration_turns <= 6);
+                assert!((2..=6).contains(&duration_turns));
             }
             _ => panic!("Military dictatorship should trigger power struggle"),
         }
@@ -889,13 +889,13 @@ mod tests {
             roles: vec![VipRoleExtended::HeadOfState],
             ..Default::default()
         });
-        let bishop1_id = registry.register_new(Vip {
+        let _bishop1_id = registry.register_new(Vip {
             full_name: "Bishop Piotr".to_string(),
             age: 60,
             roles: vec![VipRoleExtended::ReligiousLeader],
             ..Default::default()
         });
-        let bishop2_id = registry.register_new(Vip {
+        let _bishop2_id = registry.register_new(Vip {
             full_name: "Bishop Anna".to_string(),
             age: 65,
             roles: vec![VipRoleExtended::ReligiousLeader],
@@ -903,7 +903,7 @@ mod tests {
         });
 
         let mut rng = rand::thread_rng();
-        let (outcome, msgs) = process_succession(
+        let (outcome, _msgs) = process_succession(
             &mut country, &mut registry, &pope_id,
             &DeathCause::Illness, 10, &mut rng,
         );
@@ -911,7 +911,7 @@ mod tests {
         match outcome {
             SuccessionOutcome::Conclave { electors, rounds } => {
                 assert_eq!(electors.len(), 2);
-                assert!(rounds >= 2 && rounds <= 5);
+                assert!((2..=5).contains(&rounds));
             }
             _ => panic!("Theocracy should trigger conclave"),
         }

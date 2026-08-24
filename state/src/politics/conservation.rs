@@ -2,7 +2,6 @@
 
 use rand::Rng;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
 
 use crate::society::geography::LandCategory;
 
@@ -95,7 +94,7 @@ impl ConservationPolicy {
     ///
     /// # Returns
     /// true if change is allowed
-    pub fn is_land_change_allowed(&self, source_category: LandCategory, target_category: LandCategory) -> bool {
+    pub fn is_land_change_allowed(&self, _source_category: LandCategory, target_category: LandCategory) -> bool {
         for rule in &self.zoning_rules {
             match rule {
                 ZoningRule::NoIndustrialExpansion => {

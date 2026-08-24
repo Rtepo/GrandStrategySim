@@ -5,8 +5,7 @@
 //! Justice and InternalSecurity. It also triggers inspectorate building
 //! construction through the tender market.
 
-use crate::politics::ministries::{GovernmentCompetency, Ministry, MinistryConfig};
-use crate::politics::system::Politics;
+use crate::politics::ministries::{GovernmentCompetency, Ministry};
 use crate::state::Country;
 
 /// Result of evaluating the anti-corruption response.
@@ -424,7 +423,7 @@ mod tests {
 
     #[test]
     fn test_no_ministry_config_no_crash() {
-        let mut country = make_country_with_corruption(0.8);
+        let country = make_country_with_corruption(0.8);
         // No ministry_config set
         let reallocation = evaluate_anti_corruption_response(&country);
         assert!(reallocation.deltas.is_empty());

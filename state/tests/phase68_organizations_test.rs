@@ -13,12 +13,12 @@
 
 use sim_engine::international::organizations::{
     InternationalOrganization, IntegrationLevel, VotingMechanism, OrgConfig,
-    OrganizationRegistry, Directive, MandateType, OrgCouncil, OrgParliament,
+    OrganizationRegistry, Directive, MandateType, OrgParliament,
 };
 use sim_engine::international::sanctions::{
-    Sanction, SanctionType, SanctionConfig, SanctionRegistry,
+    Sanction, SanctionType, SanctionRegistry,
 };
-use sim_engine::state::{GameState, Country, Treasury};
+use sim_engine::state::{GameState, Country};
 use sim_engine::state::diplomatic_actions::{DiplomaticAction, drain_diplomatic_actions};
 use sim_engine::international::fog_of_war::DiplomaticConfig;
 
@@ -277,7 +277,7 @@ fn test_trade_embargo_recognition_in_trade() {
 #[test]
 fn test_asset_freeze_blocks_real_estate_purchase() {
     use sim_engine::society::real_estate_market::{check_foreign_purchase_allowed, AgrarianReformLaw};
-    use sim_engine::society::cadastre::{Cadastre, ParcelChunk, ParcelOwnerType};
+    use sim_engine::society::cadastre::{Cadastre, ParcelChunk};
 
     let cadastre = Cadastre::default();
     let parcel = ParcelChunk::default();

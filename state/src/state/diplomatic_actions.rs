@@ -168,7 +168,7 @@ pub fn drain_diplomatic_actions(
                 if let Some(home) = state.countries.get_mut(&home_country) {
                     if let Some(registry) = &mut home.politics.vip_registry {
                         for vip in registry.vips.values_mut() {
-                            if vip.diplomatic_post.as_ref().map_or(false, |p| p.host_country == host_country) {
+                            if vip.diplomatic_post.as_ref().is_some_and(|p| p.host_country == host_country) {
                                 vip.diplomatic_post = None;
                                 // Remove diplomatic role from roles list
                                 vip.roles.retain(|r| !matches!(r,

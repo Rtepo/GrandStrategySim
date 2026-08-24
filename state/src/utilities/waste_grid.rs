@@ -1020,7 +1020,6 @@ pub fn process_waste_epic_turn(
             Commodity::MetalWaste, Commodity::GlassWaste, Commodity::PlasticWaste,
             Commodity::ElectronicWaste, Commodity::TextileWaste,
         ];
-        let mut total_recycled: f64 = 0.0;
         for commodity in &recyclable_commodities {
             let available = region.waste_grid.uncollected_waste.get(commodity).copied().unwrap_or(0.0);
             if available <= 0.0 || recycling_capacity <= 0.0 {
@@ -1041,7 +1040,6 @@ pub fn process_waste_epic_turn(
                 }
             }
             *region.waste_grid.uncollected_waste.entry(*commodity).or_insert(0.0) -= process_amount;
-            total_recycled += process_amount;
         }
 
         // W.6: WtE — incinerate residual MixedWaste → Energy + ash

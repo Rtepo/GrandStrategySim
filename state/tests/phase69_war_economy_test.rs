@@ -14,15 +14,15 @@
 
 use sim_engine::entities::{Building, ActiveProductionMethod};
 use sim_engine::military::war_economy::{
-    WarEconomyState, WarEconomyConfig, ConscriptionLevel, ProductionDecree,
+    WarEconomyState, WarEconomyConfig, ConscriptionLevel,
     apply_production_decree, lift_production_decree, process_expired_decrees,
     execute_conscription, issue_war_bonds,
 };
 use sim_engine::military::oob::OrderOfBattle;
-use sim_engine::military::units::{MilitaryUnit, UnitType};
+use sim_engine::military::units::UnitType;
 use sim_engine::registries::enums::{Commodity, Sector};
 use sim_engine::society::geography::{
-    Region, RegionalClassDemographics, ClassDemographics, RuralClass,
+    Region, RegionalClassDemographics, ClassDemographics,
 };
 use sim_engine::state::Country;
 use std::collections::BTreeMap;

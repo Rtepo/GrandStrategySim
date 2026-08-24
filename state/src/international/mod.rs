@@ -35,7 +35,7 @@ pub use sanctions::{
     Sanction, SanctionType, SanctionConfig, SanctionRegistry,
 };
 pub use trade::{
-    balance_global_trade, DiplomaticRelation, TradeBalanceResult, TradeDelta,
+    balance_global_trade, CommodityTradeEntry, DiplomaticRelation, TradeBalanceResult, TradeDelta,
 };
 pub use treaties::{
     Treaty, TreatyClause, TreatyStatus, TreatyConfig, TreatyRegistry,

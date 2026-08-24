@@ -5,7 +5,7 @@
 //! based on trade deficits and domestic industry health.
 
 use crate::registries::enums::Commodity;
-use crate::state::{Country, TradePolicy};
+use crate::state::Country;
 use std::collections::HashMap;
 
 /// Set import tariffs and export taxes based on the ruling party's trade doctrine.

@@ -5,7 +5,6 @@
 //! at the inspectorate building and the employment at that building.
 //! An inspectorate with zero vehicles or zero staff produces zero capacity.
 
-use crate::economy::fixed_assets::FixedAssetCohort;
 use crate::entities::Building;
 use crate::registries::enums::Commodity;
 

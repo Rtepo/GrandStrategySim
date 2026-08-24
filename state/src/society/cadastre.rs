@@ -13,7 +13,6 @@ use slotmap::{new_key_type, SlotMap};
 use std::collections::{BTreeMap, VecDeque};
 
 use rand::Rng;
-use rand::seq::SliceRandom;
 
 // ============================================================================
 // SLOTMAP KEY
@@ -838,7 +837,7 @@ pub fn generate_cadastre(
             } else if land_use_tag == "MunicipalReserve" {
                 ZoningDesignation::Unplanned
             } else {
-                pick_initial_zoning(&soil_class, region.is_capital, rng)
+                pick_initial_zoning(soil_class, region.is_capital, rng)
             };
 
             // Border zone flag (10% chance for edge regions)
@@ -1102,11 +1101,10 @@ fn pick_initial_zoning(
         return ZoningDesignation::Residential;
     }
     // High-fertility soil → Agricultural
-    if soil_class == "Class_I" || soil_class == "Class_II" {
-        if rng.gen_range(0.0..1.0) < 0.7 {
+    if (soil_class == "Class_I" || soil_class == "Class_II")
+        && rng.gen_range(0.0..1.0) < 0.7 {
             return ZoningDesignation::Agricultural;
         }
-    }
     // Default: unplanned
     ZoningDesignation::Unplanned
 }
@@ -2112,7 +2110,7 @@ pub fn assess_state_strength(
     justice_law: &crate::politics::laws::JusticeLaw,
     court_wait_time: &crate::politics::laws::CourtWaitTime,
     treasury_reserves: f64,
-    config: &ArbitrationConfig,
+    _config: &ArbitrationConfig,
 ) -> f64 {
     let mut strength = 0.0;
 
@@ -2264,10 +2262,9 @@ pub fn pay_arbitration_compensation(
 
     for case_id in case_ids {
         let case = court.cases.get_mut(&case_id).unwrap();
-        if case.status == ArbitrationStatus::RuledForPlaintiff
-            || case.status == ArbitrationStatus::Settled
-        {
-            if case.compensation_claimed > 0.0 {
+        if (case.status == ArbitrationStatus::RuledForPlaintiff
+            || case.status == ArbitrationStatus::Settled)
+            && case.compensation_claimed > 0.0 {
                 let payment = case.compensation_claimed.min(*treasury);
                 *treasury -= payment;
                 case.compensation_claimed -= payment;
@@ -2281,7 +2278,6 @@ pub fn pay_arbitration_compensation(
                     // (keep the original ruling status for historical record)
                 }
             }
-        }
     }
 
     total_paid
@@ -2600,8 +2596,8 @@ mod tests {
             ..Default::default()
         });
         let by_owner = land_by_owner_type(&cadastre);
-        assert!((by_owner.get(&ParcelOwnerType::State).unwrap() - &100.0).abs() < 0.01);
-        assert!((by_owner.get(&ParcelOwnerType::Private).unwrap() - &100.0).abs() < 0.01);
+        assert!((by_owner.get(&ParcelOwnerType::State).unwrap() - 100.0).abs() < 0.01);
+        assert!((by_owner.get(&ParcelOwnerType::Private).unwrap() - 100.0).abs() < 0.01);
     }
 
     #[test]
@@ -2618,8 +2614,8 @@ mod tests {
             ..Default::default()
         });
         let by_zoning = land_by_zoning(&cadastre);
-        assert!((by_zoning.get(&ZoningDesignation::Agricultural).unwrap() - &80.0).abs() < 0.01);
-        assert!((by_zoning.get(&ZoningDesignation::Residential).unwrap() - &20.0).abs() < 0.01);
+        assert!((by_zoning.get(&ZoningDesignation::Agricultural).unwrap() - 80.0).abs() < 0.01);
+        assert!((by_zoning.get(&ZoningDesignation::Residential).unwrap() - 20.0).abs() < 0.01);
     }
 
     #[test]

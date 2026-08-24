@@ -48,8 +48,8 @@ pub fn calculate_royalty_fulfillment_ratio(
     
     // Calculate fulfillment ratio based on available cash
     let ratio: f64 = company.available_cash / total_required_royalty;
-    let fulfillment_ratio = ratio.min(1.0_f64);
-    fulfillment_ratio
+    
+    ratio.min(1.0_f64)
 }
 
 /// Deducts royalty payments from licensee and credits to licensor.
@@ -187,7 +187,7 @@ pub fn integrate_royalty_payments(
             if lic_idx != licensor_idx {
                 let royalty_vwap_ratio = innovation_config.default_royalty_vwap_ratio;
                 // Process payment using indices
-                let actual_quantity = royalty_amount / (royalty_vwap_ratio * last_turn_vwap);
+                let _actual_quantity = royalty_amount / (royalty_vwap_ratio * last_turn_vwap);
                 companies[lic_idx].available_cash -= royalty_amount;
                 companies[licensor_idx].available_cash += royalty_amount;
             }
@@ -437,7 +437,6 @@ pub fn process_cross_border_royalty_queue(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entities::LicensedMethod;
 
     #[test]
     fn royalty_fulfillment_ratio_sufficient_cash() {

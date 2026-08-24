@@ -482,6 +482,6 @@ mod tests {
             &prev,
         );
 
-        assert!(pmi >= 0.0 && pmi <= 100.0, "PMI must be in [0, 100], got {}", pmi);
+        assert!((0.0..=100.0).contains(&pmi), "PMI must be in [0, 100], got {}", pmi);
     }
 }

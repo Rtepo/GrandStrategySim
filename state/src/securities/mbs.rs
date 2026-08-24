@@ -11,9 +11,11 @@ use serde_json::Map;
 /// Tranche priority in loss waterfall.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Copy)]
 
+#[derive(Default)]
 pub enum TranchePriority {
     /// Senior tranche - absorbs losses last (appears AAA).
 
+    #[default]
     Senior,
     /// Mezzanine tranche - absorbs losses after Junior.
 
@@ -23,11 +25,6 @@ pub enum TranchePriority {
     Junior,
 }
 
-impl Default for TranchePriority {
-    fn default() -> Self {
-        TranchePriority::Senior
-    }
-}
 
 /// Single tranche of an MBS.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
@@ -339,7 +336,7 @@ pub fn securitize_loans(
 pub fn process_mbs_turn(
     mbs_pool: &mut [MortgageBackedSecurity],
     companies: &mut [crate::entities::Company],
-    current_turn: u32,
+    _current_turn: u32,
 ) {
     for mbs in mbs_pool.iter_mut() {
         for tranche in &mut mbs.tranches {

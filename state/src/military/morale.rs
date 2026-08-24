@@ -220,7 +220,7 @@ pub fn recover_morale_for_classes(
     rural_classes: &mut BTreeMap<String, ClassDemographics>,
     config: &MoraleConfig,
 ) {
-    for (_, demographics) in rural_classes.iter_mut() {
+    for demographics in rural_classes.values_mut() {
         recover_morale(demographics, config);
     }
 }
@@ -426,7 +426,7 @@ mod tests {
         };
 
         let config = MoraleConfig::default();
-        let result = apply_casualty_morale_to_classes(&mut classes, &casualties, &config);
+        let _result = apply_casualty_morale_to_classes(&mut classes, &casualties, &config);
 
         // FreePeasant should have lower morale (they had casualties)
         let peasant = classes.get("FreePeasant").unwrap();

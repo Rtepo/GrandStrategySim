@@ -54,7 +54,6 @@ pub fn process_waste_turn(
     for region in regions.iter_mut() {
         let region_id = region.id.clone();
         let mut total_waste: f64 = 0.0;
-        let mut total_recyclable: f64 = 0.0;
 
         // Aggregate waste from housing buildings in this region's micro-regions
         for hb in housing_buildings.iter() {
@@ -63,7 +62,6 @@ pub fn process_waste_turn(
             }
             let demand = UtilityDemand::for_housing(hb, _season);
             total_waste += demand.waste_generation;
-            total_recyclable += demand.waste_generation * demand.recyclable_fraction;
         }
 
         // Aggregate waste from commercial buildings
@@ -73,7 +71,6 @@ pub fn process_waste_turn(
             }
             let demand = UtilityDemand::for_commercial(cb, _season);
             total_waste += demand.waste_generation;
-            total_recyclable += demand.waste_generation * demand.recyclable_fraction;
         }
 
         if total_waste <= 0.0 {
@@ -103,7 +100,7 @@ pub fn process_waste_turn(
         let mut processed_total: f64 = 0.0;
         let mut overflow_total: f64 = 0.0;
         let mut pollution_total: f64 = 0.0;
-        let mut all_recovered: HashMap<String, f64> = HashMap::new();
+        let all_recovered: HashMap<String, f64> = HashMap::new();
 
         for &idx in &landfill_indices {
             let building = &mut buildings[idx];

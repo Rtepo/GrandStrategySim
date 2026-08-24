@@ -106,38 +106,32 @@ impl Default for FuturesUnderlying {
 /// Futures position type.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Copy)]
 
+#[derive(Default)]
 pub enum FuturesPosition {
     /// Long position (buyer - profits from price increase).
 
+    #[default]
     Long,
     /// Short position (seller - profits from price decrease).
 
     Short,
 }
 
-impl Default for FuturesPosition {
-    fn default() -> Self {
-        FuturesPosition::Long
-    }
-}
 
 /// Clearing method for derivatives.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Copy)]
 
+#[derive(Default)]
 pub enum ClearingMethod {
     /// Over-The-Counter: Direct P2P, no margin enforcement.
 
+    #[default]
     OTC,
     /// Central Counterparty: Strict margin enforcement.
 
     CCP,
 }
 
-impl Default for ClearingMethod {
-    fn default() -> Self {
-        ClearingMethod::OTC
-    }
-}
 
 /// Futures Contract - Obligation to buy/sell at future price.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
@@ -227,7 +221,7 @@ impl FuturesContract {
 pub fn process_cds_premiums(
     cds_contracts: &mut [CreditDefaultSwap],
     companies: &mut [crate::entities::Company],
-    current_turn: u32,
+    _current_turn: u32,
 ) {
     for cds in cds_contracts.iter_mut() {
         let premium = cds.notional * cds.premium_rate;

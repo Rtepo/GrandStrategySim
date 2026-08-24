@@ -125,8 +125,10 @@ pub struct Concession {
 /// Stage of legislative process
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
+#[derive(Default)]
 pub enum LegislativeStage {
     /// Newly introduced, not yet assigned
+    #[default]
     Introduced,
     /// In committee review
     Committee,
@@ -142,11 +144,6 @@ pub enum LegislativeStage {
     Rejected,
 }
 
-impl Default for LegislativeStage {
-    fn default() -> Self {
-        LegislativeStage::Introduced
-    }
-}
 
 impl Bill {
     /// Create a new bill with core clauses
@@ -258,7 +255,7 @@ impl Bill {
     /// 
     /// # Returns
     /// True if advancement successful, false if bill cannot advance
-    pub fn advance_stage(&mut self, current_turn: u32) -> bool {
+    pub fn advance_stage(&mut self, _current_turn: u32) -> bool {
         match self.stage {
             LegislativeStage::Introduced => {
                 self.stage = LegislativeStage::Committee;

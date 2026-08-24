@@ -20,7 +20,7 @@ use crate::society::cultures::{generate_cultural_background, CulturalBackground}
 use crate::society::geography::{generate_megaregions, generate_regional_topology, Megaregion, Region};
 use crate::society::cadastre::generate_cadastre;
 use crate::state::{Country, Currency, CurrencyPolicy, GameState, MacroData, TaxRates, Treasury};
-use crate::state::banking::{BankBalanceSheet, BankType as BankingBankType, Loan, LoanStatus, LoanType, InterestType};
+use crate::state::banking::{BankBalanceSheet, BankType as BankingBankType};
 use crate::entities::{Company, LegalForm};
 use crate::registries::enums::Sector as EntitySector;
 use crate::state::macro_data::{AgeGroups, Demographics, Education, EnergyMix, Gender, LaborMarket, UnemploymentStructure};
@@ -193,6 +193,18 @@ pub fn generate_world(
 
     for country in state.countries.values_mut() {
         generate_corporate_entities(data_dir, country, &regions, _registries, options.start_year as u32, &mut rng)?;
+    }
+
+    // Bugfix Sprint (5B): Initialize power grids AFTER corporate entities are
+    // generated, so LV/MV capacities can be derived from actual connected
+    // housing/commercial electricity demand (Rule 15 — no magic numbers).
+    use crate::io::entity_store::EntityStore;
+    for country in state.countries.values_mut() {
+        let housing_store = crate::io::entity_store::DiskEntityStore::<crate::society::housing::HousingBuilding>::new(data_dir);
+        let commercial_store = crate::io::entity_store::DiskEntityStore::<crate::society::housing::CommercialBuilding>::new(data_dir);
+        let housing_buildings = housing_store.load_sector(&country.name, "housing", None).unwrap_or_default();
+        let commercial_buildings = commercial_store.load_sector(&country.name, "commercial", None).unwrap_or_default();
+        crate::energy::grid::init_power_grid(country, &housing_buildings, &commercial_buildings, options.start_year as u32, &mut rng);
     }
 
     // Phase 57: Generate investment funds for each country.
@@ -408,7 +420,7 @@ fn generate_country(
 
     // Phase 58: Generate topological cadastre with slotmap-backed ParcelChunks.
     let region_list: Vec<Region> = country_regions.values().cloned().collect();
-    let mut cadastre = generate_cadastre(name, &region_list, rng, 0);
+    let cadastre = generate_cadastre(name, &region_list, rng, 0);
 
     // Populate parcel_ids on each region based on the generated cadastre.
     for region in country_regions.values_mut() {
@@ -475,9 +487,9 @@ fn generate_country(
     // are actually created. The call here was operating on bootstrap bank companies
     // only, which are never JSC.
 
-    // Phase 81: Initialize the power grid based on era and development.
-    // This creates HV lines (era-scaled) and LV/MV capacities (development-scaled).
-    crate::energy::grid::init_power_grid(&mut country, start_year.as_year(), rng);
+    // Bugfix Sprint (5B): init_power_grid is now called AFTER generate_corporate_entities
+    // (in the world gen flow) so that LV/MV capacities can be derived from actual
+    // connected housing/commercial electricity demand. See generate_world().
 
     (country, currency, country_regions, companies)
 }
@@ -500,7 +512,7 @@ pub fn list_jsc_companies_on_exchange(
 ) {
     use crate::entities::LegalForm;
     use crate::securities::exchange::{
-        InstrumentType, LiquidityPool, Order, OrderBook,
+        InstrumentType, LiquidityPool, Order,
     };
 
     for company in companies.iter_mut() {
@@ -633,7 +645,7 @@ pub fn list_jsc_companies_on_exchange(
             // Insert into order book
             let ob = country.stock_exchange.order_book
                 .entry(instrument_id.clone())
-                .or_insert_with(|| OrderBook::default());
+                .or_default();
             // Add to asks at listing price
             if let Some(pos) = ob.asks.iter().position(|(p, _)| (*p - listing_price).abs() < 0.001) {
                 ob.asks[pos].1.push(order);
@@ -1389,7 +1401,7 @@ fn build_tax_rates(gdp_total: f64, rng: &mut impl Rng) -> TaxRates {
     }
 }
 
-fn build_currency(name: &str, treasury: &Treasury) -> Currency {
+fn build_currency(name: &str, _treasury: &Treasury) -> Currency {
     let mut rng = rand::thread_rng();
     let prefix = name[..3.min(name.len())].to_uppercase();
     Currency {
@@ -1483,7 +1495,7 @@ fn build_bank_companies(
     // Additional banks are regional banks with smaller balance sheets.
     // Phase 37: Designate up to 3 DSPW primary dealers (was just 1).
     let num_banks = ((treasury.population / 2_000_000) as usize).max(1).min(5);
-    let num_dspw = ((num_banks + 1) / 2).min(3); // Half of banks, max 3
+    let num_dspw = num_banks.div_ceil(2).min(3); // Half of banks, max 3
 
     let mut banks = Vec::new();
     let base_wage = (treasury.gdp / treasury.population.max(1) as f64).max(1000.0);

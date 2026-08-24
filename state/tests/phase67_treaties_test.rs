@@ -23,8 +23,6 @@ use sim_engine::society::real_estate_market::{
 };
 use sim_engine::society::cadastre::{Cadastre, ParcelChunk, ParcelOwnerType};
 use sim_engine::state::{GameState, Country};
-use sim_engine::state::Treasury;
-use sim_engine::politics::vip_registry::DiplomaticPostType;
 use sim_engine::state::diplomatic_actions::DiplomaticAction;
 
 // ============================================================================
@@ -77,7 +75,7 @@ fn test_treaty_clause_serialization() {
 #[test]
 fn test_treaty_clause_activation() {
     let mut registry = TreatyRegistry::default();
-    let config = TreatyConfig::default();
+    let _config = TreatyConfig::default();
 
     let mut treaty = Treaty::new(
         "TREATY-000001".to_string(),

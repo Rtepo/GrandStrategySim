@@ -4,7 +4,6 @@
 //! with cascading assignment logic and administrative overhead penalties.
 
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
 
 use super::geography::RuralClass;
 use crate::data::perishability_registry;
@@ -198,7 +197,7 @@ pub enum CommercialBuildingType {
     /// Phase 6.5: Small independent retail store
     RetailStore,
     /// Phase 6.5: Modern supermarket (self-service, refrigerated)
-    supermarket,
+    Supermarket,
     /// Phase 6.5: Department store (multi-category, large footprint)
     DepartmentStore,
     /// Phase 6.5: Shopping center (enclosed mall with multiple tenants)
@@ -691,7 +690,7 @@ impl CommercialBuilding {
         // Add to inventory
         self.current_inventory
             .entry(commodity_key)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(batch);
 
         // Return excess

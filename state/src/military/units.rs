@@ -506,7 +506,7 @@ impl MilitaryUnit {
     ) -> Self {
         MilitaryUnit {
             id,
-            unit_type: unit_type.clone(),
+            unit_type,
             stats: unit_type.base_stats(),
             manpower,
             manpower_origin,
@@ -565,7 +565,7 @@ impl MilitaryUnit {
             for (rural_class, &origin_count) in &self.manpower_origin {
                 let proportion = origin_count as f64 / total_origin as f64;
                 let class_casualties = (actual_casualties as f64 * proportion) as i64;
-                demographic_casualties.insert(rural_class.clone(), class_casualties);
+                demographic_casualties.insert(*rural_class, class_casualties);
             }
         }
         
@@ -705,7 +705,7 @@ impl MilitaryUnit {
             for (rural_class, &origin_count) in &self.manpower_origin {
                 let proportion = origin_count as f64 / total_origin as f64;
                 let class_survivors = (self.manpower as f64 * proportion) as i64;
-                survivors.insert(rural_class.clone(), class_survivors);
+                survivors.insert(*rural_class, class_survivors);
             }
         }
 

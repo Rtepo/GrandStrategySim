@@ -230,7 +230,7 @@ pub fn apply_propaganda_boost(
     baseline_war_morale: f64,
     baseline_mental_health: f64,
 ) {
-    for (_, demographics) in rural_classes.iter_mut() {
+    for demographics in rural_classes.values_mut() {
         if morale_boost > 0.0 {
             demographics.war_morale = (demographics.war_morale + morale_boost).min(baseline_war_morale);
         }
@@ -314,7 +314,7 @@ mod tests {
         let initial_treasury = treasury;
         let initial_media_total: f64 = media.values().map(|(lc, _)| *lc).sum();
 
-        let result = execute_propaganda(
+        let _result = execute_propaganda(
             &mut treasury, &mut media, 1000.0,
             PropagandaTarget::Both, &config, 1, "CAMP-1".to_string(),
         );

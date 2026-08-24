@@ -292,7 +292,7 @@ pub fn submit_company_b2b_orders(
                     order_book
                         .bids
                         .entry(commodity)
-                        .or_insert_with(Vec::new)
+                        .or_default()
                         .push(Bid {
                             buyer_id: company.id.clone(),
                             commodity,
@@ -309,7 +309,7 @@ pub fn submit_company_b2b_orders(
                     order_book
                         .bids
                         .entry(commodity)
-                        .or_insert_with(Vec::new)
+                        .or_default()
                         .push(Bid {
                             buyer_id: company.id.clone(),
                             commodity,
@@ -357,7 +357,7 @@ pub fn submit_company_b2b_orders(
                     order_book
                         .bids
                         .entry(commodity)
-                        .or_insert_with(Vec::new)
+                        .or_default()
                         .push(Bid {
                             buyer_id: company.id.clone(),
                             commodity,
@@ -374,7 +374,7 @@ pub fn submit_company_b2b_orders(
                     order_book
                         .bids
                         .entry(commodity)
-                        .or_insert_with(Vec::new)
+                        .or_default()
                         .push(Bid {
                             buyer_id: company.id.clone(),
                             commodity,
@@ -394,7 +394,7 @@ pub fn submit_company_b2b_orders(
 
             // Calculate unit cost for this building's output
             let mut ref_prices: HashMap<Commodity, f64> = HashMap::default();
-            for (&input_commodity, _) in &method.inputs {
+            for &input_commodity in method.inputs.keys() {
                 if let Some(price) = get_reference_price(&input_commodity, market_history) {
                     ref_prices.insert(input_commodity, price);
                 }
@@ -461,7 +461,7 @@ pub fn submit_company_b2b_orders(
                 order_book
                     .asks
                     .entry(commodity)
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(Ask {
                         seller_id: company.id.clone(),
                         commodity,
@@ -490,7 +490,7 @@ pub fn submit_company_b2b_orders(
                 order_book
                     .asks
                     .entry(commodity)
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(Ask {
                         seller_id: company.id.clone(),
                         commodity,
@@ -703,7 +703,7 @@ pub fn settle_trades_with_tariffs(
     //   debit domestic currency to the exporter.
     // - Imports (buyer is domestic): check FX reserves for seller's currency;
     //   if insufficient, the trade fails (revert settlement).
-    let domestic_ccy = country.macro_indicators.currency.clone();
+    let _domestic_ccy = country.macro_indicators.currency.clone();
 
     // Phase 2: Tariff collection on cross-border trades + FX conversion
     for trade in trades {
@@ -1114,7 +1114,7 @@ pub fn execute_production_cycle(
             } else if warehouse_capacity > 0.0 {
                 // Partial warehouse storage, rest perishes
                 let storable = warehouse_capacity;
-                let ratio = storable / overflow;
+                let _ratio = storable / overflow;
                 let storage_fee = storable * config.warehouse_storage_fee_per_ton;
                 overflow_costs_this_turn += storage_fee;
                 let warehouse_owner = find_warehouse_owner(commercial_buildings, &building.region_id);
@@ -1204,7 +1204,7 @@ pub fn execute_production_cycle(
         let unit_cost = calculate_unit_cost(building, &HashMap::default(), 0.0);
         let input_costs: f64 = inputs_consumed
             .iter()
-            .map(|(&commodity, &qty)| {
+            .map(|(&_commodity, &qty)| {
                 let price = if unit_cost > 0.0 { unit_cost } else { 0.0 };
                 qty * price * 0.5
             })
@@ -1356,7 +1356,7 @@ pub fn submit_maintenance_service_bids(
     use crate::economy::fixed_assets::maintenance_services_needed;
     use crate::registries::enums::Commodity;
 
-    let mut messages = Vec::new();
+    let messages = Vec::new();
     for company in companies.iter_mut() {
         let liquid = company.computed_liquid_capital();
         company.available_cash = liquid;
@@ -1390,7 +1390,7 @@ pub fn submit_maintenance_service_bids(
                 order_book
                     .bids
                     .entry(Commodity::MaintenanceServices)
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(Bid {
                         buyer_id: company.id.clone(),
                         commodity: Commodity::MaintenanceServices,
@@ -1406,7 +1406,7 @@ pub fn submit_maintenance_service_bids(
                 order_book
                     .bids
                     .entry(Commodity::MaintenanceServices)
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(Bid {
                         buyer_id: company.id.clone(),
                         commodity: Commodity::MaintenanceServices,
@@ -1445,7 +1445,7 @@ pub fn submit_fixed_asset_purchase_bids(
     b2b_config: &B2bOrderConfig,
     gen_config: &crate::economy::generative_goods_config::GenerativeGoodsConfig,
 ) -> Vec<String> {
-    let mut messages = Vec::new();
+    let messages = Vec::new();
     for company in companies.iter_mut() {
         let liquid = company.computed_liquid_capital();
         company.available_cash = liquid;
@@ -1501,7 +1501,7 @@ pub fn submit_fixed_asset_purchase_bids(
                 order_book
                     .bids
                     .entry(commodity)
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(Bid {
                         buyer_id: company.id.clone(),
                         commodity,
@@ -1554,7 +1554,7 @@ pub fn submit_fixed_asset_purchase_bids(
                 order_book
                     .bids
                     .entry(commodity)
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(Bid {
                         buyer_id: company.id.clone(),
                         commodity,

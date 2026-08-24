@@ -7,7 +7,7 @@ use crate::economy::order_book::{Bid, OrderBook};
 use crate::economy::market::GlobalMarket;
 use crate::entities::legal_form::LatifundiumData;
 use crate::registries::enums::Commodity;
-use crate::society::geography::{Region, RuralClass};
+use crate::society::geography::Region;
 
 /// Religious/Cultural building types
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -458,7 +458,7 @@ pub fn submit_relief_b2b_orders(
             order_book
                 .bids
                 .entry(*commodity)
-                .or_insert_with(Vec::new)
+                .or_default()
                 .push(Bid {
                     buyer_id: building.id.clone(),
                     commodity: *commodity,

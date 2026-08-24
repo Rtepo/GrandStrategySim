@@ -9,7 +9,7 @@ use crate::economy::market::market_history::MarketHistory;
 use crate::economy::market::GlobalMarket;
 use crate::registries::enums::Commodity;
 use crate::registries::enums::Sector;
-use crate::state::{Country, GameState, Treasury};
+use crate::state::{Country, GameState};
 use crate::state::macro_data::{
     GdpBreakdown, InflationIndices, MoneySupplySnapshot,
     TelemetryHistory,
@@ -77,9 +77,14 @@ fn legal_form_display(legal_form: &LegalForm) -> String {
 pub struct CommodityRow {
     pub name: String,
     pub vwap: f64,
-    pub last_trade: f64,
     pub base_price: f64,
+    /// Bugfix Sprint: UI net surplus, computed dynamically as
+    /// `supply_volume − demand_volume + net_trade` (NOT from `market.net_surplus`,
+    /// which is the raw B2B order book surplus used by the clearing engine).
     pub net_surplus: f64,
+    /// Bugfix Sprint: Net trade (imports − exports, physical units).
+    /// Positive = net importer, negative = net exporter.
+    pub net_trade: f64,
     /// Phase 27: ToT (turn-over-turn) % change of net_surplus.
     pub tot_balance_change: f64,
     /// Phase 27: true if this commodity has any market activity (vwap, last_trade, or surplus).
@@ -1950,9 +1955,16 @@ pub fn build_country_snapshot(
         .map(|&c| {
             let name = format!("{:?}", c);
             let vwap = market_history.vwap_per_commodity.get(&c).copied().unwrap_or(0.0);
-            let last_trade = market_history.last_trade_price.get(&c).copied().unwrap_or(0.0);
             let base_price = market_history.global_base_prices.get(&c).copied().unwrap_or(0.0);
-            let net_surplus = market.net_surplus.get(&c).copied().unwrap_or(0.0);
+            // Phase 43: Raw supply/demand volumes for the Market UI.
+            let supply_volume = market.supply_volume.get(&c).copied().unwrap_or(0.0);
+            let demand_volume = market.demand_volume.get(&c).copied().unwrap_or(0.0);
+            // Bugfix Sprint: Net trade (imports − exports) for this commodity.
+            let net_trade = market.net_trade.get(&c).copied().unwrap_or(0.0);
+            // Bugfix Sprint: Compute the UI net_surplus dynamically as
+            // supply − demand + net_trade. This is NOT market.net_surplus
+            // (which is the raw B2B order book surplus used by clearing.rs).
+            let net_surplus = supply_volume - demand_volume + net_trade;
             // Phase 33: Compute real ToT % change from stored previous-turn surplus.
             let prev_surplus = market_history.prev_net_surplus.get(&c).copied().unwrap_or(0.0);
             let tot_balance_change = if prev_surplus.abs() > 0.01 {
@@ -1963,11 +1975,8 @@ pub fn build_country_snapshot(
                 0.0
             };
             // Phase 27: Mark commodity as active if any market activity exists.
-            let active = vwap > 0.0 || last_trade > 0.0 || net_surplus.abs() > 0.01;
-            // Phase 43: Raw supply/demand volumes for the Market UI.
-            let supply_volume = market.supply_volume.get(&c).copied().unwrap_or(0.0);
-            let demand_volume = market.demand_volume.get(&c).copied().unwrap_or(0.0);
-            CommodityRow { name, vwap, last_trade, base_price, net_surplus, tot_balance_change, active, supply_volume, demand_volume }
+            let active = vwap > 0.0 || net_surplus.abs() > 0.01 || supply_volume > 0.01 || demand_volume > 0.01;
+            CommodityRow { name, vwap, base_price, net_surplus, net_trade, tot_balance_change, active, supply_volume, demand_volume }
         })
         .collect();
 
@@ -2318,7 +2327,7 @@ fn build_vip_page(country: &Country, companies: &[Company], view: &ViewQuery) ->
             } else {
                 v.roles.iter().map(|r| r.as_str().to_string()).collect::<Vec<_>>().join(", ")
             };
-            let company_name = v.roles.iter().any(|r| *r == crate::politics::vip_registry::VipRoleExtended::Ceo)
+            let company_name = v.roles.contains(&crate::politics::vip_registry::VipRoleExtended::Ceo)
                 .then(|| ceo_to_company.get(v.id.as_str()).map(|s| s.to_string()))
                 .flatten();
             VipDossierRow {
@@ -3493,19 +3502,20 @@ fn compute_deltas(
     }
 }
 
-/// Build a `GlobalSnapshot` from the full `GameState` and market data.
-///
-/// # Arguments
-/// * `state` - The full game state.
-/// * `market_history` - Global market history.
-/// * `market` - Global market.
-/// * `buildings` - All buildings (grouped by country via owner/region).
-///
-/// # Returns
-/// A `GlobalSnapshot` with per-country snapshots.
 // ============================================================================
 // PHASE 60: CADASTRE / LAND / COURTS DTOs
 // ============================================================================
+
+// Build a `GlobalSnapshot` from the full `GameState` and market data.
+//
+// # Arguments
+// * `state` - The full game state.
+// * `market_history` - Global market history.
+// * `market` - Global market.
+// * `buildings` - All buildings (grouped by country via owner/region).
+//
+// # Returns
+// A `GlobalSnapshot` with per-country snapshots.
 
 /// Phase 60: Cadastre summary row per region (public data — visible to all players).
 #[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
@@ -3854,7 +3864,7 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
     let mut recent_battles = Vec::new();
     let mut army_compositions = Vec::new();
     let mut war_morale = Vec::new();
-    let mut pow_camps = Vec::new();
+    let pow_camps = Vec::new();
 
     for (country_name, country) in &state.countries {
         // Active wars/fronts
@@ -4048,8 +4058,12 @@ pub struct RegionEnergyInfo {
     pub region_id: String,
     /// Region display name.
     pub region_name: String,
-    /// Regional supply (MW).
+    /// Regional supply (MW) — raw generated supply before grid-cap clamping.
     pub supply_mw: f64,
+    /// Bugfix Sprint: Effective supply (MW) after LV/MV grid capacity clamping.
+    /// This is the value used for load-shed tiering. When this < demand,
+    /// load shedding occurs even if raw supply > demand (grid bottleneck).
+    pub effective_supply_mw: f64,
     /// Regional demand (MW).
     pub demand_mw: f64,
     /// Maximum production capacity (MW).
@@ -4149,7 +4163,7 @@ pub fn build_energy_grid_snapshot(
     use std::collections::HashMap;
 
     let grid = &country.power_grid_state;
-    let is_foreign = observer_country.map_or(true, |c| c != country.name);
+    let is_foreign = observer_country.is_none_or(|c| c != country.name);
 
     // Aggregate national supply/demand/capacity from grid state.
     let mut national_supply = 0.0_f64;
@@ -4185,13 +4199,21 @@ pub fn build_energy_grid_snapshot(
         let mv_cond = grid.region_mv_condition.get(&region.id).copied().unwrap_or(1.0);
         let grid_cond = lv_cond.min(mv_cond);
 
+        // Bugfix Sprint: Compute effective supply (after grid capacity clamping)
+        // to expose the grid bottleneck that causes Blackout despite surplus.
+        let lv_cap = grid.region_lv_capacity.get(&region.id).copied().unwrap_or(0.0);
+        let mv_cap = grid.region_mv_capacity.get(&region.id).copied().unwrap_or(0.0);
+        let grid_cap = lv_cap.min(mv_cap);
+        let effective_supply = supply.min(grid_cap);
+
         national_supply += supply;
         national_demand += demand;
 
         regions.push(RegionEnergyInfo {
             region_id: region.id.clone(),
-            region_name: region.id.clone(),
+            region_name: if region.display_name.is_empty() { region.id.clone() } else { region.display_name.clone() },
             supply_mw: supply,
+            effective_supply_mw: effective_supply,
             demand_mw: demand,
             max_production_capacity_mw: max_cap,
             average_spot_price: if is_foreign { None } else { Some(spot) },

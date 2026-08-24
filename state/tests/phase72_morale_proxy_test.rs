@@ -5,7 +5,7 @@
 //! with REAL physical commodity transfers (no magic spawning).
 
 use sim_engine::military::morale::{
-    MoraleConfig, MoraleImpactResult,
+    MoraleConfig,
     apply_casualty_morale_impact, recover_morale,
     strike_production_factor, calculate_desertions, initialize_morale,
 };
@@ -18,7 +18,7 @@ use sim_engine::military::proxy_wars::{
     fund_separatists, arm_rebels,
 };
 use sim_engine::military::fronts::Casualties;
-use sim_engine::society::geography::{ClassDemographics, RuralClass};
+use sim_engine::society::geography::ClassDemographics;
 use sim_engine::registries::enums::Commodity;
 use std::collections::{BTreeMap, HashMap};
 
@@ -425,8 +425,8 @@ fn test_phase72_fund_separatists_insufficient_funds() {
 
 #[test]
 fn test_phase72_fund_separatists_autonomous_republic_multiplier() {
-    let mut treasury = 10_000.0;
-    let mut rebellion_funds = 0.0;
+    let treasury = 10_000.0;
+    let rebellion_funds = 0.0;
     let config = ProxyWarConfig::default();
     let action = ProxyWarAction::FundSeparatists {
         sponsor_country: "Sponsor".to_string(),

@@ -268,7 +268,7 @@ pub fn process_religious_authority_turn(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::society::geography::{ClassDemographics, Region, RegionalClassDemographics};
+    use crate::society::geography::{ClassDemographics, Region};
     use crate::state::{Country, macro_data::MacroData};
 
     fn make_region(id: &str, religion: &str, pop: i64) -> Region {

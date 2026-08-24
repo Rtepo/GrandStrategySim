@@ -337,8 +337,8 @@ mod tests {
 
     #[test]
     fn test_fund_separatists_autonomous_republic_multiplier() {
-        let mut treasury = 10_000.0;
-        let mut rebellion_funds = 0.0;
+        let treasury = 10_000.0;
+        let rebellion_funds = 0.0;
         let config = ProxyWarConfig::default();
         let action = ProxyWarAction::FundSeparatists {
             sponsor_country: "Sponsor".to_string(),

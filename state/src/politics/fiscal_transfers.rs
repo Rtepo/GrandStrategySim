@@ -3,7 +3,7 @@
 use crate::politics::local_government::AdministrativeStatus;
 use crate::politics::local_council::{calculate_curial_faction_alignment, calculate_seat_count};
 use crate::politics::system::FiscalTransferConfig;
-use crate::society::geography::{Region, RuralClass, ClassDemographics, EconomicStatus};
+use crate::society::geography::{Region, RuralClass, EconomicStatus};
 use crate::state::Country;
 use std::collections::BTreeMap;
 
@@ -59,7 +59,7 @@ fn calculate_property_tax(region: &Region) -> (f64, BTreeMap<RuralClass, f64>) {
     
     let tax_rate = 0.02; // 2% property tax rate (configurable)
     
-    for (_soil_class, land_dist) in &region.land_distribution {
+    for land_dist in region.land_distribution.values() {
         let tax_per_hectare = tax_rate * 100.0; // Simplified: 2 currency units per hectare
         
         // Aristocracy pays tax on their land

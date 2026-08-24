@@ -89,7 +89,7 @@ pub fn submit_construction_b2b_orders(
             }
             buyer_requests
                 .entry(buyer_id.clone())
-                .or_insert_with(Vec::new)
+                .or_default()
                 .push((building.id.clone(), commodity, remaining_needed));
         }
     }
@@ -147,7 +147,7 @@ pub fn submit_construction_b2b_orders(
             // Submit bid with company.id as buyer_id
             order_book.bids
                 .entry(*commodity)
-                .or_insert_with(Vec::new)
+                .or_default()
                 .push(Bid {
                     buyer_id: company.id.clone(),
                     commodity: *commodity,

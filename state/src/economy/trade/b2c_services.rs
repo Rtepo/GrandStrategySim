@@ -27,10 +27,10 @@ pub fn populate_education_service_needs(country: &Country) -> BTreeMap<String, f
     let mut needs = BTreeMap::new();
     for region in &country.regions {
         let mut edu_need = 0.0_f64;
-        for (_, class) in &region.class_demographics.rural_classes {
+        for class in region.class_demographics.rural_classes.values() {
             edu_need += calculate_education_need_for_class(class);
         }
-        for (_, class) in &region.class_demographics.urban_classes {
+        for class in region.class_demographics.urban_classes.values() {
             edu_need += calculate_education_need_for_class(class) * 1.2;
         }
         needs.insert(region.id.clone(), edu_need);
@@ -54,10 +54,10 @@ pub fn populate_health_service_needs(country: &Country) -> BTreeMap<String, f64>
     let mut needs = BTreeMap::new();
     for region in &country.regions {
         let mut health_need = 0.0_f64;
-        for (_, class) in &region.class_demographics.rural_classes {
+        for class in region.class_demographics.rural_classes.values() {
             health_need += calculate_health_need_for_class(class);
         }
-        for (_, class) in &region.class_demographics.urban_classes {
+        for class in region.class_demographics.urban_classes.values() {
             health_need += calculate_health_need_for_class(class) * 1.3;
         }
         needs.insert(region.id.clone(), health_need);
@@ -362,10 +362,10 @@ pub fn populate_commute_service_needs(
     let mut needs = BTreeMap::new();
     for region in &country.regions {
         let mut demand = 0.0_f64;
-        for (_, class) in &region.class_demographics.rural_classes {
+        for class in region.class_demographics.rural_classes.values() {
             demand += class.population as f64 * class.labor_participation * commute_demand_factor;
         }
-        for (_, class) in &region.class_demographics.urban_classes {
+        for class in region.class_demographics.urban_classes.values() {
             demand += class.population as f64 * class.labor_participation * commute_demand_factor;
         }
         needs.insert(region.id.clone(), demand);
@@ -500,8 +500,8 @@ pub fn clear_passenger_transport_b2c(
 mod tests {
     use super::*;
     use crate::registries::enums::Sector;
-    use crate::state::{Country, Treasury, MacroData, TaxRates};
-    use crate::society::geography::{Region, RegionalClassDemographics, ClassDemographics};
+    use crate::state::Country;
+    use crate::society::geography::{Region, ClassDemographics};
 
     fn make_test_country(region_id: &str, citizen_savings: f64, gov_reserves: f64) -> Country {
         let mut country = Country::mock_for_tests();

@@ -18,7 +18,6 @@
 use sim_engine::engine::{generate_world, run_turn_in_memory, GenerateOptions, GeneratedWorld, StartYear};
 use sim_engine::engine::turn_context::InMemoryTurnContext;
 use sim_engine::registries::Registries;
-use sim_engine::state::GameState;
 use sim_engine::registries::enums::Commodity;
 use tempfile::TempDir;
 
@@ -94,7 +93,7 @@ fn test_24_turn_dynamic_integration() {
         // Verify the country has a functioning treasury
         let treasury = &country.budget;
         assert!(
-            treasury.sectors.len() > 0,
+            !treasury.sectors.is_empty(),
             "Country {} should have budget sectors after 24 turns",
             name
         );

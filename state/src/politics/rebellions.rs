@@ -1,9 +1,9 @@
 //! Rebellion proto-state system for civil war mechanics
 
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 
-use crate::society::geography::{Region, RuralClass};
+use crate::society::geography::Region;
 
 /// Type of rebellion based on ideological motivation
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -50,6 +50,7 @@ impl RebellionTrigger {
     /// 
     /// # Returns
     /// Default trigger conditions
+    #[allow(clippy::should_implement_trait)]
     pub fn default() -> Self {
         RebellionTrigger {
             unrest_threshold: 60.0,

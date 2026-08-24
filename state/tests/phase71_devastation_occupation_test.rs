@@ -6,11 +6,11 @@
 
 use sim_engine::society::cadastre::{Cadastre, ParcelChunk, ZoningDesignation, WaterAccessType};
 use sim_engine::society::disasters::{
-    DisasterConfig, DisasterType, DisasterTurnResult,
+    DisasterConfig, DisasterType,
     trigger_disasters, spread_devastation, decay_devastation,
 };
 use sim_engine::military::occupation::{
-    OccupationState, OccupationConfig, OccupationTurnResult,
+    OccupationState, OccupationConfig,
     compute_cultural_distance, process_occupation_turn, create_occupation_states,
 };
 use sim_engine::military::fronts::{RegionControl, Front};
@@ -169,7 +169,7 @@ fn test_phase71_safety_inspection_reduces_disasters() {
 #[test]
 fn test_phase71_devastation_spreads_to_adjacent_parcels() {
     let mut c = Cadastre::default();
-    let mut p1 = ParcelChunk {
+    let p1 = ParcelChunk {
         region_id: "r1".to_string(),
         devastation_index: 0.5,
         ..Default::default()

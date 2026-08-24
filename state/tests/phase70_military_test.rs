@@ -11,36 +11,33 @@
 //! - Hybrid war declaration (Phase 70.7)
 
 use sim_engine::military::oob::{
-    OrderOfBattle, Army, Division, Regiment,
     OobGenerationConfig, generate_oob, generate_asymmetric_oob,
 };
 use sim_engine::military::modernization::{
     ModernizationConfig, modernize_unit, apply_scrap_to_stockpile,
 };
-use sim_engine::military::multi_domain::{
-    CombatDomain, DomainModifiers, resolve_multi_domain_battle,
-};
+use sim_engine::military::multi_domain::resolve_multi_domain_battle;
 use sim_engine::military::pows::{
     PowCamp, PowCaptureConfig, PrisonerOfWar, PowStatus,
-    capture_pows_from_casualties, calculate_lease_fee_per_pow,
+    capture_pows_from_casualties,
     process_forced_labor_lease_fees, repatriate_pows_from_country,
 };
 use sim_engine::military::retreat::{
     CommanderRetraitProfile, RetreatEvaluation, evaluate_retreat,
-    process_retreat, apply_captured_equipment_to_stockpile,
+    process_retreat,
 };
 use sim_engine::military::commander_traits::{
-    MilitaryTacticModifiers, AirDoctrine, evaluate_military_tactics,
+    evaluate_military_tactics,
     to_retreat_profile,
 };
 use sim_engine::military::war_declarations::{
     WarReason, PeaceTerms, BilateralTension, WarDeclarationConfig,
-    declare_war, check_tension_escalations, decay_all_tensions,
+    declare_war, check_tension_escalations,
     settle_peace, tension_key,
 };
-use sim_engine::military::units::{MilitaryUnit, UnitType, EquipmentReserve};
+use sim_engine::military::units::{MilitaryUnit, UnitType};
 use sim_engine::military::config::MilitaryCombatConfig;
-use sim_engine::military::fronts::{Casualties, BattleResult};
+use sim_engine::military::fronts::Casualties;
 use sim_engine::registries::enums::Commodity;
 use sim_engine::society::geography::RuralClass;
 use std::collections::HashMap;
@@ -361,7 +358,7 @@ fn test_retreat_equipment_captured_not_cash() {
     );
 
     // Captured equipment must be physical commodities
-    for (commodity, _) in &result.captured_equipment {
+    for commodity in result.captured_equipment.keys() {
         let _ = commodity; // Verify it's a Commodity enum
     }
     assert!(!result.captured_equipment.is_empty() || result.retreating_casualties.total() > 0);

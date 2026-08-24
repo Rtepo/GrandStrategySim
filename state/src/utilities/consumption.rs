@@ -77,7 +77,7 @@ pub fn process_utility_consumption(
             // Electricity deficit
             let elec_demand = demand.electricity_demand.max(1.0);
             let elec_supply = connections.electricity_capacity;
-            let elec_deficit = 1.0 - (elec_supply / elec_demand).min(1.0);
+            let _elec_deficit = 1.0 - (elec_supply / elec_demand).min(1.0);
 
             // Heating deficit (winter only)
             let heat_deficit = if season == Season::Winter {

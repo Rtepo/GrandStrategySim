@@ -67,8 +67,10 @@ impl IntegrationLevel {
 
 /// Voting mechanism for organization decisions.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Default)]
 pub enum VotingMechanism {
     /// Every member must agree (used by World Forum).
+    #[default]
     Unanimity,
     /// Qualified majority — requires threshold fraction of votes.
     QualifiedMajority { /// Fraction of votes required (0.0 to 1.0).
@@ -77,11 +79,6 @@ pub enum VotingMechanism {
     SimpleMajority,
 }
 
-impl Default for VotingMechanism {
-    fn default() -> Self {
-        VotingMechanism::Unanimity
-    }
-}
 
 impl VotingMechanism {
     /// Returns a human-readable label.
@@ -409,13 +406,12 @@ impl OrganizationRegistry {
             }
 
             // Evolve voting mechanism at QMV threshold
-            if org.integration_level.ordinal() >= config.qmv_integration_threshold.ordinal() {
-                if org.voting_mechanism == VotingMechanism::Unanimity {
+            if org.integration_level.ordinal() >= config.qmv_integration_threshold.ordinal()
+                && org.voting_mechanism == VotingMechanism::Unanimity {
                     org.voting_mechanism = VotingMechanism::QualifiedMajority {
                         threshold: config.qmv_threshold,
                     };
                 }
-            }
         }
     }
 

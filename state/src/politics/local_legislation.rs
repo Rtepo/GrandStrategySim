@@ -198,7 +198,6 @@ pub fn vote_on_mandate_funding<R: rand::Rng>(
 // MANDATE EXECUTION — STRICT DOUBLE-ENTRY ACCOUNTING
 // ============================================================================
 
-use crate::politics::local_government::RegionalBudget;
 use crate::state::Country;
 
 /// Result of executing a mandate payment.
@@ -287,8 +286,8 @@ pub fn execute_mandate_payment(
 
     // ── COMMISSARY BOND LOCK ──
     // If commissary and decision is IssueBonds, reject it defensively.
-    if is_commissary {
-        if matches!(decision, MandateFundingDecision::IssueBonds { .. }) {
+    if is_commissary
+        && matches!(decision, MandateFundingDecision::IssueBonds { .. }) {
             result.messages.push(
                 "[MANDATE] BOND LOCK: Commissary region cannot issue bonds. Checking Treasury funding.".to_string()
             );
@@ -314,11 +313,9 @@ pub fn execute_mandate_payment(
                 ));
             }
         }
-    }
 
     // Apply the decision to prepare cash.
     let mut bonds_to_issue = 0.0_f64;
-    let mut expenditures_cut = 0.0_f64;
 
     match decision {
         MandateFundingDecision::RaisePropertyTax { new_rate } => {
@@ -358,7 +355,6 @@ pub fn execute_mandate_payment(
             }
         }
         MandateFundingDecision::CutExpenditures { cut_amount } => {
-            expenditures_cut = *cut_amount;
             if let Some(ref mut gov) = country.regions[region_idx].governance {
                 let actual_cut = cut_amount.min(gov.budget.local_expenditures);
                 gov.budget.local_expenditures -= actual_cut;
@@ -536,14 +532,12 @@ mod tests {
         // Run multiple times to check that IssueBonds is possible
         // (depends on faction distribution + randomness).
         let mut got_bonds = false;
-        let mut got_tax = false;
-        let mut got_cut = false;
         for _ in 0..100 {
             let decision = vote_on_mandate_funding(&gov, 100.0, &mut rng);
             match decision {
                 MandateFundingDecision::IssueBonds { .. } => got_bonds = true,
-                MandateFundingDecision::RaisePropertyTax { .. } => got_tax = true,
-                MandateFundingDecision::CutExpenditures { .. } => got_cut = true,
+                MandateFundingDecision::RaisePropertyTax { .. } => {}
+                MandateFundingDecision::CutExpenditures { .. } => {}
                 _ => {}
             }
         }

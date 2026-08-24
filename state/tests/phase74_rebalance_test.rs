@@ -9,12 +9,10 @@
 
 use sim_engine::registries::enums::Commodity;
 use sim_engine::registries::production_methods_data::default_production_methods;
-use sim_engine::registries::production_methods::{MethodSlot, ProductionMethod};
 use sim_engine::data::consumption_registry;
 use sim_engine::economy::trade::retail::build_consumer_demand;
-use sim_engine::society::geography::{ClassDemographics, DemographyType, Region, RuralClass};
+use sim_engine::society::geography::{ClassDemographics, Region, RuralClass};
 use sim_engine::society::housing::{HousingBuilding, HousingSlots, HousingType, UtilityConnections};
-use std::collections::HashMap;
 
 // ============================================================================
 // 74.1: Compound Rate Conversion

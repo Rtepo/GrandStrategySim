@@ -21,7 +21,7 @@ use std::collections::BTreeMap;
 
 use rand::Rng;
 
-use crate::corporate::market_behavior::{evaluate_market_behavior, MarketBehaviorModifiers};
+use crate::corporate::market_behavior::MarketBehaviorModifiers;
 use crate::society::cadastre::{
     Cadastre, CadastreConfig, ParcelChunk, ParcelId, ParcelOwnerType, ZoningDesignation,
     LandPriceHistoryRegistry, compute_parcel_value, foreign_ownership_percentage,
@@ -336,7 +336,7 @@ pub fn calculate_compensation(
             lookback_years,
             average_multiplier,
         } => {
-            let lookback_turns = (*lookback_years as u32) * turns_per_year;
+            let lookback_turns = *lookback_years * turns_per_year;
             let lookback_entries = lookback_turns as usize;
 
             // Check if we have SUFFICIENT history for the full lookback window
@@ -709,7 +709,6 @@ pub fn generate_ministry_land_report(
 
 use crate::society::cadastre::{
     AdversePossessionConfig, AdversePossessionState,
-    Easement, EasementType,
 };
 
 /// Result of processing adverse possession for one turn.
@@ -757,9 +756,8 @@ pub fn process_adverse_possession(
         if parcel.is_frozen || parcel.is_border_zone {
             continue;
         }
-        if parcel.adverse_possession.is_some() {
+        if let Some(ap) = parcel.adverse_possession.as_ref().cloned() {
             // Already has squatters — check for transfer
-            let ap = parcel.adverse_possession.as_ref().unwrap().clone();
             if ap.contested {
                 continue; // Contested — timer halted
             }
@@ -872,7 +870,7 @@ pub fn file_vindication_claim(
     ap.contested_turn = current_turn;
 
     let parcel_idx = parcel_id_to_index(parcel_id);
-    let region_id = parcel.region_id.clone();
+    let _region_id = parcel.region_id.clone();
     let acquisition_price = parcel.acquisition_price;
     let plaintiff_type = parcel.owner_type;
 
@@ -966,7 +964,7 @@ pub fn process_immissions(
     // Step 4: Residential parcels near pollution suffer value reduction
     // and may file lawsuits
     for pid in &parcel_ids {
-        let (pollution, zoning, region_id, owner_id, acquisition_price) = {
+        let (pollution, zoning, _region_id, owner_id, acquisition_price) = {
             if let Some(p) = cadastre.parcels.get(*pid) {
                 (p.pollution_level, p.zoning, p.region_id.clone(), p.owner_id.clone(), p.acquisition_price)
             } else {
@@ -1915,7 +1913,7 @@ mod tests {
 
     use crate::society::cadastre::{
         AdversePossessionConfig, AdversePossessionState, ImmissionConfig,
-        Easement, EasementType, ArbitrationCourt,
+        ArbitrationCourt,
     };
 
     #[test]

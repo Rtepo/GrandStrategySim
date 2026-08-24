@@ -11,7 +11,6 @@
 use crate::economy::CountryTurnCtx;
 use crate::state::macro_data::{annual_to_per_turn_rate, ImmigrantCohort};
 use serde_json::{Map, Value};
-use std::collections::BTreeMap;
 
 /// Extracts an `f64` from a JSON value, falling back to `default`.
 fn f64_from_value(value: Option<&Value>, default: f64) -> f64 {
@@ -131,7 +130,7 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
     let prawo_obywatelskie = string_from_value(polityka.get("prawo_obywatelskie"), "5-Year Assimilation");
     let prawo_pracy = string_from_value(polityka.get("prawo_pracy"), "Wolny Rynek");
     let agencja_aktywna = bool_from_value(polityka.get("agencja_pracy_aktywna"), false);
-    let tarcza_energetyczna = bool_from_value(polityka.get("tarcza_energetyczna"), false);
+    let _tarcza_energetyczna = bool_from_value(polityka.get("tarcza_energetyczna"), false);
 
     let zbrodnie = f64_from_value(przestepczosc.get("zbrodnie"), 0.0);
     let indeks_bezpieczenstwa = f64_from_value(przestepczosc.get("indeks_bezpieczenstwa"), 80.0);
@@ -485,7 +484,7 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
                     if rural_pop > 0 && !region.class_demographics.rural_classes.is_empty() {
                         let mut rural_distributed: i64 = 0;
                         let rural_classes: Vec<String> = region.class_demographics.rural_classes.keys().cloned().collect();
-                        for (i, key) in rural_classes.iter().enumerate() {
+                        for key in rural_classes.iter() {
                             if let Some(demo) = region.class_demographics.rural_classes.get_mut(key) {
                                 let share = demo.population as f64 / rural_pop as f64;
                                 let delta = (rural_delta as f64 * share).round() as i64;
@@ -508,7 +507,7 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
                     if urban_pop > 0 && !region.class_demographics.urban_classes.is_empty() {
                         let mut urban_distributed: i64 = 0;
                         let urban_classes: Vec<String> = region.class_demographics.urban_classes.keys().cloned().collect();
-                        for (i, key) in urban_classes.iter().enumerate() {
+                        for key in urban_classes.iter() {
                             if let Some(demo) = region.class_demographics.urban_classes.get_mut(key) {
                                 let share = demo.population as f64 / urban_pop as f64;
                                 let delta = (urban_delta as f64 * share).round() as i64;
@@ -696,7 +695,7 @@ pub fn distribute_population_delta_and_reconcile(country: &mut crate::state::Cou
             .collect();
         let total_pop: i64 = region_class_pop;
         let mut region_distributed: i64 = 0;
-        for (i, (is_rural, key)) in all_classes.iter().enumerate() {
+        for (is_rural, key) in all_classes.iter() {
             let demo = if *is_rural {
                 region.class_demographics.rural_classes.get_mut(key)
             } else {

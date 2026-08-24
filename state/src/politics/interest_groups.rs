@@ -170,8 +170,8 @@ fn calculate_nominal_power(
     }
 
     // Secondary education
-    let secondary_edu_pop = total_population * education.secondary_share();
-    for (edu_level, share) in &education.srednie {
+    let _secondary_edu_pop = total_population * education.secondary_share();
+    for share in education.srednie.values() {
         let edu_pop = total_population * share;
         if let Some(group_shares) = class_group_mapping.education_mapping.get("srednie") {
             for (group_name, group_share) in group_shares {
@@ -290,7 +290,7 @@ fn calculate_total_political_weight(
     let beta = suffrage_system.financial_weight;
 
     // Calculate raw total weight for each group
-    for (group_name, _) in nominal_power {
+    for group_name in nominal_power.keys() {
         let nominal = nominal_power.get(group_name).copied().unwrap_or(0.0);
         let financial = financial_power.get(group_name).copied().unwrap_or(0.0);
         let mobilization = mobilization_factors.get(group_name).copied().unwrap_or(0.5);
@@ -300,11 +300,11 @@ fn calculate_total_political_weight(
     }
 
     // Also include groups that only have financial power
-    for (group_name, _) in financial_power {
+    for group_name in financial_power.keys() {
         if !total_weight.contains_key(group_name) {
             let financial = financial_power.get(group_name).copied().unwrap_or(0.0);
-            let mobilization = mobilization_factors.get(group_name).copied().unwrap_or(0.5);
-            let w_total = (beta * financial);
+            let _mobilization = mobilization_factors.get(group_name).copied().unwrap_or(0.5);
+            let w_total = beta * financial ;
             total_weight.insert(group_name.clone(), w_total);
         }
     }
@@ -398,8 +398,8 @@ pub fn calculate_interest_groups_power(
             nominal_power: nominal,
             financial_power: financial,
             total_political_weight: weight,
-            mobilization: mobilization,
-            radicalization: radicalization,
+            mobilization,
+            radicalization,
         });
     }
 

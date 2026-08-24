@@ -26,7 +26,7 @@ use crate::economy::generative_goods_config::GenerativeGoodsConfig;
 use crate::registries::blueprint_specs::{blueprint_specs, BlueprintSpec, MaterialChoice};
 use crate::registries::enums::Commodity;
 use crate::registries::production_methods::MethodSlot;
-use crate::registries::tech_tree::{TechId, TechNode};
+use crate::registries::tech_tree::TechId;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap};
 
@@ -249,7 +249,7 @@ fn blueprint_id(
         .map(|(c, q)| format!("{:?}:{:.4}", c, q))
         .collect::<Vec<_>>()
         .join(",");
-    format!("bp_{}_{}_{}_{}_{}", owner, format!("{:?}", output), base_tech, granted_turn, inputs_str)
+    format!("bp_{}_{:?}_{}_{}_{}", owner, output, base_tech, granted_turn, inputs_str)
 }
 
 /// Compute the royalty fee for a single licensee-producer this turn.

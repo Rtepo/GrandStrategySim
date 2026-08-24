@@ -5,7 +5,7 @@
 
 use crate::registries::enums::Commodity;
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 use std::sync::OnceLock;
 
 /// Need tier for consumption (evaluated in order: Subsistence → Standard → Luxury)

@@ -51,9 +51,11 @@ fn default_condition() -> String {
 /// Operational classification of financial institutions.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
+#[derive(Default)]
 pub enum BankType {
     /// Commercial (Retail) Bank: Takes deposits from Demographics (B2C),
     /// offers working capital/mortgage loans. Regulated by reserve requirements.
+    #[default]
     Commercial,
     /// Investment Bank: No retail deposits. Funded by Aristocracy/Funds.
     /// Handles IPOs, corporate bonds, and CAPEX loans. Higher risk tolerance.
@@ -66,18 +68,15 @@ pub enum BankType {
     Cooperative,
 }
 
-impl Default for BankType {
-    fn default() -> Self {
-        BankType::Commercial
-    }
-}
 
 /// Classification of loan purpose for credit risk assessment.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
+#[derive(Default)]
 pub enum LoanType {
     /// Working Capital Loan (Kredyt obrotowy) - Short-term financing for operations.
     /// Lower risk, secured by cashflow.
+    #[default]
     WorkingCapital,
     /// Investment Loan (Kredyt inwestycyjny) - Long-term CAPEX financing.
     /// Higher risk, requires strict LTV and prospect analysis.
@@ -87,17 +86,14 @@ pub enum LoanType {
     Consolidation,
 }
 
-impl Default for LoanType {
-    fn default() -> Self {
-        LoanType::WorkingCapital
-    }
-}
 
 /// Loan payment status.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
+#[derive(Default)]
 pub enum LoanStatus {
     /// Payments are current.
+    #[default]
     Current,
     /// Payment overdue but not yet in default.
     Overdue,
@@ -107,29 +103,21 @@ pub enum LoanStatus {
     Repaid,
 }
 
-impl Default for LoanStatus {
-    fn default() -> Self {
-        LoanStatus::Current
-    }
-}
 
 /// Interest rate type for loans - determines duration risk exposure.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
+#[derive(Default)]
 pub enum InterestType {
     /// Fixed rate: Locked for loan duration. Bank bears duration risk.
     /// Higher rate includes duration risk premium.
     Fixed,
     /// Variable rate: Tracks XIBOR + bank margin. Rate resets each turn.
     /// Borrower bears interest rate risk.
+    #[default]
     Variable,
 }
 
-impl Default for InterestType {
-    fn default() -> Self {
-        InterestType::Variable
-    }
-}
 
 /// Individual loan record for tracking credit creation.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
@@ -559,11 +547,10 @@ pub fn calculate_credit_score(
     loan_type: LoanType,
     requested_principal: f64,
     central_bank: &CentralBank,
-    bank_id: &str,
+    _bank_id: &str,
     existing_loans: &[Loan],
 ) -> CreditScore {
     let mut score = 0.5; // Base score
-    let mut max_loan_amount = 0.0;
     let mut risk_premium_bps: f64 = 0.0;
     let mut approved = true;
     let mut rejection_reason = None;
@@ -610,7 +597,7 @@ pub fn calculate_credit_score(
         LoanType::Consolidation => borrower.fixed_capital(),
     };
     
-    max_loan_amount = collateral_value * ltv_ratio;
+    let max_loan_amount = collateral_value * ltv_ratio;
     
     if requested_principal > max_loan_amount {
         approved = false;
@@ -667,7 +654,7 @@ pub fn calculate_credit_score(
     
     // Investment Prospect (Investment loans only)
     if loan_type == LoanType::Investment {
-        let hurdle_rate = central_bank.interest_rates.reference_rate + 0.05;
+        let _hurdle_rate = central_bank.interest_rates.reference_rate + 0.05;
         // Relative capital strength: borrower must have 1.5x the requested principal in fixed capital
         let capital_strength = if requested_principal > 0.0 {
             borrower.fixed_capital() / requested_principal
@@ -1518,12 +1505,12 @@ impl BankResolution {
         let failed_bank_index = all_banks.iter().position(|b| b.id == failed_bank_id)
             .expect("Failed bank must exist");
         
-        let mut failed_bank = all_banks.swap_remove(failed_bank_index);
+        let failed_bank = all_banks.swap_remove(failed_bank_index);
         
         let bs = failed_bank.balance_sheet.as_mut().expect("Bank must have balance sheet");
         
         // Step 1: Calculate insured vs uninsured deposits
-        let max_insured = bfg_fund.calculate_max_insured_amount(average_wage);
+        let _max_insured = bfg_fund.calculate_max_insured_amount(average_wage);
         let total_deposits = bs.deposits;
         
         // Assume average depositor has 50% of deposits uninsured (simplified)
@@ -1539,8 +1526,8 @@ impl BankResolution {
         
         // Step 3: Good Bank / Bad Bank Split
         // Bridge Bank (Good Bank) keeps assets and insured liabilities
-        let bridge_bank_assets = bs.loans_issued.clone();
-        let bridge_bank_real_estate = bs.real_estate;
+        let _bridge_bank_assets = bs.loans_issued.clone();
+        let _bridge_bank_real_estate = bs.real_estate;
         let bridge_bank_insured_deposits = insured_deposits;
         
         // BFG (Bad Bank) absorbs toxic liabilities
@@ -2248,7 +2235,7 @@ pub fn process_banking_turn(
                 } else {
                     // Inter-bank: borrower's bank loses deposits + reserves,
                     // lending bank's reserves already increased in the loan loop.
-                    if let Some(bank) = companies.iter_mut().find(|c| &c.id == p_bank_id.as_str()) {
+                    if let Some(bank) = companies.iter_mut().find(|c| c.id == p_bank_id.as_str()) {
                         if let Some(ref mut bs) = bank.balance_sheet {
                             bs.deposits = (bs.deposits - amount).max(0.0);
                             bs.reserves_at_central_bank =
@@ -2340,7 +2327,7 @@ pub fn process_banking_turn(
             }
 
             let loan_result = issue_loan(
-                &mut companies[bi].balance_sheet.as_mut().unwrap(),
+                companies[bi].balance_sheet.as_mut().unwrap(),
                 &companies[bi].id,
                 margin,
                 &borrower_clone,
@@ -2517,7 +2504,7 @@ pub fn process_banking_turn(
             // Phase 77: Route through issue_loan() for reserve check
             let borrower_clone = companies[borrower_idx].clone();
             let loan_result = issue_loan(
-                &mut companies[bank_idx].balance_sheet.as_mut().unwrap(),
+                companies[bank_idx].balance_sheet.as_mut().unwrap(),
                 &bank_id,
                 bank_margin,
                 &borrower_clone,

@@ -352,7 +352,7 @@ impl FishFarm {
 
         // Deterministic disease logic: disease increases every 3rd turn,
         // decreases otherwise. No RNG needed.
-        if turn % 3 == 0 {
+        if turn.is_multiple_of(3) {
             self.disease_risk = (self.disease_risk + config.farm_disease_increase)
                 .min(config.farm_max_disease_risk);
         } else {
@@ -516,7 +516,7 @@ pub fn process_fishing_turn(
 
         order_book.asks
             .entry(Commodity::Fish)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(Ask {
                 seller_id: "fishing_sector".to_string(),
                 commodity: Commodity::Fish,

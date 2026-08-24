@@ -4,7 +4,7 @@
 //! education services are delivered, including funding models, universality levels,
 // and priority systems.
 
-use crate::politics::funding::{ServiceFundingConfig, StudentLoanConfig};
+use crate::politics::funding::ServiceFundingConfig;
 use serde::{Deserialize, Serialize};
 
 /// Healthcare law configuration
@@ -659,7 +659,7 @@ impl ReligiousLaw {
                 church_tax_rate: 0.02,
                 apostolic_remittance_rate: 0.10,
             },
-            "Secularism" | _ => Self {
+            _ => Self {
                 state_religion: None,
                 separation_of_church_and_state: true,
                 church_tax_rate: 0.0,

@@ -25,7 +25,7 @@
 use crate::entities::Company;
 use crate::politics::ideology::Ideology;
 use crate::politics::parliament::StateOfEmergency;
-use crate::politics::system::{GovernmentForm, Politics};
+use crate::politics::system::Politics;
 use crate::registries::enums::{Commodity, Sector};
 use crate::state::Country;
 use rustc_hash::FxHashMap;
@@ -1228,7 +1228,7 @@ pub fn execute_crisis_response(
         .unwrap_or(false);
 
     // Check if parliament exists at all.
-    let has_functional_parliament = country.politics.government_form.chambers() > 0
+    let _has_functional_parliament = country.politics.government_form.chambers() > 0
         && country.politics.parliament_struct.is_some()
         && !parliament_suspended;
 
@@ -1329,6 +1329,7 @@ pub fn execute_crisis_response(
 mod tests {
     use super::*;
     use crate::politics::parliament::{Parliament, StateOfEmergency};
+    use crate::politics::system::GovernmentForm;
 
     #[test]
     fn test_classify_crisis_action_decree_when_no_parliament() {

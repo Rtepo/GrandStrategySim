@@ -147,7 +147,7 @@ pub struct ProgramEvaluation {
 fn check_eligibility(
     target: &TargetCondition,
     class: &ClassDemographics,
-    benefit_amount: f64,
+    _benefit_amount: f64,
 ) -> (bool, f64) {
     let pop = class.population.max(1) as f64;
     match target {
@@ -439,7 +439,7 @@ pub fn resolve_funding_dilemma(
     total_cost: f64,
     available_cash: f64,
     ruling_ideology: Ideology,
-    social_unrest: f64,
+    _social_unrest: f64,
     fiscal_health: f64,
 ) -> FundingResponse {
     if available_cash >= total_cost {
@@ -656,7 +656,7 @@ pub fn execute_social_welfare(
     };
 
     // Check if we need to construct programs (budget year or empty).
-    let is_budget_year = current_turn % 4 == 0;
+    let is_budget_year = current_turn.is_multiple_of(4);
     let needs_construction = is_budget_year || country.social_programs.is_empty();
 
     if needs_construction {

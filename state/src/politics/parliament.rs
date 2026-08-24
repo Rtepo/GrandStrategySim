@@ -9,9 +9,8 @@
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
-use super::ideology::Ideology;
-use super::names::{generate_full_vip, generate_unique_vip, VipName};
-use super::system::{GovernmentForm, Party, Politics};
+use super::names::{generate_full_vip, generate_unique_vip};
+use super::system::{Party, Politics};
 
 // ============================================================================
 // VIP STRUCTURES
@@ -868,8 +867,6 @@ pub fn check_faction_splintering(
 mod tests {
     use super::*;
     use crate::politics::system::{GovernmentForm, Leader, Party, PartyOrganization, Politics};
-    use crate::politics::interest_groups::ClassToGroupMapping;
-    use serde_json::Map;
 
     fn make_test_politics() -> Politics {
         let mut politics = Politics::default();

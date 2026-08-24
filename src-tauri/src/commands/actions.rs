@@ -172,12 +172,10 @@ pub async fn list_saves(state: tauri::State<'_, AppState>) -> Result<Vec<String>
     let entries = std::fs::read_dir(&saves_dir)
         .map_err(|e| format!("Failed to read saves dir: {e}"))?;
 
-    for entry in entries {
-        if let Ok(entry) = entry {
-            if entry.path().is_dir() {
-                if let Some(name) = entry.file_name().to_str() {
-                    saves.push(name.to_string());
-                }
+    for entry in entries.flatten() {
+        if entry.path().is_dir() {
+            if let Some(name) = entry.file_name().to_str() {
+                saves.push(name.to_string());
             }
         }
     }

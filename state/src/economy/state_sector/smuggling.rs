@@ -18,7 +18,6 @@ use crate::entities::Building;
 use crate::registries::enums::Commodity;
 use crate::state::Country;
 use crate::economy::sum_border_enforcement_capacity;
-use std::collections::HashMap;
 
 /// Maximum fraction of trade that can be smuggled (bypassing tariffs).
 const MAX_SMUGGLING_RATE: f64 = 0.15;

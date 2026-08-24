@@ -14,7 +14,7 @@
 //!   pool → localized labor shortage in the host region.
 
 use crate::economy::transport_networks::TransportNetworkOverlay;
-use crate::society::geography::{DemographyType, EdgeType, Region};
+use crate::society::geography::{EdgeType, Region};
 use serde::{Deserialize, Serialize};
 
 /// Phase 23C: Transport ownership law.

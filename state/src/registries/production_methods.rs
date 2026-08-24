@@ -1876,7 +1876,7 @@ mod tests {
     #[test]
     fn labor_ratios_sum_to_one() {
         let reg = state_building_methods();
-        for (_, methods) in reg.iter() {
+        for methods in reg.values() {
             for pm in methods.iter_production_slots() {
                 let sum = pm.experts_ratio + pm.skilled_ratio + pm.basic_ratio;
                 assert!((sum - 1.0).abs() < 1e-9, "ratios must sum to 1.0");
@@ -1887,7 +1887,7 @@ mod tests {
     #[test]
     fn state_buildings_have_no_outputs() {
         let reg = state_building_methods();
-        for (_, methods) in reg.iter() {
+        for methods in reg.values() {
             for pm in methods.iter_production_slots() {
                 // Phase 14: courthouse/police_station produce JusticeCapacity/SecurityCapacity;
                 // prison Workshop produces Furniture; Quarry produces Stone/HardCoal.

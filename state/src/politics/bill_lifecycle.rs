@@ -5,10 +5,10 @@ use std::hash::{Hash, Hasher};
 
 use serde::{Deserialize, Serialize};
 
-use super::legislation::{Bill, LegislativeSession, LegislativeStage};
+use super::legislation::{Bill, LegislativeStage};
 use super::committees::{Committee, CommitteeSystem};
 use super::ideology::IdeologyCompass;
-use super::local_council::{Councilor, CouncilorTrait, calculate_vote_probability};
+use super::local_council::{Councilor, calculate_vote_probability};
 
 /// Deterministic pseudo-random roll based on a seed string and probability.
 ///
@@ -368,7 +368,7 @@ pub fn process_bill_lifecycle(
 /// * Phase 32: If Parliament struct exists, record votes in chamber's recent_votes.
 pub fn process_legislation_turn(
     country: &mut crate::state::Country,
-    councilors: &[Councilor],
+    _councilors: &[Councilor],
     parties: &std::collections::HashMap<String, super::system::Party>,
     current_turn: u32,
 ) -> Vec<String> {
@@ -406,7 +406,7 @@ pub fn process_legislation_turn(
     let coalition = country.politics.coalition.clone();
     let lower_seats = country.politics.parliament.clone();
     let total_lower_seats: u32 = lower_seats.values().sum();
-    let coalition_seats: u32 = coalition
+    let _coalition_seats: u32 = coalition
         .iter()
         .filter_map(|p| lower_seats.get(p))
         .sum::<u32>()
@@ -415,7 +415,7 @@ pub fn process_legislation_turn(
     // Process bills in the legislative session.
     // We need to extract the session, process it, then put it back (borrow checker).
     let mut session = country.politics.legislative_session.take();
-    let mut committee_system = country.politics.committee_system.take();
+    let committee_system = country.politics.committee_system.take();
 
     if let Some(ref mut sess) = session {
         let bill_ids: Vec<String> = sess.active_bills.keys().cloned().collect();
@@ -622,7 +622,7 @@ impl FastTrackBill for Bill {
 }
 
 /// Assign a committee to a bill based on its type/clauses.
-fn assign_committee(bill: &Bill, cs: &CommitteeSystem) -> String {
+fn assign_committee(_bill: &Bill, cs: &CommitteeSystem) -> String {
     // Simple heuristic: use the first committee that matches.
     if let Some(first_committee) = cs.committees.keys().next() {
         first_committee.clone()
@@ -633,7 +633,7 @@ fn assign_committee(bill: &Bill, cs: &CommitteeSystem) -> String {
 
 /// Process committee stage for Phase 32 — calculate recommendation modifier.
 fn process_committee_stage_phase32(
-    bill: &mut Bill,
+    _bill: &mut Bill,
     _cs: &CommitteeSystem,
     lower_seats: &HashMap<String, u32>,
     coalition: &[String],
@@ -659,7 +659,7 @@ fn process_committee_stage_phase32(
 
 /// Calculate floor vote results (deterministic).
 fn calculate_floor_vote(
-    bill: &Bill,
+    _bill: &Bill,
     lower_seats: &HashMap<String, u32>,
     coalition: &[String],
     ruling_party: &str,
@@ -726,7 +726,7 @@ fn calculate_upper_house_vote(
 fn calculate_executive_sign_probability(
     bill: &Bill,
     politics: &super::system::Politics,
-    parties: &std::collections::HashMap<String, super::system::Party>,
+    _parties: &std::collections::HashMap<String, super::system::Party>,
 ) -> f64 {
     // If the bill initiator is the ruling party, high sign probability.
     if bill.initiator == politics.ruling_party {

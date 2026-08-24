@@ -6,7 +6,6 @@ use crate::state::treasury::Treasury;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use std::collections::HashMap;
 
 /// Type of mass movement
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
@@ -275,7 +274,7 @@ pub fn suppress_mass_movement(
     treasury: &mut Treasury,
     config: &ChaosConfig,
     rng: &mut impl Rng,
-    current_turn: u32,
+    _current_turn: u32,
     military_buildings: Option<&mut [Building]>,
 ) -> Result<SuppressionResult, SuppressionError> {
     // Only active movements can be suppressed
@@ -491,7 +490,7 @@ pub fn process_union_strike_fund(
         return Ok(()); // No union backing, no fund flow
     }
     
-    if union.id != movement.union_id.as_ref().map(|s| s.as_str()).unwrap_or("") {
+    if union.id != movement.union_id.as_deref().unwrap_or("") {
         return Err(MovementError::UnionMismatch);
     }
     

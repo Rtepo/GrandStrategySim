@@ -186,16 +186,14 @@ pub fn read_telemetry_column(
     };
 
     let mut result = Vec::new();
-    for record in reader.records() {
-        if let Ok(record) = record {
-            let turn: u32 = record.get(turn_idx)
-                .and_then(|s| s.parse().ok())
-                .unwrap_or(0);
-            let value: f64 = record.get(col_idx)
-                .and_then(|s| s.parse().ok())
-                .unwrap_or(0.0);
-            result.push((turn, value));
-        }
+    for record in reader.records().flatten() {
+        let turn: u32 = record.get(turn_idx)
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(0);
+        let value: f64 = record.get(col_idx)
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(0.0);
+        result.push((turn, value));
     }
     result
 }

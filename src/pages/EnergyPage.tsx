@@ -39,7 +39,7 @@ export function EnergyPage() {
       {/* National Aggregates */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
-          label="National Supply"
+          label="National Supply (Generated)"
           value={`${snapshot.national_supply_mw.toFixed(1)} MW`}
         />
         <StatCard
@@ -136,6 +136,7 @@ export function EnergyPage() {
                 <tr className="border-b text-left">
                   <th className="py-2 pr-4">Region</th>
                   <th className="py-2 pr-4 text-right">Supply (MW)</th>
+                  <th className="py-2 pr-4 text-right">Effective Supply (MW)</th>
                   <th className="py-2 pr-4 text-right">Demand (MW)</th>
                   <th className="py-2 pr-4 text-right">Max Capacity (MW)</th>
                   <th className="py-2 pr-4 text-right">Spot Price</th>
@@ -149,6 +150,9 @@ export function EnergyPage() {
                   <tr key={r.region_id} className="border-b">
                     <td className="py-2 pr-4">{r.region_name}</td>
                     <td className="py-2 pr-4 text-right">{r.supply_mw.toFixed(1)}</td>
+                    <td className={`py-2 pr-4 text-right ${r.effective_supply_mw < r.demand_mw ? "text-red-400" : ""}`}>
+                      {r.effective_supply_mw.toFixed(1)}
+                    </td>
                     <td className="py-2 pr-4 text-right">{r.demand_mw.toFixed(1)}</td>
                     <td className="py-2 pr-4 text-right">{r.max_production_capacity_mw.toFixed(1)}</td>
                     <td className="py-2 pr-4 text-right">

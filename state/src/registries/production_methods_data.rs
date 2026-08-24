@@ -4057,19 +4057,19 @@ mod tests {
         let all_methods = default_production_methods();
         let mut input_commodities: BTreeSet<Commodity> = BTreeSet::new();
 
-        for (_, methods) in &all_methods {
-            for (_, pm) in &methods.automation {
-                for (&c, _) in &pm.inputs {
+        for methods in all_methods.values() {
+            for pm in methods.automation.values() {
+                for &c in pm.inputs.keys() {
                     input_commodities.insert(c);
                 }
             }
-            for (_, pm) in &methods.production {
-                for (&c, _) in &pm.inputs {
+            for pm in methods.production.values() {
+                for &c in pm.inputs.keys() {
                     input_commodities.insert(c);
                 }
             }
-            for (_, pm) in &methods.organization {
-                for (&c, _) in &pm.inputs {
+            for pm in methods.organization.values() {
+                for &c in pm.inputs.keys() {
                     input_commodities.insert(c);
                 }
             }
@@ -4109,28 +4109,28 @@ mod tests {
         let mut input_commodities: BTreeSet<Commodity> = BTreeSet::new();
         let mut output_commodities: BTreeSet<Commodity> = BTreeSet::new();
 
-        for (_, methods) in &all_methods {
-            for (_, pm) in &methods.automation {
-                for (&c, _) in &pm.inputs {
+        for methods in all_methods.values() {
+            for pm in methods.automation.values() {
+                for &c in pm.inputs.keys() {
                     input_commodities.insert(c);
                 }
-                for (&c, _) in &pm.outputs {
+                for &c in pm.outputs.keys() {
                     output_commodities.insert(c);
                 }
             }
-            for (_, pm) in &methods.production {
-                for (&c, _) in &pm.inputs {
+            for pm in methods.production.values() {
+                for &c in pm.inputs.keys() {
                     input_commodities.insert(c);
                 }
-                for (&c, _) in &pm.outputs {
+                for &c in pm.outputs.keys() {
                     output_commodities.insert(c);
                 }
             }
-            for (_, pm) in &methods.organization {
-                for (&c, _) in &pm.inputs {
+            for pm in methods.organization.values() {
+                for &c in pm.inputs.keys() {
                     input_commodities.insert(c);
                 }
-                for (&c, _) in &pm.outputs {
+                for &c in pm.outputs.keys() {
                     output_commodities.insert(c);
                 }
             }

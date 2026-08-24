@@ -71,6 +71,26 @@ pub struct TradeDelta {
     pub tariff_revenue: f64,
     /// Currency code used by the country.
     pub currency_code: String,
+    /// Bugfix Sprint: Per-commodity physical trade volumes for this country.
+    /// Used to populate `GlobalMarket.net_trade` for the Market UI identity
+    /// `Supply − Demand + Net Trade = Net Surplus`.
+    pub commodity_entries: Vec<CommodityTradeEntry>,
+}
+
+/// Per-commodity physical import/export volumes for one country in a turn.
+///
+/// `import_volume` and `export_volume` are in physical units (not currency).
+/// They are derived by allocating the country's aggregate export/import
+/// realization across commodities proportionally to each commodity's share
+/// of the global order book.
+#[derive(Clone, Debug, PartialEq)]
+pub struct CommodityTradeEntry {
+    /// The commodity being traded.
+    pub commodity: crate::registries::enums::Commodity,
+    /// Physical units imported this turn.
+    pub import_volume: f64,
+    /// Physical units exported this turn.
+    pub export_volume: f64,
 }
 
 /// Result of a full global trade balance pass.
@@ -273,11 +293,42 @@ pub fn balance_global_trade(
     };
 
     // Third pass: build the trade deltas.
+    // Bugfix Sprint: Also build per-commodity trade entries by allocating the
+    // country's aggregate export/import realization across commodities
+    // proportionally to each commodity's share of the global order book.
+    let total_global_sell: f64 = market_orders.orders.values().map(|o| o.sell).sum();
+    let total_global_buy: f64 = market_orders.orders.values().map(|o| o.buy).sum();
+
     let mut deltas: Vec<TradeDelta> = Vec::new();
     for (input, (export_potential, import_demand)) in country_inputs.iter().zip(raw_import_demand) {
         let actual_export = export_potential * export_realization;
         let actual_import = import_demand * import_realization;
         let trade_balance = actual_export - actual_import;
+
+        // Build per-commodity entries: allocate aggregate export/import across
+        // commodities proportionally to each commodity's share of global supply/demand.
+        let mut commodity_entries: Vec<CommodityTradeEntry> = Vec::new();
+        for (&commodity, order) in &market_orders.orders {
+            let export_share = if total_global_sell > 0.0 {
+                order.sell / total_global_sell
+            } else {
+                0.0
+            };
+            let import_share = if total_global_buy > 0.0 {
+                order.buy / total_global_buy
+            } else {
+                0.0
+            };
+            let export_volume = actual_export * export_share;
+            let import_volume = actual_import * import_share;
+            if export_volume.abs() > 0.0 || import_volume.abs() > 0.0 {
+                commodity_entries.push(CommodityTradeEntry {
+                    commodity,
+                    import_volume,
+                    export_volume,
+                });
+            }
+        }
 
         deltas.push(TradeDelta {
             country_name: input.name.clone(),
@@ -286,6 +337,7 @@ pub fn balance_global_trade(
             trade_balance,
             tariff_revenue: 0.0, // Phase 11: tariffs collected physically via settle_trades_with_tariffs
             currency_code: input.country.macro_indicators.currency.clone(),
+            commodity_entries,
         });
     }
 

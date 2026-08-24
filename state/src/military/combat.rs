@@ -136,7 +136,7 @@ fn calculate_casualties(
     let mut demographic_breakdown: HashMap<RuralClass, i64> = HashMap::new();
     for unit in units {
         for (rural_class, &count) in &unit.manpower_origin {
-            *demographic_breakdown.entry(rural_class.clone()).or_insert(0) += count;
+            *demographic_breakdown.entry(*rural_class).or_insert(0) += count;
         }
     }
 

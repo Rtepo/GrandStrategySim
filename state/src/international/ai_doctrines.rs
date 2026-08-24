@@ -126,16 +126,8 @@ pub fn evaluate_doctrine(
     }
 
     // Check average relations with other countries
-    let mut avg_relations: f64 = 0.0;
-    let mut count: f64 = 0.0;
-    for (other_name, _) in &state.countries {
-        if other_name == country_name {
-            continue;
-        }
-        // Relations are stored in the diplomacy matrix, not directly accessible here
-        // We approximate using the country's reputation
-        count += 1.0;
-    }
+    // Relations are stored in the diplomacy matrix, not directly accessible here.
+    // We approximate using the country's reputation.
     // Use reputation as a proxy if available
     let reputation_score = country.budget.extra
         .get("global_reputation")
@@ -181,7 +173,7 @@ pub fn execute_doctrine(
                         continue;
                     }
                     let mil = other.order_of_battle.unit_count() as u32;
-                    if weakest.map_or(true, |(_, m)| mil < m) {
+                    if weakest.is_none_or(|(_, m)| mil < m) {
                         weakest = Some((name, mil));
                     }
                 }
@@ -199,7 +191,7 @@ pub fn execute_doctrine(
             if rng.gen::<f64>() < config.alliance_seeker_treaty_chance {
                 // Find a country with positive reputation/relations
                 let mut best_partner: Option<&String> = None;
-                for (name, _) in &state.countries {
+                for name in state.countries.keys() {
                     if name == country_name {
                         continue;
                     }

@@ -451,7 +451,6 @@ pub fn process_tourism_turn(
 
         // Phase C: Physical capacity check (No Phantom Resorts).
         let mut accommodation_capacity = 0.0_f64;
-        let mut service_capacity = 0.0_f64;
 
         // Map building types to tourism capacity.
         for b in commercial_buildings {
@@ -477,7 +476,7 @@ pub fn process_tourism_turn(
                     accommodation_capacity += b.office_capacity;
                 }
                 CommercialBuildingType::Restaurant | CommercialBuildingType::Casino => {
-                    service_capacity += b.retail_capacity;
+                    // Service capacity tracked separately (not currently used in visitor cap).
                 }
                 _ => {}
             }

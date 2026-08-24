@@ -144,7 +144,7 @@ pub fn match_orders(order_book: &mut OrderBook) {
                 order_book.trades.push(Trade {
                     buyer_id: bid.buyer_id.clone(),
                     seller_id: ask.seller_id.clone(),
-                    commodity: commodity.clone(),
+                    commodity,
                     quantity: trade_quantity,
                     execution_price,
                     bid_limit_price: bid.limit_price, // Capture for encumbrance refund
@@ -263,7 +263,7 @@ pub fn match_orders_with_embargoes(
                 order_book.trades.push(Trade {
                     buyer_id: bid.buyer_id.clone(),
                     seller_id: ask.seller_id.clone(),
-                    commodity: commodity.clone(),
+                    commodity,
                     quantity: trade_quantity,
                     execution_price,
                     bid_limit_price: bid.limit_price,
@@ -356,7 +356,7 @@ pub fn submit_bid(
         order_book
             .bids
             .entry(commodity)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(Bid {
                 buyer_id: company.id.clone(),
                 commodity,
@@ -404,7 +404,7 @@ pub fn submit_ask(
         order_book
             .asks
             .entry(commodity)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(Ask {
                 seller_id,
                 commodity,

@@ -171,7 +171,7 @@ fn weighted_choice<'a>(choices: &[(&'a str, i32)], rng: &mut impl Rng) -> &'a st
     for (name, weight) in choices {
         roll -= *weight;
         if roll < 0 {
-            return *name;
+            return name;
         }
     }
     choices.last().unwrap().0
@@ -208,7 +208,7 @@ pub fn generate_cultural_background(_country_name: &str) -> CulturalBackground {
 
     let (group_name, group) = CULTURAL_GROUPS.choose(&mut rng).unwrap();
     let nation = *group.nations.choose(&mut rng).unwrap();
-    let religion = pick_religion(*group_name, &mut rng);
+    let religion = pick_religion(group_name, &mut rng);
     let demonym = generate_demonym(nation);
 
     let fertility = fertility_for_religion(religion);

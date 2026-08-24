@@ -184,7 +184,7 @@ pub fn compute_air_route(
 mod tests {
     use super::*;
     use crate::society::geography::{
-        ClimateProfile, Edge, EdgeType, GeographicTraits, NodeType, Region,
+        ClimateProfile, GeographicTraits, NodeType, Region,
     };
     use std::collections::BTreeMap;
 

@@ -16,23 +16,20 @@ use uuid;
 /// Political dependency model of the Central Bank.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
+#[derive(Default)]
 pub enum CentralBankIndependence {
     /// Federal (Strictly Independent): Governor elected by regional branch presidents
     /// (chosen by local JST councils). State government has zero control. Cannot be dismissed.
     Federal,
     /// Central Independent: Governor appointed by Head of State/Parliament for fixed term.
     /// Regional directors appointed by Governor.
+    #[default]
     CentralIndependent,
     /// Dependent (Ministerial): Governor acts like a minister, can be dismissed at any time
     /// by Head of State/Prime Minister, forced to print money/lower rates for political goals.
     Dependent,
 }
 
-impl Default for CentralBankIndependence {
-    fn default() -> Self {
-        CentralBankIndependence::CentralIndependent
-    }
-}
 
 // ============================================================================
 // MACROECONOMIC MANDATES
@@ -41,20 +38,17 @@ impl Default for CentralBankIndependence {
 /// Macroeconomic mandate/goals of the Central Bank.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
+#[derive(Default)]
 pub enum MonetaryMandate {
     /// Price stability is the supreme goal.
     Inflationary,
     /// Economic growth/stock market health prioritized (inflation secondary).
     Market,
     /// Balances both price stability and growth.
+    #[default]
     Mixed,
 }
 
-impl Default for MonetaryMandate {
-    fn default() -> Self {
-        MonetaryMandate::Mixed
-    }
-}
 
 // ============================================================================
 // MONETARY POLICY COUNCIL (RPP) INTEREST RATES
@@ -648,11 +642,10 @@ impl CentralBank {
     /// * Dependent banks must always have Mixed mandate (enforced)
     pub fn change_mandate(&mut self, new_mandate: MonetaryMandate, parliamentary_support: f64, head_of_state_decree: bool) -> bool {
         // Dependent banks cannot have pure Inflationary or Market mandate
-        if self.independence_model == CentralBankIndependence::Dependent {
-            if new_mandate != MonetaryMandate::Mixed {
+        if self.independence_model == CentralBankIndependence::Dependent
+            && new_mandate != MonetaryMandate::Mixed {
                 return false;
             }
-        }
 
         if self.can_change_mandate(parliamentary_support, head_of_state_decree) {
             self.mandate = new_mandate;

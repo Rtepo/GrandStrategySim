@@ -850,7 +850,7 @@ pub fn calculate_progressive_pit(income: f64, progressive_tax: &ProgressiveIncom
 /// * Marginal bracket logic applies to the taxable profit after deductions
 pub fn calculate_progressive_cit(
     profit: f64,
-    capital: f64,
+    _capital: f64,
     progressive_tax: &ProgressiveCorporateTax,
     sector: &str,
     capex_deductions: &[CapexDeduction],
@@ -1055,7 +1055,7 @@ pub fn route_tax_collection_to_country(
 /// * Entity only receives Net Dividend = capital_gain - tax_owed
 pub fn calculate_capital_gains_tax(
     capital_gain: f64,
-    holding_period_years: f64,
+    _holding_period_years: f64,
     capital_gains_tax: &CapitalGainsTax,
     country: &mut crate::state::Country,
     region_id: &str,
@@ -1282,7 +1282,7 @@ pub fn process_tax_collection_turn(
 ) -> TaxCollectionResult {
     let mut result = TaxCollectionResult::default();
     let tax_rates = &country.tax_rates;
-    let tax_routing = tax_rates.tax_routing.clone();
+    let _tax_routing = tax_rates.tax_routing.clone();
     let sovereign_id = format!("STATE_{}", country.name);
 
     // ── PIT Collection ──────────────────────────────────────────────
@@ -1316,7 +1316,7 @@ pub fn process_tax_collection_turn(
     let tax_office_workers = country.budget.tax_office_ids.len() as f64;
     let evasion = calculate_tax_evasion(
         pit_owed,
-        tax_office_workers as f64,
+        tax_office_workers,
         total_companies,
         0.1, // default bureaucrats per company
     );
@@ -1364,7 +1364,7 @@ pub fn process_tax_collection_turn(
         // Apply evasion
         let cit_evasion = calculate_tax_evasion(
             cit_after_sez,
-            tax_office_workers as f64,
+            tax_office_workers,
             total_companies,
             0.1,
         );
@@ -1422,7 +1422,7 @@ pub fn process_tax_collection_turn(
             }
             let wealth_evasion = calculate_tax_evasion(
                 wealth_tax_owed,
-                tax_office_workers as f64,
+                tax_office_workers,
                 total_companies,
                 0.1,
             );
@@ -2262,6 +2262,8 @@ mod tests {
             apostolic_see_ledger: crate::economy::market::ApostolicSeeLedger::default(),
             supply_volume: rustc_hash::FxHashMap::default(),
             demand_volume: rustc_hash::FxHashMap::default(),
+            net_trade: rustc_hash::FxHashMap::default(),
+            b2c_demand_volume: rustc_hash::FxHashMap::default(),
         };
 
         let attempt = CapitalFlightAttempt {
@@ -2311,6 +2313,8 @@ mod tests {
             apostolic_see_ledger: crate::economy::market::ApostolicSeeLedger::default(),
             supply_volume: rustc_hash::FxHashMap::default(),
             demand_volume: rustc_hash::FxHashMap::default(),
+            net_trade: rustc_hash::FxHashMap::default(),
+            b2c_demand_volume: rustc_hash::FxHashMap::default(),
         };
 
         let attempt = CapitalFlightAttempt {
@@ -2451,6 +2455,8 @@ mod tests {
             apostolic_see_ledger: crate::economy::market::ApostolicSeeLedger::default(),
             supply_volume: rustc_hash::FxHashMap::default(),
             demand_volume: rustc_hash::FxHashMap::default(),
+            net_trade: rustc_hash::FxHashMap::default(),
+            b2c_demand_volume: rustc_hash::FxHashMap::default(),
         };
 
         let fdi_trigger = FdiTrigger {
@@ -2488,6 +2494,8 @@ mod tests {
             apostolic_see_ledger: crate::economy::market::ApostolicSeeLedger::default(),
             supply_volume: rustc_hash::FxHashMap::default(),
             demand_volume: rustc_hash::FxHashMap::default(),
+            net_trade: rustc_hash::FxHashMap::default(),
+            b2c_demand_volume: rustc_hash::FxHashMap::default(),
         };
 
         let fdi_trigger = FdiTrigger {

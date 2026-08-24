@@ -154,8 +154,7 @@ pub fn process_shadow_economy_turn(
     // mutable access to companies and country.
     let mut pending_payments: Vec<(usize, f64, String)> = Vec::new();
 
-    for payer_idx in 0..companies.len() {
-        let company = &mut companies[payer_idx];
+    for (payer_idx, company) in companies.iter_mut().enumerate() {
         if !SHADOW_ECONOMY_SECTORS.contains(&company.sector) {
             continue;
         }

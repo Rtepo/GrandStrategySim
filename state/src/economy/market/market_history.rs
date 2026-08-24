@@ -84,10 +84,10 @@ pub fn update_vwap(history: &mut MarketHistory, trades: &[Trade]) {
 
     for trade in trades {
         *volume_per_commodity
-            .entry(trade.commodity.clone())
+            .entry(trade.commodity)
             .or_insert(0.0) += trade.quantity;
         *value_per_commodity
-            .entry(trade.commodity.clone())
+            .entry(trade.commodity)
             .or_insert(0.0) += trade.quantity * trade.execution_price;
     }
 
@@ -130,10 +130,10 @@ pub fn update_retail_vwap(
     for (commodity, qty, price) in retail_prices {
         if *qty > 0.0 && *price > 0.0 {
             *volume_per_commodity
-                .entry(commodity.clone())
+                .entry(*commodity)
                 .or_insert(0.0) += qty;
             *value_per_commodity
-                .entry(commodity.clone())
+                .entry(*commodity)
                 .or_insert(0.0) += qty * price;
         }
     }

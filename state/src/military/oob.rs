@@ -25,7 +25,6 @@ use serde::{Deserialize, Serialize};
 use rustc_hash::FxHashMap;
 
 type HashMap<K, V> = FxHashMap<K, V>;
-use rand::Rng;
 
 use crate::military::units::{MilitaryUnit, UnitType};
 
@@ -585,7 +584,7 @@ pub fn generate_asymmetric_oob(
     // No upper clamp — large countries have larger units. Lower bound of 10
     // (not 100) so tiny countries get appropriately tiny units.
     let total_units = army_count * divisions_per_army * regiments_per_division * units_per_regiment;
-    let base_unit_manpower = (manpower_pool / total_units as i64).max(10);
+    let _base_unit_manpower = (manpower_pool / total_units as i64).max(10);
 
     // Phase 76: Add ±10% RNG variation to structure counts so countries with
     // similar GDP/population don't have identical OOB.

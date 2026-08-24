@@ -9,7 +9,7 @@
 use crate::economy::order_book::OrderBook;
 use crate::entities::Company;
 use crate::politics::ideology::Ideology;
-use crate::politics::system::{GovernmentForm, Party};
+use crate::politics::system::Party;
 use crate::registries::enums::Commodity;
 use crate::state::Country;
 use serde::{Deserialize, Serialize};
@@ -810,7 +810,7 @@ fn execute_competency_spending_with_parties(
                         order_book
                             .bids
                             .entry(commodity)
-                            .or_insert_with(Vec::new)
+                            .or_default()
                             .push(crate::economy::order_book::Bid {
                                 buyer_id: ministry.id.clone(),
                                 commodity,
@@ -1038,7 +1038,7 @@ fn execute_competency_spending(
                         order_book
                             .bids
                             .entry(commodity)
-                            .or_insert_with(Vec::new)
+                            .or_default()
                             .push(crate::economy::order_book::Bid {
                                 buyer_id: ministry.id.clone(),
                                 commodity,
@@ -1199,7 +1199,7 @@ fn execute_competency_spending(
                         order_book
                             .bids
                             .entry(commodity)
-                            .or_insert_with(Vec::new)
+                            .or_default()
                             .push(crate::economy::order_book::Bid {
                                 buyer_id: ministry.id.clone(),
                                 commodity,

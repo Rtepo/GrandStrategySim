@@ -4,7 +4,6 @@
 //! with different footprints for various housing qualities (Huts, Slums, Tenements, etc.).
 
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
 
 use crate::society::housing::{HousingBuilding, HousingType, CommercialBuilding, CommercialBuildingType};
 use crate::state::Season;
@@ -161,7 +160,9 @@ impl UtilityDemand {
         
         // Apply utility connections if available
         let connections = &building.utility_connections;
-        let adjusted_demand = UtilityDemand {
+        
+        
+        UtilityDemand {
             surface_water_demand: base_demand.surface_water_demand.min(connections.surface_water_capacity),
             groundwater_demand: base_demand.groundwater_demand.min(connections.groundwater_capacity),
             sewage_generation: base_demand.sewage_generation,
@@ -169,9 +170,7 @@ impl UtilityDemand {
             electricity_demand: base_demand.electricity_demand.min(connections.electricity_capacity),
             waste_generation: base_demand.waste_generation,
             recyclable_fraction: base_demand.recyclable_fraction,
-        };
-        
-        adjusted_demand
+        }
     }
     
     /// Calculate demand for a commercial building
@@ -255,7 +254,7 @@ impl UtilityDemand {
                 recyclable_fraction: 0.6,
             },
             // Phase 6.5: supermarket (higher electricity for refrigeration)
-            CommercialBuildingType::supermarket => UtilityDemand {
+            CommercialBuildingType::Supermarket => UtilityDemand {
                 surface_water_demand: 35.0 * retail_sqm / 100.0,
                 groundwater_demand: 12.0 * retail_sqm / 100.0,
                 sewage_generation: 28.0 * retail_sqm / 100.0,
@@ -338,7 +337,9 @@ impl UtilityDemand {
         
         // Apply utility connections if available
         let connections = &building.utility_connections;
-        let adjusted_demand = UtilityDemand {
+        
+        
+        UtilityDemand {
             surface_water_demand: base_demand.surface_water_demand.min(connections.surface_water_capacity),
             groundwater_demand: base_demand.groundwater_demand.min(connections.groundwater_capacity),
             sewage_generation: base_demand.sewage_generation,
@@ -346,9 +347,7 @@ impl UtilityDemand {
             electricity_demand: base_demand.electricity_demand.min(connections.electricity_capacity),
             waste_generation: base_demand.waste_generation,
             recyclable_fraction: base_demand.recyclable_fraction,
-        };
-        
-        adjusted_demand
+        }
     }
     
     /// Calculate winter mortality multiplier based on heating deficit

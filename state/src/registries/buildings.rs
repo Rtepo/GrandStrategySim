@@ -463,7 +463,7 @@ mod tests {
     #[test]
     fn state_templates_are_public_services() {
         let reg = state_apparatus_templates();
-        for (_, t) in reg.iter() {
+        for t in reg.values() {
             assert_eq!(t.sector, Sector::PublicServices);
             assert!(t.required_tech.is_none());
         }

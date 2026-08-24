@@ -6,7 +6,6 @@
 use crate::society::geography::ClimateProfile;
 use crate::registries::enums::Commodity;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use std::collections::HashMap;
 
 /// Default seed commodity.

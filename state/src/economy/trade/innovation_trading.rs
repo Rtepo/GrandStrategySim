@@ -31,7 +31,7 @@ pub fn trade_innovation_points_b2b(
     config: &InnovationConfig,
 ) {
     for building in buildings.iter_mut() {
-        let building_inventory = building_inventories.entry(building.id.clone()).or_insert_with(BTreeMap::new);
+        let building_inventory = building_inventories.entry(building.id.clone()).or_default();
         let available_points = building_inventory.get(&Commodity::InnovationPoints).copied().unwrap_or(0.0);
         
         if available_points <= 0.0 {

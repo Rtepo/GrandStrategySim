@@ -159,16 +159,6 @@ export type CadastreOwnerEntry = { owner_type: string, percentage: number, };
 export type CadastreSummaryResponse = { rows: Array<CadastreSummaryRow>, };
 
 /**
- * Build a `GlobalSnapshot` from the full `GameState` and market data.
- *
- * # Arguments
- * * `state` - The full game state.
- * * `market_history` - Global market history.
- * * `market` - Global market.
- * * `buildings` - All buildings (grouped by country via owner/region).
- *
- * # Returns
- * A `GlobalSnapshot` with per-country snapshots.
  * Phase 60: Cadastre summary row per region (public data — visible to all players).
  */
 export type CadastreSummaryRow = { region_id: string, region_name: string, total_hectares: number, total_value: number, avg_legal_certainty: number, avg_infrastructure_access: number, zoning_distribution: Array<CadastreZoningEntry>, owner_distribution: Array<CadastreOwnerEntry>, border_conflicts: number, foreign_ownership_pct: number, };
@@ -219,7 +209,18 @@ export type CommodityFuturesRow = { commodity_id: string, delivery_turn: number,
 /**
  * Per-commodity market data for the Market tab.
  */
-export type CommodityRow = { name: string, vwap: number, last_trade: number, base_price: number, net_surplus: number, 
+export type CommodityRow = { name: string, vwap: number, base_price: number, 
+/**
+ * Bugfix Sprint: UI net surplus, computed dynamically as
+ * `supply_volume − demand_volume + net_trade` (NOT from `market.net_surplus`,
+ * which is the raw B2B order book surplus used by the clearing engine).
+ */
+net_surplus: number, 
+/**
+ * Bugfix Sprint: Net trade (imports − exports, physical units).
+ * Positive = net importer, negative = net exporter.
+ */
+net_trade: number, 
 /**
  * Phase 27: ToT (turn-over-turn) % change of net_surplus.
  */
@@ -964,9 +965,15 @@ region_id: string,
  */
 region_name: string, 
 /**
- * Regional supply (MW).
+ * Regional supply (MW) — raw generated supply before grid-cap clamping.
  */
 supply_mw: number, 
+/**
+ * Bugfix Sprint: Effective supply (MW) after LV/MV grid capacity clamping.
+ * This is the value used for load-shed tiering. When this < demand,
+ * load shedding occurs even if raw supply > demand (grid bottleneck).
+ */
+effective_supply_mw: number, 
 /**
  * Regional demand (MW).
  */

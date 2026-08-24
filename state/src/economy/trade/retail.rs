@@ -3,14 +3,14 @@
 //! Implements consumer demand building, store offers, B2C market clearing,
 //! retail pricing with amortized costs, and consumer inertia/brand loyalty.
 
-use crate::data::{consumption_registry, NeedTier};
-use crate::economy::retail_registry::{commodity_profile_map, is_compatible, retail_config};
+use crate::data::consumption_registry;
+use crate::economy::retail_registry::retail_config;
 use crate::economy::transfer_settler::settle_b2c_purchase;
 use crate::entities::Company;
 use crate::registries::enums::Commodity;
 use crate::society::culture_registry::{registry as culture_registry, CultureDefinition, ReligionDefinition};
 use crate::society::geography::{DemographyType, Region, RuralClass};
-use crate::society::housing::{CommercialBuilding, RetailProfile, HousingBuilding};
+use crate::society::housing::{CommercialBuilding, HousingBuilding};
 use serde::{Deserialize, Serialize};
 use rustc_hash::FxHashMap;
 use std::collections::BTreeMap;
@@ -540,7 +540,7 @@ pub fn build_consumer_demand(
                                             // Add shifted demand to substitute, scaled by equivalence ratio
                                             let substitute_demand = shifted * sub.equivalence_ratio;
                                             if substitute_demand > 0.0 {
-                                                *demand.demand.entry(key.clone()).or_insert_with(BTreeMap::new)
+                                                *demand.demand.entry(key.clone()).or_default()
                                                     .entry(sub.substitute).or_insert(0.0) += substitute_demand;
                                                 *demand.total_demand.entry(sub.substitute).or_insert(0.0) += substitute_demand;
                                             }
@@ -553,7 +553,7 @@ pub fn build_consumer_demand(
                     };
 
                     if class_demand > 0.0 {
-                        *demand.demand.entry(key.clone()).or_insert_with(BTreeMap::new)
+                        *demand.demand.entry(key.clone()).or_default()
                             .entry(*commodity).or_insert(0.0) += class_demand;
                         *demand.total_demand.entry(*commodity).or_insert(0.0) += class_demand;
                     }
@@ -617,9 +617,8 @@ fn era_consumption_multiplier(commodity: Commodity, year: u32) -> f64 {
         }
 
         // Luxury goods: always available but more relevant in prosperous eras
-        Commodity::Luxury | Commodity::LuxuryFurniture | Commodity::LuxuryClothing => {
-            if year < 1880 { 0.5 } else { 1.0 }
-        }
+        Commodity::Luxury | Commodity::LuxuryFurniture | Commodity::LuxuryClothing
+            if year < 1880 => { 0.5 }
 
         // Everything else: always available
         _ => 1.0,
@@ -666,12 +665,12 @@ pub fn generate_store_offers(
     current_turn: u32,
 ) -> Vec<StoreOffer> {
     let mut offers = Vec::new();
-    let config = retail_config();
+    let _config = retail_config();
 
     for store in stores {
         if let Some(profile) = &store.retail_profile {
             // Compute effective attractiveness
-            let mut effective_attractiveness = profile.base_attractiveness;
+            let effective_attractiveness = profile.base_attractiveness;
 
             // Generate offers for each commodity in inventory
             for (commodity_key, batches) in &store.current_inventory {
@@ -859,7 +858,7 @@ pub fn clear_b2c_markets(
 
         // Allocate demand using largest-remainder method
         let mut remaining_demand = total_demand;
-        for (utility, offer) in utilities {
+        for (_utility, offer) in utilities {
             if remaining_demand <= 0.0 {
                 break;
             }
@@ -923,7 +922,7 @@ pub fn clear_b2c_markets(
     // Build retail_prices vector for CPI
     let retail_prices: Vec<(Commodity, f64, f64)> = retail_price_volume
         .into_iter()
-        .filter(|(_, (value, volume))| *volume > 0.0)
+        .filter(|(_, (_value, volume))| *volume > 0.0)
         .map(|(commodity, (value, volume))| (commodity, volume, value / volume))
         .collect();
 
@@ -1167,7 +1166,6 @@ pub fn apply_rationing_to_demand(
 // ═══════════════════════════════════════════════════════════════════════
 
 use crate::registries::enums::Sector;
-use crate::state::treasury::Treasury;
 
 /// Phase 47: Check if a region has only one remaining retail company and it
 /// is failing (in receivership or unable to cover wages).
@@ -1735,7 +1733,7 @@ mod tests {
         let format = select_retail_format(0.55, 1950, false, 600.0);
         assert_eq!(
             format.building_type,
-            crate::society::housing::CommercialBuildingType::supermarket,
+            crate::society::housing::CommercialBuildingType::Supermarket,
             "Mid-wealth region in modern era should get supermarket"
         );
     }

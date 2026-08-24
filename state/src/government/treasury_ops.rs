@@ -281,7 +281,7 @@ pub fn accumulate_storage_fees(
     for building in commercial_buildings.iter_mut() {
         if building.storage_capacity > 0.0 {
             let fee_per_unit = building.calculate_storage_fee();
-            for (_commodity, batches) in building.current_inventory.iter_mut() {
+            for batches in building.current_inventory.values_mut() {
                 for batch in batches {
                     batch.accumulated_fees += fee_per_unit * batch.quantity;
                 }
@@ -404,7 +404,7 @@ pub fn settle_periodic_storage_fees(
         }
         let warehouse_owner_id = warehouse.owner_id.clone();
 
-        for (_commodity, batches) in warehouse.current_inventory.iter_mut() {
+        for batches in warehouse.current_inventory.values_mut() {
             let mut to_remove: Vec<usize> = Vec::new();
 
             for (batch_idx, batch) in batches.iter_mut().enumerate() {

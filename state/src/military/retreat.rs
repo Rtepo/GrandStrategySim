@@ -24,7 +24,7 @@ use std::collections::HashMap;
 
 use crate::military::config::MilitaryCombatConfig;
 use crate::military::fronts::{BattleResult, Casualties};
-use crate::military::units::{MilitaryUnit, EquipmentReserve};
+use crate::military::units::MilitaryUnit;
 use crate::registries::enums::Commodity;
 use crate::society::geography::RuralClass;
 
@@ -118,18 +118,16 @@ pub fn evaluate_retreat(
     let catastrophic = config.catastrophic_power_ratio;
 
     // Check if defender is overwhelmed
-    if defender_power < attacker_power * catastrophic {
-        if defender_commander.will_retreat {
+    if defender_power < attacker_power * catastrophic
+        && defender_commander.will_retreat {
             return RetreatEvaluation::DefenderRetreats;
         }
-    }
 
     // Check if attacker walked into a meat grinder
-    if attacker_power < defender_power * catastrophic {
-        if attacker_commander.will_retreat {
+    if attacker_power < defender_power * catastrophic
+        && attacker_commander.will_retreat {
             return RetreatEvaluation::AttackerRetreats;
         }
-    }
 
     RetreatEvaluation::NoRetreat
 }
@@ -252,7 +250,7 @@ fn calculate_retreat_casualties(
     let mut demographic_breakdown: HashMap<RuralClass, i64> = HashMap::new();
     for unit in units {
         for (rural_class, &count) in &unit.manpower_origin {
-            *demographic_breakdown.entry(rural_class.clone()).or_insert(0) += count;
+            *demographic_breakdown.entry(*rural_class).or_insert(0) += count;
         }
     }
 
@@ -300,6 +298,7 @@ pub fn apply_captured_equipment_to_stockpile(
 mod tests {
     use super::*;
     use crate::military::units::UnitType;
+    use crate::military::EquipmentReserve;
 
     fn make_unit(id: &str, unit_type: UnitType, manpower: i64) -> MilitaryUnit {
         let mut unit = MilitaryUnit::new(

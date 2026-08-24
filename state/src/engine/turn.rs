@@ -9,8 +9,7 @@ use crate::economy::{
     market_history, order_book, process_building_cycle_with_geology,
     process_demographics_and_labor, resolve_market_prices, update_gdp_shares_from_employment,
     apply_payment_in_kind, build_consumer_demand, clear_b2c_markets, settle_b2c_clearing,
-    generate_store_offers, accrue_retail_rents, calculate_diversity_bonus,
-    update_anchor_tenant, reset_procurement_commitment, apply_clearance_discount,
+    generate_store_offers, accrue_retail_rents, calculate_diversity_bonus, reset_procurement_commitment, apply_clearance_discount,
     apply_rationing_to_demand,
     CountryTurnCtx,
     submit_company_b2b_orders, settle_trades_with_tariffs, settle_trades, execute_production_cycle,
@@ -34,11 +33,10 @@ use crate::government::{
     check_emergency_conditions, apply_rationing_consequences, accumulate_storage_fees,
     process_black_ops_funding, process_state_reserve_maintenance,
 };
-use crate::international::{balance_global_trade, process_diplomacy_turn, TradeBalanceResult};
+use crate::international::{balance_global_trade, process_diplomacy_turn};
 use crate::military::{process_military_turn, add_military_demand_to_market};
 use crate::military::war_economy::{
     execute_conscription, process_expired_decrees, issue_war_bonds, WarEconomyConfig,
-    ConscriptionLevel,
 };
 use crate::state::Country;
 use rand::SeedableRng;
@@ -381,7 +379,6 @@ pub fn run_turn_in_memory(
 
         // Phase 6.4: Continuous order book matching
         let mut global_order_book = OrderBook::default();
-        let mut all_trades: Vec<Trade> = Vec::new();
 
         // ═══════════════════════════════════════════════════════════
         // RESURRECTION PHASE 3: MILITARY — Drain pending defense orders
@@ -753,7 +750,7 @@ pub fn run_turn_in_memory(
 
         // Match orders (Phase 11: embargo-aware matching)
         match_orders_with_embargoes(&mut global_order_book, &company_country, &diplomacy);
-        all_trades = global_order_book.trades.clone();
+        let all_trades = global_order_book.trades.clone();
 
         // Phase 24A.1: Redistribute unfilled bids from global_order_book back to
         // per-country task.order_book so that refund functions can process them.
@@ -1091,7 +1088,7 @@ pub fn run_turn_in_memory(
         tasks.par_iter_mut().for_each(|task| {
             crate::infrastructure::cultural::deliver_relief_goods(
                 &task.order_book,
-                &mut task.ctx.country.cultural_institutions,
+                &task.ctx.country.cultural_institutions,
                 &mut task.ctx.country.regions,
             );
         });
@@ -1230,7 +1227,7 @@ pub fn run_turn_in_memory(
                         .sum::<f64>()
                         / (task.ctx.country.regions.len() as f64).max(1.0);
                     let _raised = issue_war_bonds(
-                        &mut task.ctx.country,
+                        task.ctx.country,
                         amount_needed,
                         &war_economy_config,
                         task.ctx.turn,
@@ -1513,7 +1510,7 @@ pub fn run_turn_in_memory(
         // Phase 81 Wave 2: Clone market_history for PPA VWAP computation.
         let ppa_market_history = state.market_history.clone();
         let grid_penalties_per_task: Vec<std::collections::HashMap<String, f64>> =
-            tasks.par_iter_mut().enumerate().map(|(i, task)| {
+            tasks.par_iter_mut().enumerate().map(|(_i, task)| {
                 let utility_config = task.ctx.country.utility_config.clone();
                 // Phase 81 Wave 2: Build fuel prices from market prices for
                 // merit-order spot market clearing.
@@ -1534,7 +1531,7 @@ pub fn run_turn_in_memory(
                     .unwrap_or(100.0);
                 let avg_wage = task.ctx.country.macro_indicators.average_wage.max(1.0);
                 crate::energy::ppa::negotiate_ppas(
-                    &mut task.ctx.country,
+                    task.ctx.country,
                     &task.ctx.buildings,
                     &fuel_prices,
                     avg_wage,
@@ -1544,7 +1541,7 @@ pub fn run_turn_in_memory(
                 );
                 // Phase 81: New energy grid distribution (electricity only).
                 let grid_result = crate::energy::grid::distribute_grid_power(
-                    &mut task.ctx.country,
+                    task.ctx.country,
                     &mut task.ctx.buildings,
                     &task.housing_buildings,
                     &task.commercial_buildings,
@@ -1574,7 +1571,7 @@ pub fn run_turn_in_memory(
         // Phase 81: Merge grid penalties (load shedding + industrial buff) with
         // utility consumption penalties (water/sewage). Grid penalties take
         // precedence for electricity-related buildings.
-        let mut task_penalties: Vec<std::collections::HashMap<String, f64>> = Vec::new();
+        let task_penalties: Vec<std::collections::HashMap<String, f64>>;
         {
             let mut penalties_per_task: Vec<std::collections::HashMap<String, f64>> = Vec::new();
             tasks.iter_mut().enumerate().for_each(|(task_idx, task)| {
@@ -1732,10 +1729,10 @@ pub fn run_turn_in_memory(
                 }
 
                 let debit_per_capita = total_rent / total_class_pop as f64;
-                for (_, demographics) in region.class_demographics.rural_classes.iter_mut() {
+                for demographics in region.class_demographics.rural_classes.values_mut() {
                     demographics.savings = (demographics.savings - debit_per_capita * demographics.population as f64).max(0.0);
                 }
-                for (_, demographics) in region.class_demographics.urban_classes.iter_mut() {
+                for demographics in region.class_demographics.urban_classes.values_mut() {
                     demographics.savings = (demographics.savings - debit_per_capita * demographics.population as f64).max(0.0);
                 }
 
@@ -1952,7 +1949,7 @@ pub fn run_turn_in_memory(
         // Runs after market history update so the next turn's PPA negotiation
         // has access to the latest VWAP data.
         tasks.par_iter_mut().for_each(|task| {
-            crate::energy::ppa::expire_ppas(&mut task.ctx.country, current_turn);
+            crate::energy::ppa::expire_ppas(task.ctx.country, current_turn);
         });
 
         // ═══════════════════════════════════════════════════════════
@@ -1973,7 +1970,7 @@ pub fn run_turn_in_memory(
             for company in &mut task.companies {
                 crate::agriculture::transition_agricultural_states(
                     company,
-                    &turn_calendar,
+                    turn_calendar,
                     task.ctx.registries,
                     &mut task.ctx.buildings,
                 );
@@ -2157,7 +2154,7 @@ pub fn run_turn_in_memory(
                     region,
                     &mut task.companies,
                     None,
-                    &turn_calendar,
+                    turn_calendar,
                     &crate::economy::labor_market::LaborConfig::default(),
                     pit_rate,
                     &garnishment_rates,
@@ -2503,7 +2500,7 @@ pub fn run_turn_in_memory(
                     let region = &mut task.ctx.country.regions[region_idx];
                     crate::agriculture::calculate_harvest_yield_and_rot(
                         company,
-                        &turn_calendar,
+                        turn_calendar,
                         task.ctx.registries,
                         &task.climate_config,
                         region,
@@ -2642,7 +2639,7 @@ pub fn run_turn_in_memory(
                 // Phase 16A: Route B2C revenue through TransferSettler for proper bank sync
                 // Phase 41: Pass VAT rates for transactional VAT collection.
                 let vat_rates = task.ctx.country.tax_rates.vat.clone();
-                let (b2c_settled, vat_collected) = settle_b2c_clearing(
+                let (_b2c_settled, vat_collected) = settle_b2c_clearing(
                     &clearing_result.store_revenue,
                     &consumer_demand,
                     &task.commercial_buildings,
@@ -2690,11 +2687,26 @@ pub fn run_turn_in_memory(
             .collect();
         market_history::update_retail_vwap(&mut state.market_history, &all_retail_prices);
 
+        // Bugfix Sprint: Clear supply/demand/b2c volumes ONCE at this point
+        // (after B2C clearing has produced task.b2c_demand, but before we
+        // aggregate it). This is the single coherent reset point that
+        // eliminates stale loaded values from market.json while preserving
+        // the current turn's B2C demand. The old Phase-80 FIX avoided
+        // clearing at end-of-turn (which would erase B2C); clearing here
+        // before B2C aggregation is the root-cause fix.
+        market.supply_volume.clear();
+        market.demand_volume.clear();
+        market.b2c_demand_volume.clear();
+        market.net_trade.clear();
+
         // Phase 44: Aggregate B2C consumer demand into market.demand_volume
-        // so the Market UI shows total demand (B2B + B2C) per commodity.
+        // and market.b2c_demand_volume so the Market UI shows total demand
+        // (B2B + B2C) per commodity, while keeping a separate B2C-only
+        // aggregator for the identity `Supply − Demand + Net Trade = Net Surplus`.
         for task in &tasks {
             for (&commodity, &qty) in &task.b2c_demand {
                 *market.demand_volume.entry(commodity).or_insert(0.0) += qty;
+                *market.b2c_demand_volume.entry(commodity).or_insert(0.0) += qty;
             }
         }
         
@@ -3368,7 +3380,7 @@ pub fn run_turn_in_memory(
         // (elections every 4 turns instead of every 4 years) and political
         // capital to be regenerated every turn, masking the payroll failure
         // cascade that drives it to 0.0.
-        let is_year_boundary = turn > 0 && (turn + 1) % 24 == 0;
+        let is_year_boundary = turn > 0 && (turn + 1).is_multiple_of(24);
 
         // Phase 39: Apply ideology tax policy every turn (not just on election).
         // This ensures wealth/capital-gains tax brackets always reflect the
@@ -4227,7 +4239,7 @@ pub fn run_turn_in_memory(
         // ═══════════════════════════════════════════════════════════
         {
             let see_config = crate::economy::religious_economy::ApostolicSeeConfig::default();
-            let gdp_per_capita: std::collections::BTreeMap<String, f64> = tasks.iter()
+            let _gdp_per_capita: std::collections::BTreeMap<String, f64> = tasks.iter()
                 .map(|t| (t.ctx.country_name.clone(), t.ctx.country.macro_indicators.average_wage))
                 .collect();
             let see_country = market.apostolic_see_ledger.see_country.clone();
@@ -4260,11 +4272,10 @@ pub fn run_turn_in_memory(
                         for company_id in &religion_company_ids {
                             if distributed >= charity_amount { break; }
                             let amount = per_company.min(charity_amount - distributed);
-                            if amount > 0.0 {
-                                if crate::economy::transfer_settler::credit_company_by_id(&mut task.companies, company_id, amount) {
+                            if amount > 0.0
+                                && crate::economy::transfer_settler::credit_company_by_id(&mut task.companies, company_id, amount) {
                                     distributed += amount;
                                 }
-                            }
                         }
                     }
                     market.apostolic_see_ledger.global_charity_pool -= distributed;
@@ -4278,11 +4289,10 @@ pub fn run_turn_in_memory(
                         for company_id in &see_company_ids {
                             if invested >= fdi_amount { break; }
                             let amount = per_company.min(fdi_amount - invested);
-                            if amount > 0.0 {
-                                if crate::economy::transfer_settler::credit_company_by_id(&mut task.companies, company_id, amount) {
+                            if amount > 0.0
+                                && crate::economy::transfer_settler::credit_company_by_id(&mut task.companies, company_id, amount) {
                                     invested += amount;
                                 }
-                            }
                         }
                     }
                     market.apostolic_see_ledger.global_charity_pool -= invested;
@@ -4440,6 +4450,17 @@ pub fn run_turn_in_memory(
 
     let trade_result = balance_global_trade(state, &global_orders, &market, &diplomacy);
 
+    // Bugfix Sprint: Aggregate per-commodity net trade (imports − exports) from
+    // the per-country CommodityTradeEntry vectors into market.net_trade.
+    // Sign convention: positive = net importer (goods arrived), negative = net exporter.
+    // This is used by the UI identity: Supply − Demand + Net Trade = Net Surplus.
+    for delta in &trade_result.deltas {
+        for entry in &delta.commodity_entries {
+            *market.net_trade.entry(entry.commodity).or_insert(0.0) +=
+                entry.import_volume - entry.export_volume;
+        }
+    }
+
     // Phase 10: Settle trade deficits via Forex/Gold reserves
     let trade_balances: HashMap<String, f64> = trade_result.deltas
         .iter()
@@ -4494,7 +4515,7 @@ pub fn run_turn_in_memory(
 
     // Phase 24F: Record telemetry history samples for ToT/YoY delta computation.
     // Runs after all GDP/inflation/money_supply updates are finalized.
-    for (country_name, country) in &mut state.countries {
+    for country in state.countries.values_mut() {
         let md = &country.macro_indicators;
         let sample = crate::state::macro_data::TelemetrySample {
             turn,
@@ -4523,7 +4544,7 @@ pub fn run_turn_in_memory(
     }
 
     // Phase 24F: Also aggregate OHS casualty counts into the latest telemetry sample.
-    for (_country_name, country) in &mut state.countries {
+    for country in state.countries.values_mut() {
         let mut total_deceased: i64 = 0;
         let mut total_disabled: i64 = 0;
         let mut unable_to_work_fte: f64 = 0.0;
@@ -4706,7 +4727,7 @@ pub fn run_turn_in_memory(
     // Phase 68: Process international organizations — integration progression, voting evolution.
     let org_config = state.org_config.clone();
     let populations: std::collections::BTreeMap<String, u64> = state.countries.iter()
-        .map(|(k, v)| (k.clone(), v.budget.population as u64))
+        .map(|(k, v)| (k.clone(), v.budget.population))
         .collect();
     state.international_organizations.process_turn(
         current_turn_for_treaties,
@@ -4716,7 +4737,7 @@ pub fn run_turn_in_memory(
 
     // Phase 68: Enforce directives — apply fines for non-compliance (double-entry).
     let fines = state.international_organizations.enforce_directives(current_turn_for_treaties);
-    for (country_name, fine_amount, reason) in fines {
+    for (country_name, fine_amount, _reason) in fines {
         if let Some(country) = state.countries.get_mut(&country_name) {
             if country.budget.liquid_reserves >= fine_amount {
                 country.budget.liquid_reserves -= fine_amount;
@@ -4737,7 +4758,7 @@ pub fn run_turn_in_memory(
 
     // Phase 68: Apply reputation damage to sanctioned countries.
     let sanction_config = state.sanction_config.clone();
-    let rep_config = state.reputation_config.clone();
+    let _rep_config = state.reputation_config.clone();
     let sanctioned_countries: Vec<String> = state.countries.keys()
         .filter(|name| state.active_sanctions.is_sanctioned(name, current_turn_for_treaties))
         .cloned()
@@ -4749,12 +4770,14 @@ pub fn run_turn_in_memory(
         }
     }
 
-    // Phase 44/80: Update market supply/demand volumes from global orders.
-    // Phase 80 FIX: Do NOT clear demand_volume/supply_volume — they already
-    // contain B2C consumer demand aggregated at line 2514. Clearing wipes all
-    // B2C demand, causing the UI to show 0.00 for HealthCapacity, EducationSlots,
-    // Clothing, Furniture, Fruit, and all other consumer goods.
-    // Instead, MERGE B2B order volumes into the existing B2C volumes.
+    // Bugfix Sprint: Merge B2B order volumes into the (already-cleared-and-
+    // B2C-populated) supply/demand volumes. The turn-start clear at line ~2693
+    // eliminated stale values; B2C was added immediately after; now B2B is
+    // merged. Result: supply_volume = current_B2B, demand_volume = B2C + current_B2B.
+    // The old Phase-80 FIX comment warned against clearing here — that was
+    // because the clear used to happen at this location (end-of-turn). The
+    // clear now happens at turn start (before B2C aggregation), so this merge
+    // is safe and correct.
     for (&good, order) in &global_orders.orders {
         *market.supply_volume.entry(good).or_insert(0.0) += order.sell;
         *market.demand_volume.entry(good).or_insert(0.0) += order.buy;
@@ -4765,14 +4788,13 @@ pub fn run_turn_in_memory(
     // Phase 27: 1 Year = 24 Turns (2 turns per month). Year only increments
     // after a full year of 24 turns has passed. Guard with turn > 0 to avoid
     // firing on turn 0 (game start).
-    if turn > 0 && turn % 24 == 0 {
+    if turn > 0 && turn.is_multiple_of(24) {
         year += 1;
 
         // Phase 57: Capital Gains Tax year-end settlement.
         // Runs at fiscal year-end (every 24 turns). Settles all accrued gains/losses,
         // applies tax-loss harvesting with 5-year carry-forward, and credits treasury.
         for country in state.countries.values_mut() {
-            let mut total_tax = 0.0;
             // Collect entity IDs and their brokerage cash for the settlement.
             let entity_ids: Vec<String> = country.capital_gains_tax.accruals.keys().cloned().collect();
 
@@ -4795,9 +4817,9 @@ pub fn run_turn_in_memory(
 
             // Settle year-end: debit entity cash, credit treasury.
             let treasury_ref = &mut country.budget.liquid_reserves;
-            total_tax = country.capital_gains_tax.settle_year_end(
+            let total_tax = country.capital_gains_tax.settle_year_end(
                 treasury_ref,
-                |entity_id, amount| {
+                |_entity_id, _amount| {
                     // The debit function — in this sequential phase, we can't
                     // borrow the entities mutably here, so we record the debit
                     // and apply it after settlement.
@@ -5063,11 +5085,10 @@ pub fn run_turn_in_memory(
                         vip.death_turn = Some(current_turn);
                         vip.incapacity = crate::politics::vip_registry::IncapacityStatus::Dead;
                     }
-                    if vip.health.mental_health < immission_config.breakdown_threshold {
-                        if matches!(vip.incapacity, crate::politics::vip_registry::IncapacityStatus::Healthy) {
+                    if vip.health.mental_health < immission_config.breakdown_threshold
+                        && matches!(vip.incapacity, crate::politics::vip_registry::IncapacityStatus::Healthy) {
                             vip.incapacity = crate::politics::vip_registry::IncapacityStatus::Sick;
                         }
-                    }
                 } else {
                     vip.health.physical_health = (vip.health.physical_health + immission_config.health_recovery_rate).min(1.0);
                     vip.health.mental_health = (vip.health.mental_health + immission_config.health_recovery_rate).min(1.0);

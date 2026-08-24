@@ -93,22 +93,19 @@ pub enum LaborTier {
 /// National prosperity bracket (`basket` / `prosperity_basket`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[derive(Default)]
 pub enum WealthBracket {
     /// `"very_high"`.
     VeryHigh,
     /// `"high"`.
     High,
     /// `"medium"`.
+    #[default]
     Medium,
     /// `"low"`.
     Low,
 }
 
-impl Default for WealthBracket {
-    fn default() -> Self {
-        WealthBracket::Medium
-    }
-}
 
 /// Macroeconomic sector (`sektor_pkb` and keys of `sektory`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
@@ -1131,7 +1128,7 @@ impl std::str::FromStr for Commodity {
 
 impl From<Commodity> for String {
     fn from(value: Commodity) -> Self {
-        serde_json::to_value(&value)
+        serde_json::to_value(value)
             .ok()
             .and_then(|v| v.as_str().map(|s| s.to_string()))
             .unwrap_or_else(|| format!("{value:?}"))

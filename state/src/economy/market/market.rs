@@ -95,6 +95,14 @@ pub struct GlobalMarket {
     pub supply_volume: HashMap<Commodity, f64>,
     /// Phase 43: Total buy order volume per commodity (demand side).
     pub demand_volume: HashMap<Commodity, f64>,
+    /// Bugfix Sprint: Per-commodity net trade (imports − exports, physical units).
+    /// Positive = net importer (goods arrived), negative = net exporter.
+    /// Populated after `balance_global_trade` from per-country `CommodityTradeEntry` vectors.
+    pub net_trade: HashMap<Commodity, f64>,
+    /// Bugfix Sprint: B2C consumer demand per commodity (physical units).
+    /// Kept separate from `demand_volume` (which holds B2B + B2C total) so that
+    /// the turn-start clear can reset both without erasing B2C mid-turn.
+    pub b2c_demand_volume: HashMap<Commodity, f64>,
 }
 
 impl GlobalMarket {

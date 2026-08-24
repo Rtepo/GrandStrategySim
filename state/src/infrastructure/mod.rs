@@ -5,7 +5,6 @@
 //! instead of tradable commodities.
 
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
 
 /// Capacity type for infrastructure buildings
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Hash, Ord, PartialOrd)]

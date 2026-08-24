@@ -27,3 +27,8 @@ release_commit.txt
 # Build log files
 npm_build.txt
 *.build_log.txt
+
+# Devin workflow state files (ephemeral, not committed)
+.devin/.plan_submitted
+.devin/.clearance_granted
+.devin/.cicd_state

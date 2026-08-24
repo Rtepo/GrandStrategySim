@@ -229,7 +229,7 @@ fn test_each_heating_plant_has_production_methods() {
 fn test_heating_plant_methods_have_emission_factors() {
     let registry = default_production_methods();
     let coal = registry.get("coal_heat_plant").unwrap();
-    for (_, method) in &coal.production {
+    for method in coal.production.values() {
         assert!(
             method.emission_factor > 0.0,
             "Coal heat plant method should have positive emission factor"
@@ -241,7 +241,7 @@ fn test_heating_plant_methods_have_emission_factors() {
 fn test_geothermal_has_zero_emissions() {
     let registry = default_production_methods();
     let geo = registry.get("geothermal_heat_plant").unwrap();
-    for (_, method) in &geo.production {
+    for method in geo.production.values() {
         assert_eq!(
             method.emission_factor, 0.0,
             "Geothermal should have zero emissions"

@@ -94,7 +94,7 @@ pub fn count_diplomats(state: &GameState, home: &str, host: &str, post_type: &Di
         return 0;
     };
     registry.vips.values().filter(|vip| {
-        vip.diplomatic_post.as_ref().map_or(false, |post| {
+        vip.diplomatic_post.as_ref().is_some_and(|post| {
             post.host_country == host && &post.post_type == post_type
         })
     }).count()
@@ -141,7 +141,7 @@ pub fn process_diplomacy_turn(
     state: &GameState,
     diplomacy: &mut HashMap<String, HashMap<String, DiplomaticRelation>>,
     diplomatic_config: &crate::international::fog_of_war::DiplomaticConfig,
-    current_turn: u32,
+    _current_turn: u32,
     intel_updates: &mut Vec<(String, String, crate::international::fog_of_war::IntelLevel)>,
     expel_actions: &mut Vec<(String, String)>,
 ) {
@@ -228,7 +228,7 @@ pub fn process_diplomacy_turn(
             }
 
             // 3. Border tension: both countries involved in the same front
-            if c1_front_countries.iter().any(|&c| c == c2_name) {
+            if c1_front_countries.contains(&c2_name) {
                 delta -= 2;
             }
 
@@ -243,9 +243,9 @@ pub fn process_diplomacy_turn(
             }
 
             // 6. Phase 66: Ambassador presence boosts relation improvement
-            let has_ambassador = c1_vip_registry.map_or(false, |reg| {
+            let has_ambassador = c1_vip_registry.is_some_and(|reg| {
                 reg.vips.values().any(|vip| {
-                    vip.diplomatic_post.as_ref().map_or(false, |post| {
+                    vip.diplomatic_post.as_ref().is_some_and(|post| {
                         post.host_country == *c2_name && post.post_type == DiplomaticPostType::Ambassador
                     })
                 })
@@ -254,7 +254,7 @@ pub fn process_diplomacy_turn(
                 // Find the ambassador's traits for modifier computation
                 if let Some(reg) = c1_vip_registry {
                     for vip in reg.vips.values() {
-                        if vip.diplomatic_post.as_ref().map_or(false, |p| {
+                        if vip.diplomatic_post.as_ref().is_some_and(|p| {
                             p.host_country == *c2_name && p.post_type == DiplomaticPostType::Ambassador
                         }) {
                             let (rel_bonus, _) = compute_diplomat_modifiers(&vip.traits);
@@ -291,7 +291,7 @@ pub fn process_diplomacy_turn(
             // 7. Phase 66: Spy activity — intel generation and discovery risk
             let spy_vips: Vec<_> = c1_vip_registry.map_or(Vec::new(), |reg| {
                 reg.vips.values().filter(|vip| {
-                    vip.diplomatic_post.as_ref().map_or(false, |post| {
+                    vip.diplomatic_post.as_ref().is_some_and(|post| {
                         post.host_country == *c2_name && post.post_type == DiplomaticPostType::Spy
                     })
                 }).collect()
@@ -367,7 +367,7 @@ mod tests {
         state.countries.insert("TestA".to_string(), c1);
         state.countries.insert("TestB".to_string(), c2);
 
-        let mut diplomacy = generate_diplomacy(&vec!["TestA".to_string(), "TestB".to_string()]);
+        let mut diplomacy = generate_diplomacy(&["TestA".to_string(), "TestB".to_string()]);
         let config = DiplomaticConfig::default();
         let mut intel_updates = Vec::new();
         let mut expel_actions = Vec::new();

@@ -15,7 +15,7 @@
 use crate::entities::Building;
 use crate::economy::legal_status::LegalStatus;
 use crate::registries::enums::Commodity;
-use crate::society::culture_registry::{cultural_distance, registry as culture_registry, CultureDefinition};
+use crate::society::culture_registry::{cultural_distance, registry as culture_registry};
 use crate::state::Country;
 use std::collections::BTreeMap;
 
@@ -480,7 +480,7 @@ pub fn process_religious_conversion_turn(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::society::geography::{ClassDemographics, Region, RegionalClassDemographics};
+    use crate::society::geography::{ClassDemographics, Region};
     use crate::state::Country;
 
     fn make_region_with_religion(id: &str, religion: &str, pop: i64) -> Region {

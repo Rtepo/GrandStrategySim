@@ -101,8 +101,10 @@ pub enum AuditStatus {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Default)]
 pub enum AuditFindings {
 
+    #[default]
     Clean,
     
 
@@ -118,11 +120,6 @@ pub enum AuditFindings {
     },
 }
 
-impl Default for AuditFindings {
-    fn default() -> Self {
-        AuditFindings::Clean
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum CorruptionSeverity {
@@ -226,8 +223,10 @@ pub struct BlackMoneyPool {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Default)]
 pub enum BlackMoneySource {
 
+    #[default]
     None,
     
 
@@ -249,11 +248,6 @@ pub enum BlackMoneySource {
     },
 }
 
-impl Default for BlackMoneySource {
-    fn default() -> Self {
-        BlackMoneySource::None
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum CampaignError {
@@ -419,7 +413,7 @@ pub fn process_party_debt_liquidation(
     commission: &mut ElectoralCommission,
     treasury: &mut Treasury,
     regions: &mut [Region],
-    current_turn: u32,
+    _current_turn: u32,
     annual_subvention_threshold: f64,
 ) -> Vec<String> {
     let mut messages = Vec::new();
@@ -985,7 +979,7 @@ pub fn generate_corporate_lobbying_black_money(
     pool.illicit_funds += amount;
     pool.source = BlackMoneySource::CorporateLobbying {
         company_id: company_id.to_string(),
-        amount: amount,
+        amount,
     };
     
     pool.discovery_risk = (amount / company_cash).min(0.8);
@@ -1010,7 +1004,7 @@ pub fn generate_organized_crime_black_money(
     
     let deduction_ratio = amount / total_savings;
     for class_data in region.class_demographics.rural_classes.values_mut() {
-        class_data.savings *= (1.0 - deduction_ratio);
+        class_data.savings *= 1.0 - deduction_ratio ;
     }
     
     if party.black_money_pool.is_none() {
@@ -1025,7 +1019,7 @@ pub fn generate_organized_crime_black_money(
     pool.illicit_funds += amount;
     pool.source = BlackMoneySource::OrganizedCrime {
         syndicate_id: syndicate_id.to_string(),
-        amount: amount,
+        amount,
     };
     
     pool.discovery_risk = 0.6;
@@ -1066,7 +1060,7 @@ pub fn generate_money_laundering_black_money(
     pool.illicit_funds += amount;
     pool.source = BlackMoneySource::MoneyLaundering {
         shell_company_id: shell_company_id.to_string(),
-        amount: amount,
+        amount,
     };
     
     pool.discovery_risk = 0.4;
@@ -1096,7 +1090,7 @@ pub fn process_election_cycle(
 
     match &country.politics.election_state {
         ElectionState::Idle => {
-            if current_turn > 0 && current_turn % 12 == 0 {
+            if current_turn > 0 && current_turn.is_multiple_of(12) {
                 country.politics.election_state = ElectionState::PreCampaign {
                     turns_until_start: country.politics.campaign_duration_turns.max(1),
                     registration_deadline: current_turn + 2,

@@ -25,7 +25,7 @@ use std::collections::HashMap;
 pub fn execute_state_research(
     treasury: &mut Treasury,
     tech_tree: &HashMap<TechId, TechNode>,
-    current_turn: u32,
+    _current_turn: u32,
 ) {
     // If already researching, continue
     if let Some(current_tech_id) = &treasury.science.researching {

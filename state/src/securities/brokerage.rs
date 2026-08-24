@@ -8,7 +8,6 @@ use std::collections::{BTreeMap, HashMap};
 use serde_json::Value;
 
 use crate::securities::exchange::Order;
-use crate::securities::derivatives::FuturesContract;
 
 /// Phase 55: A single position lot in a brokerage portfolio.
 ///

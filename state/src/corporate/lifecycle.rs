@@ -10,6 +10,7 @@ use crate::registries::enums::Sector;
 use crate::state::Country;
 use rustc_hash::FxHashMap;
 
+#[allow(dead_code)]
 type HashMap<K, V> = FxHashMap<K, V>;
 
 /// CompanyLifecycle service manages organic birth and death of companies.
@@ -99,7 +100,7 @@ impl CompanyLifecycle {
                     record
                         .get("zysk_netto")
                         .and_then(|v| v.as_f64())
-                        .map_or(false, |profit| profit < 0.0)
+                        .is_some_and(|profit| profit < 0.0)
                 });
 
             if consecutive_losses {
@@ -215,7 +216,7 @@ impl CompanyLifecycle {
                     .extra
                     .get("pmi")
                     .and_then(|v| v.as_f64())
-                    .map_or(false, |pmi| pmi > 50.0)
+                    .is_some_and(|pmi| pmi > 50.0)
             })
             .map(|(sector, _)| *sector)
             .collect();

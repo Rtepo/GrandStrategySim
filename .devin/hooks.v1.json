@@ -1,0 +1,14 @@
+{
+  "Stop": [
+    {
+      "matcher": "",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "powershell -ExecutionPolicy Bypass -File .devin/scripts/check_cicd.ps1",
+          "timeout": 5
+        }
+      ]
+    }
+  ]
+}

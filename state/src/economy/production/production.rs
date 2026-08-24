@@ -10,7 +10,6 @@ use crate::economy::geology;
 use crate::entities::{ActiveProductionMethod, Building};
 use crate::registries::enums::{Commodity, Sector};
 use crate::registries::Registries;
-use crate::society::geography::GeologicalFormation;
 use crate::state::Country;
 use rustc_hash::FxHashMap;
 use std::collections::BTreeMap;
@@ -65,7 +64,7 @@ fn resolve_active_method(
     // This bridges the duplicate registry without breaking existing saves.
     let methods = registries.production_methods.get(&building.name)
         .or_else(|| {
-            let sector_key = serde_json::to_value(&building.sector)
+            let sector_key = serde_json::to_value(building.sector)
                 .ok()
                 .and_then(|v| v.as_str().map(|s| s.to_string()))
                 .unwrap_or_else(|| format!("{:?}", building.sector));

@@ -7,7 +7,7 @@
 //! into RAM.
 
 use crate::entities::{Building, Company};
-use crate::society::housing::{CommercialBuilding, CommercialBuildingType, HousingBuilding};
+use crate::society::housing::{CommercialBuilding, HousingBuilding};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use std::cell::RefCell;

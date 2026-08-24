@@ -273,7 +273,7 @@ pub fn capture_pows_from_casualties(
             // Pick the most common class
             loser_casualties.demographic_breakdown.iter()
                 .max_by_key(|(_, &count)| count)
-                .map(|(class, _)| class.clone())
+                .map(|(class, _)| *class)
                 .unwrap_or(RuralClass::FreePeasant)
         } else {
             RuralClass::FreePeasant

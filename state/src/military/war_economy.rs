@@ -10,7 +10,7 @@
 
 use crate::entities::{Building, ActiveProductionMethod};
 use crate::registries::enums::{Commodity, Sector};
-use crate::society::geography::{ClassDemographics, RuralClass, Region};
+use crate::society::geography::{RuralClass, Region};
 use crate::military::units::{MilitaryUnit, UnitType};
 use serde::{Deserialize, Serialize};
 use rustc_hash::FxHashMap;

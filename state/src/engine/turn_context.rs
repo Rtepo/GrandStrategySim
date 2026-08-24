@@ -171,7 +171,7 @@ impl InMemoryTurnContext {
         let mh_text = serde_json::to_string_pretty(&state.market_history)
             .map_err(|e| TurnError::Io(std::io::Error::other(e.to_string())))?;
         fs::write(&mh_path, mh_text)
-            .map_err(|e| TurnError::Io(e))?;
+            .map_err(TurnError::Io)?;
 
         // Persist market.json.
         save_market(data_dir, &self.market, global_orders, trade_result)?;
@@ -237,6 +237,8 @@ fn load_market(data_dir: &Path) -> Result<GlobalMarket, TurnError> {
         apostolic_see_ledger: crate::economy::market::ApostolicSeeLedger::default(),
         supply_volume,
         demand_volume,
+        net_trade: FxHashMap::default(),
+        b2c_demand_volume: FxHashMap::default(),
     })
 }
 
@@ -672,8 +674,8 @@ fn save_market(
     // Persist supply/demand volumes for Market UI continuity.
     let sv_path = data_dir.join("market_volumes.json");
     let volumes_json = serde_json::json!({
-        "supply_volume": market.supply_volume.iter().map(|(k, v)| (k, v)).collect::<HashMap<_, _>>(),
-        "demand_volume": market.demand_volume.iter().map(|(k, v)| (k, v)).collect::<HashMap<_, _>>(),
+        "supply_volume": market.supply_volume.iter().collect::<HashMap<_, _>>(),
+        "demand_volume": market.demand_volume.iter().collect::<HashMap<_, _>>(),
     });
     let _ = fs::write(sv_path, serde_json::to_string_pretty(&volumes_json).unwrap_or_default());
     let path = data_dir.join("market.json");
@@ -703,11 +705,10 @@ fn save_unions(data_dir: &Path, country: &str, unions: &[Union]) -> Result<(), T
         return Ok(());
     }
     let unions_dir = data_dir.join("entities").join(country).join("unions");
-    if !unions_dir.exists() {
-        if let Err(_) = fs::create_dir_all(&unions_dir) {
+    if !unions_dir.exists()
+        && fs::create_dir_all(&unions_dir).is_err() {
             return Ok(());
         }
-    }
     let store = DiskEntityStore::<Union>::new(data_dir);
     let mut by_sector: HashMap<String, Vec<Union>> = HashMap::new();
     for union in unions {
@@ -718,7 +719,7 @@ fn save_unions(data_dir: &Path, country: &str, unions: &[Union]) -> Result<(), T
         if list.is_empty() {
             continue;
         }
-        if let Err(_) = store.save_sector(country, "unions", Some(&sector), &list) {
+        if store.save_sector(country, "unions", Some(&sector), &list).is_err() {
             // Ignore errors - unions are optional
         }
     }
@@ -760,7 +761,7 @@ fn save_commercial_buildings(data_dir: &Path, country: &str, commercial_building
             CommercialBuildingType::Marketplace => "retail",
             CommercialBuildingType::Wholesaler => "retail",
             CommercialBuildingType::RetailStore => "retail",
-            CommercialBuildingType::supermarket => "retail",
+            CommercialBuildingType::Supermarket => "retail",
             CommercialBuildingType::DepartmentStore => "retail",
             CommercialBuildingType::ShoppingCenter => "retail",
             CommercialBuildingType::Hotel => "hotel",
@@ -816,6 +817,8 @@ fn default_market() -> GlobalMarket {
         apostolic_see_ledger: crate::economy::market::ApostolicSeeLedger::default(),
         supply_volume: FxHashMap::default(),
         demand_volume: FxHashMap::default(),
+        net_trade: FxHashMap::default(),
+        b2c_demand_volume: FxHashMap::default(),
     }
 }
 

@@ -5,8 +5,6 @@
 
 use crate::infrastructure::CapacityType;
 use crate::society::geography::{DependencyLevel, HealthStatus, RuralClass};
-use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
 
 /// Apply infrastructure capacity effects to population
 /// Called after all companies have been processed

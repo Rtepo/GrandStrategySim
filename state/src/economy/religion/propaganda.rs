@@ -189,12 +189,12 @@ pub fn process_propaganda_turn(
 
                 // Apply to all classes across all regions
                 for region in &mut country.regions {
-                    for (_, class) in region.class_demographics.rural_classes.iter_mut() {
+                    for class in region.class_demographics.rural_classes.values_mut() {
                         class.political_sentiment.loyalists = (class.political_sentiment.loyalists + boost).min(1.0);
                         class.political_sentiment.radicals = (class.political_sentiment.radicals - boost).max(0.0);
                         class.political_sentiment.normalize();
                     }
-                    for (_, class) in region.class_demographics.urban_classes.iter_mut() {
+                    for class in region.class_demographics.urban_classes.values_mut() {
                         class.political_sentiment.loyalists = (class.political_sentiment.loyalists + boost).min(1.0);
                         class.political_sentiment.radicals = (class.political_sentiment.radicals - boost).max(0.0);
                         class.political_sentiment.normalize();
@@ -424,7 +424,7 @@ pub fn check_terrorism_triggers(
             if building.owner_id.starts_with("STATE_") || building.owner_id.starts_with("LOCAL_") {
                 continue; // State buildings already targeted above
             }
-            for (_, qty) in building.inventory.iter_mut() {
+            for qty in building.inventory.values_mut() {
                 *qty *= 1.0 - inventory_destruction_rate;
             }
         }

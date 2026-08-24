@@ -118,7 +118,7 @@ impl BankruptcyAuctionPool {
     /// * Each asset's turns_in_pool increases by 1
     /// * Assets exceeding auction_max_turns should be nationalized
     pub fn increment_turns(&mut self) {
-        for (_, (_, _, _, _, turns)) in self.assets.iter_mut() {
+        for (_, _, _, _, turns) in self.assets.values_mut() {
             *turns += 1;
         }
     }
@@ -173,7 +173,7 @@ impl RestructuringPlan {
                 record
                     .get("operating_cash_flows")
                     .and_then(|v| v.as_f64())
-                    .map_or(false, |ocf| ocf > 0.0)
+                    .is_some_and(|ocf| ocf > 0.0)
             });
         
         if !positive_ocf {
@@ -318,9 +318,7 @@ impl Syndic {
             
             // Waterfall Step 1: Pay actual unpaid tax liabilities from financial history
             let tax_owed = company.financial_history
-                .iter()
-                .rev()
-                .next()
+                .iter().next_back()
                 .and_then(|record| record.get("podatki").and_then(|v| v.as_f64()))
                 .unwrap_or(0.0);
             let tax_payment = tax_owed.min(remaining_cash);
@@ -358,7 +356,6 @@ impl Syndic {
                     remaining_cash;
                 country.budget.liquid_reserves += remaining_cash;
                 eprintln!("Syndic routed {} residual to treasury for shareholders of {}", remaining_cash, company.id);
-                remaining_cash = 0.0;
             }
         }
         
@@ -452,7 +449,7 @@ mod tests {
         pool.add_asset("asset1".to_string(), 10000.0, "owner1".to_string(), claims, &policy);
         
         assert!(pool.assets.contains_key("asset1"));
-        let (price, book, owner, claims, turns) = pool.assets.get("asset1").unwrap();
+        let (price, book, owner, _claims, turns) = pool.assets.get("asset1").unwrap();
         assert_eq!(*price, 5000.0); // 10000 * 0.5
         assert_eq!(*book, 10000.0);
         assert_eq!(*owner, "owner1");

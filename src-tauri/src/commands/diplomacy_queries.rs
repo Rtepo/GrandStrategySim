@@ -2,8 +2,8 @@ use crate::state::AppState;
 use sim_engine::ui::snapshot::{DiplomacySnapshot, ForeignCountryRow, TreatyRow, InternationalOrgRow, SanctionRow};
 use sim_engine::politics::vip_registry::DiplomaticPostType;
 use sim_engine::state::diplomatic_actions::DiplomaticAction;
-use sim_engine::international::treaties::{Treaty, TreatyClause, TreatyStatus};
-use sim_engine::international::sanctions::{Sanction, SanctionType, SanctionRegistry};
+use sim_engine::international::treaties::{Treaty, TreatyClause};
+use sim_engine::international::sanctions::{Sanction, SanctionType};
 
 /// Phase 66: Get the diplomacy snapshot for the player's country.
 /// Returns bilateral relations, posted diplomats, and foreign intelligence.

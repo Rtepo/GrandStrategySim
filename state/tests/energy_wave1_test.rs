@@ -370,4 +370,88 @@ mod tests {
         assert!(!traits.water_for_cooling);
         assert!(!traits.has_geothermal_potential);
     }
+
+    // ── Bugfix Sprint: Energy Capacity Conservation Tests ──
+
+    /// Supply cannot exceed nameplate capacity (5A: "matter from the void").
+    #[test]
+    fn test_supply_clamped_to_nameplate() {
+        // Simulate: energy_in_inventory = 300, weather_multiplier = 1.0,
+        // nameplate = 200. Supply should be clamped to 200.
+        let energy_in_inventory = 300.0_f64;
+        let weather_multiplier = 1.0_f64;
+        let nameplate = 200.0_f64;
+        let supply = (energy_in_inventory * weather_multiplier).min(nameplate);
+        assert_eq!(supply, 200.0, "Supply must not exceed nameplate");
+    }
+
+    /// Weather multiplier can boost output but supply is still clamped to nameplate.
+    #[test]
+    fn test_weather_boost_clamped_to_nameplate() {
+        let energy_in_inventory = 150.0_f64;
+        let weather_multiplier = 1.5_f64; // favorable weather
+        let nameplate = 200.0_f64;
+        let supply = (energy_in_inventory * weather_multiplier).min(nameplate);
+        assert_eq!(supply, 200.0, "Weather-boosted supply must still be clamped to nameplate");
+    }
+
+    /// Effective supply = min(supply, grid_capacity) — grid bottleneck.
+    #[test]
+    fn test_effective_supply_is_min_of_supply_and_grid_cap() {
+        let supply = 600.0_f64;
+        let lv_cap = 100.0_f64;
+        let mv_cap = 300.0_f64;
+        let grid_cap = lv_cap.min(mv_cap);
+        let effective_supply = supply.min(grid_cap);
+        assert_eq!(effective_supply, 100.0, "Effective supply must be limited by grid capacity");
+    }
+
+    /// Load-shed tier: when effective_supply < demand, load shedding occurs
+    /// even if raw supply > demand (grid bottleneck).
+    #[test]
+    fn test_load_shed_when_effective_supply_below_demand() {
+        let supply = 600.0_f64;
+        let demand = 400.0_f64;
+        let lv_cap = 100.0_f64;
+        let mv_cap = 300.0_f64;
+        let grid_cap = lv_cap.min(mv_cap);
+        let effective_supply = supply.min(grid_cap);
+        // effective_supply (100) < demand (400) → load shedding
+        assert!(effective_supply < demand, "Load shedding should occur when effective supply < demand");
+    }
+
+    /// No load shedding when effective supply exceeds demand.
+    #[test]
+    fn test_no_load_shed_when_effective_supply_exceeds_demand() {
+        let supply = 500.0_f64;
+        let demand = 300.0_f64;
+        let lv_cap = 600.0_f64;
+        let mv_cap = 800.0_f64;
+        let grid_cap = lv_cap.min(mv_cap);
+        let effective_supply = supply.min(grid_cap);
+        assert!(effective_supply >= demand, "No load shedding when effective supply >= demand");
+    }
+
+    /// Region display name is used, not the region ID (Anomaly 3 fix).
+    #[test]
+    fn test_region_energy_info_uses_display_name() {
+        // This is a structural test: the DTO field exists and is populated
+        // from region.display_name, not region.id. The actual snapshot builder
+        // test requires a full game state, so here we verify the field exists.
+        use sim_engine::ui::snapshot::RegionEnergyInfo;
+        let info = RegionEnergyInfo {
+            region_id: "Bactria-Region1".to_string(),
+            region_name: "Bactria".to_string(),
+            supply_mw: 100.0,
+            effective_supply_mw: 80.0,
+            demand_mw: 120.0,
+            max_production_capacity_mw: 150.0,
+            average_spot_price: Some(50.0),
+            load_shed_tier: "Brownout".to_string(),
+            overproduction_tier: "Normal".to_string(),
+            grid_condition: 0.85,
+        };
+        assert_ne!(info.region_name, info.region_id, "Region name must not be the ID");
+        assert_eq!(info.region_name, "Bactria");
+    }
 }

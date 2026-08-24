@@ -8,7 +8,6 @@
 
 use crate::registries::enums::Sector;
 use crate::securities::BrokerageAccount;
-use crate::state::Treasury;
 use crate::politics::campaign::BlackMoneySource;
 use crate::politics::legislation::Bill;
 use crate::politics::local_council::Councilor;

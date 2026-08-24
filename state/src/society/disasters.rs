@@ -12,7 +12,7 @@
 //! All disaster probabilities are configurable — no magic numbers in logic.
 
 use serde::{Deserialize, Serialize};
-use crate::society::cadastre::{Cadastre, ParcelChunk, ParcelId, WaterAccessType};
+use crate::society::cadastre::{Cadastre, ParcelId, WaterAccessType};
 
 // ============================================================================
 // DISASTER TYPES
@@ -427,7 +427,7 @@ mod tests {
 
     fn make_cadastre_with_parcels(n: usize) -> Cadastre {
         let mut c = Cadastre::default();
-        for i in 0..n {
+        for _ in 0..n {
             let parcel = ParcelChunk {
                 soil_class: "Class_III".to_string(),
                 size_hectares: 100.0,

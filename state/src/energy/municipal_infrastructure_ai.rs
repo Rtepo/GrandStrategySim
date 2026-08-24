@@ -246,7 +246,7 @@ pub fn is_crisis_condition(
 /// * `financing_available` - Whether the municipality can finance the CAPEX
 pub fn run_water_investment_ai(
     water_network: &WaterNetworkState,
-    water_reserves: &WaterReserveState,
+    _water_reserves: &WaterReserveState,
     buildings_wanting_mains: usize,
     treatment_throughput: f64,
     water_demand: f64,
@@ -537,7 +537,7 @@ pub fn run_unified_municipal_ai(
     };
 
     // Collect all domains with their crisis status and ROI
-    let mut domains: Vec<(InfrastructureDomain, f64, bool, f64)> = vec![
+    let domains: Vec<(InfrastructureDomain, f64, bool, f64)> = vec![
         (
             InfrastructureDomain::Thermal,
             plan.thermal_plan.estimated_capex,
@@ -576,7 +576,7 @@ pub fn run_unified_municipal_ai(
     let mut rationales: Vec<String> = Vec::new();
 
     // First: fund crisis domains
-    for (domain, capex, is_crisis, _) in domains.iter().filter(|(_, _, c, _)| *c) {
+    for (domain, capex, _is_crisis, _) in domains.iter().filter(|(_, _, c, _)| *c) {
         if *capex > 0.0 && budget_remaining >= *capex {
             budget_remaining -= *capex;
             plan.total_capex += *capex;

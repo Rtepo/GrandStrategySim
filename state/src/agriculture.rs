@@ -9,7 +9,7 @@ use crate::registries::Registries;
 use crate::registries::enums::Commodity;
 use crate::society::geography::Region;
 use crate::society::housing::CommercialBuilding;
-use crate::state::climate::{ClimateConfig, SeasonalModifiers};
+use crate::state::climate::ClimateConfig;
 use crate::state::treasury::Treasury;
 use crate::state::Calendar;
 const STATE_OWNER_ID: &str = "STATE";
@@ -763,7 +763,7 @@ mod tests {
         let registries = test_registries();
         let calendar = Calendar { global_turn: 6, ..Default::default() };
 
-        let initial_treasury = 0.0; // We don't pass treasury anymore
+        let _initial_treasury = 0.0; // We don't pass treasury anymore
         let initial_seeds = buildings[0].inventory.get(&Commodity::Seeds).copied().unwrap_or(0.0);
 
         transition_agricultural_states(&mut company, &calendar, registries, &mut buildings);

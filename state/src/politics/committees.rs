@@ -212,7 +212,7 @@ impl Committee {
     pub fn calculate_recommendation(
         &self,
         _bill_ideology: &crate::politics::ideology::IdeologyCompass,
-        initiator_party: &str,
+        _initiator_party: &str,
         is_ruling_party: bool,
     ) -> f64 {
         let base_modifier = self.partisan_bias * 0.3;
@@ -486,15 +486,14 @@ pub fn determine_chair_action(
     };
 
     // Step 7: Ambitious override.
-    if has("Ambitious") && alignment < 0.50 && is_ruling_party_bill {
-        if !matches!(action, ChairAction::PoisonRider { .. } | ChairAction::Block) {
+    if has("Ambitious") && alignment < 0.50 && is_ruling_party_bill
+        && !matches!(action, ChairAction::PoisonRider { .. } | ChairAction::Block) {
             let rider = build_unpopular_rider(&chair.faction);
             return ChairAction::PoisonRider {
                 rider,
                 description: "Ambitious chair poisons government bill".to_string(),
             };
         }
-    }
 
     // Step 8: Corrupt override.
     if has("Corrupt") && alignment < 0.50 {
@@ -558,7 +557,7 @@ fn build_unpopular_rider(faction: &str) -> BillProvision {
 #[cfg(test)]
 mod phase48_tests {
     use super::*;
-    use crate::politics::legislation::{Clause, Concession, LegislativeStage};
+    use crate::politics::legislation::{Clause, LegislativeStage};
     use crate::politics::vip_registry::Vip;
 
     fn make_test_bill(economy: f64, liberty: f64, tradition: f64) -> Bill {
@@ -650,7 +649,7 @@ mod phase48_tests {
 
     #[test]
     fn test_populist_penalizes_elite_provisions() {
-        let mut chair = make_test_chair(vec!["Populist".to_string()], "Royal Court".to_string());
+        let chair = make_test_chair(vec!["Populist".to_string()], "Royal Court".to_string());
         let mut bill = make_test_bill(0.0, 0.0, 0.0);
         // Add an elite-favoring provision.
         bill.core_clauses[0].provision = Some(BillProvision::Subsidy {

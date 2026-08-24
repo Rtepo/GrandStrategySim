@@ -576,7 +576,7 @@ mod tests {
     use crate::economy::market::market_history::MarketHistory;
     use crate::registries::enums::Commodity;
     use crate::state::macro_data::{
-        GdpBreakdown, InflationIndices, MoneySupplySnapshot,
+        GdpBreakdown, InflationIndices,
     };
     use crate::state::{Country, Treasury};
     use crate::entities::Company;
@@ -851,7 +851,7 @@ mod tests {
 
     #[test]
     fn test_casualties_decrement_available_fte() {
-        use crate::society::geography::{ClassDemographics, RegionalClassDemographics, Region};
+        use crate::society::geography::{ClassDemographics, Region};
         let mut region = Region::default();
         let mut demo = ClassDemographics::default();
         demo.population = 1000;
@@ -871,7 +871,7 @@ mod tests {
 
     #[test]
     fn test_disabled_casualties_keep_population_but_lose_fte() {
-        use crate::society::geography::{ClassDemographics, RegionalClassDemographics, Region};
+        use crate::society::geography::{ClassDemographics, Region};
         let mut region = Region::default();
         let mut demo = ClassDemographics::default();
         demo.population = 1000;
@@ -893,7 +893,7 @@ mod tests {
 
     #[test]
     fn test_casualties_distribute_proportionally() {
-        use crate::society::geography::{ClassDemographics, RegionalClassDemographics, Region};
+        use crate::society::geography::{ClassDemographics, Region};
         let mut region = Region::default();
         let mut demo1 = ClassDemographics::default();
         demo1.population = 600;
@@ -915,7 +915,7 @@ mod tests {
 
     #[test]
     fn test_casualties_zero_is_noop() {
-        use crate::society::geography::{ClassDemographics, RegionalClassDemographics, Region};
+        use crate::society::geography::{ClassDemographics, Region};
         let mut region = Region::default();
         let mut demo = ClassDemographics::default();
         demo.population = 1000;
@@ -933,7 +933,7 @@ mod tests {
 
     #[test]
     fn test_mark_commuting_out_deducts_fte() {
-        use crate::society::geography::{ClassDemographics, RegionalClassDemographics, Region};
+        use crate::society::geography::{ClassDemographics, Region};
         let mut region = Region::default();
         let mut demo = ClassDemographics::default();
         demo.available_fte = 1000.0;
@@ -948,7 +948,7 @@ mod tests {
 
     #[test]
     fn test_mark_commuting_out_zero_is_noop() {
-        use crate::society::geography::{ClassDemographics, RegionalClassDemographics, Region};
+        use crate::society::geography::{ClassDemographics, Region};
         let mut region = Region::default();
         let mut demo = ClassDemographics::default();
         demo.available_fte = 1000.0;
@@ -962,7 +962,7 @@ mod tests {
 
     #[test]
     fn test_mark_commuting_out_distributes_proportionally() {
-        use crate::society::geography::{ClassDemographics, RegionalClassDemographics, Region};
+        use crate::society::geography::{ClassDemographics, Region};
         let mut region = Region::default();
         let mut demo1 = ClassDemographics::default();
         demo1.available_fte = 600.0;

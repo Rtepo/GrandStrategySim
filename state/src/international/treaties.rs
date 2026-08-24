@@ -273,7 +273,7 @@ impl TreatyRegistry {
             // Ambassador bonus: count ambassadors posted to any participant
             for participant in &treaty.participants {
                 if let Some(hosts) = ambassador_counts.get(participant) {
-                    for (_, count) in hosts {
+                    for count in hosts.values() {
                         speed += config.ambassador_negotiation_bonus * (*count as f64);
                     }
                 }

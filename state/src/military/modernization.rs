@@ -320,7 +320,6 @@ pub fn apply_scrap_to_stockpile(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::society::geography::RuralClass;
     use rustc_hash::FxHashMap as HashMap;
 
     fn make_tank_unit(year: u32) -> MilitaryUnit {
@@ -492,8 +491,8 @@ mod tests {
         let mut unit = make_tank_unit(1920);
         let config = ModernizationConfig::default();
 
-        let old_equipment_count = unit.equipment_reserves.len();
-        let old_light_tank_qty: f64 = unit.equipment_reserves.iter()
+        let _old_equipment_count = unit.equipment_reserves.len();
+        let _old_light_tank_qty: f64 = unit.equipment_reserves.iter()
             .filter(|r| r.commodity == Commodity::LightTanks)
             .map(|r| r.current_quantity)
             .sum();

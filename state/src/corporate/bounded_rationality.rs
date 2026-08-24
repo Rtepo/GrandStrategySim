@@ -3,9 +3,7 @@
 //! This module implements information access tiers and market research mechanics
 //! that simulate realistic decision-making limitations for companies of different sizes.
 
-use crate::registries::enums::{Commodity, Sector};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
 
 /// Information quality tier for corporate decision-making.
 ///
@@ -114,7 +112,7 @@ pub fn apply_estimation_error(true_cost: f64, quality: InformationQuality) -> f6
     }
     // Use a deterministic hash of the cost to produce a stable pseudo-random
     // deviation in [-error_rate, +error_rate] without requiring an RNG.
-    let hash = (true_cost.to_bits().wrapping_add(0x9E3779B97F4A7C15) as u64) as f64;
+    let hash = true_cost.to_bits().wrapping_add(0x9E3779B97F4A7C15) as f64;
     let frac = (hash / u64::MAX as f64) * 2.0 - 1.0; // [-1, 1]
     true_cost * (1.0 + frac * error_rate)
 }

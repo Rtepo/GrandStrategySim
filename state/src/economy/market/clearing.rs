@@ -340,7 +340,7 @@ fn extract_with_fefo(
     deficit: f64,
     warehouses: Vec<&mut crate::society::housing::CommercialBuilding>,
     target_region: &str,
-    current_turn: u32,
+    _current_turn: u32,
     transactions: &mut Vec<FinancialTransaction>,
     is_cross_region: bool,
     country: &crate::state::Country,

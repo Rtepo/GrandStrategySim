@@ -12,9 +12,11 @@ use std::collections::BTreeMap;
 /// Member status in CCP.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Copy)]
 
+#[derive(Default)]
 pub enum MemberStatus {
     /// Active member - can trade.
 
+    #[default]
     Active,
     /// Suspended member - cannot trade temporarily.
 
@@ -24,11 +26,6 @@ pub enum MemberStatus {
     Defaulted,
 }
 
-impl Default for MemberStatus {
-    fn default() -> Self {
-        MemberStatus::Active
-    }
-}
 
 /// CCP member with margin account.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
@@ -122,7 +119,7 @@ pub fn process_ccp_margins(
     companies: &mut [crate::entities::Company],
     futures_contracts: &[crate::securities::derivatives::FuturesContract],
     config: &crate::securities::config::SecuritiesMarketConfig,
-    current_turn: u32,
+    _current_turn: u32,
 ) {
     // Update margin requirements from config
     ccp.margin_requirements.initial_margin_ratio = config.ccp_initial_margin_ratio;
@@ -192,9 +189,9 @@ pub fn process_ccp_margins(
 /// * NO MAGIC CASH: all funds come from existing posted margins and default fund
 pub fn process_ccp_default_waterfall(
     ccp: &mut CentralCounterparty,
-    companies: &mut [crate::entities::Company],
+    _companies: &mut [crate::entities::Company],
     defaulted_member_id: &str,
-    current_turn: u32,
+    _current_turn: u32,
 ) -> f64 {
     let member = match ccp.members.get_mut(defaulted_member_id) {
         Some(m) => m,

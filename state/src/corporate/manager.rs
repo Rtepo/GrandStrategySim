@@ -65,7 +65,7 @@ pub fn process_companies(
         // Phase 24A.3: Track liabilities before process_company to detect new loans.
         let liabilities_before = companies[i].liabilities;
         let company_id = companies[i].id.clone();
-        let company_fixed_capital = companies[i].fixed_capital;
+        let _company_fixed_capital = companies[i].fixed_capital;
 
         let (_profitable, interest_paid) = {
             let company = &mut companies[i];
@@ -150,7 +150,7 @@ pub fn process_companies(
                 let bank_id = companies[bi].id.clone();
 
                 let loan_result = crate::state::banking::issue_loan(
-                    &mut companies[bi].balance_sheet.as_mut().unwrap(),
+                    companies[bi].balance_sheet.as_mut().unwrap(),
                     &bank_id,
                     bank_margin,
                     &borrower_clone,
@@ -224,7 +224,7 @@ pub fn process_companies(
         } else if !owned.is_empty() {
             for &j in &owned {
                 let building = &mut buildings[j];
-                let scale = building.scale_factor.max(1) as u32;
+                let scale = building.scale_factor.max(1);
                 let new_base = (new_worker_capacity / scale / owned.len() as u32).max(1);
                 building.current_employment = building.current_employment.min(new_base);
                 building.worker_capacity = new_base;
@@ -234,7 +234,7 @@ pub fn process_companies(
         // Update aggregate statistics from the (first) owned building.
         if let Some(&j) = owned.first() {
             let building = &buildings[j];
-            let scale = building.scale_factor.max(1) as u32;
+            let scale = building.scale_factor.max(1);
             companies[i].aggregated_stats.total_employment = building.current_employment * scale;
             companies[i].aggregated_stats.total_production = building.last_production.clone();
             companies[i].aggregated_stats.total_dividends = total_profit.max(0.0);
@@ -420,8 +420,8 @@ pub fn process_companies(
     let mut registry = crate::registries::production_methods::industrial_production_methods();
     registry.extend(crate::registries::production_methods::state_building_methods());
     registry.extend(crate::registries::production_methods::retail_production_methods());
-    for i in 0..companies.len() {
-        let company_id = companies[i].id.clone();
+    for company in &*companies {
+        let company_id = company.id.clone();
         for &building_idx in by_owner.get(&company_id).into_iter().flatten() {
             let building = &mut buildings[building_idx];
             // Skip buildings with no active method
@@ -450,7 +450,7 @@ pub fn process_companies(
                 }
                 // Iterate over all production methods in this BuildingMethods
                 for (pm_name, prod_method) in &building_methods.production {
-                    let full_name = format!("{}::{}", method_name, pm_name);
+                    let _full_name = format!("{}::{}", method_name, pm_name);
                     // Check if this method produces any of the same outputs
                     if !prod_method.outputs.keys().any(|k| current_outputs.contains(k)) {
                         continue;

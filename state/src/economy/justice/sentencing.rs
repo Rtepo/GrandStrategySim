@@ -12,7 +12,7 @@
 
 use crate::economy::disasters::{DisasterEvent, DisasterType};
 use crate::economy::legal_status::LegalStatus;
-use crate::politics::system::{JusticeSystemState, PrisonerCohort};
+use crate::politics::system::JusticeSystemState;
 use crate::state::Country;
 use serde::{Deserialize, Serialize};
 
@@ -588,7 +588,7 @@ pub fn check_vigilante_justice(
 mod tests {
     use super::*;
     use crate::entities::Building;
-    use crate::politics::system::JusticeSystemState;
+    use crate::politics::system::{JusticeSystemState, PrisonerCohort};
     use crate::society::geography::{ClassDemographics, PoliticalSentiment};
     use crate::state::Country;
 
@@ -603,7 +603,7 @@ mod tests {
             0.5,
         );
         assert!(matches!(outcome, SentenceOutcome::CommunityService(_)));
-        assert!(turns >= 1 && turns <= 6);
+        assert!((1..=6).contains(&turns));
     }
 
     #[test]

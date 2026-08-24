@@ -223,7 +223,7 @@ impl KNF {
         &mut self,
         entity_id: &str,
         brokerage_accounts: &mut BTreeMap<String, &mut BrokerageAccount>,
-        reason: FreezeReason,
+        _reason: FreezeReason,
         current_turn: u32,
     ) -> Result<(), String> {
         if let Some(brokerage) = brokerage_accounts.get_mut(entity_id) {
@@ -443,7 +443,7 @@ pub fn detect_accounting_fraud(
 /// `Some(AuditFinding)` if leverage exceeds limits, `None` otherwise.
 pub fn regulate_fund_leverage(
     fund: &Company,
-    config: &crate::securities::config::SecuritiesMarketConfig,
+    _config: &crate::securities::config::SecuritiesMarketConfig,
     current_turn: u32,
 ) -> Option<AuditFinding> {
     let ledger = fund.fund_ledger.as_ref()?;

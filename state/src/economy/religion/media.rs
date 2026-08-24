@@ -48,10 +48,10 @@ pub fn populate_information_service_needs(country: &Country) -> BTreeMap<String,
     let mut needs = BTreeMap::new();
     for region in &country.regions {
         let mut info_need = 0.0_f64;
-        for (_, class) in &region.class_demographics.rural_classes {
+        for class in region.class_demographics.rural_classes.values() {
             info_need += calculate_information_need_for_class(class);
         }
-        for (_, class) in &region.class_demographics.urban_classes {
+        for class in region.class_demographics.urban_classes.values() {
             info_need += calculate_information_need_for_class(class) * 1.5;
         }
         needs.insert(region.id.clone(), info_need);

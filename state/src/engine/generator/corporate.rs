@@ -11,7 +11,7 @@
 use crate::economy::{update_gdp_shares_from_employment, CountryTurnCtx};
 use crate::economy::fixed_assets::FixedAssetCohort;
 use crate::entities::{
-    ActiveProductionMethod, AggregatedStats, Building, ClusterInfo, Company, ConsortiumData,
+    ActiveProductionMethod, AggregatedStats, Building, ClusterInfo, Company,
     CooperativeData, FamilyBusinessData, JointStockData, LegalForm, SeasonalProfile,
     SeasonalState, Union, UnionScale,
     StrategicReserveData, PurchaseTrigger, ReleaseTrigger, NonProfitData,
@@ -827,7 +827,7 @@ fn generate_region_companies(
         // Phase 77: Increase JSC proportion — rank 1-5 and national champions
         // are JSC (was 1-2 only, national champions were Consortium).
         // This ensures ~25-50% of companies are publicly traded.
-        let (label, legal_form, shares_count) = match (is_national_champion, rank) {
+        let (_label, legal_form, shares_count) = match (is_national_champion, rank) {
             (true, _) => (
                 "National Champion",
                 LegalForm::JointStockCompany(JointStockData {
@@ -1142,28 +1142,28 @@ fn sector_display(sector: Sector) -> String {
 /// Phase 51: Multiple variants per sector for name variety.
 fn sector_suffix(sector: Sector, rng: &mut impl rand::Rng) -> &'static str {
     match sector {
-        Sector::Agriculture => *["Agricultural Trust", "Farming Co", "Agro Holdings", "Rural Estates"].choose(rng).unwrap(),
-        Sector::Mining => *["Mining Corp", "Extractive Ltd", "Mineral Holdings", "Quarry Group"].choose(rng).unwrap(),
-        Sector::HeavyIndustry => *["Steel Works", "Heavy Industries", "Iron & Steel", "Industrial Corp"].choose(rng).unwrap(),
-        Sector::LightIndustry => *["Manufacturing Co", "Industrial Works", "Production Ltd", "Goods Manufacturing"].choose(rng).unwrap(),
-        Sector::ArmamentsIndustry => *["Defense Industries", "Armaments Corp", "Military Industries", "Ordnance Works"].choose(rng).unwrap(),
-        Sector::LocalServices => *["Services Ltd", "Local Services", "Community Services", "Civic Holdings"].choose(rng).unwrap(),
-        Sector::ExportServices => *["Trading Co", "Export Holdings", "International Trade", "Commerce Ltd"].choose(rng).unwrap(),
-        Sector::Construction => *["Construction Group", "Building Corp", "Infrastructure Ltd", "Construction Works"].choose(rng).unwrap(),
-        Sector::Energy => *["Energy Holdings", "Power Corp", "Utility Group", "Energy Works"].choose(rng).unwrap(),
-        Sector::PublicServices => *["Public Utilities", "Civic Services", "Municipal Holdings", "Public Corp"].choose(rng).unwrap(),
-        Sector::MedicalServices => *["Healthcare Group", "Medical Holdings", "Health Services", "Clinic Group"].choose(rng).unwrap(),
-        Sector::EducationalServices => *["Education Trust", "Academic Holdings", "Learning Group", "Education Corp"].choose(rng).unwrap(),
-        Sector::TransportLogistics => *["Logistics Inc", "Transport Holdings", "Freight Corp", "Shipping Group"].choose(rng).unwrap(),
-        Sector::PublicAdministration => *["Administration", "State Bureau", "Public Office", "Civic Administration"].choose(rng).unwrap(),
-        Sector::Banking => *["Banking Group", "Financial Holdings", "Capital Trust", "Finance Corp"].choose(rng).unwrap(),
-        Sector::MediaAndEntertainment => *["Media Holdings", "Broadcast Group", "Entertainment Corp", "Media Trust"].choose(rng).unwrap(),
-        Sector::WasteManagement => *["Waste Management Ltd", "Sanitation Corp", "Environmental Services", "Waste Holdings"].choose(rng).unwrap(),
-        Sector::Hospitality => *["Hospitality Group", "Hotel Holdings", "Tourism Corp", "Leisure Group"].choose(rng).unwrap(),
-        Sector::NGO => *["Foundation", "Charitable Trust", "Civic Foundation", "Social Initiative"].choose(rng).unwrap(),
-        Sector::Religion => *["Religious Trust", "Ecclesiastical Holdings", "Diocesan Trust", "Religious Foundation"].choose(rng).unwrap(),
-        Sector::MaintenanceWorkshops => *["Maintenance Services", "Repair Works", "Technical Services", "Workshop Ltd"].choose(rng).unwrap(),
-        Sector::Government => *["State Agency", "Government Bureau", "State Holdings", "Public Authority"].choose(rng).unwrap(),
+        Sector::Agriculture => ["Agricultural Trust", "Farming Co", "Agro Holdings", "Rural Estates"].choose(rng).unwrap(),
+        Sector::Mining => ["Mining Corp", "Extractive Ltd", "Mineral Holdings", "Quarry Group"].choose(rng).unwrap(),
+        Sector::HeavyIndustry => ["Steel Works", "Heavy Industries", "Iron & Steel", "Industrial Corp"].choose(rng).unwrap(),
+        Sector::LightIndustry => ["Manufacturing Co", "Industrial Works", "Production Ltd", "Goods Manufacturing"].choose(rng).unwrap(),
+        Sector::ArmamentsIndustry => ["Defense Industries", "Armaments Corp", "Military Industries", "Ordnance Works"].choose(rng).unwrap(),
+        Sector::LocalServices => ["Services Ltd", "Local Services", "Community Services", "Civic Holdings"].choose(rng).unwrap(),
+        Sector::ExportServices => ["Trading Co", "Export Holdings", "International Trade", "Commerce Ltd"].choose(rng).unwrap(),
+        Sector::Construction => ["Construction Group", "Building Corp", "Infrastructure Ltd", "Construction Works"].choose(rng).unwrap(),
+        Sector::Energy => ["Energy Holdings", "Power Corp", "Utility Group", "Energy Works"].choose(rng).unwrap(),
+        Sector::PublicServices => ["Public Utilities", "Civic Services", "Municipal Holdings", "Public Corp"].choose(rng).unwrap(),
+        Sector::MedicalServices => ["Healthcare Group", "Medical Holdings", "Health Services", "Clinic Group"].choose(rng).unwrap(),
+        Sector::EducationalServices => ["Education Trust", "Academic Holdings", "Learning Group", "Education Corp"].choose(rng).unwrap(),
+        Sector::TransportLogistics => ["Logistics Inc", "Transport Holdings", "Freight Corp", "Shipping Group"].choose(rng).unwrap(),
+        Sector::PublicAdministration => ["Administration", "State Bureau", "Public Office", "Civic Administration"].choose(rng).unwrap(),
+        Sector::Banking => ["Banking Group", "Financial Holdings", "Capital Trust", "Finance Corp"].choose(rng).unwrap(),
+        Sector::MediaAndEntertainment => ["Media Holdings", "Broadcast Group", "Entertainment Corp", "Media Trust"].choose(rng).unwrap(),
+        Sector::WasteManagement => ["Waste Management Ltd", "Sanitation Corp", "Environmental Services", "Waste Holdings"].choose(rng).unwrap(),
+        Sector::Hospitality => ["Hospitality Group", "Hotel Holdings", "Tourism Corp", "Leisure Group"].choose(rng).unwrap(),
+        Sector::NGO => ["Foundation", "Charitable Trust", "Civic Foundation", "Social Initiative"].choose(rng).unwrap(),
+        Sector::Religion => ["Religious Trust", "Ecclesiastical Holdings", "Diocesan Trust", "Religious Foundation"].choose(rng).unwrap(),
+        Sector::MaintenanceWorkshops => ["Maintenance Services", "Repair Works", "Technical Services", "Workshop Ltd"].choose(rng).unwrap(),
+        Sector::Government => ["State Agency", "Government Bureau", "State Holdings", "Public Authority"].choose(rng).unwrap(),
     }
 }
 
@@ -1197,7 +1197,7 @@ fn legal_form_suffix(legal_form: &crate::entities::LegalForm) -> &'static str {
 fn generate_company_name(
     sector: Sector,
     legal_form: &crate::entities::LegalForm,
-    region_id: &str,
+    _region_id: &str,
     rank: usize,
     cultural_group: &str,
     rng: &mut impl rand::Rng,
@@ -1675,6 +1675,8 @@ fn seed_minimum_viable_supply_chain(
     rng: &mut impl Rng,
 ) -> Vec<(Company, Building)> {
     let mut result = Vec::new();
+    // Bugfix Sprint: Use real average_wage with .max(1.0) floor (Rule 2/15).
+    let base_wage = country.macro_indicators.average_wage.max(1.0);
 
     let critical_sectors = [
         Sector::Mining,
@@ -1735,10 +1737,13 @@ fn seed_minimum_viable_supply_chain(
                 // Not all energy plants should use the highest-year method
                 // (which may require ElectronicComponents/NaturalGas that
                 // don't exist yet). Mix advanced and fallback methods.
+                // Bugfix Sprint: pass real average_wage (with .max(1.0) floor)
+                // instead of the hardcoded 500.0 fallback.
                 create_seed_energy_company(
                     region,
                     min_workers,
                     start_year,
+                    base_wage,
                     registries,
                     idgen,
                     rng,
@@ -2246,6 +2251,7 @@ fn create_seed_energy_company(
     region: &Region,
     target_workers: u32,
     start_year: u32,
+    average_wage: f64,
     registries: &Registries,
     idgen: &mut IdGen,
     rng: &mut impl Rng,
@@ -2255,6 +2261,7 @@ fn create_seed_energy_company(
         region,
         target_workers,
         start_year,
+        average_wage,
         registries,
         idgen,
         rng,
@@ -2270,6 +2277,7 @@ fn create_specialized_power_plant(
     region: &Region,
     target_workers: u32,
     start_year: u32,
+    average_wage: f64,
     registries: &Registries,
     idgen: &mut IdGen,
     rng: &mut impl Rng,
@@ -2329,15 +2337,16 @@ fn create_specialized_power_plant(
     };
 
     // Calculate nameplate capacity.
+    // Bugfix Sprint: Use the real average_wage passed from the caller (with
+    // .max(1.0) floor applied at the call site), not the hardcoded 500.0.
     let nameplate = nameplate_per_plant(start_year);
-    let average_wage = 500.0; // Fallback — TODO: pass actual average_wage.
     let target_mw = target_regional_capacity_mw(
         region.population as f64,
         region.development_level,
         average_wage,
         start_year,
     );
-    let _plant_count = plant_count(target_mw, start_year);
+    let plant_count = plant_count(target_mw, start_year);
 
     // Select the best available production method for this plant type.
     let sector_key = selected_type.registry_key();
@@ -2385,7 +2394,9 @@ fn create_specialized_power_plant(
             create_seed_company_with_explicit_method(
                 Sector::Energy,
                 region,
-                target_workers.max(workers_per_plant(start_year)),
+                // Bugfix Sprint: Scale workers by plant_count so larger regions
+                // get proportionally more workers (Rule 15).
+                (target_workers.max(workers_per_plant(start_year))) * (plant_count as u32).max(1),
                 start_year,
                 registries,
                 idgen,
@@ -2409,13 +2420,16 @@ fn create_specialized_power_plant(
     };
 
     // Store PowerPlantMetadata in the building's extra map.
+    // Bugfix Sprint: Scale nameplate by plant_count so larger regions get
+    // proportionally more capacity (Rule 15 — Universal Physical Scaling).
+    let total_nameplate = nameplate * plant_count as f64;
     let metadata = PowerPlantMetadata {
         plant_type: selected_type,
         cooling_type,
         has_cooling_upgrade: cooling_type == CoolingType::ClosedLoop,
         fuel_source_deposit_id: None,
         water_source_region: if has_water { Some(region.id.clone()) } else { None },
-        nameplate_capacity_mw: nameplate,
+        nameplate_capacity_mw: total_nameplate,
         capacity_factor: 0.5,
     };
     building.extra.insert(
@@ -3224,10 +3238,10 @@ fn generate_retail_stores(
     country_regions: &[&Region],
     start_year: u32,
     idgen: &mut IdGen,
-    rng: &mut impl Rng,
+    _rng: &mut impl Rng,
 ) -> Result<(), Box<dyn Error>> {
     use crate::society::housing::{
-        CommercialBuilding, CommercialBuildingType, InventoryBatch, RetailProfile, StoreProfile,
+        CommercialBuilding, InventoryBatch, RetailProfile,
         UtilityConnections, StorageType,
     };
     use crate::registries::enums::Commodity;
@@ -3898,7 +3912,7 @@ fn generate_housing(
                 .map(|d| d.population).sum::<i64>();
             let total_pop = (rural_pop + urban_pop).max(1) as f64;
             let rural_share = rural_pop as f64 / total_pop;
-            let urban_share = 1.0 - rural_share;
+            let _urban_share = 1.0 - rural_share;
 
             let rural_buildings = (num_buildings as f64 * rural_share).round() as usize;
             let urban_buildings = num_buildings - rural_buildings;
@@ -3957,7 +3971,7 @@ fn generate_housing(
             configs
         };
 
-        for (i, (ht, owner, target_class, living_standard, rent_per_slot)) in housing_configs.iter().enumerate() {
+        for (ht, owner, target_class, living_standard, rent_per_slot) in housing_configs.iter() {
             let building_id = idgen.next_building();
             let total_capacity = capacity_per_building;
             // 80-90% occupied
@@ -4196,7 +4210,7 @@ fn create_charity_company(
     region_id: String,
     non_profit_data: NonProfitData,
     worker_capacity: u32,
-    start_year: u32,
+    _start_year: u32,
 ) -> Company {
     // Phase 28: Set a subsistence wage offer. The labor market clamps hiring
     // by available_cash / offered_wage_per_fte, so if no donations have flowed,
@@ -4297,7 +4311,7 @@ pub fn generate_investment_funds(
     data_dir: &std::path::Path,
     country: &mut Country,
     cultural_group: &str,
-    start_year: u32,
+    _start_year: u32,
     rng: &mut impl Rng,
 ) {
     use crate::politics::vip_registry::{Vip, VipRoleExtended, assign_core_traits};

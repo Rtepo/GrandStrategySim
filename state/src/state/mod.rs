@@ -104,7 +104,7 @@ impl Calendar {
     
     /// Check if this is the last half-month of the year (turn 24, 48, 72...)
     pub fn is_year_end(&self) -> bool {
-        self.global_turn % 24 == 0
+        self.global_turn.is_multiple_of(24)
     }
     
     /// Check if this is the first half-month of the year (turn 1, 25, 49...)
@@ -116,9 +116,9 @@ impl Calendar {
     pub fn get_season(&self) -> Season {
         match self.current_month {
             12 | 1 | 2 => Season::Winter,
-            3 | 4 | 5 => Season::Spring,
-            6 | 7 | 8 => Season::Summer,
-            9 | 10 | 11 => Season::Autumn,
+            3..=5 => Season::Spring,
+            6..=8 => Season::Summer,
+            9..=11 => Season::Autumn,
             _ => Season::Winter,
         }
     }
@@ -156,8 +156,10 @@ pub struct TradePolicy {
 /// Rationing level for a commodity (Phase 4).
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
+#[derive(Default)]
 pub enum RationingLevel {
     /// No rationing - normal consumption.
+    #[default]
     None,
     /// Reduced consumption (50% of normal).
     Reduced,
@@ -167,11 +169,6 @@ pub enum RationingLevel {
     Emergency,
 }
 
-impl Default for RationingLevel {
-    fn default() -> Self {
-        RationingLevel::None
-    }
-}
 
 /// Rationing system for managing commodity shortages (Phase 4).
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
@@ -193,8 +190,10 @@ pub struct RationingSystem {
 /// Emergency powers available to the state (Phase 4).
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
+#[derive(Default)]
 pub enum EmergencyPowers {
     /// Normal operations - no emergency powers.
+    #[default]
     Normal,
     /// Excise taxes enabled for strategic goods.
     ExciseTaxesEnabled,
@@ -204,11 +203,6 @@ pub enum EmergencyPowers {
     MartialLaw,
 }
 
-impl Default for EmergencyPowers {
-    fn default() -> Self {
-        EmergencyPowers::Normal
-    }
-}
 
 /// Intelligence budget for espionage operations (Phase 10).
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]

@@ -8,13 +8,9 @@
 //! - No bank can lend more than its excess reserves (LDR stays near 100%)
 
 use sim_engine::state::banking::{
-    bank_operational_capacity, issue_loan, BankBalanceSheet, BankType, InterestType,
-    LoanStatus, LoanType,
+    bank_operational_capacity, issue_loan, BankBalanceSheet, LoanType,
 };
 use sim_engine::state::CentralBank;
-use sim_engine::entities::Company;
-use sim_engine::entities::legal_form::LegalForm;
-use sim_engine::registries::enums::Sector;
 
 /// A minimal borrower for testing.
 struct TestBorrower {

@@ -10,7 +10,6 @@ use crate::registries::enums::{Commodity, Sector};
 use crate::registries::tech_tree::TechId;
 use crate::state::banking::{BankBalanceSheet, BankType, Borrower};
 use crate::state::treasury::ProductionMethodChoice;
-use crate::state::tax::TaxExemptionRegistry;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::{BTreeMap, HashMap};
@@ -71,8 +70,10 @@ pub struct CropBatch {
 /// Agricultural crop state in the production cycle
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
+#[derive(Default)]
 pub enum CropState {
     /// Wintering/dormant (between harvest and next sowing)
+    #[default]
     Idle,
     /// Sowing phase (arable crops only - costs money for seeds/fertilizer)
     Sowing,
@@ -82,11 +83,6 @@ pub enum CropState {
     Harvesting,
 }
 
-impl Default for CropState {
-    fn default() -> Self {
-        CropState::Idle
-    }
-}
 
 // ============================================================================
 // PHASE 7: PATENT AND LICENSING STRUCTURES
@@ -149,7 +145,7 @@ pub trait TaxExempt {
 impl TaxExempt for Company {
     fn is_tax_exempt(&self, sovereign_id: &str) -> bool {
         // Check if sovereign entity owns 100% of the company
-        self.owners.get(sovereign_id).map_or(false, |&share| share >= 1.0)
+        self.owners.get(sovereign_id).is_some_and(|&share| share >= 1.0)
     }
 
     fn exemption_reason(&self) -> Option<String> {

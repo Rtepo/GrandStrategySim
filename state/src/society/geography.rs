@@ -1338,7 +1338,7 @@ pub struct Megaregion {
 fn seed_geological_deposits(zasoby: &mut Map<String, Value>, gdp: f64, _rng: &mut impl Rng) {
     let goods = ["coal", "lignite", "oil", "natural_gas", "peat", "uranium", "iron", "copper", "zinc", "bauxite", "gold", "silver", "diamonds", "stone", "sand", "salt", "limestone"];
     for good in goods {
-        let multiplier = geological_multiplier(&good);
+        let multiplier = geological_multiplier(good);
         zasoby.insert(
             good.to_string(),
             serde_json::json!({
@@ -1516,7 +1516,7 @@ pub fn generate_regional_topology(country: &str, population: i64, gdp: f64, star
             arable_land_used: 0,
             extraction_limits: mine_limits,
             climate_profile,
-            extraction_used: base_mine_template().into_iter().map(|(k, _)| (k, 0)).collect(),
+            extraction_used: base_mine_template().into_keys().map(|k| (k, 0)).collect(),
             resources,
             is_capital: i == 0,
             node_type: NodeType::LandRegion,
@@ -1657,7 +1657,7 @@ fn generate_class_demographics(region_pop: i64, start_year: u32, development_lev
     // 1925: Serfs declining (10%), FreePeasants (50%), LandlessLaborers (35%), Aristocracy (5%)
     // 1950: No serfs, FreePeasants (55%), LandlessLaborers (40%), Aristocracy (5%)
     // 1975: No serfs, FreePeasants (60%), LandlessLaborers (35%), Aristocracy (5%)
-    let (serf_pct, free_peasant_pct, landless_pct, aristocracy_pct) = match start_year {
+    let (serf_pct, free_peasant_pct, landless_pct, _aristocracy_pct) = match start_year {
         y if y <= 1900 => (0.20, 0.40, 0.35, 0.05),
         y if y <= 1925 => (0.10, 0.50, 0.35, 0.05),
         y if y <= 1950 => (0.00, 0.55, 0.40, 0.05),
@@ -1787,7 +1787,7 @@ fn build_structured_edges(regions: &[Region]) -> HashMap<String, Vec<Edge>> {
         // Capital connects to all other regions
         if region.is_capital && n > 1 {
             for other in regions {
-                if other.id != region.id && !edges.iter().any(|e| &e.target_node == &other.id) {
+                if other.id != region.id && !edges.iter().any(|e| e.target_node == other.id) {
                     edges.push(Edge {
                         target_node: other.id.clone(),
                         edge_type: EdgeType::LandBorder,
@@ -2316,7 +2316,7 @@ impl LandTransformationProject {
     /// # Returns
     /// * true if project completed this turn
     /// * false if still in progress
-    pub fn process_turn(&mut self, cost_per_turn: f64) -> bool {
+    pub fn process_turn(&mut self, _cost_per_turn: f64) -> bool {
         let progress_increment = 1.0 / self.duration_turns as f64;
         self.progress = (self.progress + progress_increment).min(1.0);
         self.progress >= 1.0
@@ -2516,7 +2516,7 @@ pub fn generate_megaregions(country: &str, region_ids: &[String]) -> Vec<Megareg
 
     // Larger countries: cluster into groups of ~4 regions
     let cluster_size = 4;
-    let num_clusters = (region_ids.len() + cluster_size - 1) / cluster_size;
+    let _num_clusters = region_ids.len().div_ceil(cluster_size);
     let mut megaregions = Vec::new();
 
     for (i, chunk) in region_ids.chunks(cluster_size).enumerate() {
@@ -2756,7 +2756,7 @@ pub fn build_graph_from_regions(regions: &[Region]) -> HashMap<String, Vec<Edge>
         for edge in &region.edges {
             graph
                 .entry(region.id.clone())
-                .or_insert_with(Vec::new)
+                .or_default()
                 .push(edge.clone());
         }
     }

@@ -14,7 +14,6 @@
 //! - `corruption_level` reduces the actual transfer (leakage to phantom).
 
 use crate::entities::Company;
-use crate::entities::legal_form::StateMonopolyData;
 use crate::economy::transfer_settler::{settle_transfer, TransferRecipient};
 use crate::registries::enums::Commodity;
 use crate::state::Country;

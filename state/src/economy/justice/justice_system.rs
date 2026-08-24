@@ -8,7 +8,7 @@
 
 use crate::entities::{Building, Company};
 use crate::politics::ideology::Ideology;
-use crate::politics::laws::{CourtWaitTime, JusticeLaw, PardonAuthority};
+use crate::politics::laws::{CourtWaitTime, PardonAuthority};
 use crate::politics::system::JusticeSystemState;
 use crate::registries::enums::Commodity;
 use crate::society::geography::{ClassDemographics, HealthStatus};
@@ -106,8 +106,8 @@ pub fn levy_fines(
                 Some(ideo) if ideo.is_pro_business() => {
                     // Flat range 10,000–50,000, capped at 5% of available cash
                     let base = 10_000.0 + (i as f64 % 40_000.0);
-                    let capped = base.min(companies[i].available_cash * 0.05);
-                    capped
+                    
+                    base.min(companies[i].available_cash * 0.05)
                 }
                 Some(ideo) if ideo.is_pro_worker() => {
                     // Percentage of available cash: 2–5%
@@ -273,13 +273,13 @@ pub fn calculate_national_demand(country: &Country, company_count: usize) -> (f6
     let mut security_demand = 0.0_f64;
 
     for region in &country.regions {
-        for (_, class) in &region.class_demographics.rural_classes {
+        for class in region.class_demographics.rural_classes.values() {
             let pop = class.population.max(1);
             let demand = calculate_class_crime_demand(class, pop, unemployment, unrest);
             justice_demand += demand;
             security_demand += demand * 1.5;
         }
-        for (_, class) in &region.class_demographics.urban_classes {
+        for class in region.class_demographics.urban_classes.values() {
             let pop = class.population.max(1);
             let demand = calculate_class_crime_demand(class, pop, unemployment, unrest);
             justice_demand += demand * 2.0;

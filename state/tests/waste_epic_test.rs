@@ -35,8 +35,7 @@ use sim_engine::utilities::waste_grid::{
     COMPOSTING_YIELD, SCRAP_RECOVERY_YIELD, WTE_ASH_FRACTION_BASIC,
     WTE_ASH_FRACTION_ADVANCED, CONSTRUCTION_WASTE_FRACTION,
     LEACHATE_CONTAMINATION_FACTOR, FOREST_AREA_THRESHOLD,
-    DumpingVector, LandfillState, WasteGridState, WastePlantType,
-    WastePollutionResult, WasteSalesHistory,
+    DumpingVector, LandfillState, WasteGridState, WastePlantType, WasteSalesHistory,
 };
 use std::collections::HashMap;
 
@@ -166,7 +165,7 @@ fn test_construction_waste_empty() {
 fn test_waste_fraction_for_known_commodity() {
     let result = waste_fraction_for_commodity(Commodity::Food);
     assert!(result.is_some(), "Food must have a waste fraction");
-    let (waste_commodity, fraction) = result.unwrap();
+    let (_waste_commodity, fraction) = result.unwrap();
     assert!(fraction > 0.0 && fraction <= 1.0, "Fraction must be in (0, 1]");
 }
 
@@ -268,15 +267,15 @@ fn test_primitive_dumping_does_not_recover_scrap() {
 #[test]
 fn test_cumulative_track_composting_yield() {
     // COMPOSTING_YIELD must be in valid range
-    assert!(COMPOSTING_YIELD > 0.0 && COMPOSTING_YIELD <= 1.0,
-        "Composting yield must be in (0, 1]");
+    const { assert!(COMPOSTING_YIELD > 0.0 && COMPOSTING_YIELD <= 1.0,
+        "Composting yield must be in (0, 1]"); }
 }
 
 #[test]
 fn test_cumulative_track_scrap_yield() {
     // SCRAP_RECOVERY_YIELD must be in valid range
-    assert!(SCRAP_RECOVERY_YIELD > 0.0 && SCRAP_RECOVERY_YIELD <= 1.0,
-        "Scrap recovery yield must be in (0, 1]");
+    const { assert!(SCRAP_RECOVERY_YIELD > 0.0 && SCRAP_RECOVERY_YIELD <= 1.0,
+        "Scrap recovery yield must be in (0, 1]"); }
 }
 
 // ============================================================================
@@ -541,21 +540,21 @@ fn test_textile_recycling_outputs_industrial_fiber() {
 #[test]
 fn test_wte_ash_fraction_basic_in_range() {
     // CRITICAL FIX 2: WtE must output 0.20-0.30 per input unit as ash
-    assert!(WTE_ASH_FRACTION_BASIC >= 0.20 && WTE_ASH_FRACTION_BASIC <= 0.30,
-        "Basic WtE ash fraction must be in [0.20, 0.30], got {}", WTE_ASH_FRACTION_BASIC);
+    const { assert!(WTE_ASH_FRACTION_BASIC >= 0.20 && WTE_ASH_FRACTION_BASIC <= 0.30,
+        "Basic WtE ash fraction must be in [0.20, 0.30]"); }
 }
 
 #[test]
 fn test_wte_ash_fraction_advanced_in_range() {
-    assert!(WTE_ASH_FRACTION_ADVANCED >= 0.20 && WTE_ASH_FRACTION_ADVANCED <= 0.30,
-        "Advanced WtE ash fraction must be in [0.20, 0.30], got {}", WTE_ASH_FRACTION_ADVANCED);
+    const { assert!(WTE_ASH_FRACTION_ADVANCED >= 0.20 && WTE_ASH_FRACTION_ADVANCED <= 0.30,
+        "Advanced WtE ash fraction must be in [0.20, 0.30]"); }
 }
 
 #[test]
 fn test_wte_ash_fraction_advanced_lower_than_basic() {
     // Advanced WtE should produce less ash (better combustion)
-    assert!(WTE_ASH_FRACTION_ADVANCED <= WTE_ASH_FRACTION_BASIC,
-        "Advanced WtE ash fraction should be <= basic");
+    const { assert!(WTE_ASH_FRACTION_ADVANCED <= WTE_ASH_FRACTION_BASIC,
+        "Advanced WtE ash fraction should be <= basic"); }
 }
 
 #[test]
@@ -568,12 +567,12 @@ fn test_wte_ash_is_hazardous() {
 
 #[test]
 fn test_wte_energy_output_positive() {
-    assert!(WTE_ENERGY_PER_TON > 0.0, "WtE must produce positive energy");
+    const { assert!(WTE_ENERGY_PER_TON > 0.0, "WtE must produce positive energy"); }
 }
 
 #[test]
 fn test_wte_heat_output_positive() {
-    assert!(WTE_HEAT_PER_TON_CHP > 0.0, "WtE CHP must produce positive heat");
+    const { assert!(WTE_HEAT_PER_TON_CHP > 0.0, "WtE CHP must produce positive heat"); }
 }
 
 #[test]
@@ -735,8 +734,8 @@ fn test_waste_pollution_zero_waste() {
 
 #[test]
 fn test_leachate_contamination_factor_positive() {
-    assert!(LEACHATE_CONTAMINATION_FACTOR > 0.0,
-        "Leachate contamination factor must be positive");
+    const { assert!(LEACHATE_CONTAMINATION_FACTOR > 0.0,
+        "Leachate contamination factor must be positive"); }
 }
 
 // ============================================================================
@@ -904,7 +903,7 @@ fn test_wte_methods_output_hazardous_waste() {
     // CRITICAL FIX 2: WtE production methods must output HazardousWaste ash
     let registry = default_production_methods();
     let wte = registry.get("waste_to_energy_plant").unwrap();
-    for (_, pm) in &wte.production {
+    for pm in wte.production.values() {
         let has_ash = pm.outputs.iter().any(|(c, _)| *c == Commodity::HazardousWaste);
         assert!(has_ash, "WtE method '{}' must output HazardousWaste ash", pm.year);
     }
@@ -915,9 +914,9 @@ fn test_recycling_methods_output_residual() {
     // CRITICAL FIX 3: All recycling methods must output residual waste
     let registry = default_production_methods();
     let metal = registry.get("metal_recycling").unwrap();
-    for (_, pm) in &metal.production {
-        let total_output: f64 = pm.outputs.iter().map(|(_, q)| q).sum();
-        let total_input: f64 = pm.inputs.iter().map(|(_, q)| q).sum();
+    for pm in metal.production.values() {
+        let total_output: f64 = pm.outputs.values().sum();
+        let total_input: f64 = pm.inputs.values().sum();
         if total_input > 0.0 {
             // Output mass should approximately equal input mass (mass conservation)
             assert!((total_output - total_input).abs() / total_input < 0.01,
@@ -930,9 +929,9 @@ fn test_recycling_methods_output_residual() {
 fn test_separation_methods_conserve_mass() {
     let registry = default_production_methods();
     let sep = registry.get("waste_separation_plant").unwrap();
-    for (_, pm) in &sep.production {
-        let total_output: f64 = pm.outputs.iter().map(|(_, q)| q).sum();
-        let total_input: f64 = pm.inputs.iter().map(|(_, q)| q).sum();
+    for pm in sep.production.values() {
+        let total_output: f64 = pm.outputs.values().sum();
+        let total_input: f64 = pm.inputs.values().sum();
         if total_input > 0.0 {
             assert!((total_output - total_input).abs() / total_input < 0.01,
                 "Separation must conserve mass: input={}, output={}", total_input, total_output);
@@ -945,16 +944,16 @@ fn test_wte_methods_conserve_mass_with_ash() {
     // WtE: input mass = ash mass (energy/heat are service outputs, not mass)
     let registry = default_production_methods();
     let wte = registry.get("waste_to_energy_plant").unwrap();
-    for (_, pm) in &wte.production {
+    for pm in wte.production.values() {
         let ash_mass: f64 = pm.outputs.iter()
             .filter(|(c, _)| **c == Commodity::HazardousWaste)
             .map(|(_, q)| q)
             .sum();
-        let input_mass: f64 = pm.inputs.iter().map(|(_, q)| q).sum();
+        let input_mass: f64 = pm.inputs.values().sum();
         if input_mass > 0.0 {
             // Ash must be 20-30% of input
             let ash_fraction = ash_mass / input_mass;
-            assert!(ash_fraction >= 0.20 && ash_fraction <= 0.30,
+            assert!((0.20..=0.30).contains(&ash_fraction),
                 "WtE ash fraction must be in [0.20, 0.30], got {}", ash_fraction);
         }
     }
@@ -964,7 +963,7 @@ fn test_wte_methods_conserve_mass_with_ash() {
 fn test_pszok_methods_accept_heavy_waste() {
     let registry = default_production_methods();
     let pszok = registry.get("civic_amenity_site").unwrap();
-    for (_, pm) in &pszok.production {
+    for pm in pszok.production.values() {
         // PSZOK must accept BulkyWaste, ConstructionWaste, or HazardousWaste
         let accepts_heavy = pm.inputs.iter().any(|(c, _)| {
             *c == Commodity::BulkyWaste || *c == Commodity::ConstructionWaste || *c == Commodity::HazardousWaste
@@ -1088,7 +1087,7 @@ fn test_waste_tech_progression() {
     // Each waste tech should require the previous one
     let waste_techs = ["waste_001", "waste_002", "waste_003", "waste_004", "waste_005", "waste_006"];
     for i in 1..waste_techs.len() {
-        let node = tech.get(waste_techs[i]).expect(&format!("{} must exist", waste_techs[i]));
+        let node = tech.get(waste_techs[i]).unwrap_or_else(|| panic!("{} must exist", waste_techs[i]));
         assert!(node.prerequisites.contains(&waste_techs[i-1].to_string()),
             "{} must require {}", waste_techs[i], waste_techs[i-1]);
     }
@@ -1286,14 +1285,14 @@ fn test_waste_sales_history_serialization() {
 
 #[test]
 fn test_subsistence_food_per_fertilizer_positive() {
-    assert!(SUBSISTENCE_FOOD_PER_FERTILIZER > 0.0,
-        "Subsistence food per fertilizer must be positive");
+    const { assert!(SUBSISTENCE_FOOD_PER_FERTILIZER > 0.0,
+        "Subsistence food per fertilizer must be positive"); }
 }
 
 #[test]
 fn test_composting_yield_in_range() {
-    assert!(COMPOSTING_YIELD > 0.0 && COMPOSTING_YIELD < 1.0,
-        "Composting yield must be in (0, 1) — not 100% conversion");
+    const { assert!(COMPOSTING_YIELD > 0.0 && COMPOSTING_YIELD < 1.0,
+        "Composting yield must be in (0, 1) — not 100% conversion"); }
 }
 
 // ============================================================================

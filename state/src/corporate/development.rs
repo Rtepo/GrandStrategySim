@@ -6,7 +6,6 @@
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-use super::strategy::CorporateDecisionCtx;
 use crate::construction::projects::{ConstructionProject, ConstructionProjectType};
 use crate::registries::enums::Commodity;
 use crate::society::housing::{HousingType, HousingInventory};
@@ -229,9 +228,9 @@ impl PropertyDeveloper {
         let cost_adjustment = 1.0 - material_cost_factor * 0.2;
         
         // Apply risk tolerance
-        let risk_adjusted = (housing_roi + commercial_roi) * cost_adjustment * (1.0 + self.risk_tolerance);
         
-        risk_adjusted
+        
+        (housing_roi + commercial_roi) * cost_adjustment * (1.0 + self.risk_tolerance)
     }
     
     /// Recommend project type based on market analysis

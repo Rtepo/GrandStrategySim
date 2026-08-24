@@ -16,6 +16,7 @@ fn default_remittance_rate() -> f64 {
 /// Data-driven configuration for labor market mechanics
 /// Loaded via JSON to avoid hardcoded simulation logic
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Default)]
 pub struct LaborConfig {
     /// Suitability matrix: class_id -> (sector -> multiplier)
     /// Multipliers represent class suitability for specific sectors
@@ -24,13 +25,6 @@ pub struct LaborConfig {
     pub suitability_matrix: HashMap<String, HashMap<Sector, f64>>,
 }
 
-impl Default for LaborConfig {
-    fn default() -> Self {
-        Self {
-            suitability_matrix: HashMap::new(),
-        }
-    }
-}
 
 /// Labor market bid from a company
 pub struct LaborBid {
@@ -449,15 +443,14 @@ pub fn resolve_regional_labor_market(
             .map(|ba| ba.cash.max(0.0))
             .unwrap_or(company.available_cash.max(0.0));
 
-        let actual_paid;
-        if wage_payment <= available_cash {
+        let actual_paid = if wage_payment <= available_cash {
             // Company can afford full payroll — debit normally
             if let Some(ba) = &mut company.brokerage_account {
                 ba.cash -= wage_payment;
             } else {
                 company.available_cash -= wage_payment;
             }
-            actual_paid = wage_payment;
+            wage_payment
         } else {
             // Company cannot afford full payroll — pay what's available,
             // accrue the rest as wage arrears (liability).
@@ -471,8 +464,8 @@ pub fn resolve_regional_labor_market(
                 }
             }
             company.wage_arrears += arrears_this_turn;
-            actual_paid = payable;
-        }
+            payable
+        };
 
         // Phase 43: Accumulate wage debit for batch bank sync.
         if actual_paid > 0.0 {

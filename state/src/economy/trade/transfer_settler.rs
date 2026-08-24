@@ -702,13 +702,14 @@ mod tests {
     use crate::entities::Company;
     use crate::entities::legal_form::{LegalForm, JointStockData};
     use crate::registries::enums::Sector;
-    use crate::state::{Country, Treasury, MacroData, TaxRates};
+    use crate::state::{Country, Treasury};
     use crate::state::banking::BankBalanceSheet;
     use crate::society::geography::{Region, RegionalClassDemographics, ClassDemographics};
     use std::collections::BTreeMap;
 
     fn make_test_company(id: &str, cash: f64) -> Company {
-        let mut c = Company::new(
+        
+        Company::new(
             id.to_string(),
             id.to_string(),
             Sector::LightIndustry,
@@ -716,8 +717,7 @@ mod tests {
             100_000.0,
             cash,
             10,
-        );
-        c
+        )
     }
 
     fn make_test_bank(id: &str, reserves: f64, deposits: f64) -> Company {

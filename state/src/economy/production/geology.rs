@@ -7,7 +7,7 @@
 //! - Gating deep deposits behind advanced mining technology.
 
 use crate::registries::enums::Commodity;
-use crate::society::geography::{GeologicalFormation, ResourceDeposit};
+use crate::society::geography::ResourceDeposit;
 use crate::state::Country;
 
 /// Maximum depth (in meters) that a mining method from a given year can access.
@@ -189,6 +189,7 @@ pub fn deposit_is_accessible(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::society::geography::GeologicalFormation;
 
     #[test]
     fn test_max_depth_progression() {

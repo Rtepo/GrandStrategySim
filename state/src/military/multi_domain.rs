@@ -439,7 +439,6 @@ pub fn resolve_multi_domain_battle(
 mod tests {
     use super::*;
     use crate::military::units::UnitType;
-    use std::collections::HashMap;
 
     fn make_unit(id: &str, unit_type: UnitType, manpower: i64) -> MilitaryUnit {
         MilitaryUnit::new(

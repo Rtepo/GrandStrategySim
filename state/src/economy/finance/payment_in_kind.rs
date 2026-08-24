@@ -8,7 +8,7 @@ use crate::economy::labor_market::LaborAllocationMatrix;
 use crate::registries::enums::Commodity;
 use crate::society::geography::{DemographyType, Region};
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 
 /// Ledger tracking in-kind payments per company (Phase 6.5)
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
@@ -62,7 +62,7 @@ pub fn apply_payment_in_kind(
     region: &mut Region,
     labor_allocation: &LaborAllocationMatrix,
     harvest_bundle: &mut BTreeMap<String, BTreeMap<Commodity, f64>>,
-    current_turn: u32,
+    _current_turn: u32,
 ) -> (InKindLedger, NutritionalDeficit) {
     let mut in_kind_ledger = InKindLedger::default();
     let mut nutritional_deficit = NutritionalDeficit::default();
@@ -95,7 +95,7 @@ pub fn apply_payment_in_kind(
         // Calculate total subsistence need for all workers
         let mut total_subsistence_need: BTreeMap<Commodity, f64> = BTreeMap::new();
         
-        for ((demography_type, class_id), fte) in &company_fte {
+        for ((_demography_type, class_id), fte) in &company_fte {
             if let Some(basket) = consumption.get(class_id) {
                 if let Some(subsistence_tier) = basket.tiers.get(&NeedTier::Subsistence) {
                     for (commodity, per_capita) in subsistence_tier {
@@ -129,7 +129,7 @@ pub fn apply_payment_in_kind(
             else if class_id == "FreePeasant" || class_id == "LandlessLaborer" {
                 if config.vwap_wage_offset {
                     // Calculate in-kind value and offset cash wages
-                    let in_kind_value = calculate_in_kind_value(class_id, *fte, &consumption);
+                    let in_kind_value = calculate_in_kind_value(class_id, *fte, consumption);
                     cash_offset += in_kind_value.min(class_wages);
                     
                     // Deduct from harvest

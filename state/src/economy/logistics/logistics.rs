@@ -387,11 +387,10 @@ pub fn compute_freight_route(
                         continue;
                     }
                 }
-                EdgeType::River if edge.is_navigable => {
-                    if !from_region.geographic_traits.has_navigable_river {
+                EdgeType::River if edge.is_navigable
+                    && !from_region.geographic_traits.has_navigable_river => {
                         continue;
                     }
-                }
                 _ => {}
             }
 
@@ -537,13 +536,12 @@ pub fn assign_geographic_traits_from_edges(regions: &mut [Region]) {
             match edge.edge_type {
                 EdgeType::Coastline | EdgeType::SeaLane => has_coast = true,
                 EdgeType::River if edge.is_navigable => has_river = true,
-                EdgeType::LandBorder => {
+                EdgeType::LandBorder
                     // Mountain pass: high-distance land border suggests
                     // mountainous terrain. Threshold: 150 km.
-                    if edge.distance >= 150.0 {
+                    if edge.distance >= 150.0 => {
                         has_pass = true;
                     }
-                }
                 _ => {}
             }
         }
@@ -1320,7 +1318,7 @@ mod tests {
         let config = FreightLogisticsConfig::default();
         let overlay = TransportNetworkOverlay::default();
         // r1 has a Coastline edge but NO has_coastline trait → blocked.
-        let mut regions = vec![
+        let regions = vec![
             make_region("r1", vec![edge("r2", EdgeType::Coastline, 200.0, true)]),
             make_region("r2", vec![edge("r1", EdgeType::Coastline, 200.0, true)]),
         ];

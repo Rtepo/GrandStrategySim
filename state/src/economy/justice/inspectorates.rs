@@ -14,9 +14,7 @@
 //! - Violations increase `JusticeSystemState.justice_demand` (each violation = 1 case).
 
 use crate::entities::{Building, Company};
-use crate::entities::legal_form::LegalForm;
-use crate::economy::justice_system::FineCollectionResult;
-use crate::economy::legal_status::{LegalStatus, ShadowEmployment};
+use crate::economy::legal_status::LegalStatus;
 use crate::economy::transfer_settler::settle_transfer_to_treasury;
 use crate::registries::enums::{Commodity, Sector};
 use crate::state::Country;
@@ -112,7 +110,7 @@ pub fn process_inspectorates_turn(
     country: &mut Country,
     companies: &mut [Company],
     buildings: &[Building],
-    turn: u32,
+    _turn: u32,
 ) -> InspectorateTurnResult {
     let mut result = InspectorateTurnResult::default();
 
@@ -194,13 +192,12 @@ pub fn process_inspectorates_turn(
 
             let available = companies[idx].brokerage_account.as_ref().map(|b| b.cash).unwrap_or(companies[idx].available_cash);
             let actual_fine = fine.min(available);
-            if actual_fine > 0.01 {
-                if settle_transfer_to_treasury(companies, idx, actual_fine, country).is_ok() {
+            if actual_fine > 0.01
+                && settle_transfer_to_treasury(companies, idx, actual_fine, country).is_ok() {
                     total_fines += actual_fine;
                     violations += 1;
                     justice_demand_added += 1.0;
                 }
-            }
         }
     }
 
@@ -218,13 +215,12 @@ pub fn process_inspectorates_turn(
                 if let Some(idx) = companies.iter().position(|c| c.id == b.owner_id) {
                     let available = companies[idx].brokerage_account.as_ref().map(|b| b.cash).unwrap_or(companies[idx].available_cash);
                     let actual_fine = fine.min(available);
-                    if actual_fine > 0.01 {
-                        if settle_transfer_to_treasury(companies, idx, actual_fine, country).is_ok() {
+                    if actual_fine > 0.01
+                        && settle_transfer_to_treasury(companies, idx, actual_fine, country).is_ok() {
                             total_fines += actual_fine;
                             violations += 1;
                             justice_demand_added += 1.0;
                         }
-                    }
                 }
             }
         }
@@ -241,13 +237,12 @@ pub fn process_inspectorates_turn(
             let fine = (pollution * 100.0).min(50_000.0);
             let available = companies[idx].brokerage_account.as_ref().map(|b| b.cash).unwrap_or(companies[idx].available_cash);
             let actual_fine = fine.min(available);
-            if actual_fine > 0.01 {
-                if settle_transfer_to_treasury(companies, idx, actual_fine, country).is_ok() {
+            if actual_fine > 0.01
+                && settle_transfer_to_treasury(companies, idx, actual_fine, country).is_ok() {
                     total_fines += actual_fine;
                     violations += 1;
                     justice_demand_added += 1.0;
                 }
-            }
         }
     }
 
@@ -299,11 +294,10 @@ pub fn process_inspectorates_turn(
 
             let available = companies[idx].brokerage_account.as_ref().map(|b| b.cash).unwrap_or(companies[idx].available_cash);
             let actual_fine = fine.min(available);
-            if actual_fine > 0.01 {
-                if settle_transfer_to_treasury(companies, idx, actual_fine, country).is_ok() {
+            if actual_fine > 0.01
+                && settle_transfer_to_treasury(companies, idx, actual_fine, country).is_ok() {
                     shadow_fines += actual_fine;
                 }
-            }
 
             // Deportation: if DeportationPolicy is not None, deport the illegal workers
             let deportation_policy = country.politics.migration_law.as_ref()

@@ -6,10 +6,7 @@
 //! trigger (snap elections, provisional budget, or dictatorial decree).
 
 use crate::politics::ideology::Ideology;
-use crate::politics::ministries::{
-    BudgetPriorities, IdeologyBudgetPriorities, GovernmentCompetency, MinistryAllocation,
-    MinistryConfig, Ministry, form_government,
-};
+use crate::politics::ministries::{IdeologyBudgetPriorities, MinistryAllocation};
 use crate::politics::system::{Constitution, Party};
 use crate::state::Country;
 use serde::{Deserialize, Serialize};
@@ -303,7 +300,7 @@ pub fn process_budget_lifecycle(
     upper_house: &HashMap<String, u32>,
     constitution: &Constitution,
     coalition: &[String],
-    current_turn: u32,
+    _current_turn: u32,
 ) -> (BudgetBill, bool, Vec<String>) {
     let mut messages = Vec::new();
 
@@ -431,7 +428,7 @@ pub fn process_budget_lifecycle(
 }
 
 /// Checks if the ruling party is autocratic (non-democratic).
-fn country_is_autocratic(ruling_party: &str, _active_parties: &HashMap<String, Party>) -> bool {
+fn country_is_autocratic(_ruling_party: &str, _active_parties: &HashMap<String, Party>) -> bool {
     // Simplified: check government form from the party's ideology
     // In practice, this would check the country's GovernmentForm
     false
@@ -510,6 +507,7 @@ pub fn apply_budget_failure_consequence(country: &mut Country, bill: BudgetBill)
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::politics::ministries::{GovernmentCompetency, MinistryConfig, Ministry};
 
     #[test]
     fn test_draft_budget_bill() {

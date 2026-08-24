@@ -13,7 +13,7 @@ use crate::economy::production::weather::get_region_weather_modifier;
 use crate::economy::production::weather::WeatherState;
 use crate::entities::Building;
 use crate::registries::enums::{Commodity, Sector};
-use crate::society::geography::{EdgeType, NodeType, Region};
+use crate::society::geography::{EdgeType, Region};
 use crate::society::housing::{CommercialBuilding, HousingBuilding};
 use crate::state::{Country, Season};
 use crate::energy::types::*;
@@ -41,10 +41,12 @@ pub fn transmission_loss(line: &GridLine) -> f64 {
 /// Initialize the power grid during world generation.
 ///
 /// Creates HV lines between adjacent regions based on the start year (era-scaled
-/// topology) and calculates LV/MV capacities based on regional development.
+/// topology) and calculates LV/MV capacities from actual connected building demand.
 ///
 /// # Arguments
 /// * `country` - Mutable country (regions and power_grid_state updated).
+/// * `housing_buildings` - Housing buildings (for electricity demand aggregation).
+/// * `commercial_buildings` - Commercial buildings (for electricity demand aggregation).
 /// * `start_year` - Scenario start year, gating HV topology era.
 /// * `rng` - Random number generator for condition variance.
 ///
@@ -53,9 +55,17 @@ pub fn transmission_loss(line: &GridLine) -> f64 {
 /// * 1920-1950: HV only from capital to neighbors (hub-and-spoke).
 /// * 1950-1975: HV between all adjacent regions.
 /// * Post-1975: Full HV mesh with higher capacities.
-/// * LV/MV capacities scale with population, development_level, and average_wage.
-pub fn init_power_grid(country: &mut Country, start_year: u32, rng: &mut impl Rng) {
-    let average_wage = country.macro_indicators.average_wage.max(1.0);
+/// * Bugfix Sprint (5B): LV/MV capacities are derived from the actual connected
+///   housing + commercial electricity demand (kWh/turn → MW) generated during
+///   world seeding, multiplied by a 1.2× engineering headroom factor. This
+///   replaces the old `pop * dev * wage / 500_000` magic formula (Rule 2/15).
+pub fn init_power_grid(
+    country: &mut Country,
+    housing_buildings: &[HousingBuilding],
+    commercial_buildings: &[CommercialBuilding],
+    start_year: u32,
+    rng: &mut impl Rng,
+) {
     let grid = &mut country.power_grid_state;
 
     // Clear any existing grid state.
@@ -72,19 +82,43 @@ pub fn init_power_grid(country: &mut Country, start_year: u32, rng: &mut impl Rn
     let mut sorted_regions: Vec<&Region> = country.regions.iter().collect();
     sorted_regions.sort_by(|a, b| a.id.cmp(&b.id));
 
-    // Calculate LV/MV capacities for each region.
+    // Bugfix Sprint (5B): Aggregate actual connected electricity demand per
+    // region from housing + commercial buildings. electricity_capacity is in
+    // kWh/turn; convert to MW (1 MWh = 1000 kWh), matching grid.rs:296.
+    let mut regional_demand_mw: HashMap<String, f64> = HashMap::new();
     for region in &sorted_regions {
-        let dev = region.development_level.max(0.0).min(1.0);
-        let pop = region.population.max(1) as f64;
-        let lv_capacity = pop * dev * average_wage / 500_000.0;
+        regional_demand_mw.insert(region.id.clone(), 0.0);
+    }
+    for hb in housing_buildings {
+        if let Some(rid) = sorted_regions.iter().find(|r| r.micro_regions.contains_key(&hb.micro_region_id)).map(|r| r.id.clone()) {
+            let demand_mw = hb.utility_connections.electricity_capacity / 1000.0;
+            *regional_demand_mw.get_mut(&rid).unwrap() += demand_mw;
+        }
+    }
+    for cb in commercial_buildings {
+        if let Some(rid) = sorted_regions.iter().find(|r| r.micro_regions.contains_key(&cb.micro_region_id)).map(|r| r.id.clone()) {
+            let demand_mw = cb.utility_connections.electricity_capacity / 1000.0;
+            *regional_demand_mw.get_mut(&rid).unwrap() += demand_mw;
+        }
+    }
+
+    // Calculate LV/MV capacities for each region from actual demand.
+    // Engineering headroom factor: 1.2 (20% safety margin — standard grid
+    // design practice, not a magic number).
+    const LV_HEADROOM_FACTOR: f64 = 1.2;
+    for region in &sorted_regions {
+        let actual_demand_mw = regional_demand_mw.get(&region.id).copied().unwrap_or(0.0);
+        // LV capacity = max(actual_demand * headroom, 0.1) — floor of 0.1 MW
+        // for regions with no connected buildings (pre-electrification).
+        let lv_capacity = (actual_demand_mw * LV_HEADROOM_FACTOR).max(0.1);
         let mv_capacity = lv_capacity * 3.0;
         let lv_condition = 0.80 + rng.gen_range(0.0..0.20);
         let mv_condition = 0.80 + rng.gen_range(0.0..0.20);
 
         grid.region_lv_capacity
-            .insert(region.id.clone(), lv_capacity.max(0.1));
+            .insert(region.id.clone(), lv_capacity);
         grid.region_mv_capacity
-            .insert(region.id.clone(), mv_capacity.max(0.3));
+            .insert(region.id.clone(), mv_capacity);
         grid.region_lv_condition
             .insert(region.id.clone(), lv_condition);
         grid.region_mv_condition
@@ -217,6 +251,7 @@ pub fn init_power_grid(country: &mut Country, start_year: u32, rng: &mut impl Rn
 
 /// HV connectivity mode for era-scaled grid initialization.
 #[derive(Clone, Copy)]
+#[allow(dead_code)]
 enum HvConnectivityMode {
     /// No HV lines (pre-1920 island grids).
     None,
@@ -263,7 +298,7 @@ fn collect_regional_supply_demand(
         let energy_in_inventory = building.inventory.get(&Commodity::Energy).copied().unwrap_or(0.0);
 
         // Get nameplate capacity from metadata if available.
-        let (nameplate, weather_multiplier) = if let Some(meta) = get_plant_metadata(building) {
+        let (nameplate, weather_multiplier, has_metadata) = if let Some(meta) = get_plant_metadata(building) {
             let weather = get_region_weather_modifier(weather_state, region_id);
             let wm = weather_output_multiplier(
                 meta.plant_type,
@@ -271,16 +306,26 @@ fn collect_regional_supply_demand(
                 meta.has_cooling_upgrade,
                 &weather,
             );
-            (meta.nameplate_capacity_mw, wm)
+            (meta.nameplate_capacity_mw, wm, true)
         } else {
-            // Fallback: estimate from employment (pre-Phase-81 buildings).
-            (building.current_employment as f64 * 0.5, 1.0)
+            // Bugfix Sprint (5C): Pre-Phase-81 buildings without metadata.
+            // Supply is still estimated from employment so these buildings
+            // contribute to grid supply, but they are EXCLUDED from
+            // max_capacity_mw so regional and national capacity reconcile.
+            (building.current_employment as f64 * 0.5, 1.0, false)
         };
 
         // Apply weather multiplier to actual output.
-        let weather_adjusted_supply = energy_in_inventory * weather_multiplier;
+        // Bugfix Sprint (5A): Clamp supply to nameplate capacity — supply can
+        // never exceed the plant's physical nameplate, preventing "matter from
+        // the void" when inventory exceeds nameplate.
+        let weather_adjusted_supply = (energy_in_inventory * weather_multiplier).min(nameplate);
         *supply_mw.get_mut(region_id).unwrap_or(&mut 0.0) += weather_adjusted_supply;
-        *max_capacity_mw.get_mut(region_id).unwrap_or(&mut 0.0) += nameplate;
+        // Bugfix Sprint (5C): Only count buildings with PowerPlantMetadata
+        // toward max_capacity_mw, so regional and national capacity reconcile.
+        if has_metadata {
+            *max_capacity_mw.get_mut(region_id).unwrap_or(&mut 0.0) += nameplate;
+        }
     }
 
     // Collect demand from housing buildings.
@@ -963,6 +1008,7 @@ fn clear_spot_market(
 /// Kept for backward compatibility with any tests that reference it.
 #[deprecated(note = "Replaced by merit-order spot market clearing in Phase 81 Wave 2")]
 #[allow(deprecated)]
+#[allow(dead_code)]
 fn calculate_spot_price(
     supply_mw: f64,
     demand_mw: f64,

@@ -1,7 +1,6 @@
 #![allow(missing_docs)]
 
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use crate::infrastructure::maritime::ShipType;

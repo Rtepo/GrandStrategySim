@@ -16,10 +16,9 @@
 //! Phase 14.5 additions: cohort-based sentence tracking, rehabilitation on
 //! release, prison security level calculation, and escape mechanics.
 
-use crate::economy::legal_status::LegalStatus;
-use crate::economy::sentencing::{CrimeCategory, SentenceOutcome, SentencingLaw, determine_crime_category, generate_sentence, process_death_penalties};
+use crate::economy::sentencing::{CrimeCategory, SentenceOutcome, determine_crime_category, generate_sentence, process_death_penalties};
 use crate::entities::{Building, Company};
-use crate::politics::laws::{PrisonLaborLaw, PrisonType};
+use crate::politics::laws::PrisonType;
 use crate::politics::system::{JusticeSystemState, PrisonSecurityLevel, PrisonerCohort};
 use crate::registries::enums::Sector;
 use crate::society::geography::HealthStatus;

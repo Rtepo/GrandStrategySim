@@ -1348,13 +1348,13 @@ impl StockExchange {
                 if company.id == buyer_id {
                     if let Some(ref mut acct) = company.brokerage_account {
                         acct.cash -= cost + fee;
-                        acct.add_lot(&instrument_id.to_string(), quantity, price_per_share, 0);
+                        acct.add_lot(instrument_id, quantity, price_per_share, 0);
                     }
                 }
                 if company.id == seller_id {
                     if let Some(ref mut acct) = company.brokerage_account {
                         acct.cash += cost - fee;
-                        let _ = acct.sell_fifo(&instrument_id.to_string(), quantity, price_per_share);
+                        let _ = acct.sell_fifo(instrument_id, quantity, price_per_share);
                     }
                 }
             }
@@ -1364,13 +1364,13 @@ impl StockExchange {
                 if company.id == buyer_id {
                     if let Some(ref mut acct) = company.brokerage_account {
                         acct.cash -= cost + fee;
-                        acct.add_lot(&instrument_id.to_string(), quantity, price_per_share, 0);
+                        acct.add_lot(instrument_id, quantity, price_per_share, 0);
                     }
                 }
                 if company.id == seller_id {
                     if let Some(ref mut acct) = company.brokerage_account {
                         acct.cash += cost - fee;
-                        let _ = acct.sell_fifo(&instrument_id.to_string(), quantity, price_per_share);
+                        let _ = acct.sell_fifo(instrument_id, quantity, price_per_share);
                     }
                 }
             }
@@ -1391,24 +1391,24 @@ impl StockExchange {
                     }
                 }
             }
-        } else if instrument_id.starts_with("BOND:") {
+        } else if let Some(bond_id) = instrument_id.strip_prefix("BOND:") {
             // Covered bond trade: update brokerage accounts and bond ownership
             for company in companies.iter_mut() {
                 if company.id == buyer_id {
                     if let Some(ref mut acct) = company.brokerage_account {
                         acct.cash -= cost + fee;
-                        acct.add_lot(&instrument_id.to_string(), quantity, price_per_share, 0);
+                        acct.add_lot(instrument_id, quantity, price_per_share, 0);
                     }
                 }
                 if company.id == seller_id {
                     if let Some(ref mut acct) = company.brokerage_account {
                         acct.cash += cost - fee;
-                        let _ = acct.sell_fifo(&instrument_id.to_string(), quantity, price_per_share);
+                        let _ = acct.sell_fifo(instrument_id, quantity, price_per_share);
                     }
                 }
             }
             // Update bond holder_id
-            let bond_id = &instrument_id[5..]; // Strip "BOND:"
+            // Strip "BOND:"
             if let Some(bond) = covered_bonds.iter_mut().find(|b| b.id == bond_id) {
                 if bond.holder_id == seller_id {
                     bond.holder_id = buyer_id.to_string();

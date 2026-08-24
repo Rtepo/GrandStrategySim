@@ -152,7 +152,7 @@ fn tiny_country_has_minimal_oob() {
         &mut rng,
     );
 
-    assert!(oob.armies.len() >= 1, "Tiny country should have at least 1 army");
+    assert!(!oob.armies.is_empty(), "Tiny country should have at least 1 army");
     assert!(oob.total_manpower() > 0, "Tiny country should have positive manpower");
     assert!(oob.unit_count() > 0, "Tiny country should have at least 1 unit");
 }

@@ -7,10 +7,9 @@
 //! for strict double-entry accounting (tenant's owner is debited,
 //! shopping center's owner is credited).
 
-use crate::society::housing::{CommercialBuilding, RetailLease, RetailProfile, StoreProfile};
+use crate::society::housing::{CommercialBuilding, RetailLease, StoreProfile};
 use crate::entities::Company;
 use crate::state::Country;
-use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 
 /// Accrue retail rents for shopping center landlords (Phase 6.5, Phase R7).

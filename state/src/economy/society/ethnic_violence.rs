@@ -173,8 +173,8 @@ fn check_region_pogrom(
     config: &PogromConfig,
     turn: u32,
 ) -> PogromResult {
-    let mut result = PogromResult::default();
-    let reg = culture_registry();
+    let result = PogromResult::default();
+    let _reg = culture_registry();
 
     // Check rural classes first.
     let rural_result = check_class_map_pogrom(
@@ -397,7 +397,7 @@ fn apply_wealth_transfer(
             .sum();
 
         if dominant_pop > 0.0 {
-            for (_, demo) in class_map.iter_mut() {
+            for demo in class_map.values_mut() {
                 if demo.religion == *dominant_religion || demo.religion.is_empty() {
                     let share = (demo.population as f64) / dominant_pop;
                     demo.savings += debit * share;

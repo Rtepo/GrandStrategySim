@@ -69,8 +69,8 @@ pub fn process_military_turn(
     if !delivered.is_empty() {
         for (commodity, qty) in &delivered {
             all_messages.push(format!(
-                "[SUPPLY] {} units of {} delivered to military depot",
-                qty, format!("{:?}", commodity)
+                "[SUPPLY] {} units of {:?} delivered to military depot",
+                qty, commodity
             ));
         }
     }
@@ -360,7 +360,7 @@ fn resolve_front_battles(
             .copied()
             .unwrap_or(0.0);
 
-        let (treated, untreated_dead, wounded_messages) = process_wounded(
+        let (_treated, untreated_dead, wounded_messages) = process_wounded(
             battle.attacker_casualties.wounded + battle.defender_casualties.wounded,
             hospital_capacity,
             &battle.location,

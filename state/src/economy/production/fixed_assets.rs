@@ -668,7 +668,7 @@ mod tests {
 
     #[test]
     fn remove_scrapped_drops_zero_condition_cohorts() {
-        let c = cfg();
+        let _c = cfg();
         let mut cohorts = vec![
             cohort(0.0, 10.0, 1.0, 200.0, 2000), // scrapped
             cohort(0.5, 10.0, 1.0, 200.0, 2000), // alive
@@ -759,7 +759,7 @@ mod tests {
             draft_cohort(0.5, 10.0),
             cohort(0.5, 10.0, 1.0, 200.0, 2000), // IndustrialMachinery
         ];
-        let (fc, wc) = feed_draft_animals(&mut cohorts, 100.0, 100.0, &c);
+        let (fc, _wc) = feed_draft_animals(&mut cohorts, 100.0, 100.0, &c);
         assert!(fc > 0.0);
         // Machinery cohort should be unchanged.
         assert!((cohorts[1].condition - 0.5).abs() < 1e-9);

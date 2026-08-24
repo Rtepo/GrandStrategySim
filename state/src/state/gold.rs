@@ -125,7 +125,7 @@ impl GlobalGoldExchange {
     /// - Gold price in IEU slowly drifts upward with global inflation
     /// - Formula: new_price = old_price * (1 + global_inflation_rate)
     /// - Soft peg: Central banks can temporarily override via interventions
-    pub fn update_gold_price(&mut self, current_turn: u32) {
+    pub fn update_gold_price(&mut self, _current_turn: u32) {
         let drift_factor = 1.0 + self.global_inflation_rate;
         self.gold_price_in_ieu *= drift_factor;
     }

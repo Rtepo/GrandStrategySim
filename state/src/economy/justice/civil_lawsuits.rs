@@ -275,8 +275,6 @@ pub fn process_civil_lawsuits(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rand::rngs::StdRng;
-    use rand::SeedableRng;
 
     #[test]
     fn test_file_lawsuit() {

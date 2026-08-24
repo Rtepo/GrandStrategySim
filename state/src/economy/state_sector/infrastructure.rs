@@ -117,7 +117,7 @@ pub fn submit_infrastructure_procurement_orders(
             if max_price > 0.0 {
                 order_book
                     .entry(*commodity)
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push((building.id.clone(), required_quantity, max_price));
             }
         }
@@ -139,7 +139,7 @@ pub fn execute_infrastructure_production(
     inventories: &mut BTreeMap<String, BTreeMap<Commodity, f64>>,
 ) {
     for building in buildings.iter_mut() {
-        let building_inventory = inventories.entry(building.id.clone()).or_insert_with(BTreeMap::new);
+        let building_inventory = inventories.entry(building.id.clone()).or_default();
         
         // Check input availability
         let inputs = &building.active_method.inputs;
@@ -180,7 +180,6 @@ pub fn execute_infrastructure_production(
 mod tests {
     use super::*;
     use crate::registries::enums::Sector;
-    use crate::entities::ActiveProductionMethod;
 
     #[test]
     fn funding_requirement_calculation() {

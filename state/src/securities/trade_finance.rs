@@ -85,9 +85,11 @@ impl Default for BillOfLading {
 /// Status of a Bill of Lading document.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 
+#[derive(Default)]
 pub enum BillStatus {
     /// Cargo is currently in transit.
 
+    #[default]
     InTransit,
     /// Cargo has been delivered to destination.
 
@@ -166,7 +168,7 @@ impl BillOfLading {
             id: format!("BOL-{}", shipment.id),
             shipment_id: shipment.id.clone(),
             owner_id: shipment.sender_id.clone(),
-            commodity: shipment.commodity.clone(),
+            commodity: shipment.commodity,
             quantity: shipment.quantity,
             declared_value: shipment.declared_value,
             port_of_origin: shipment.origin_port.clone(),
@@ -185,58 +187,6 @@ impl BillOfLading {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_bill_of_lading_from_shipment() {
-        let shipment = Shipment {
-            id: "SHIP-001".to_string(),
-            sender_id: "COMP-001".to_string(),
-            commodity: Commodity::Steel,
-            quantity: 1000.0,
-            declared_value: 50000.0,
-            origin_port: "Gdansk".to_string(),
-            destination_port: "Rotterdam".to_string(),
-            expected_arrival_turn: 100,
-        };
-        
-        let bol = BillOfLading::from_shipment(&shipment, 0.8);
-        assert_eq!(bol.id, "BOL-SHIP-001");
-        assert_eq!(bol.collateral_value, 40000.0);
-        assert!(matches!(bol.status, BillStatus::InTransit));
-    }
-
-    #[test]
-    fn test_is_valid_collateral() {
-        let shipment = Shipment {
-            id: "SHIP-002".to_string(),
-            sender_id: "COMP-002".to_string(),
-            commodity: Commodity::Steel,
-            quantity: 500.0,
-            declared_value: 25000.0,
-            origin_port: "Gdansk".to_string(),
-            destination_port: "Hamburg".to_string(),
-            expected_arrival_turn: 100,
-        };
-        
-        let mut bol = BillOfLading::from_shipment(&shipment, 0.8);
-        assert!(bol.is_valid_collateral(50));
-        
-        bol.status = BillStatus::Delivered;
-        assert!(!bol.is_valid_collateral(50));
-        
-        bol.status = BillStatus::InTransit;
-        assert!(!bol.is_valid_collateral(150));
-    }
-}
-
-impl Default for BillStatus {
-    fn default() -> Self {
-        BillStatus::InTransit
-    }
-}
 
 /// Process bills of lading for the current turn.
 ///
@@ -328,5 +278,52 @@ pub fn process_bills_of_lading(
     // Remove settled loans
     for idx in settled_indices.into_iter().rev() {
         working_capital_loans.remove(idx);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_bill_of_lading_from_shipment() {
+        let shipment = Shipment {
+            id: "SHIP-001".to_string(),
+            sender_id: "COMP-001".to_string(),
+            commodity: Commodity::Steel,
+            quantity: 1000.0,
+            declared_value: 50000.0,
+            origin_port: "Gdansk".to_string(),
+            destination_port: "Rotterdam".to_string(),
+            expected_arrival_turn: 100,
+        };
+        
+        let bol = BillOfLading::from_shipment(&shipment, 0.8);
+        assert_eq!(bol.id, "BOL-SHIP-001");
+        assert_eq!(bol.collateral_value, 40000.0);
+        assert!(matches!(bol.status, BillStatus::InTransit));
+    }
+
+    #[test]
+    fn test_is_valid_collateral() {
+        let shipment = Shipment {
+            id: "SHIP-002".to_string(),
+            sender_id: "COMP-002".to_string(),
+            commodity: Commodity::Steel,
+            quantity: 500.0,
+            declared_value: 25000.0,
+            origin_port: "Gdansk".to_string(),
+            destination_port: "Hamburg".to_string(),
+            expected_arrival_turn: 100,
+        };
+        
+        let mut bol = BillOfLading::from_shipment(&shipment, 0.8);
+        assert!(bol.is_valid_collateral(50));
+        
+        bol.status = BillStatus::Delivered;
+        assert!(!bol.is_valid_collateral(50));
+        
+        bol.status = BillStatus::InTransit;
+        assert!(!bol.is_valid_collateral(150));
     }
 }

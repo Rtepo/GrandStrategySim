@@ -47,6 +47,7 @@ pub struct CorporateDecisionCtx<'a> {
 /// Actions a company can choose.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(tag = "action", rename_all = "snake_case")]
+#[allow(clippy::large_enum_variant)]
 pub enum CorporateAction {
     /// Expand capacity using the given finance source.
     Expand {
@@ -320,8 +321,8 @@ pub enum DisposalReason {
 /// * Producer voluntarily scraps batch to stop bleeding
 /// * Producer pays accumulated fees to LogisticsCompany
 /// * AI hard rule: Never dispose if state intervention is imminent
-fn evaluate_inventory_disposal(ctx: &CorporateDecisionCtx) -> Vec<DisposalOrder> {
-    let mut disposal_orders = Vec::new();
+fn evaluate_inventory_disposal(_ctx: &CorporateDecisionCtx) -> Vec<DisposalOrder> {
+    let disposal_orders = Vec::new();
     
     // Phase 13: Requires warehouse batch tracking access
     

@@ -305,7 +305,7 @@ pub fn calculate_curial_faction_alignment(
     }
     
     // Apply faction stability modifier
-    defection_rate *= (1.0 - council.faction_distribution.faction_stability);
+    defection_rate *= 1.0 - council.faction_distribution.faction_stability;
     
     // Calculate seat transfers
     let optimates_defecting = (council.faction_distribution.optimates_count as f64 * defection_rate) as u32;

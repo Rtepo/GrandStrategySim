@@ -4,8 +4,7 @@
 //! institutional investors like FIO, FIZ, hedge funds, and ETFs.
 
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, HashMap};
-use serde_json::Value;
+use std::collections::BTreeMap;
 
 use crate::registries::enums::Sector;
 use crate::entities::Company;
@@ -172,7 +171,7 @@ pub fn collect_fund_capital(
     regions: &mut [Region],
     companies: &mut [Company],
     config: &SecuritiesMarketConfig,
-    current_turn: u32,
+    _current_turn: u32,
 ) -> Vec<FundSubscription> {
     let mut subscriptions = Vec::new();
 
@@ -376,8 +375,7 @@ fn calculate_portfolio_value(
         if qty == 0 {
             continue;
         }
-        if instrument_id.starts_with("EQUITY:") {
-            let company_id = &instrument_id[7..];
+        if let Some(company_id) = instrument_id.strip_prefix("EQUITY:") {
             if let Some(company) = companies.iter().find(|c| c.id == company_id) {
                 total += company.share_price * qty as f64;
             }
@@ -834,7 +832,7 @@ pub fn charge_fund_fees(
         let mgmt_fee = aum * config.fund_management_fee_rate;
 
         // Performance fee (simplified: if fund cash growth > benchmark rate)
-        let ledger = fund.fund_ledger.as_ref().unwrap();
+        let _ledger = fund.fund_ledger.as_ref().unwrap();
         let benchmark_return = aum * config.fund_benchmark_rate;
         let excess_return = (aum - benchmark_return).max(0.0);
         let perf_fee = excess_return * config.fund_performance_fee_rate;

@@ -170,7 +170,7 @@ pub fn available_plant_types(
     start_year: u32,
     has_coal_deposit: bool,
     has_river_or_coast: bool,
-    has_forest: bool,
+    _has_forest: bool,
     has_livestock: bool,
     has_uranium: bool,
     has_geothermal: bool,

@@ -11,7 +11,6 @@
 use crate::state::Country;
 use crate::state::macro_data::{annual_to_per_turn_rate, TURNS_PER_YEAR};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 // ============================================================================
 // CREDIT RATING
@@ -726,7 +725,7 @@ pub fn process_debt_service(
         }
 
         // Interest payment (annual — Phase 74: fix to every 24 turns, not 4)
-        if (current_turn - bond.issue_turn) % TURNS_PER_YEAR as u32 == 0 && bond.turns_remaining > 0 {
+        if (current_turn - bond.issue_turn).is_multiple_of(TURNS_PER_YEAR as u32) && bond.turns_remaining > 0 {
             let adjusted_principal = if bond.is_inflation_indexed {
                 let new_principal = bond.face_value * (1.0 + inflation_rate);
                 bond.face_value = new_principal;
@@ -826,10 +825,9 @@ pub fn process_debt_service(
         if actual_credit <= 0.0 {
             continue;
         }
-        if entity_id.starts_with("RETAIL:") {
+        if let Some(key) = entity_id.strip_prefix("RETAIL:") {
             // Retail savings bond: credit citizen savings.
             // entity_id format: "RETAIL:region_id:class_name"
-            let key = &entity_id["RETAIL:".len()..];
             if let Some(colon_pos) = key.find(':') {
                 let region_id = &key[..colon_pos];
                 let class_name = &key[colon_pos + 1..];

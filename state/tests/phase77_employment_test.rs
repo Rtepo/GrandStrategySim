@@ -33,14 +33,8 @@ fn fulfilled_fte_is_always_integer_after_generation() {
     for entities in ctx.entities.values() {
         for company in &entities.companies {
             // fulfilled_fte is u32 — this is a compile-time guarantee.
-            // At runtime, verify it's a valid non-negative integer.
-            let fte: u32 = company.fulfilled_fte;
-            assert!(
-                fte >= 0,
-                "Company {} has negative fulfilled_fte: {}",
-                company.id,
-                fte
-            );
+            // At runtime, verify it's a valid value.
+            let _fte: u32 = company.fulfilled_fte;
         }
     }
 }
@@ -50,13 +44,7 @@ fn target_fte_demand_is_always_integer() {
     let (_world, ctx) = gen_world_with_ctx();
     for entities in ctx.entities.values() {
         for company in &entities.companies {
-            let demand: u32 = company.target_fte_demand;
-            assert!(
-                demand >= 0,
-                "Company {} has negative target_fte_demand: {}",
-                company.id,
-                demand
-            );
+            let _demand: u32 = company.target_fte_demand;
         }
     }
 }

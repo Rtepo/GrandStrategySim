@@ -6,7 +6,6 @@
 
 use crate::politics::ideology::Ideology;
 use rand::Rng;
-use rand::seq::SliceRandom;
 
 /// Cultural naming patterns for party generation
 #[derive(Debug, Clone)]
@@ -191,12 +190,12 @@ fn country_adjective(country_name: &str) -> String {
     // Common suffixes → adjective forms
     if name.ends_with("ia") {
         format!("{}n", name)
-    } else if name.ends_with("land") {
-        format!("{}ish", &name[..name.len() - 4])
+    } else if let Some(stripped) = name.strip_suffix("land") {
+        format!("{}ish", stripped)
     } else if name.ends_with("stan") {
         format!("{}i", name)
-    } else if name.ends_with("a") {
-        format!("{}n", &name[..name.len() - 1])
+    } else if let Some(stripped) = name.strip_suffix("a") {
+        format!("{}n", stripped)
     } else if name.ends_with("o") {
         format!("{}n", name)
     } else {

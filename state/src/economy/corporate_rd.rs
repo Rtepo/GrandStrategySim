@@ -199,7 +199,7 @@ pub fn evaluate_licensing_opportunities(
             
             for patent in &other_company.patents {
                 // Check if already licensed
-                if company.licensed_methods.iter().any(|lm| &lm.tech_id == &patent.tech_id) {
+                if company.licensed_methods.iter().any(|lm| lm.tech_id == patent.tech_id) {
                     continue;
                 }
                 
@@ -264,7 +264,7 @@ fn estimate_current_unit_cost(company: &Company) -> f64 {
 ///
 /// # Returns
 /// Estimated new unit cost
-fn estimate_new_unit_cost(tech_node: &TechNode) -> f64 {
+fn estimate_new_unit_cost(_tech_node: &TechNode) -> f64 {
     // Simplified: assume 20% cost reduction from new tech
     40.0 // Placeholder
 }

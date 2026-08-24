@@ -4,7 +4,7 @@
 //! and escalating clearance for wholesalers to prevent bankruptcy from rotting inventory.
 
 use crate::registries::enums::Commodity;
-use crate::society::housing::{CommercialBuilding, WholesaleProfile};
+use crate::society::housing::CommercialBuilding;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -99,7 +99,7 @@ pub struct ConsolidatedShipment {
 /// * Used in R4 phase before B2C clearing
 pub fn apply_consolidation(
     requests: &[ProcurementRequest],
-    wholesalers: &[CommercialBuilding],
+    _wholesalers: &[CommercialBuilding],
     config: &LogisticsConfig,
 ) -> Vec<ConsolidatedShipment> {
     let mut shipments = Vec::new();
@@ -157,7 +157,7 @@ pub fn apply_consolidation(
 /// * Used in R4 phase to clamp procurement requests
 pub fn enforce_procurement_cap(
     wholesaler: &CommercialBuilding,
-    commodity: Commodity,
+    _commodity: Commodity,
     requested_quantity: f64,
 ) -> f64 {
     if let Some(profile) = &wholesaler.wholesale_profile {
@@ -187,8 +187,8 @@ pub fn enforce_procurement_cap(
 pub fn apply_clearance_discount(
     wholesaler: &mut CommercialBuilding,
     commodity: Commodity,
-    current_turn: u32,
-    market_price: f64,
+    _current_turn: u32,
+    _market_price: f64,
 ) -> Option<f64> {
     if let Some(profile) = &mut wholesaler.wholesale_profile {
         let commodity_key = commodity.to_string();

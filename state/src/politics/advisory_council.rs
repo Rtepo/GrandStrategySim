@@ -9,7 +9,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::politics::ideology::IdeologyCompass;
-use crate::politics::vip_registry::{Vip, VipRegistry};
+use crate::politics::vip_registry::VipRegistry;
 
 // ============================================================================
 // COUNCIL TYPES
@@ -333,6 +333,7 @@ fn ideology_from_string(ideology: &str) -> IdeologyCompass {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::politics::Vip;
 
     #[test]
     fn test_advisory_council_default() {

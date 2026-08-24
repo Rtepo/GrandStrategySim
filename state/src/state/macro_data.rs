@@ -944,8 +944,8 @@ mod tests {
             assert!(m.extra.contains_key(key), "missing {key}");
         }
         // Verify that health and education statistics are now explicit fields
-        assert!(m.health_statistics.service_quality > 0.0 || m.health_statistics.service_quality == 0.0);
-        assert!(m.education_statistics.infrastructure_base > 0.0 || m.education_statistics.infrastructure_base == 0.0);
+        assert!(m.health_statistics.service_quality >= 0.0);
+        assert!(m.education_statistics.infrastructure_base >= 0.0);
     }
 
     #[test]

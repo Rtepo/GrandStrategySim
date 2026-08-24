@@ -284,7 +284,7 @@ fn test_coalition_without_concessions() {
         ..Default::default()
     });
 
-    let (ruling, coalition, minority, _id, cost) = build_coalition_with_concessions(&parliament, &parties, &[]);
+    let (ruling, _coalition, _minority, _id, cost) = build_coalition_with_concessions(&parliament, &parties, &[]);
 
     assert_eq!(ruling, "Party A");
     assert_eq!(cost, 0.0); // No concessions = no cost

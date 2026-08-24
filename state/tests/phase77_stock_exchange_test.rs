@@ -9,7 +9,6 @@ use sim_engine::engine::{generate_world, GenerateOptions, GeneratedWorld, StartY
 use sim_engine::engine::turn_context::InMemoryTurnContext;
 use sim_engine::entities::LegalForm;
 use sim_engine::registries::Registries;
-use sim_engine::state::GameState;
 use tempfile::TempDir;
 
 fn gen_world_with_ctx() -> (GeneratedWorld, InMemoryTurnContext) {
@@ -54,7 +53,7 @@ fn jsc_companies_have_shares_count_after_generation() {
 
     for entities in ctx.entities.values() {
         for company in &entities.companies {
-            if let LegalForm::JointStockCompany(ref jsd) = company.legal_form {
+            if let LegalForm::JointStockCompany(_) = company.legal_form {
                 jsc_total += 1;
                 // A JSC is properly listed if it has shares_count > 0
                 // (set by list_jsc_companies_on_exchange from shares_issued)

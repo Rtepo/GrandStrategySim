@@ -411,7 +411,7 @@ pub fn submit_shipyard_construction_orders(
                     order_book
                         .bids
                         .entry(*commodity)
-                        .or_insert_with(Vec::new)
+                        .or_default()
                         .push(Bid {
                             buyer_id: format!("shipyard_{}", shipyard.id),
                             commodity: *commodity,

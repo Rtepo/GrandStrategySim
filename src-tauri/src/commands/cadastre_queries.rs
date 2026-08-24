@@ -5,11 +5,9 @@
 
 use crate::state::AppState;
 use sim_engine::society::cadastre::{
-    self, BorderConflictRegistry, ZoningDesignation, ParcelOwnerType,
+    self, ZoningDesignation, ParcelOwnerType,
 };
-use sim_engine::society::real_estate_market::{
-    generate_ministry_land_report, MinistryLandReport,
-};
+use sim_engine::society::real_estate_market::generate_ministry_land_report;
 use sim_engine::ui::snapshot::{
     CadastreSummaryRow, CadastreSummaryResponse,
     CadastreZoningEntry, CadastreOwnerEntry,

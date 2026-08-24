@@ -6,7 +6,7 @@
 use crate::registries::enums::Commodity;
 use crate::society::housing::{RetailUpgrade, StoreProfile};
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 use std::sync::OnceLock;
 
 /// Commodity profile for retail stores
@@ -396,7 +396,7 @@ pub fn select_retail_format(
     // supermarket: mid development + modern era
     if development_level >= 0.50 && year >= 1940 && wealth_per_capita >= 500.0 {
         return RetailFormatSpec {
-            building_type: CommercialBuildingType::supermarket,
+            building_type: CommercialBuildingType::Supermarket,
             min_development: 0.50,
             min_year: 1940,
             attractiveness: 1.15,

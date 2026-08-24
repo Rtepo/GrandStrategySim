@@ -11,7 +11,7 @@
 #![allow(missing_docs)]
 
 use crate::entities::Company;
-use crate::entities::legal_form::{LegalForm, NonProfitData};
+use crate::entities::legal_form::LegalForm;
 use crate::registries::enums::Sector;
 use crate::state::Country;
 
@@ -92,7 +92,7 @@ pub fn process_charity_fundraising(
 
         for region in &mut country.regions {
             // Rural classes
-            for (_, demographics) in &mut region.class_demographics.rural_classes {
+            for demographics in region.class_demographics.rural_classes.values_mut() {
                 if demographics.population <= 0 {
                     continue;
                 }
@@ -123,7 +123,7 @@ pub fn process_charity_fundraising(
                 }
             }
             // Urban classes
-            for (_, demographics) in &mut region.class_demographics.urban_classes {
+            for demographics in region.class_demographics.urban_classes.values_mut() {
                 if demographics.population <= 0 {
                     continue;
                 }
@@ -137,8 +137,8 @@ pub fn process_charity_fundraising(
                         demographics.savings -= donation;
                         total_collected += donation;
                     }
-                } else if is_religion {
-                    if !charity_religion.is_empty()
+                } else if is_religion
+                    && !charity_religion.is_empty()
                         && !demographics.religion.is_empty()
                         && demographics.religion == charity_religion
                         && demographics.savings > 0.0
@@ -149,7 +149,6 @@ pub fn process_charity_fundraising(
                         demographics.savings -= donation;
                         total_collected += donation;
                     }
-                }
             }
         }
 
@@ -239,14 +238,13 @@ pub fn process_charity_distribution(
                 if per_capita >= avg_wage {
                     continue;
                 }
-                if is_religion {
-                    if charity_religion.is_empty()
+                if is_religion
+                    && (charity_religion.is_empty()
                         || demographics.religion.is_empty()
-                        || demographics.religion != charity_religion
+                        || demographics.religion != charity_religion)
                     {
                         continue;
                     }
-                }
                 eligible.push((r_idx, true, class_key.clone(), demographics.population));
                 total_eligible_pop += demographics.population;
             }
@@ -258,14 +256,13 @@ pub fn process_charity_distribution(
                 if per_capita >= avg_wage {
                     continue;
                 }
-                if is_religion {
-                    if charity_religion.is_empty()
+                if is_religion
+                    && (charity_religion.is_empty()
                         || demographics.religion.is_empty()
-                        || demographics.religion != charity_religion
+                        || demographics.religion != charity_religion)
                     {
                         continue;
                     }
-                }
                 eligible.push((r_idx, false, class_key.clone(), demographics.population));
                 total_eligible_pop += demographics.population;
             }
@@ -312,9 +309,9 @@ mod tests {
     use crate::entities::Company;
     use crate::registries::enums::Sector;
     use crate::society::geography::{
-        ClassDemographics, RegionalClassDemographics, Region,
+        ClassDemographics, Region,
     };
-    use crate::state::{Country, MacroData, Treasury};
+    use crate::state::Country;
 
     fn make_charity(sector: Sector, religion: &str, cash: f64) -> Company {
         let mut c = Company::default();

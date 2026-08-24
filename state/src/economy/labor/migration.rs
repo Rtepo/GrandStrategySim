@@ -22,7 +22,7 @@
 use crate::economy::legal_status::LegalStatus;
 use crate::entities::Building;
 use crate::politics::laws::{
-    BorderState, DeportationPolicy, MigrationFlow, MigrationLaw, MigrationReason,
+    DeportationPolicy, MigrationFlow, MigrationReason,
 };
 use crate::registries::enums::Commodity;
 use crate::state::macro_data::ImmigrantCohort;
@@ -85,7 +85,7 @@ pub fn sum_border_enforcement_capacity(buildings: &[Building]) -> f64 {
 /// * Higher pressure → more people want to leave.
 pub fn calculate_migration_pressure(
     country: &Country,
-    buildings: &[Building],
+    _buildings: &[Building],
     disaster_count: u32,
 ) -> f64 {
     let population = country.budget.population as f64;
@@ -211,7 +211,7 @@ pub fn collect_migration_flows(
 ) -> Vec<MigrationFlow> {
     // Phase 67: Helper to check if two countries share a Schengen free movement treaty.
     let has_schengen = |a: &str, b: &str| -> bool {
-        treaty_registry.map_or(false, |reg| {
+        treaty_registry.is_some_and(|reg| {
             reg.has_active_clause_between(a, b, &crate::international::treaties::TreatyClause::SchengenFreeMovement)
         })
     };
@@ -396,7 +396,7 @@ pub fn apply_migration_flows(
         *origin_outflows.entry(flow.origin_country.clone()).or_insert(0) += flow.count as u64;
         dest_inflows
             .entry(flow.dest_country.clone())
-            .or_insert_with(Vec::new)
+            .or_default()
             .push((flow.count as u64, &flow.reason));
     }
 
@@ -461,7 +461,7 @@ pub fn apply_migration_flows(
                 });
 
             // Update border state if present
-            if let Some(border_state) = &mut country.politics.border_state {
+            if let Some(_border_state) = &mut country.politics.border_state {
                 for (count, reason) in inflows {
                     if matches!(reason, MigrationReason::Unrest)
                         || matches!(reason, MigrationReason::Persecution)
@@ -554,6 +554,7 @@ fn get_nested_f64(map: &Map<String, serde_json::Value>, key1: &str, key2: &str) 
 mod tests {
     use super::*;
     use crate::entities::Building;
+    use crate::politics::MigrationLaw;
     use crate::state::Country;
     use crate::society::geography::{Region, RegionalClassDemographics, ClassDemographics};
 

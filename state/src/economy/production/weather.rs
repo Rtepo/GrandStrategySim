@@ -6,7 +6,7 @@
 
 #![allow(missing_docs)]
 
-use crate::society::geography::{ClimateProfile, Region};
+use crate::society::geography::ClimateProfile;
 use crate::state::{Country, Season};
 use rand::Rng;
 use serde::{Deserialize, Serialize};

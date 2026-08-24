@@ -269,7 +269,7 @@ impl ForexMarket {
         order: ForexOrder,
         country_id: &str,
         domestic_currency: &str,
-        currencies: &HashMap<String, crate::state::Currency>,
+        _currencies: &HashMap<String, crate::state::Currency>,
         brokerage_accounts: &mut BTreeMap<String, &mut crate::securities::BrokerageAccount>,
         current_turn: u32,
     ) -> Result<ForexTrade, String> {

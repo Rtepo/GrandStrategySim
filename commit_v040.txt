@@ -1,0 +1,76 @@
+Release v0.4.0: The Municipal Epic - Waste Management and Circular Economy
+
+Phase 84: The Waste Epic - Solid Waste Management and Circular Economy
+
+Completes the Urban and Municipal Infrastructure block (Electricity, Thermal,
+Sanitation, Waste). This release adds a full closed-loop solid waste
+management system with mass conservation, circular economy recycling,
+waste-to-energy with toxic ash residuals, and geographically-constrained
+illegal dumping.
+
+Foundation:
+- 9 new waste commodities (MixedWaste, BioWaste, MetalWaste, GlassWaste,
+  PlasticWaste, ElectronicWaste, TextileWaste, ConstructionWaste,
+  BulkyWaste, HazardousWaste)
+- B2B exclusion: only 5 sorted secondary-material fractions are tradeable;
+  disposal-only trash streams flow through WasteGridState logistics only
+- Typed LandfillState with hard capacity rejection (LOGISTICAL BOUND 2)
+- DumpingVector enum with geographic selection (river > forest > street)
+- WasteGridState on Region with collection routes and uncollected tracking
+- Waste pollution fields on LocalPollutionState
+- WasteUtility municipal service type
+- active_waste_disposal on HousingBuilding and CommercialBuilding
+- Waste construction project types (Landfill, SeparationPlant, etc.)
+
+Waste Plant Registries (Rule 13 - 13 plant types with full matrices):
+- 3 landfill tiers (uncontrolled, controlled, modern with HDPE/bioreactor)
+- 2 separation plant tiers (manual sorting, AI-assisted optical/NIR)
+- 5 recycling facilities (metal, glass, plastic, electronic, textile)
+- 2 WtE plant tiers (mass burn, advanced CHP with syngas)
+- Civic Amenity Site (PSZOK) for heavy waste drop-off
+- Shared waste_automation and waste_organization registries
+
+Critical Corrections Implemented:
+- FIX 1: Trash streams excluded from B2B market (no negative-price clearing)
+- FIX 2: WtE outputs HazardousWaste ash (0.20-0.30 per input unit)
+- FIX 3: 100% mass conservation in all recycling/separation (residual waste)
+- FIX 4: Dual billing - curbside fees vs PSZOK gate fees (cost-plus, wage-scaled)
+- REFINEMENT 1: Cumulative rural track (Primitive to Homesteading to Scavenging)
+- REFINEMENT 2: Geographic dumping vectors (river/forest/street with distinct impacts)
+- LOGISTICAL BOUND 1: PSZOK requires FreightCapacity (illegal dumping fallback)
+- LOGISTICAL BOUND 2: Landfills physically reject waste at zero capacity
+- Fertilizer sink: composting yields Fertilizers with subsistence food fallback
+
+Turn Processing (W.1 to W.10):
+- Waste generation from population and consumption
+- Standalone disposal with geographic dumping vector impacts
+- Centralized collection with pro-rata capacity allocation
+- Separation, Recycling, WtE, Landfill pipeline
+- Ash routing to landfill (mass not destroyed)
+- Surface water degradation from river dumping
+- Forestry ecological health degradation from forest dumping
+- Groundwater contamination from landfill leachate
+- Uncollected waste biohazard crisis on landfill rejection
+
+Municipal AI:
+- WasteInvestmentPlan with crisis detection and ROI evaluation
+- Integrated into unified municipal budget allocation
+- InfrastructureDomain::Waste added to crisis override system
+
+Tech Tree (waste_001 through waste_006):
+- Basic Waste Management (1880), Municipal Collection (1890),
+  Waste Separation (1950), Modern Landfill and Recycling (1970),
+  Advanced Recycling (1990), Circular Economy (2000)
+
+Snapshots and Frontend:
+- WasteGridSnapshot, LandfillSnapshot, WastePollutionSnapshot,
+  RecyclingSnapshot DTOs with role-gating (Rule 11)
+- Waste tab added to RegionsPage.tsx
+- TypeScript types generated via ts_rs
+
+Tests: 144 new tests in waste_epic_test.rs covering all 25 test sections.
+Total: 1575+ tests passing across all test binaries.
+
+Generated with [Devin](https://devin.ai)
+
+Co-Authored-By: Devin <158243242+devin-ai-integration[bot]@users.noreply.github.com>
