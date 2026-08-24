@@ -8,6 +8,7 @@
 
 use crate::economy::production::weather::WeatherModifier;
 use crate::energy::types::*;
+use crate::registries::enums::Commodity;
 
 /// Calculate the weather-adjusted output multiplier for a power plant.
 ///
@@ -226,4 +227,131 @@ pub fn available_plant_types(
     }
 
     types
+}
+
+/// Phase 81 Wave 2: Compute the marginal cost per MWh for a power plant.
+///
+/// Marginal cost = (fuel_price_per_unit * fuel_units_per_mwh) / thermal_efficiency
+/// For zero-marginal-cost plants (solar, wind, hydro, geothermal, nuclear),
+/// returns `average_wage * 0.0001` as a tie-breaker (not a magic number —
+/// it's a structurally negligible bid that ensures deterministic dispatch ordering).
+/// For storage plants, returns the round-trip cost (charge_cost / storage_efficiency).
+///
+/// # Arguments
+/// * `metadata` - Power plant metadata (type, capacity, efficiency)
+/// * `fuel_prices` - Map of Commodity → current market price per unit
+/// * `average_wage` - Current average wage (for zero-marginal-cost tie-breaker)
+///
+/// # Returns
+/// Marginal cost per MWh.
+pub fn compute_marginal_cost(
+    metadata: &PowerPlantMetadata,
+    fuel_prices: &std::collections::HashMap<Commodity, f64>,
+    average_wage: f64,
+) -> f64 {
+    let zero_marginal = average_wage * 0.0001;
+    let storage_marginal = average_wage * 0.001;
+
+    match metadata.plant_type {
+        // Renewables: zero fuel cost, negligible tie-breaker bid.
+        PowerPlantType::Solar | PowerPlantType::Wind | PowerPlantType::Hydro => zero_marginal,
+
+        // Nuclear and Geothermal: very low fuel cost per MWh, treated as
+        // zero-marginal-cost with the same tie-breaker for dispatch ordering.
+        PowerPlantType::Nuclear | PowerPlantType::Geothermal => zero_marginal,
+
+        // Storage plants: low marginal cost, but higher than renewables since
+        // they need to recover charge cost (round-trip efficiency losses).
+        PowerPlantType::PumpedStorage | PowerPlantType::BatteryStorage => storage_marginal,
+
+        // Fuel-burning plants: marginal cost = fuel_price * fuel_units_per_mwh / efficiency.
+        PowerPlantType::CoalFired => {
+            let fuel_price = fuel_prices
+                .get(&Commodity::HardCoal)
+                .copied()
+                .unwrap_or(average_wage * 0.01);
+            let efficiency = default_thermal_efficiency(metadata);
+            let fuel_units_per_mwh = fuel_units_per_mwh(Commodity::HardCoal, efficiency);
+            fuel_price * fuel_units_per_mwh / efficiency
+        }
+        PowerPlantType::LigniteFired => {
+            let fuel_price = fuel_prices
+                .get(&Commodity::BrownCoal)
+                .copied()
+                .unwrap_or(average_wage * 0.01);
+            let efficiency = default_thermal_efficiency(metadata);
+            let fuel_units_per_mwh = fuel_units_per_mwh(Commodity::BrownCoal, efficiency);
+            fuel_price * fuel_units_per_mwh / efficiency
+        }
+        PowerPlantType::OilGas => {
+            // OilGas plants can burn Oil or NaturalGas — use whichever is cheaper.
+            let oil_price = fuel_prices
+                .get(&Commodity::Oil)
+                .copied()
+                .unwrap_or(average_wage * 0.01);
+            let gas_price = fuel_prices
+                .get(&Commodity::NaturalGas)
+                .copied()
+                .unwrap_or(average_wage * 0.01);
+            let efficiency = default_thermal_efficiency(metadata);
+            let oil_units = fuel_units_per_mwh(Commodity::Oil, efficiency);
+            let gas_units = fuel_units_per_mwh(Commodity::NaturalGas, efficiency);
+            let oil_cost = oil_price * oil_units / efficiency;
+            let gas_cost = gas_price * gas_units / efficiency;
+            oil_cost.min(gas_cost)
+        }
+        PowerPlantType::BiomassFired => {
+            // Biomass plants burn Timber, Planks, or Peat — use Timber as the
+            // primary fuel (most common in early-game biomass plants).
+            let fuel_price = fuel_prices
+                .get(&Commodity::Timber)
+                .copied()
+                .unwrap_or(average_wage * 0.01);
+            let efficiency = default_thermal_efficiency(metadata);
+            let fuel_units_per_mwh = fuel_units_per_mwh(Commodity::Timber, efficiency);
+            fuel_price * fuel_units_per_mwh / efficiency
+        }
+        PowerPlantType::BiogasPlant => {
+            // Biogas plants use CoalGas as the output fuel — marginal cost is
+            // based on the CoalGas market price if available, otherwise fallback.
+            let fuel_price = fuel_prices
+                .get(&Commodity::CoalGas)
+                .copied()
+                .unwrap_or(average_wage * 0.01);
+            let efficiency = default_thermal_efficiency(metadata);
+            let fuel_units_per_mwh = fuel_units_per_mwh(Commodity::CoalGas, efficiency);
+            fuel_price * fuel_units_per_mwh / efficiency
+        }
+    }
+}
+
+/// Default thermal efficiency for a plant. Uses a physically realistic default
+/// of 0.38 if the metadata doesn't store an explicit efficiency field.
+///
+/// `PowerPlantMetadata` does not currently have a `thermal_efficiency` field,
+/// so this returns the default. When the struct is extended in the future,
+/// this function can read `metadata.thermal_efficiency` instead.
+fn default_thermal_efficiency(_metadata: &PowerPlantMetadata) -> f64 {
+    0.38
+}
+
+/// Compute the fuel units required to produce 1 MWh of electricity.
+///
+/// Formula: `fuel_units_per_mwh = 3600 / (calorific_value_mj_per_unit * 1000 * efficiency)`
+///
+/// Where:
+/// - 3600 MJ = 1 MWh (thermal energy equivalent)
+/// - `calorific_value_mj_per_unit` is the energy density per unit of fuel
+/// - `efficiency` is the thermal conversion efficiency (0.0-1.0)
+///
+/// This is physically derived, not a magic number.
+fn fuel_units_per_mwh(fuel: Commodity, efficiency: f64) -> f64 {
+    let calorific = fuel.calorific_value_mj_per_unit();
+    if calorific <= 0.0 || efficiency <= 0.0 {
+        return 0.0;
+    }
+    // 1 MWh = 3600 MJ of electrical energy.
+    // Thermal energy needed = 3600 / efficiency MJ.
+    // Fuel units = thermal_energy / calorific_value.
+    3600.0 / (calorific * efficiency)
 }

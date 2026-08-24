@@ -49,6 +49,39 @@ pub enum ConstructionProjectType {
     NationalLibrary,
     /// Phase 39: Transport depot (Transport ministry).
     TransportDepot,
+    /// Phase 82: Thermal grid pipe network construction (district heating pipes).
+    ThermalGridPipe,
+    /// Phase 82: Thermal heating plant construction (dedicated heat generation).
+    ThermalHeatingPlant,
+    /// Phase 82: CHP (Combined Heat and Power) retrofit for existing power plants.
+    CHPRetrofit,
+    /// Phase 83: Water main pipe network construction (potable distribution).
+    /// Distinct from `UtilityNetwork` — dedicated pressurized clean-water mains.
+    WaterMainPipe,
+    /// Phase 83: Sewer main pipe network construction (blackwater collection).
+    /// Distinct from `UtilityNetwork` — dedicated gravity-fed sewer mains.
+    SewerMainPipe,
+    /// Phase 83: Water treatment plant construction (upgrades environmental
+    /// water quality to potable, does NOT create water mass).
+    WaterTreatmentPlant,
+    /// Phase 83: Wastewater treatment plant construction (filters blackwater,
+    /// produces `Commodity::Fertilizers`, returns healed water to surface reserves).
+    WastewaterTreatmentPlant,
+    /// Phase 84: Landfill construction (controlled or modern). Stores waste
+    /// with liner/leachate/gas capture systems.
+    Landfill,
+    /// Phase 84: Waste separation plant construction (sorts MixedWaste into
+    /// recyclable fractions + residual refuse).
+    WasteSeparationPlant,
+    /// Phase 84: Recycling facility construction (converts sorted waste
+    /// fractions back into virgin commodities + residual).
+    RecyclingFacility,
+    /// Phase 84: Waste-to-Energy plant construction (incinerates residual waste
+    /// → Energy + Heat + HazardousWaste ash).
+    WasteToEnergyPlant,
+    /// Phase 84: Civic Amenity Site (PSZOK) construction — drop-off for
+    /// BulkyWaste, ConstructionWaste, HazardousWaste. Requires FreightCapacity.
+    CivicAmenitySite,
 }
 
 /// Multi-turn construction project tied to a physical building site.

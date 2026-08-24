@@ -10,7 +10,6 @@ use crate::society::geography::Region;
 use crate::society::housing::{CommercialBuilding, HousingBuilding};
 use crate::state::Season;
 use crate::utilities::demand::UtilityDemand;
-use crate::utilities::waste::LandfillData;
 
 use std::collections::HashMap;
 
@@ -38,7 +37,7 @@ pub struct WasteTurnResult {
 /// * `season` - Current season.
 ///
 /// # Rules
-/// * Landfill buildings are identified by `Sector::WasteManagement` and `landfill_data.is_some()`.
+/// * Landfill buildings are identified by `Sector::WasteManagement` and `landfill_state.is_some()`.
 /// * Operating costs deducted from owning `Company.available_cash`.
 /// * Recovered commodities added to `Building.inventory`.
 /// * Overflow increases `health_degradation_rate` on `ClassDemographics` (future).
@@ -86,7 +85,7 @@ pub fn process_waste_turn(
         for (i, building) in buildings.iter().enumerate() {
             if building.sector == Sector::WasteManagement
                 && building.region_id == region_id
-                && building.landfill_data.is_some()
+                && building.landfill_state.is_some()
             {
                 landfill_indices.push(i);
             }
@@ -108,28 +107,23 @@ pub fn process_waste_turn(
 
         for &idx in &landfill_indices {
             let building = &mut buildings[idx];
-            let landfill_data = building.landfill_data.as_mut().unwrap();
+            let landfill_state = building.landfill_state.as_mut().unwrap();
 
-            // Check capacity
-            if !landfill_data.has_capacity() {
+            // LOGISTICAL BOUND 2: Hard capacity stop — accept_waste returns 0 if full
+            let mut waste_input = std::collections::HashMap::new();
+            waste_input.insert(crate::registries::enums::Commodity::MixedWaste, waste_per_landfill);
+            let accepted = landfill_state.accept_waste(&waste_input);
+            if accepted <= 0.0 {
                 overflow_total += waste_per_landfill;
                 continue;
             }
-
-            // Process waste
-            let waste_result = landfill_data.process_waste(waste_per_landfill);
-            processed_total += waste_result.waste_destroyed;
-            pollution_total += waste_result.pollution_generated;
-
-            // Merge recovered commodities into Building.inventory
-            for (commodity_name, qty) in &waste_result.commodities_recovered {
-                *all_recovered.entry(commodity_name.clone()).or_insert(0.0) += *qty;
-                // Also store in building inventory (future: map to Commodity enum)
-            }
+            processed_total += accepted;
+            // Pollution from landfill (leachate leakage)
+            pollution_total += landfill_state.leachate_leakage();
 
             // Deduct operating cost from owning company, credit a LocalServices supplier in the same region
             let owner_id = building.owner_id.clone();
-            let op_cost = landfill_data.operating_cost;
+            let op_cost = 2000.0; // Base operating cost per turn
             let debited = debit_company_by_id(companies, &owner_id, op_cost);
             if debited > 0.0 {
                 let supplier_id = companies

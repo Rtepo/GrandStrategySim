@@ -243,7 +243,15 @@ impl Sector {
             Sector::PublicAdministration => vec![Commodity::OfficeMachinery],
             Sector::Banking => vec![Commodity::OfficeMachinery],
             Sector::MediaAndEntertainment => vec![Commodity::ReligiousTexts],
-            Sector::WasteManagement => vec![],
+            Sector::WasteManagement => vec![
+                // Phase 84: Only B2B-tradeable sorted secondary raw materials.
+                // Trash streams (MixedWaste, BioWaste, ConstructionWaste,
+                // BulkyWaste, HazardousWaste) are B2B-EXCLUDED and flow
+                // through WasteGridState logistical transfers only.
+                Commodity::MetalWaste, Commodity::GlassWaste,
+                Commodity::PlasticWaste, Commodity::ElectronicWaste,
+                Commodity::TextileWaste,
+            ],
             Sector::Hospitality => vec![],
             Sector::NGO => vec![],
             Sector::Religion => vec![Commodity::ReligiousTexts],
@@ -555,10 +563,50 @@ pub enum Commodity {
     CoolingTower,
     /// "photovoltaic_panels" — Phase 81: Consumer good for microgeneration (Wave 2).
     PhotovoltaicPanels,
-    /// "insulation" — Phase 81: Consumer good for energy efficiency (Wave 2).
-    Insulation,
-    /// "led_lighting" — Phase 81: Consumer good for energy efficiency (Wave 2).
-    LedLighting,
+    /// "coal_gas" — Phase 81 Wave 2: City gas from coal carbonization.
+    /// Historically the dominant lighting/heating fuel before electricity.
+    /// Calorific value ~17 MJ/m³. Produced by Coal Carbonization, consumed
+    /// by Gas Mantle lighting and early gas heating methods.
+    CoalGas,
+    // ════════════════════════════════════════════════════════════════════════
+    // Phase 84: Waste commodities — solid waste management & circular economy.
+    // Mass-conserved residual streams derived from consumption/production.
+    // B2B-TRADEABLE (sorted secondary raw materials): MetalWaste, GlassWaste,
+    //   PlasticWaste, ElectronicWaste, TextileWaste.
+    // B2B-EXCLUDED (logistical transfer via WasteGridState only): MixedWaste,
+    //   BioWaste, ConstructionWaste, BulkyWaste, HazardousWaste.
+    // ════════════════════════════════════════════════════════════════════════
+    /// "mixed_waste" — Phase 84: Default unsegregated municipal solid waste.
+    /// B2B-EXCLUDED — flows through WasteGridState logistical transfers only.
+    MixedWaste,
+    /// "bio_waste" — Phase 84: From food/agricultural consumption. Compostable.
+    /// B2B-EXCLUDED — flows through WasteGridState logistical transfers only.
+    BioWaste,
+    /// "metal_waste" — Phase 84: From durables, machinery, consumer goods.
+    /// B2B-TRADEABLE — sorted secondary raw material for recycling facilities.
+    MetalWaste,
+    /// "glass_waste" — Phase 84: From beverages, packaging, construction.
+    /// B2B-TRADEABLE — sorted secondary raw material for recycling facilities.
+    GlassWaste,
+    /// "plastic_waste" — Phase 84: From chemicals, packaging, light industry.
+    /// B2B-TRADEABLE — sorted secondary raw material for recycling facilities.
+    PlasticWaste,
+    /// "electronic_waste" — Phase 84: From electronics, appliances, automation.
+    /// B2B-TRADEABLE — sorted secondary raw material for recycling facilities.
+    ElectronicWaste,
+    /// "bulky_waste" — Phase 84: From furniture, housing goods. PSZOK drop-off.
+    /// B2B-EXCLUDED — flows through WasteGridState logistical transfers only.
+    BulkyWaste,
+    /// "textile_waste" — Phase 84: From clothing, textiles.
+    /// B2B-TRADEABLE — sorted secondary raw material for recycling facilities.
+    TextileWaste,
+    /// "construction_waste" — Phase 84: Generated during ConstructionProject/
+    /// UpgradeProject execution. PSZOK drop-off (requires FreightCapacity).
+    /// B2B-EXCLUDED — flows through WasteGridState logistical transfers only.
+    ConstructionWaste,
+    /// "hazardous_waste" — Phase 84: From heavy chemicals, medical, WtE ash.
+    /// B2B-EXCLUDED — flows through WasteGridState logistical transfers only.
+    HazardousWaste,
 }
 
 impl std::fmt::Display for Commodity {
@@ -729,6 +777,7 @@ impl Commodity {
     /// - Oil (crude): ~42 MJ/kg
     /// - NaturalGas (methane): ~55 MJ/kg
     /// - Fuels (refined diesel/gasoline): ~34 MJ/kg
+    /// - CoalGas (coal carbonization gas): ~17 MJ/m³
     /// - Uranium (enriched, simplified): ~80,000 MJ/kg
     pub fn calorific_value_mj_per_unit(&self) -> f64 {
         match self {
@@ -740,6 +789,7 @@ impl Commodity {
             Commodity::Oil => 42.0,
             Commodity::NaturalGas => 55.0,
             Commodity::Fuels => 34.0,
+            Commodity::CoalGas => 17.0,
             Commodity::Uranium => 80_000.0,
             _ => 0.0,
         }
@@ -772,7 +822,7 @@ impl Commodity {
     }
 
     /// Returns all tradeable commodity variants in canonical (English) JSON order.
-    pub fn all() -> [Commodity; 143] {
+    pub fn all() -> [Commodity; 142] {
         [
             Commodity::Agd,
             Commodity::Aluminum,
@@ -915,8 +965,7 @@ impl Commodity {
             Commodity::DraftAnimals,
             Commodity::CoolingTower,
             Commodity::PhotovoltaicPanels,
-            Commodity::Insulation,
-            Commodity::LedLighting,
+            Commodity::CoalGas,
         ]
     }
 }
@@ -1067,8 +1116,7 @@ impl TryFrom<&str> for Commodity {
             "draft_animals" => Ok(Commodity::DraftAnimals),
             "cooling_tower" => Ok(Commodity::CoolingTower),
             "photovoltaic_panels" => Ok(Commodity::PhotovoltaicPanels),
-            "insulation" => Ok(Commodity::Insulation),
-            "led_lighting" => Ok(Commodity::LedLighting),
+            "coal_gas" => Ok(Commodity::CoalGas),
             _ => Err(format!("unknown commodity: {s}")),
         }
     }

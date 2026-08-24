@@ -202,6 +202,95 @@ pub struct PowerGridState {
     /// Phase 81: Region ID → maximum production capacity (MW).
     #[serde(default)]
     pub region_max_capacity_mw: HashMap<String, f64>,
+    /// Phase 81 Wave 2: Spot market state (merit-order clearing results).
+    #[serde(default)]
+    pub spot_market: SpotMarketState,
+}
+
+/// Phase 81 Wave 2: Spot market state — merit-order clearing results per turn.
+///
+/// Stores per-plant marginal costs, per-region clearing prices, the dispatch
+/// order (merit order stack), and per-plant revenue distribution. All values
+/// are recomputed each turn during `distribute_grid_power()`.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct SpotMarketState {
+    /// Plant building ID → marginal cost per MWh for the current turn.
+    #[serde(default)]
+    pub marginal_costs: std::collections::BTreeMap<String, f64>,
+    /// Region ID → clearing price per MWh (the marginal plant's cost).
+    #[serde(default)]
+    pub clearing_prices: std::collections::BTreeMap<String, f64>,
+    /// Plant building IDs in merit order (cheapest first). Deterministic.
+    #[serde(default)]
+    pub dispatch_order: Vec<String>,
+    /// Plant building ID → revenue for the current turn (MW * clearing price).
+    #[serde(default)]
+    pub revenue_distribution: std::collections::BTreeMap<String, f64>,
+    /// Plant building ID → dispatched output (MW) for the current turn.
+    #[serde(default)]
+    pub dispatched_mw: std::collections::BTreeMap<String, f64>,
+}
+
+/// Phase 81 Wave 2: PPA contract status.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum PpaStatus {
+    /// Contract is active and supplying energy.
+    #[default]
+    Active,
+    /// Contract has reached its end turn.
+    Expired,
+    /// Contract was terminated early by one party (with break fee).
+    Terminated,
+}
+
+/// Phase 81 Wave 2: Power Purchase Agreement — bilateral long-term contract
+/// between a generator (seller) and an industrial consumer (buyer) at a
+/// fixed price, hedging against spot market volatility.
+///
+/// # Price Discovery
+/// The fixed price is set at negotiation time using exact formulas (Flaw 3):
+/// - `seller_ask = marginal_cost_mwh * 1.15`
+/// - `buyer_bid = moving_average_vwap(Commodity::Energy)`
+/// - `execution_price = (seller_ask + buyer_bid) / 2.0` when `seller_ask <= buyer_bid`
+///
+/// # Lifecycle
+/// 1. **Birth**: Negotiated during the corporate strategy phase.
+/// 2. **Life**: Active for `start_turn..=end_turn`. Either party can terminate
+///    early with a 20% break fee on remaining contract value.
+/// 3. **Death**: Expires automatically at `end_turn`. No immortal contracts.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct PowerPurchaseAgreement {
+    /// Unique PPA ID.
+    pub id: String,
+    /// Seller company ID (power plant owner).
+    pub seller_company_id: String,
+    /// Buyer company ID (industrial consumer).
+    pub buyer_company_id: String,
+    /// Specific plant building supplying energy.
+    pub plant_building_id: String,
+    /// Negotiated fixed price per MWh (see Flaw 3 formulas).
+    pub fixed_price_per_mwh: f64,
+    /// Allocated capacity in MW (pro-rata by bid quantity).
+    pub contracted_mw: f64,
+    /// Turn the PPA starts.
+    pub start_turn: u32,
+    /// Turn the PPA ends (inclusive). Fixed-term: 20-120 turns.
+    pub end_turn: u32,
+    /// Current contract status.
+    pub status: PpaStatus,
+}
+
+/// Phase 81 Wave 2: PPA registry — all active and expired PPAs for a country.
+/// Stored on `Country`.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct PpaRegistry {
+    /// Active PPAs currently supplying energy.
+    #[serde(default)]
+    pub active_ppas: Vec<PowerPurchaseAgreement>,
+    /// Expired or terminated PPAs (kept for historical record).
+    #[serde(default)]
+    pub expired_ppas: Vec<PowerPurchaseAgreement>,
 }
 
 /// Load shedding tier, escalating from minor cuts to total blackout.

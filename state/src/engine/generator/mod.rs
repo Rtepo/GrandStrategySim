@@ -378,6 +378,7 @@ fn generate_country(
         global_reputation: crate::international::reputation::GlobalReputation::default(),
         geopolitical_doctrine: crate::international::ai_doctrines::GeopoliticalDoctrine::default(),
         power_grid_state: crate::energy::PowerGridState::default(),
+        ppa_registry: crate::energy::types::PpaRegistry::default(),
     };
     country.macro_indicators.currency = currency.prefix.clone();
 
@@ -1161,7 +1162,7 @@ fn sector_share(gdp_share: f64, vulnerability: f64, _tech_limit: usize) -> Secto
             automation: "Tradycyjne".to_string(),
             production: "Tradycyjne".to_string(),
             organization: "Tradycyjne".to_string(),
-            extra: Map::new(),
+            ..Default::default()
         }),
         extra: Map::new(),
     }

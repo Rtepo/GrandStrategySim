@@ -10,12 +10,14 @@
 #![allow(missing_docs)]
 
 use crate::economy::production::weather::get_region_weather_modifier;
+use crate::economy::production::weather::WeatherState;
 use crate::entities::Building;
 use crate::registries::enums::{Commodity, Sector};
 use crate::society::geography::{EdgeType, NodeType, Region};
 use crate::society::housing::{CommercialBuilding, HousingBuilding};
 use crate::state::{Country, Season};
 use crate::energy::types::*;
+use crate::energy::generation::{compute_marginal_cost, weather_output_multiplier};
 
 use rand::Rng;
 use std::collections::HashMap;
@@ -240,8 +242,6 @@ fn collect_regional_supply_demand(
     HashMap<String, f64>,
     HashMap<String, f64>,
 ) {
-    use crate::energy::generation::weather_output_multiplier;
-
     let mut supply_mw: HashMap<String, f64> = HashMap::new();
     let mut demand_mw: HashMap<String, f64> = HashMap::new();
     let mut max_capacity_mw: HashMap<String, f64> = HashMap::new();
@@ -447,11 +447,22 @@ pub fn distribute_grid_power(
     housing_buildings: &[HousingBuilding],
     commercial_buildings: &[CommercialBuilding],
     _season: Season,
+    fuel_prices: &HashMap<Commodity, f64>,
 ) -> GridDistributionResult {
     let mut result = GridDistributionResult::default();
 
     // Extract power_grid_state from country to avoid double mutable borrow.
     let mut grid = std::mem::take(&mut country.power_grid_state);
+
+    // Phase 81 Wave 2: Capture average_wage for merit-order spot market clearing.
+    let average_wage = country.macro_indicators.average_wage.max(1.0);
+
+    // Phase 81 Wave 2: Clear previous turn's spot market state.
+    grid.spot_market.marginal_costs.clear();
+    grid.spot_market.clearing_prices.clear();
+    grid.spot_market.dispatch_order.clear();
+    grid.spot_market.revenue_distribution.clear();
+    grid.spot_market.dispatched_mw.clear();
 
     // Step 1-2: Collect regional supply, demand, and max capacity.
     // Apply weather modifiers to power plant output.
@@ -606,10 +617,40 @@ pub fn distribute_grid_power(
             );
         }
 
-        // Calculate spot price.
-        let spot_price = calculate_spot_price(effective_supply, demand, overprod_tier, shed_tier);
+        // Phase 81 Wave 2: Calculate spot price using merit-order dispatch.
+        // Build the merit order stack for this region and clear the spot market.
+        let merit_stack = build_merit_order_stack(
+            buildings,
+            region_id,
+            fuel_prices,
+            average_wage,
+            &weather_state,
+        );
+        let (spot_price, dispatch_results) =
+            clear_spot_market(&merit_stack, demand, average_wage);
+
         grid.spot_prices.insert(region_id.clone(), spot_price);
         result.region_spot_prices.insert(region_id.clone(), spot_price);
+
+        // Phase 81 Wave 2: Store merit-order results in spot_market state.
+        grid.spot_market
+            .clearing_prices
+            .insert(region_id.clone(), spot_price);
+        for (plant_id, marginal_cost, _) in &merit_stack {
+            grid.spot_market
+                .marginal_costs
+                .insert(plant_id.clone(), *marginal_cost);
+            grid.spot_market.dispatch_order.push(plant_id.clone());
+        }
+        for (plant_id, dispatched_mw) in &dispatch_results {
+            grid.spot_market
+                .dispatched_mw
+                .insert(plant_id.clone(), *dispatched_mw);
+            let revenue = dispatched_mw * spot_price;
+            grid.spot_market
+                .revenue_distribution
+                .insert(plant_id.clone(), revenue);
+        }
 
         // Record final supply/demand.
         result.region_supply_mw.insert(region_id.clone(), effective_supply);
@@ -769,11 +810,159 @@ fn apply_grid_damage(region_id: &str, surplus_ratio: f64, grid: &mut PowerGridSt
     }
 }
 
+/// Phase 81 Wave 2: Build the merit order stack for a region.
+///
+/// Collects all active plants in the region, computes the marginal cost for each
+/// using `compute_marginal_cost()`, applies weather-adjusted available capacity,
+/// and sorts by `(marginal_cost, plant_id)` ascending for deterministic dispatch.
+///
+/// Returns a `Vec` of `(plant_building_id, marginal_cost, available_mw)` sorted
+/// cheapest first.
+fn build_merit_order_stack(
+    buildings: &[Building],
+    region_id: &str,
+    fuel_prices: &HashMap<Commodity, f64>,
+    average_wage: f64,
+    weather_state: &WeatherState,
+) -> Vec<(String, f64, f64)> {
+    let mut stack: Vec<(String, f64, f64)> = Vec::new();
+
+    for building in buildings {
+        if building.sector != Sector::Energy {
+            continue;
+        }
+        if building.region_id != region_id {
+            continue;
+        }
+
+        let metadata = match get_plant_metadata(building) {
+            Some(m) => m,
+            None => continue,
+        };
+
+        // Compute marginal cost for this plant.
+        let marginal_cost = compute_marginal_cost(&metadata, fuel_prices, average_wage);
+
+        // Compute weather-adjusted available capacity.
+        let weather = get_region_weather_modifier(weather_state, region_id);
+        let weather_mult = weather_output_multiplier(
+            metadata.plant_type,
+            metadata.cooling_type,
+            metadata.has_cooling_upgrade,
+            &weather,
+        );
+
+        // Available MW = nameplate * weather_multiplier, but not more than
+        // the energy currently in inventory (actual produced output).
+        let energy_in_inventory = building
+            .inventory
+            .get(&Commodity::Energy)
+            .copied()
+            .unwrap_or(0.0);
+        let nameplate_adjusted = metadata.nameplate_capacity_mw * weather_mult;
+        let available_mw = nameplate_adjusted.min(energy_in_inventory.max(0.0));
+
+        if available_mw > 0.0 {
+            stack.push((building.id.clone(), marginal_cost, available_mw));
+        }
+    }
+
+    // Sort by (marginal_cost, plant_id) for deterministic dispatch ordering.
+    stack.sort_by(|a, b| {
+        a.1.partial_cmp(&b.1)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.0.cmp(&b.0))
+    });
+
+    stack
+}
+
+/// Phase 81 Wave 2: Clear the spot market for a region using merit-order dispatch.
+///
+/// Dispatches plants from cheapest to most expensive until demand is met.
+/// Clearing price = marginal cost of the last dispatched plant.
+///
+/// Applies demand elasticity and scarcity ceiling:
+/// - If supply > demand (overproduction): price drops toward zero but not below
+///   `average_wage * 0.0001` (the zero-marginal-cost floor).
+/// - If supply < demand (scarcity): price spikes toward `average_wage * 0.01`
+///   (scarcity ceiling, dynamically scaled to wages).
+/// - If no plants are dispatched (zero demand): price = `average_wage * 0.0001`.
+///
+/// Returns `(clearing_price, dispatch_results)` where `dispatch_results` maps
+/// `plant_building_id` to dispatched MW.
+fn clear_spot_market(
+    stack: &[(String, f64, f64)],
+    demand_mw: f64,
+    average_wage: f64,
+) -> (f64, Vec<(String, f64)>) {
+    let price_floor = average_wage * 0.0001;
+    let scarcity_ceiling = average_wage * 0.01;
+
+    // Zero demand: no dispatch needed, price at floor.
+    if demand_mw <= 0.0 {
+        return (price_floor, Vec::new());
+    }
+
+    let mut dispatch_results: Vec<(String, f64)> = Vec::new();
+    let mut remaining_demand = demand_mw;
+    let mut total_supply: f64 = 0.0;
+    let mut last_marginal_cost = price_floor;
+
+    for (plant_id, marginal_cost, available_mw) in stack {
+        if remaining_demand <= 0.0 {
+            break;
+        }
+
+        let dispatched = remaining_demand.min(*available_mw);
+        dispatch_results.push((plant_id.clone(), dispatched));
+        remaining_demand -= dispatched;
+        total_supply += dispatched;
+        last_marginal_cost = *marginal_cost;
+    }
+
+    // Compute clearing price based on supply/demand balance.
+    let clearing_price = if total_supply >= demand_mw {
+        // Supply meets or exceeds demand: clearing price = marginal cost of
+        // the last dispatched plant. If there's significant overproduction,
+        // the price drops toward the floor.
+        let surplus_ratio = if demand_mw > 0.0 {
+            (total_supply - demand_mw) / demand_mw
+        } else {
+            0.0
+        };
+        if surplus_ratio > 0.10 {
+            // Significant overproduction: price drops toward floor.
+            let discount = (1.0 - surplus_ratio.min(0.8)).max(0.2);
+            (last_marginal_cost * discount).max(price_floor)
+        } else {
+            last_marginal_cost.max(price_floor)
+        }
+    } else {
+        // Scarcity: supply < demand. Price spikes toward scarcity ceiling.
+        // The spike is proportional to the deficit ratio.
+        let deficit_ratio = if demand_mw > 0.0 {
+            (demand_mw - total_supply) / demand_mw
+        } else {
+            0.0
+        };
+        // Blend the marginal cost with the scarcity ceiling based on deficit severity.
+        let scarcity_weight = deficit_ratio.min(1.0);
+        let blended = last_marginal_cost * (1.0 - scarcity_weight)
+            + scarcity_ceiling * scarcity_weight;
+        blended.max(last_marginal_cost).min(scarcity_ceiling)
+    };
+
+    (clearing_price, dispatch_results)
+}
+
 /// Calculate electricity spot price based on supply/demand balance.
 ///
-/// During glut (overproduction): price drops (industrial buff incentive).
-/// During deficit (load shedding): price spikes (rationing premium).
-/// Base price scales with average_wage to avoid magic numbers.
+/// **Deprecated**: Phase 81 Wave 2 replaces this with merit-order spot market
+/// clearing via `build_merit_order_stack()` and `clear_spot_market()`.
+/// Kept for backward compatibility with any tests that reference it.
+#[deprecated(note = "Replaced by merit-order spot market clearing in Phase 81 Wave 2")]
+#[allow(deprecated)]
 fn calculate_spot_price(
     supply_mw: f64,
     demand_mw: f64,

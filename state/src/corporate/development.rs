@@ -301,6 +301,20 @@ impl PropertyDeveloper {
             ConstructionProjectType::NationalTheater => 400_000.0,
             ConstructionProjectType::NationalLibrary => 350_000.0,
             ConstructionProjectType::TransportDepot => 200_000.0,
+            // Phase 82: Thermal infrastructure
+            ConstructionProjectType::ThermalGridPipe => 150_000.0,
+            ConstructionProjectType::ThermalHeatingPlant => 400_000.0,
+            ConstructionProjectType::CHPRetrofit => 250_000.0,
+            // Phase 83: Hydrological infrastructure
+            ConstructionProjectType::WaterMainPipe => 120_000.0,
+            ConstructionProjectType::SewerMainPipe => 140_000.0,
+            ConstructionProjectType::WaterTreatmentPlant => 350_000.0,
+            ConstructionProjectType::WastewaterTreatmentPlant => 400_000.0,
+            ConstructionProjectType::Landfill => 250_000.0,
+            ConstructionProjectType::WasteSeparationPlant => 300_000.0,
+            ConstructionProjectType::RecyclingFacility => 350_000.0,
+            ConstructionProjectType::WasteToEnergyPlant => 500_000.0,
+            ConstructionProjectType::CivicAmenitySite => 150_000.0,
         };
         
         // Adjust for building type
@@ -338,6 +352,20 @@ impl PropertyDeveloper {
             ConstructionProjectType::NationalTheater => 10,
             ConstructionProjectType::NationalLibrary => 9,
             ConstructionProjectType::TransportDepot => 8,
+            // Phase 82: Thermal infrastructure
+            ConstructionProjectType::ThermalGridPipe => 10,
+            ConstructionProjectType::ThermalHeatingPlant => 15,
+            ConstructionProjectType::CHPRetrofit => 8,
+            // Phase 83: Hydrological infrastructure
+            ConstructionProjectType::WaterMainPipe => 8,
+            ConstructionProjectType::SewerMainPipe => 10,
+            ConstructionProjectType::WaterTreatmentPlant => 12,
+            ConstructionProjectType::WastewaterTreatmentPlant => 14,
+            ConstructionProjectType::Landfill => 10,
+            ConstructionProjectType::WasteSeparationPlant => 12,
+            ConstructionProjectType::RecyclingFacility => 14,
+            ConstructionProjectType::WasteToEnergyPlant => 18,
+            ConstructionProjectType::CivicAmenitySite => 8,
         }
     }
     
@@ -438,6 +466,74 @@ impl PropertyDeveloper {
                 materials.insert(Commodity::Steel, 80.0);
                 materials.insert(Commodity::Cement, 100.0);
                 materials.insert(Commodity::Bricks, 80.0);
+            }
+            // Phase 82: Thermal infrastructure BOMs
+            ConstructionProjectType::ThermalGridPipe => {
+                materials.insert(Commodity::Steel, 200.0);
+                materials.insert(Commodity::Copper, 30.0);
+                materials.insert(Commodity::Cement, 500.0);
+                materials.insert(Commodity::Asphalt, 300.0);
+            }
+            ConstructionProjectType::ThermalHeatingPlant => {
+                materials.insert(Commodity::Steel, 300.0);
+                materials.insert(Commodity::Cement, 400.0);
+                materials.insert(Commodity::Copper, 50.0);
+                materials.insert(Commodity::MechanicalComponents, 100.0);
+            }
+            ConstructionProjectType::CHPRetrofit => {
+                materials.insert(Commodity::Steel, 150.0);
+                materials.insert(Commodity::Copper, 50.0);
+                materials.insert(Commodity::ElectronicComponents, 25.0);
+            }
+            // Phase 83: Hydrological infrastructure
+            ConstructionProjectType::WaterMainPipe => {
+                materials.insert(Commodity::Steel, 80.0);
+                materials.insert(Commodity::Cement, 60.0);
+                materials.insert(Commodity::MechanicalComponents, 30.0);
+            }
+            ConstructionProjectType::SewerMainPipe => {
+                materials.insert(Commodity::Bricks, 100.0);
+                materials.insert(Commodity::Cement, 80.0);
+                materials.insert(Commodity::Steel, 40.0);
+            }
+            ConstructionProjectType::WaterTreatmentPlant => {
+                materials.insert(Commodity::Steel, 120.0);
+                materials.insert(Commodity::Cement, 150.0);
+                materials.insert(Commodity::MechanicalComponents, 80.0);
+                materials.insert(Commodity::Chemicals, 40.0);
+            }
+            ConstructionProjectType::WastewaterTreatmentPlant => {
+                materials.insert(Commodity::Steel, 100.0);
+                materials.insert(Commodity::Cement, 180.0);
+                materials.insert(Commodity::MechanicalComponents, 90.0);
+                materials.insert(Commodity::Chemicals, 30.0);
+            }
+            ConstructionProjectType::Landfill => {
+                materials.insert(Commodity::Cement, 200.0);
+                materials.insert(Commodity::Steel, 30.0);
+                materials.insert(Commodity::Asphalt, 80.0);
+            }
+            ConstructionProjectType::WasteSeparationPlant => {
+                materials.insert(Commodity::Steel, 80.0);
+                materials.insert(Commodity::Cement, 120.0);
+                materials.insert(Commodity::MechanicalComponents, 60.0);
+            }
+            ConstructionProjectType::RecyclingFacility => {
+                materials.insert(Commodity::Steel, 100.0);
+                materials.insert(Commodity::Cement, 100.0);
+                materials.insert(Commodity::MechanicalComponents, 70.0);
+                materials.insert(Commodity::IndustrialMachinery, 40.0);
+            }
+            ConstructionProjectType::WasteToEnergyPlant => {
+                materials.insert(Commodity::Steel, 150.0);
+                materials.insert(Commodity::Cement, 200.0);
+                materials.insert(Commodity::IndustrialMachinery, 80.0);
+                materials.insert(Commodity::MechanicalComponents, 100.0);
+            }
+            ConstructionProjectType::CivicAmenitySite => {
+                materials.insert(Commodity::Cement, 80.0);
+                materials.insert(Commodity::Steel, 40.0);
+                materials.insert(Commodity::Asphalt, 60.0);
             }
         }
         

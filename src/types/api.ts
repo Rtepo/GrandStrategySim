@@ -110,6 +110,40 @@ defender_casualties: bigint,
 turn: number, };
 
 /**
+ * Phase 83: Biohazard snapshot for UI display.
+ *
+ * Role-gating (Rule 11):
+ * - Foreign observers: see only biohazard_level (public health data)
+ * - Domestic non-municipal: see biohazard_level and mortality_multiplier
+ * - Municipal/government: see full snapshot including source breakdown
+ */
+export type BiohazardSnapshot = { 
+/**
+ * Accumulated biological contamination (0.0 = clean, 100.0 = epidemic).
+ */
+biohazard_level: number, 
+/**
+ * Per-turn biohazard from standalone sanitation (open defecation, etc.).
+ */
+standalone_biohazard: number, 
+/**
+ * Per-turn biohazard from sewage overflow/leakage.
+ */
+sewage_overflow_biohazard: number, 
+/**
+ * Per-turn biohazard from industrial wastewater.
+ */
+industrial_biohazard: number, 
+/**
+ * PARADIGM SHIFT: Per-turn biohazard from low-quality water consumption.
+ */
+low_quality_water_biohazard: number, 
+/**
+ * Biohazard mortality multiplier (1.0 = normal, 2.0 = epidemic).
+ */
+mortality_multiplier: number, };
+
+/**
  * Phase 55: Board member row for governance display.
  */
 export type BoardMemberRow = { vip_id: string, name: string, role: string, loyalty_to_ceo: number, appointed_turn: number, age: number, main_trait: string, };
@@ -410,7 +444,17 @@ interconnector_flows: Array<InterconnectorFlowInfo>,
 /**
  * Whether this snapshot is classified (foreign observer).
  */
-is_classified: boolean, };
+is_classified: boolean, 
+/**
+ * Phase 81 Wave 2: Spot market clearing info per region.
+ * Empty for foreign observers (classified).
+ */
+spot_market: Array<SpotMarketInfo>, 
+/**
+ * Phase 81 Wave 2: Active PPA count and total contracted MW.
+ * Empty for foreign observers (classified).
+ */
+ppa_summary: Array<PpaInfo>, };
 
 /**
  * Phase 35: Finance tab data — treasury, ministries, tax, debt, CB, banks,
@@ -522,6 +566,48 @@ export type KnfFindingRow = { entity_id: string, entity_name: string, violation_
  * Labor market summary.
  */
 export type LaborSummary = { unemployment_rate: number, employed_total: number, unemployed: number, workforce: number, average_wage: number, };
+
+/**
+ * Phase 84: Landfill snapshot for UI display.
+ *
+ * Role-gating (Rule 11):
+ * - Foreign observers: see only utilization and is_full status
+ * - Municipal/government: see full snapshot including liner integrity,
+ *   leachate capture, gas capture, and stored waste by category
+ */
+export type LandfillSnapshot = { 
+/**
+ * Total capacity (tons).
+ */
+total_capacity: number, 
+/**
+ * Remaining capacity (tons).
+ */
+remaining_capacity: number, 
+/**
+ * Total stored waste mass (tons).
+ */
+total_stored: number, 
+/**
+ * Liner integrity (0.0 = breached, 1.0 = intact).
+ */
+liner_integrity: number, 
+/**
+ * Leachate collection efficiency (0.0-1.0).
+ */
+leachate_capture: number, 
+/**
+ * Gas capture efficiency (0.0-1.0).
+ */
+gas_capture: number, 
+/**
+ * LOGISTICAL BOUND 2: True when landfill is full and rejecting waste.
+ */
+is_full: boolean, 
+/**
+ * Utilization fraction (0.0-1.0).
+ */
+utilization: number, };
 
 /**
  * Phase 56: Detailed market view for a single listed company.
@@ -743,9 +829,71 @@ average_health: number,
 forced_labor_assigned: bigint, };
 
 /**
+ * Phase 81 Wave 2: PPA summary info.
+ */
+export type PpaInfo = { 
+/**
+ * PPA ID.
+ */
+ppa_id: string, 
+/**
+ * Seller company ID.
+ */
+seller_company_id: string, 
+/**
+ * Buyer company ID.
+ */
+buyer_company_id: string, 
+/**
+ * Fixed price per MWh.
+ */
+fixed_price_per_mwh: number, 
+/**
+ * Contracted capacity (MW).
+ */
+contracted_mw: number, 
+/**
+ * Remaining turns until expiration.
+ */
+remaining_turns: number, };
+
+/**
  * A legislative queue row.
  */
 export type QueueRow = { bill_id: string, bill_title: string, stage: string, initiator: string, };
+
+/**
+ * Phase 84: Recycling snapshot for UI display.
+ *
+ * Role-gating (Rule 11):
+ * - Public: see recovered commodity totals only
+ * - Municipal/government: see full plant inventory and yields
+ */
+export type RecyclingSnapshot = { 
+/**
+ * Number of active recycling facilities.
+ */
+active_recycling_plants: number, 
+/**
+ * Number of active separation plants.
+ */
+active_separation_plants: number, 
+/**
+ * Number of active WtE plants.
+ */
+active_wte_plants: number, 
+/**
+ * Total waste recycled this turn (tons).
+ */
+total_recycled: number, 
+/**
+ * Total waste incinerated this turn (tons).
+ */
+total_incinerated: number, 
+/**
+ * Ash generated this turn (tons) — CRITICAL FIX 2.
+ */
+ash_generated: number, };
 
 /**
  * Full region drill-down data for the Regions tab modal.
@@ -758,7 +906,50 @@ head_vip_id: string | null, council_factions: Array<[string, number]>,
 /**
  * Phase 54: Total council seats/mandates (sum of all factions).
  */
-total_council_seats: number, budget_reserves: number, budget_tax_revenue: number, budget_property_tax: number, budget_expenditures: number, budget_balance: number, debt_total: number, debt_to_revenue_ratio: number, credit_rating: string, active_mandates: Array<MandateSummary>, infrastructure_avg_condition: number, sector_employment: Array<[string, number]>, durable_cohorts: Array<DurableCohortSummary>, };
+total_council_seats: number, budget_reserves: number, budget_tax_revenue: number, budget_property_tax: number, budget_expenditures: number, budget_balance: number, debt_total: number, debt_to_revenue_ratio: number, credit_rating: string, active_mandates: Array<MandateSummary>, infrastructure_avg_condition: number, sector_employment: Array<[string, number]>, durable_cohorts: Array<DurableCohortSummary>, 
+/**
+ * Phase 82: Thermal grid snapshot (role-gated — only visible to
+ * regional/national government roles, not to foreign observers).
+ */
+thermal_grid: ThermalGridSnapshot | null, 
+/**
+ * Phase 82: Smog/pollution snapshot (visible to all roles — air quality
+ * is public information).
+ */
+smog: SmogSnapshot | null, 
+/**
+ * Phase 83: Water reserve snapshot (role-gated — municipal/government only).
+ */
+water_reserves: WaterReserveSnapshot | null, 
+/**
+ * Phase 83: Water grid snapshot (role-gated — municipal/government only).
+ */
+water_grid: WaterGridSnapshot | null, 
+/**
+ * Phase 83: Sewer grid snapshot (role-gated — municipal/government only).
+ */
+sewer_grid: SewerGridSnapshot | null, 
+/**
+ * Phase 83: Biohazard snapshot (role-gated — biohazard_level is public,
+ * source breakdown is municipal/government only).
+ */
+biohazard: BiohazardSnapshot | null, 
+/**
+ * Phase 84: Waste grid snapshot (role-gated — municipal/government only).
+ */
+waste_grid: WasteGridSnapshot | null, 
+/**
+ * Phase 84: Landfill snapshot (role-gated — municipal/government only).
+ */
+landfill: LandfillSnapshot | null, 
+/**
+ * Phase 84: Waste pollution snapshot (public — pollution is public info).
+ */
+waste_pollution: WastePollutionSnapshot | null, 
+/**
+ * Phase 84: Recycling snapshot (role-gated — municipal/government only).
+ */
+recycling: RecyclingSnapshot | null, };
 
 /**
  * Phase 81: Regional energy information.
@@ -861,9 +1052,99 @@ employment_tot: number | null,
 wage_tot: number | null, };
 
 /**
+ * Phase 83: Sewer grid snapshot for UI display.
+ *
+ * Role-gating (Rule 11):
+ * - Foreign observers: do not see this
+ * - Domestic non-municipal: see current_quality only
+ * - Municipal/government: see full snapshot including pipe infrastructure
+ */
+export type SewerGridSnapshot = { 
+/**
+ * Total pipe network length (km).
+ */
+pipe_network_km: number, 
+/**
+ * Pipe condition (0.0 = collapsed, 1.0 = pristine).
+ */
+pipe_condition: number, 
+/**
+ * Current sewage quality (typically ~0.05 = blackwater).
+ */
+current_quality: number, 
+/**
+ * Current throughput (liters/turn).
+ */
+throughput_liters: number, 
+/**
+ * Water delivered to wastewater treatment plants (liters).
+ */
+water_delivered_to_treatment: number, 
+/**
+ * Leaked water mass (liters lost through cracked pipes).
+ */
+leaked_water_mass: number, 
+/**
+ * Maximum connectable buildings.
+ */
+max_connectable_buildings: number, 
+/**
+ * Number of active wastewater treatment plants.
+ */
+active_wastewater_plants: number, };
+
+/**
  * Shadow economy summary.
  */
 export type ShadowEconomySummary = { total_hidden_fte: number, total_pit_evaded: number, shadow_gdp: number, };
+
+/**
+ * Phase 82: Smog/air pollution snapshot for UI display.
+ *
+ * Public information — air quality is visible to all roles.
+ */
+export type SmogSnapshot = { 
+/**
+ * Accumulated smog concentration (0.0 = clean, 100.0 = lethal).
+ */
+smog_level: number, 
+/**
+ * Per-turn emissions from standalone heating (mass units).
+ */
+standalone_emissions: number, 
+/**
+ * Per-turn emissions from centralized plants (mass units).
+ */
+centralized_emissions: number, 
+/**
+ * Per-turn emissions from industrial production (mass units).
+ */
+industrial_emissions: number, 
+/**
+ * Smog mortality multiplier (1.0 = normal, 1.5 = 50% increase).
+ */
+mortality_multiplier: number, };
+
+/**
+ * Phase 81 Wave 2: Spot market clearing info for a region.
+ */
+export type SpotMarketInfo = { 
+/**
+ * Region ID.
+ */
+region_id: string, 
+/**
+ * Clearing price per MWh (currency).
+ */
+clearing_price: number, 
+/**
+ * Number of plants dispatched in merit order.
+ */
+dispatched_plant_count: number, 
+/**
+ * Total dispatched MW.
+ */
+total_dispatched_mw: number, };
 
 /**
  * Phase 56: Full stock exchange response for the securities UI.
@@ -964,6 +1245,46 @@ value: number, status: string, awarded: boolean,
  * Phase 40: Contractor company ID (if awarded).
  */
 contractor: string, };
+
+/**
+ * Phase 82: Thermal grid snapshot for UI display.
+ *
+ * Role-gated: only visible to regional/national government roles.
+ * Foreign observers do not see detailed pipe infrastructure data.
+ */
+export type ThermalGridSnapshot = { 
+/**
+ * Total pipe network length (km).
+ */
+pipe_network_km: number, 
+/**
+ * Pipe condition (0.0 = collapsed, 1.0 = pristine).
+ */
+pipe_condition: number, 
+/**
+ * Transmission loss per km (fraction/km).
+ */
+loss_per_km: number, 
+/**
+ * Current effective heat supply after losses (GJ).
+ */
+effective_heat_supply_gj: number, 
+/**
+ * Maximum connectable buildings.
+ */
+max_connectable_buildings: number, 
+/**
+ * Number of active heating plants.
+ */
+active_heating_plants: number, 
+/**
+ * Average delivery distance (km).
+ */
+average_delivery_distance_km: number, 
+/**
+ * Transmission loss fraction (0.0 = no loss, 1.0 = total loss).
+ */
+transmission_loss_fraction: number, };
 
 /**
  * Phase 56: Recent trade row for the stock exchange UI.
@@ -1101,6 +1422,137 @@ battle_count: number,
  * Last battle result (if any).
  */
 last_battle_result: string, };
+
+/**
+ * Phase 84: Waste grid snapshot for UI display.
+ *
+ * Role-gating (Rule 11):
+ * - Foreign observers: see only collection coverage and pollution levels
+ * - Domestic non-municipal: see collection coverage and landfill utilization
+ * - Municipal/government: see full snapshot including route infrastructure,
+ *   uncollected waste by category, and separation efficiency
+ */
+export type WasteGridSnapshot = { 
+/**
+ * Collection route network length (km).
+ */
+collection_route_km: number, 
+/**
+ * Route condition (0.0 = collapsed, 1.0 = pristine).
+ */
+route_condition: number, 
+/**
+ * Per-turn collection capacity (tons).
+ */
+collection_capacity: number, 
+/**
+ * Total uncollected waste mass (tons).
+ */
+total_uncollected: number, 
+/**
+ * Active collection method separation efficiency (0.0-1.0).
+ */
+separation_efficiency: number, 
+/**
+ * Landfill capacity utilization (0.0-1.0).
+ */
+landfill_utilization: number, 
+/**
+ * Methane capture rate (0.0-1.0).
+ */
+methane_capture_rate: number, };
+
+/**
+ * Phase 84: Waste pollution snapshot for UI display.
+ *
+ * Role-gating (Rule 11): Pollution levels are public information.
+ * Source breakdown (burning vs dumping vs uncollected) is municipal only.
+ */
+export type WastePollutionSnapshot = { 
+/**
+ * Smog mass from trash burning (public).
+ */
+burning_emissions: number, 
+/**
+ * Biohazard mass from illegal dumping (public).
+ */
+dumping_biohazard: number, 
+/**
+ * Biohazard mass from uncollected waste (public).
+ */
+uncollected_biohazard: number, 
+/**
+ * Leachate leakage mass (municipal only).
+ */
+leachate_leakage: number, };
+
+/**
+ * Phase 83: Water grid snapshot for UI display.
+ *
+ * Role-gating (Rule 11):
+ * - Foreign observers: do not see this
+ * - Domestic non-municipal: see current_quality only
+ * - Municipal/government: see full snapshot including pipe infrastructure
+ */
+export type WaterGridSnapshot = { 
+/**
+ * Total pipe network length (km).
+ */
+pipe_network_km: number, 
+/**
+ * Pipe condition (0.0 = collapsed, 1.0 = pristine).
+ */
+pipe_condition: number, 
+/**
+ * PARADIGM SHIFT: Current water quality in the grid (0.0-1.0).
+ */
+current_quality: number, 
+/**
+ * Current throughput (liters/turn).
+ */
+throughput_liters: number, 
+/**
+ * Effective water delivered after transmission losses (liters).
+ */
+effective_water_delivered: number, 
+/**
+ * Maximum connectable buildings.
+ */
+max_connectable_buildings: number, 
+/**
+ * Number of active water treatment plants.
+ */
+active_water_plants: number, 
+/**
+ * Transmission loss fraction (0.0 = no loss, 1.0 = total loss).
+ */
+transmission_loss_fraction: number, };
+
+/**
+ * Phase 83: Water reserve snapshot for UI display.
+ *
+ * Role-gating (Rule 11):
+ * - Foreign observers: do not see this (resource data is classified)
+ * - Domestic non-municipal: see surface water quality only
+ * - Municipal/government: see full snapshot including groundwater volumes
+ */
+export type WaterReserveSnapshot = { 
+/**
+ * Groundwater volume (liters).
+ */
+groundwater_volume: number, 
+/**
+ * Groundwater quality (0.0-1.0).
+ */
+groundwater_quality: number, 
+/**
+ * Surface water volume (liters).
+ */
+surface_water_volume: number, 
+/**
+ * Surface water quality (0.0-1.0).
+ */
+surface_water_quality: number, };
 
 /**
  * Phase 60: Zoning plan row (public data).

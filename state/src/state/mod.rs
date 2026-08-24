@@ -567,6 +567,9 @@ pub struct Country {
     /// load shedding tiers, and overproduction tiers per region.
     #[serde(default)]
     pub power_grid_state: crate::energy::PowerGridState,
+    /// Phase 81 Wave 2: PPA registry — all active and expired PPAs.
+    #[serde(default)]
+    pub ppa_registry: crate::energy::types::PpaRegistry,
 }
 
 impl Country {
@@ -678,6 +681,7 @@ impl Country {
             global_reputation: crate::international::reputation::GlobalReputation::default(),
             geopolitical_doctrine: crate::international::ai_doctrines::GeopoliticalDoctrine::default(),
             power_grid_state: crate::energy::PowerGridState::default(),
+            ppa_registry: crate::energy::types::PpaRegistry::default(),
         }
     }
 
@@ -1032,6 +1036,7 @@ impl CountryBuilder {
             global_reputation: crate::international::reputation::GlobalReputation::default(),
             geopolitical_doctrine: crate::international::ai_doctrines::GeopoliticalDoctrine::default(),
             power_grid_state: crate::energy::PowerGridState::default(),
+            ppa_registry: crate::energy::types::PpaRegistry::default(),
         }
     }
 }

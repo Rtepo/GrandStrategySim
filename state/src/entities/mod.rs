@@ -785,6 +785,24 @@ pub struct ActiveProductionMethod {
     /// conservation: `output_energy = input_energy * storage_efficiency`.
     #[serde(default)]
     pub storage_efficiency: f64,
+    /// Phase 82: Smog emission factor (smog units per unit of fuel/input consumed).
+    /// Physical constant from combustion chemistry. 0.0 for non-emitting methods.
+    /// Used by `compute_smog_for_region()` to calculate air pollution.
+    #[serde(default)]
+    pub emission_factor: f64,
+    /// Phase 83 (PATCH 3): Biological hazard factor — pathogenic mass per unit
+    /// of water consumed. Mirrors `ProductionMethod.biohazard_factor`.
+    #[serde(default)]
+    pub biohazard_factor: f64,
+    /// Phase 83 (PARADIGM SHIFT): Output water quality for water treatment
+    /// methods. 0.0 = no water treatment. Mirrors `ProductionMethod.output_water_quality`.
+    #[serde(default)]
+    pub output_water_quality: f64,
+    /// Phase 83 (PARADIGM SHIFT): Discharge water quality for wastewater
+    /// treatment methods. 0.0 = no wastewater treatment. Mirrors
+    /// `ProductionMethod.discharge_quality`.
+    #[serde(default)]
+    pub discharge_quality: f64,
     /// Any additional method fields.
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -875,9 +893,22 @@ pub struct Building {
     /// Phase 7: Active construction project on this site (None if operational).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub active_project: Option<crate::construction::ConstructionProject>,
-    /// Phase 8: Landfill metadata (None for non-landfill buildings).
+    /// Phase 81 Wave 2: Pending consumption-method upgrade (lighting/heating/
+    /// ventilation). Distinct from `active_project` (building construction/
+    /// expansion). Only one method upgrade at a time. The active method string
+    /// ONLY flips when `is_complete()` returns true (Flaw 2 correction).
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub landfill_data: Option<crate::utilities::waste::LandfillData>,
+    pub pending_method_upgrade: Option<crate::construction::UpgradeProject>,
+    /// Phase 82B: Active emission control method (e.g., "None", "Wet Scrubber",
+    /// "Baghouse Filter", "FGD"). Upgradable independently of production method.
+    /// Applied to heavy industry, heating plants, and power plants.
+    #[serde(default)]
+    pub active_emission_control: String,
+    /// Phase 84: Landfill state (None for non-landfill buildings).
+    /// Replaces the legacy `LandfillData` with typed `Commodity` keys and
+    /// a hard capacity stop (LOGISTICAL BOUND 2).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub landfill_state: Option<crate::utilities::waste_grid::LandfillState>,
     /// Phase 21A: Linked geological deposit ID (formation_id + "/" + commodity key).
     /// None for non-mining buildings or mining buildings without a deposit.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -953,7 +984,9 @@ impl Building {
             inventory: BTreeMap::new(),
             inventory_capacity: default_building_inventory_capacity(),
             active_project: None,
-            landfill_data: None,
+            pending_method_upgrade: None,
+            active_emission_control: String::new(),
+            landfill_state: None,
             deposit_id: None,
             fixed_assets: Vec::new(),
             structural_defect: 0.0,

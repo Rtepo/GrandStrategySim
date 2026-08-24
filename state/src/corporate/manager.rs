@@ -482,7 +482,7 @@ pub fn process_companies(
                         automation: String::new(),
                         production: method_name.to_string(),
                         organization: String::new(),
-                        extra: serde_json::Map::new(),
+                        ..Default::default()
                     },
                     active_blueprint: None,
                     extra: serde_json::Map::new(),

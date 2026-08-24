@@ -66,19 +66,96 @@ pub struct ProductionMethod {
     /// `storage_efficiency > 0.0` (energy->energy), never both.
     #[serde(default)]
     pub storage_efficiency: f64,
+
+    /// Phase 81 Wave 2: One-time CAPEX commodities required to install this
+    /// method. Empty for methods with no installation cost (e.g., default
+    /// lighting). Non-empty for upgrade targets (e.g., LED requires
+    /// ElectronicComponents + Glass). Quantities are PER-UNIT (per occupant,
+    /// per 100 sqm, per 1000 workers). Actual CAPEX = capex[commodity] *
+    /// scale_factor (Flaw 1 correction). Distinct from `inputs` which are
+    /// per-turn consumption.
+    #[serde(default)]
+    pub capex: HashMap<Commodity, f64>,
+
+    /// Phase 82: Smog emission factor (smog units per unit of fuel/input
+    /// consumed). Physical constant derived from combustion chemistry
+    /// (particulate + SO2 mass per unit fuel). 0.0 for non-emitting methods
+    /// (electric heating, district heating consumption, geothermal).
+    /// Used by `compute_smog_for_region()` to calculate air pollution.
+    #[serde(default)]
+    pub emission_factor: f64,
+
+    /// Phase 83 (PATCH 3): Biological hazard factor — pathogenic mass per unit
+    /// of water consumed by this production method. Physical constant
+    /// representing BOD/COD-like biological load proxy. 0.0 for non-pathogenic
+    /// processes (steel, cement, glass). Non-zero for historically pathogenic
+    /// industries: Tanneries (8.0), Abattoirs (7.0), Food Processing (6.0),
+    /// Paper Mills (5.0), Textiles (4.0), Breweries (4.0), Chemicals (3.0),
+    /// Mining (1.0). Used by `compute_biohazard_for_region()`.
+    #[serde(default)]
+    pub biohazard_factor: f64,
+
+    /// Phase 83 (PARADIGM SHIFT): Output water quality for water treatment
+    /// plant methods. 0.0 = no water treatment (default). When > 0.0, this
+    /// method upgrades intake water quality to this target (0.0-1.0) before
+    /// pushing it into the `WaterNetworkState`. Distinct from `outputs` —
+    /// it's a quality target, not a commodity output.
+    #[serde(default)]
+    pub output_water_quality: f64,
+
+    /// Phase 83 (PARADIGM SHIFT): Discharge water quality for wastewater
+    /// treatment plant methods. 0.0 = no wastewater treatment (default).
+    /// When > 0.0, this method discharges treated water back into the
+    /// surface water pool at this quality level, healing the environment.
+    #[serde(default)]
+    pub discharge_quality: f64,
+
+    /// Phase 84: Waste generation factor — fraction of input mass that becomes
+    /// waste. When > 0.0, this method generates waste proportional to its
+    /// total input mass. The waste type is determined by the input commodity
+    /// composition. 0.0 for non-waste-generating methods (default).
+    #[serde(default)]
+    pub waste_generation_factor: f64,
 }
 
 /// Production method slot, mirroring `ProductionMethodChoice` fields.
 /// A tech's `unlocks_methods` inner key maps directly to one of these variants.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum MethodSlot {
     /// Automation method slot (corresponds to `ProductionMethodChoice.automation`).
+    #[default]
     Automation,
     /// Production method slot (corresponds to `ProductionMethodChoice.production`).
     Production,
     /// Organization method slot (corresponds to `ProductionMethodChoice.organization`).
     Organization,
+    /// Phase 81 Wave 2: Lighting consumption method slot.
+    /// Applied to all buildings except outdoor-only (wind farms, solar plants, hydro dams).
+    Lighting,
+    /// Phase 81 Wave 2: Heating consumption method slot.
+    /// Applied to housing, commercial, and specific industries.
+    Heating,
+    /// Phase 81 Wave 2: Ventilation/pumping consumption method slot.
+    /// Applied to heavy industry and mines.
+    Ventilation,
+    /// Phase 81 Wave 2: Power generation (microgeneration) method slot.
+    /// Applied to housing and commercial (not industrial — they use PPAs).
+    PowerGeneration,
+    /// Phase 83 (future-proofed): Water supply method slot.
+    /// Not implemented in Wave 2 — empty HashMap, no methods registered.
+    WaterSupply,
+    /// Phase 83 (future-proofed): Sanitation method slot.
+    /// Not implemented in Wave 2 — empty HashMap, no methods registered.
+    Sanitation,
+    /// Phase 84 (future-proofed): Waste disposal method slot.
+    /// Not implemented in Wave 2 — empty HashMap, no methods registered.
+    WasteDisposal,
+    /// Phase 82B: Emission control method slot.
+    /// Applied to heavy industry, heating plants, and power plants.
+    /// Represents retrofit emission control equipment (scrubbers, filters, FGD).
+    /// Upgradable independently of the production method.
+    EmissionControl,
 }
 
 impl MethodSlot {
@@ -88,6 +165,14 @@ impl MethodSlot {
             "automation" => Some(MethodSlot::Automation),
             "production" => Some(MethodSlot::Production),
             "organization" => Some(MethodSlot::Organization),
+            "lighting" => Some(MethodSlot::Lighting),
+            "heating" => Some(MethodSlot::Heating),
+            "ventilation" => Some(MethodSlot::Ventilation),
+            "power_generation" => Some(MethodSlot::PowerGeneration),
+            "water_supply" => Some(MethodSlot::WaterSupply),
+            "sanitation" => Some(MethodSlot::Sanitation),
+            "waste_disposal" => Some(MethodSlot::WasteDisposal),
+            "emission_control" => Some(MethodSlot::EmissionControl),
             _ => None,
         }
     }
@@ -106,6 +191,31 @@ pub struct BuildingMethods {
     /// Methods for the organization slot.
     #[serde(default)]
     pub organization: HashMap<String, ProductionMethod>,
+    /// Phase 81 Wave 2: Lighting consumption methods.
+    #[serde(default)]
+    pub lighting: HashMap<String, ProductionMethod>,
+    /// Phase 81 Wave 2: Heating consumption methods.
+    #[serde(default)]
+    pub heating: HashMap<String, ProductionMethod>,
+    /// Phase 81 Wave 2: Ventilation/pumping consumption methods.
+    #[serde(default)]
+    pub ventilation: HashMap<String, ProductionMethod>,
+    /// Phase 81 Wave 2: Power generation (microgeneration) methods.
+    #[serde(default)]
+    pub power_generation: HashMap<String, ProductionMethod>,
+    /// Phase 83 (future-proofed): Water supply methods. Empty in Wave 2.
+    #[serde(default)]
+    pub water_supply: HashMap<String, ProductionMethod>,
+    /// Phase 83 (future-proofed): Sanitation methods. Empty in Wave 2.
+    #[serde(default)]
+    pub sanitation: HashMap<String, ProductionMethod>,
+    /// Phase 84 (future-proofed): Waste disposal methods. Empty in Wave 2.
+    #[serde(default)]
+    pub waste_disposal: HashMap<String, ProductionMethod>,
+    /// Phase 82B: Emission control methods (scrubbers, filters, FGD, ESP, SCR).
+    /// Applied to heavy industry, heating plants, and power plants.
+    #[serde(default)]
+    pub emission_control: HashMap<String, ProductionMethod>,
 }
 
 impl BuildingMethods {
@@ -115,6 +225,14 @@ impl BuildingMethods {
             MethodSlot::Automation => self.automation.get(name),
             MethodSlot::Production => self.production.get(name),
             MethodSlot::Organization => self.organization.get(name),
+            MethodSlot::Lighting => self.lighting.get(name),
+            MethodSlot::Heating => self.heating.get(name),
+            MethodSlot::Ventilation => self.ventilation.get(name),
+            MethodSlot::PowerGeneration => self.power_generation.get(name),
+            MethodSlot::WaterSupply => self.water_supply.get(name),
+            MethodSlot::Sanitation => self.sanitation.get(name),
+            MethodSlot::WasteDisposal => self.waste_disposal.get(name),
+            MethodSlot::EmissionControl => self.emission_control.get(name),
         }
     }
 
@@ -130,15 +248,66 @@ impl BuildingMethods {
             MethodSlot::Organization => {
                 self.organization.insert(name, pm);
             }
+            MethodSlot::Lighting => {
+                self.lighting.insert(name, pm);
+            }
+            MethodSlot::Heating => {
+                self.heating.insert(name, pm);
+            }
+            MethodSlot::Ventilation => {
+                self.ventilation.insert(name, pm);
+            }
+            MethodSlot::PowerGeneration => {
+                self.power_generation.insert(name, pm);
+            }
+            MethodSlot::WaterSupply => {
+                self.water_supply.insert(name, pm);
+            }
+            MethodSlot::Sanitation => {
+                self.sanitation.insert(name, pm);
+            }
+            MethodSlot::WasteDisposal => {
+                self.waste_disposal.insert(name, pm);
+            }
+            MethodSlot::EmissionControl => {
+                self.emission_control.insert(name, pm);
+            }
         }
     }
 
-    /// Iterate all methods across all slots (for year-based fallback lookups).
-    pub fn iter_all(&self) -> impl Iterator<Item = &ProductionMethod> {
+    /// Iterate production-slot methods only (Automation + Production + Organization).
+    /// Used by `resolve_active_method()` for year-based fallback lookups.
+    /// Consumption methods (Lighting, Heating, etc.) are resolved separately.
+    pub fn iter_production_slots(&self) -> impl Iterator<Item = &ProductionMethod> {
         self.automation
             .values()
             .chain(self.production.values())
             .chain(self.organization.values())
+    }
+
+    /// Iterate consumption-slot methods (Lighting + Heating + Ventilation +
+    /// PowerGeneration + WaterSupply + Sanitation + WasteDisposal + EmissionControl).
+    /// Future-proofed slots (WaterSupply, Sanitation, WasteDisposal) are
+    /// empty in Wave 2 but included for forward compatibility.
+    pub fn iter_consumption_slots(&self) -> impl Iterator<Item = &ProductionMethod> {
+        self.lighting
+            .values()
+            .chain(self.heating.values())
+            .chain(self.ventilation.values())
+            .chain(self.power_generation.values())
+            .chain(self.water_supply.values())
+            .chain(self.sanitation.values())
+            .chain(self.waste_disposal.values())
+            .chain(self.emission_control.values())
+    }
+
+    /// Iterate all methods across all slots (production + consumption).
+    /// Kept for backward compatibility with supply chain tests that iterate
+    /// all methods. Prefer `iter_production_slots()` or
+    /// `iter_consumption_slots()` for new code.
+    pub fn iter_all(&self) -> impl Iterator<Item = &ProductionMethod> {
+        self.iter_production_slots()
+            .chain(self.iter_consumption_slots())
     }
 }
 
@@ -1708,7 +1877,7 @@ mod tests {
     fn labor_ratios_sum_to_one() {
         let reg = state_building_methods();
         for (_, methods) in reg.iter() {
-            for pm in methods.iter_all() {
+            for pm in methods.iter_production_slots() {
                 let sum = pm.experts_ratio + pm.skilled_ratio + pm.basic_ratio;
                 assert!((sum - 1.0).abs() < 1e-9, "ratios must sum to 1.0");
             }
@@ -1719,7 +1888,7 @@ mod tests {
     fn state_buildings_have_no_outputs() {
         let reg = state_building_methods();
         for (_, methods) in reg.iter() {
-            for pm in methods.iter_all() {
+            for pm in methods.iter_production_slots() {
                 // Phase 14: courthouse/police_station produce JusticeCapacity/SecurityCapacity;
                 // prison Workshop produces Furniture; Quarry produces Stone/HardCoal.
                 let allowed: Vec<&Commodity> = pm.outputs.keys()

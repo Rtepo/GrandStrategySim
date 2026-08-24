@@ -223,6 +223,12 @@ function RegionDetailPanel({ detail }: { detail: RegionDetail }) {
                 )}
               </div>
             )},
+            { label: "Sanitation", value: "sanitation", content: (
+              <SanitationTab detail={detail} />
+            )},
+            { label: "Waste", value: "waste", content: (
+              <WasteTab detail={detail} />
+            )},
           ]}
         />
       </CardContent>
@@ -235,6 +241,152 @@ function Field({ label, value }: { label: string; value: string }) {
     <div className="flex justify-between">
       <span className="text-muted-foreground">{label}</span>
       <span className="text-foreground font-medium">{value}</span>
+    </div>
+  );
+}
+
+/// Phase 83: Sanitation tab — displays water reserves, water grid, sewer grid,
+/// and biohazard snapshots. Role-gated data may be null for unauthorized viewers.
+function SanitationTab({ detail }: { detail: RegionDetail }) {
+  const wr = detail.water_reserves;
+  const wg = detail.water_grid;
+  const sg = detail.sewer_grid;
+  const bh = detail.biohazard;
+
+  return (
+    <div className="space-y-4">
+      {/* Water Reserves */}
+      {wr && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-foreground">Water Reserves</h3>
+          <Field label="Groundwater Volume" value={`${fmt(safeNum(wr.groundwater_volume))} L`} />
+          <Field label="Groundwater Quality" value={`${(safeNum(wr.groundwater_quality) * 100).toFixed(1)}%`} />
+          <Field label="Surface Water Volume" value={`${fmt(safeNum(wr.surface_water_volume))} L`} />
+          <Field label="Surface Water Quality" value={`${(safeNum(wr.surface_water_quality) * 100).toFixed(1)}%`} />
+        </div>
+      )}
+
+      {/* Water Grid */}
+      {wg && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-foreground">Water Grid</h3>
+          <Field label="Pipe Network" value={`${safeNum(wg.pipe_network_km).toFixed(1)} km`} />
+          <Field label="Pipe Condition" value={`${(safeNum(wg.pipe_condition) * 100).toFixed(1)}%`} />
+          <Field label="Water Quality" value={`${(safeNum(wg.current_quality) * 100).toFixed(1)}%`} />
+          <Field label="Throughput" value={`${fmt(safeNum(wg.throughput_liters))} L/turn`} />
+          <Field label="Effective Delivered" value={`${fmt(safeNum(wg.effective_water_delivered))} L/turn`} />
+          <Field label="Transmission Loss" value={`${(safeNum(wg.transmission_loss_fraction) * 100).toFixed(1)}%`} />
+          <Field label="Active Treatment Plants" value={String(safeNum(wg.active_water_plants))} />
+        </div>
+      )}
+
+      {/* Sewer Grid */}
+      {sg && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-foreground">Sewer Grid</h3>
+          <Field label="Pipe Network" value={`${safeNum(sg.pipe_network_km).toFixed(1)} km`} />
+          <Field label="Pipe Condition" value={`${(safeNum(sg.pipe_condition) * 100).toFixed(1)}%`} />
+          <Field label="Sewage Quality" value={`${(safeNum(sg.current_quality) * 100).toFixed(1)}%`} />
+          <Field label="Throughput" value={`${fmt(safeNum(sg.throughput_liters))} L/turn`} />
+          <Field label="Delivered to Treatment" value={`${fmt(safeNum(sg.water_delivered_to_treatment))} L/turn`} />
+          <Field label="Leaked Water Mass" value={`${fmt(safeNum(sg.leaked_water_mass))} L/turn`} />
+          <Field label="Active Wastewater Plants" value={String(safeNum(sg.active_wastewater_plants))} />
+        </div>
+      )}
+
+      {/* Biohazard */}
+      {bh && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-foreground">Biological Hazard</h3>
+          <Field label="Biohazard Level" value={`${safeNum(bh.biohazard_level).toFixed(1)} / 100`} />
+          <Field label="Mortality Multiplier" value={`${safeNum(bh.mortality_multiplier).toFixed(2)}x`} />
+          <Field label="Standalone Biohazard" value={fmt(safeNum(bh.standalone_biohazard))} />
+          <Field label="Sewage Overflow" value={fmt(safeNum(bh.sewage_overflow_biohazard))} />
+          <Field label="Industrial Biohazard" value={fmt(safeNum(bh.industrial_biohazard))} />
+          <Field label="Low-Quality Water" value={fmt(safeNum(bh.low_quality_water_biohazard))} />
+        </div>
+      )}
+
+      {!wr && !wg && !sg && !bh && (
+        <div className="text-muted-foreground text-sm">
+          No sanitation data available (insufficient clearance or no infrastructure).
+        </div>
+      )}
+    </div>
+  );
+}
+
+/// Phase 84: Waste tab — displays waste grid, landfill, waste pollution,
+/// and recycling snapshots. Role-gated data may be null for unauthorized viewers.
+function WasteTab({ detail }: { detail: RegionDetail }) {
+  const wg = detail.waste_grid;
+  const lf = detail.landfill;
+  const wp = detail.waste_pollution;
+  const rc = detail.recycling;
+
+  return (
+    <div className="space-y-4">
+      {/* Waste Grid */}
+      {wg && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-foreground">Waste Collection Grid</h3>
+          <Field label="Collection Routes" value={`${safeNum(wg.collection_route_km).toFixed(1)} km`} />
+          <Field label="Route Condition" value={`${(safeNum(wg.route_condition) * 100).toFixed(1)}%`} />
+          <Field label="Collection Capacity" value={`${safeNum(wg.collection_capacity).toFixed(1)} t/turn`} />
+          <Field label="Uncollected Waste" value={`${safeNum(wg.total_uncollected).toFixed(1)} t`} />
+          <Field label="Separation Efficiency" value={`${(safeNum(wg.separation_efficiency) * 100).toFixed(1)}%`} />
+          <Field label="Landfill Utilization" value={`${(safeNum(wg.landfill_utilization) * 100).toFixed(1)}%`} />
+          <Field label="Methane Capture" value={`${(safeNum(wg.methane_capture_rate) * 100).toFixed(1)}%`} />
+        </div>
+      )}
+
+      {/* Landfill */}
+      {lf && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-foreground">Landfill Status</h3>
+          <Field label="Total Capacity" value={`${safeNum(lf.total_capacity).toFixed(0)} t`} />
+          <Field label="Remaining Capacity" value={`${safeNum(lf.remaining_capacity).toFixed(0)} t`} />
+          <Field label="Stored Waste" value={`${safeNum(lf.total_stored).toFixed(0)} t`} />
+          <Field label="Utilization" value={`${(safeNum(lf.utilization) * 100).toFixed(1)}%`} />
+          <Field label="Liner Integrity" value={`${(safeNum(lf.liner_integrity) * 100).toFixed(1)}%`} />
+          <Field label="Leachate Capture" value={`${(safeNum(lf.leachate_capture) * 100).toFixed(1)}%`} />
+          <Field label="Gas Capture" value={`${(safeNum(lf.gas_capture) * 100).toFixed(1)}%`} />
+          {lf.is_full && (
+            <div className="text-destructive text-xs font-medium">
+              LOGISTICAL BOUND 2: Landfill is full — rejecting all incoming waste.
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Waste Pollution (public) */}
+      {wp && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-foreground">Waste Pollution</h3>
+          <Field label="Burning Emissions" value={fmt(safeNum(wp.burning_emissions))} />
+          <Field label="Dumping Biohazard" value={fmt(safeNum(wp.dumping_biohazard))} />
+          <Field label="Uncollected Biohazard" value={fmt(safeNum(wp.uncollected_biohazard))} />
+        </div>
+      )}
+
+      {/* Recycling */}
+      {rc && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-foreground">Recycling & WtE</h3>
+          <Field label="Separation Plants" value={String(safeNum(rc.active_separation_plants))} />
+          <Field label="Recycling Plants" value={String(safeNum(rc.active_recycling_plants))} />
+          <Field label="WtE Plants" value={String(safeNum(rc.active_wte_plants))} />
+          <Field label="Total Recycled" value={`${safeNum(rc.total_recycled).toFixed(1)} t`} />
+          <Field label="Total Incinerated" value={`${safeNum(rc.total_incinerated).toFixed(1)} t`} />
+          <Field label="Ash Generated" value={`${safeNum(rc.ash_generated).toFixed(1)} t`} />
+        </div>
+      )}
+
+      {!wg && !lf && !wp && !rc && (
+        <div className="text-muted-foreground text-sm">
+          No waste data available (insufficient clearance or no infrastructure).
+        </div>
+      )}
     </div>
   );
 }

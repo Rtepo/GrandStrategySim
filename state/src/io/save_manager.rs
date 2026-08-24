@@ -212,6 +212,7 @@ pub fn load_game_state(data_dir: &Path) -> Result<GameState, SaveError> {
                 global_reputation: crate::international::reputation::GlobalReputation::default(),
                 geopolitical_doctrine: crate::international::ai_doctrines::GeopoliticalDoctrine::default(),
                 power_grid_state: crate::energy::PowerGridState::default(),
+                ppa_registry: crate::energy::types::PpaRegistry::default(),
             },
         );
     }

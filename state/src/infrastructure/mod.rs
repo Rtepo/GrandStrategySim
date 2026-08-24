@@ -51,6 +51,10 @@ pub enum CapacityType {
     ElectricitySupply,
     /// Landfill capacity (tons per turn) - modular waste management
     LandfillCapacity,
+    /// Phase 82: Thermal grid pipe network capacity (km of pipe).
+    /// Distinct from DistrictHeating (which is GJ heat supply).
+    /// Determines how many buildings can connect to district heating.
+    ThermalGridCapacity,
 }
 
 /// Per-turn capacity generation by an infrastructure building

@@ -308,12 +308,13 @@ mod tests {
     fn test_commodity_all_count_includes_new_energy_commodities() {
         use sim_engine::registries::enums::Commodity;
         let all = Commodity::all();
-        // Should include the 4 new commodities (CoolingTower, PhotovoltaicPanels, Insulation, LedLighting)
+        // Should include the Wave 1 commodities (CoolingTower, PhotovoltaicPanels)
+        // and the Wave 2 commodity (CoalGas). Insulation and LedLighting were
+        // scrapped in Wave 2 (replaced by MethodSlot-based consumption evolution).
         assert!(all.contains(&Commodity::CoolingTower));
         assert!(all.contains(&Commodity::PhotovoltaicPanels));
-        assert!(all.contains(&Commodity::Insulation));
-        assert!(all.contains(&Commodity::LedLighting));
-        assert_eq!(all.len(), 143);
+        assert!(all.contains(&Commodity::CoalGas));
+        assert_eq!(all.len(), 142);
     }
 
     // ── Production Method Registry Tests ──

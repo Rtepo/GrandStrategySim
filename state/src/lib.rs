@@ -64,6 +64,7 @@ pub mod economy;
 pub mod energy;
 pub mod engine;
 pub mod entities;
+pub mod environment;
 pub mod government;
 pub mod i18n;
 pub mod infrastructure;

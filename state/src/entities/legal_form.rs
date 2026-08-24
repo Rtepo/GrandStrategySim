@@ -201,7 +201,9 @@ pub struct MunicipalCompanyData {
 #[serde(rename_all = "snake_case")]
 pub enum MunicipalServiceType {
     #[default]
-    /// Water and sewage
+    /// Water and sewage (legacy combined utility — kept for existing saves
+    /// that pre-date Phase 83 split). New Phase 83 utilities should use
+    /// `WaterUtility` and `SewageUtility` separately.
     WaterAndSewage,
     /// Public transport
     PublicTransport,
@@ -215,6 +217,24 @@ pub enum MunicipalServiceType {
     Healthcare,
     /// Education facilities
     Education,
+    /// Phase 82: District heating utility (municipal heat network operator)
+    HeatingUtility,
+    /// Phase 83: Water utility (potable water treatment + distribution only).
+    /// Distinct from `WaterAndSewage` — single-purpose utility for the
+    /// Water Quality Spectrum paradigm. Bills buildings by water volume consumed.
+    WaterUtility,
+    /// Phase 83: Sewage utility (wastewater collection + treatment only).
+    /// Bills buildings by sewage volume discharged. Produces `Commodity::Fertilizers`
+    /// from extracted biosolids.
+    SewageUtility,
+    /// Phase 83 (retroactive): Electricity utility (generation + distribution).
+    /// Promotes electricity from `EnergyDistribution` to a first-class
+    /// municipal service for the unified municipal infrastructure AI.
+    ElectricUtility,
+    /// Phase 84: Waste utility (collection + treatment + disposal).
+    /// Bills buildings by waste volume generated (dual fee: curbside + gate).
+    /// Produces recovered commodities (Steel, Glass, Plastics, etc.) from recycling.
+    WasteUtility,
 }
 
 /// Data for a State Monopoly (Phase 5.10)

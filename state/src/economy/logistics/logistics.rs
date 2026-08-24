@@ -1049,6 +1049,12 @@ mod tests {
             parcel_ids: Vec::new(),
             is_autonomous_republic: false,
             elevation_difference_m: 0.0,
+            thermal_grid: Default::default(),
+            local_pollution: Default::default(),
+            water_reserves: Default::default(),
+            water_network: Default::default(),
+            sewer_network: Default::default(),
+            waste_grid: Default::default(),
         }
     }
 

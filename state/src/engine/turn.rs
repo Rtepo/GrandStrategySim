@@ -1510,9 +1510,38 @@ pub fn run_turn_in_memory(
         // Replaces the old distribute_utilities for electricity. The new system
         // performs DC flow balancing, overproduction handling, and load shedding.
         // Water/heat distribution still uses the old distribute_utilities.
+        // Phase 81 Wave 2: Clone market_history for PPA VWAP computation.
+        let ppa_market_history = state.market_history.clone();
         let grid_penalties_per_task: Vec<std::collections::HashMap<String, f64>> =
             tasks.par_iter_mut().enumerate().map(|(i, task)| {
                 let utility_config = task.ctx.country.utility_config.clone();
+                // Phase 81 Wave 2: Build fuel prices from market prices for
+                // merit-order spot market clearing.
+                let fuel_prices: std::collections::HashMap<Commodity, f64> = task
+                    .ctx
+                    .market_prices
+                    .iter()
+                    .map(|(&k, &v)| (k, v))
+                    .collect();
+                // Phase 81 Wave 2: PPA negotiation — bilateral long-term contracts
+                // between generators and industrial consumers. Runs before grid
+                // distribution so PPA-contracted MW is reserved.
+                let global_base_price = task
+                    .ctx
+                    .market_prices
+                    .get(&Commodity::Energy)
+                    .copied()
+                    .unwrap_or(100.0);
+                let avg_wage = task.ctx.country.macro_indicators.average_wage.max(1.0);
+                crate::energy::ppa::negotiate_ppas(
+                    &mut task.ctx.country,
+                    &task.ctx.buildings,
+                    &fuel_prices,
+                    avg_wage,
+                    &ppa_market_history,
+                    global_base_price,
+                    current_turn,
+                );
                 // Phase 81: New energy grid distribution (electricity only).
                 let grid_result = crate::energy::grid::distribute_grid_power(
                     &mut task.ctx.country,
@@ -1520,6 +1549,7 @@ pub fn run_turn_in_memory(
                     &task.housing_buildings,
                     &task.commercial_buildings,
                     current_season,
+                    &fuel_prices,
                 );
                 // Phase 81: Degrade grid condition based on load factor.
                 crate::energy::grid::degrade_grid_condition(
@@ -1580,6 +1610,94 @@ pub fn run_turn_in_memory(
             });
             task_penalties = penalties_per_task;
         }
+
+        // Phase 82: Thermal grid pipe degradation + smog computation.
+        // Pipes degrade each turn (faster in winter). Smog is computed from
+        // emissions and accumulates with natural decay. Smog is distributed
+        // to cadastre parcels as particulate pollution.
+        tasks.par_iter_mut().for_each(|task| {
+            let winter_severity = match current_season {
+                crate::state::Season::Winter => 2.0,
+                crate::state::Season::Autumn => 1.0,
+                crate::state::Season::Spring => 0.5,
+                crate::state::Season::Summer => 0.0,
+            };
+            for region in &mut task.ctx.country.regions {
+                // Degrade thermal grid pipes
+                region.thermal_grid.degrade(winter_severity);
+
+                // Compute smog for this region.
+                // Emissions sources:
+                // - standalone_emissions: from housing/commercial heating (coal stoves, etc.)
+                // - centralized_emissions: from heating plants and power plants
+                // - industrial_emissions: from heavy industry production
+                // For now, use the per-turn emission breakdown stored in local_pollution.
+                // The actual emission computation happens during production and consumption
+                // processing; here we just accumulate and decay.
+                let area_km2 = region.land_use_inventory.total_area / 100.0;
+                let standalone = region.local_pollution.standalone_emissions;
+                let centralized = region.local_pollution.centralized_emissions;
+                let industrial = region.local_pollution.industrial_emissions;
+                crate::environment::smog::compute_smog_for_region(
+                    &mut region.local_pollution,
+                    standalone,
+                    centralized,
+                    industrial,
+                    area_km2,
+                );
+
+                // Distribute smog to cadastre parcels
+                crate::environment::smog::distribute_smog_to_parcels(
+                    &mut task.ctx.country.cadastre,
+                    &region.id,
+                    region.local_pollution.smog_level,
+                );
+
+                // ═══════════════════════════════════════════════════════════
+                // PHASE 83: HYDRO GRID — Water reserve regeneration (Step 16)
+                // PARADIGM SHIFT: Groundwater and surface water regenerate
+                // naturally, with quality drift toward natural baselines
+                // (groundwater → 0.9, surface → 0.6).
+                // ═══════════════════════════════════════════════════════════
+                let aquifer_capacity = region.water_reserves.groundwater_volume
+                    + region.water_reserves.groundwater_regen_rate * 100.0;
+                region.water_reserves.regenerate(aquifer_capacity);
+
+                // ═══════════════════════════════════════════════════════════
+                // PHASE 83: HYDRO GRID — Pipe degradation (Step 15)
+                // Water and sewer pipes degrade over time, increasing
+                // leakage and transmission losses.
+                // ═══════════════════════════════════════════════════════════
+                region.water_network.degrade(winter_severity);
+                region.sewer_network.degrade();
+
+                // ═══════════════════════════════════════════════════════════
+                // PHASE 83: BIOHAZARD COMPUTATION (Step 11)
+                // PARADIGM SHIFT: Biological pollution from standalone
+                // sanitation, sewer overflow, industrial wastewater, and
+                // low-quality water consumption. Distinct from smog.
+                // ═══════════════════════════════════════════════════════════
+                let area_km2 = region.land_use_inventory.total_area / 100.0;
+                let standalone_bio = region.local_pollution.standalone_biohazard;
+                let sewage_overflow_bio = region.local_pollution.sewage_overflow_biohazard;
+                let industrial_bio = region.local_pollution.industrial_biohazard;
+                crate::environment::smog::compute_biohazard_for_region(
+                    &mut region.local_pollution,
+                    standalone_bio,
+                    sewage_overflow_bio,
+                    industrial_bio,
+                    &[], // Building receipts populated by consumption track
+                    area_km2,
+                );
+
+                // Distribute biohazard to cadastre parcels
+                crate::environment::smog::distribute_biohazard_to_parcels(
+                    &mut task.ctx.country.cadastre,
+                    &region.id,
+                    region.local_pollution.biohazard_level,
+                );
+            }
+        });
 
         // Phase 44: Residential Rent Collection — double-entry transfer.
         // Debit occupying class savings, credit owner entity (State treasury or class savings).
@@ -1693,12 +1811,29 @@ pub fn run_turn_in_memory(
             task.ctx.country.regional_overflow_fees = regional_overflow;
         });
 
-        // Phase 8.3: Waste Collection & Processing
+        // Phase 8.3: Waste Collection & Processing (legacy Phase 8 system)
         tasks.par_iter_mut().for_each(|task| {
             let _waste_result = crate::utilities::waste_collection::process_waste_turn(
                 &mut task.ctx.country.regions,
                 &mut task.ctx.buildings,
                 &mut task.companies,
+                &task.housing_buildings,
+                &task.commercial_buildings,
+                current_season,
+            );
+        });
+
+        // ═══════════════════════════════════════════════════════════
+        // PHASE 84: WASTE EPIC — Solid Waste Management & Circular Economy
+        // 10-step waste processing (W.1–W.10), runs after consumption,
+        // before mortality. Mass-conserved waste generation from actual
+        // consumption receipts. Trash streams B2B-excluded. WtE outputs
+        // ash. Landfills have hard capacity stop. Dual fee billing.
+        // ═══════════════════════════════════════════════════════════
+        tasks.par_iter_mut().for_each(|task| {
+            crate::utilities::waste_grid::process_waste_epic_turn(
+                &mut task.ctx.country.regions,
+                &mut task.ctx.buildings,
                 &task.housing_buildings,
                 &task.commercial_buildings,
                 current_season,
@@ -1812,6 +1947,13 @@ pub fn run_turn_in_memory(
         market_history::update_vwap(&mut state.market_history, &all_trades);
         // Phase 79: Update rolling VWAP history for SRA shock-responsive triggers.
         market_history::update_vwap_history(&mut state.market_history, market_history::VWAP_HISTORY_WINDOW);
+
+        // Phase 81 Wave 2: Expire PPAs that have reached their end turn.
+        // Runs after market history update so the next turn's PPA negotiation
+        // has access to the latest VWAP data.
+        tasks.par_iter_mut().for_each(|task| {
+            crate::energy::ppa::expire_ppas(&mut task.ctx.country, current_turn);
+        });
 
         // ═══════════════════════════════════════════════════════════
         // PHASE 69-C: EXPIRED DECREE CLEANUP

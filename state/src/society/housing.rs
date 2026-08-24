@@ -65,22 +65,29 @@ pub struct UtilityConnections {
     /// Surface water connected (liters per turn)
     #[serde(default)]
     pub surface_water_capacity: f64,
-    
+
     /// Groundwater connected (liters per turn)
     #[serde(default)]
     pub groundwater_capacity: f64,
-    
+
     /// Sewage treatment connected (liters per turn)
     #[serde(default)]
     pub sewage_treatment_capacity: f64,
-    
+
     /// District heating connected (GJ per turn)
     #[serde(default)]
     pub district_heating_capacity: f64,
-    
+
     /// Electricity connected (kWh per turn)
     #[serde(default)]
     pub electricity_capacity: f64,
+
+    /// Phase 83 (PARADIGM SHIFT): Quality of water the building actually
+    /// received this turn (0.0-1.0). Set by the hydro grid distribution.
+    /// PATCH 6 (Universal Water Sickness): biohazard penalty evaluates this
+    /// per-building, regardless of source (grid or standalone well).
+    #[serde(default)]
+    pub water_quality_received: f64,
 }
 
 /// Housing building with capacity and utility connections
@@ -129,6 +136,46 @@ pub struct HousingBuilding {
     /// Utility connections
     #[serde(default)]
     pub utility_connections: UtilityConnections,
+
+    /// Phase 81 Wave 2: Active lighting method (e.g., "Kerosene Lamps", "LED Lighting").
+    /// Empty string = no lighting. Determines per-turn lighting commodity consumption.
+    #[serde(default)]
+    pub active_lighting: String,
+
+    /// Phase 81 Wave 2: Active heating method (e.g., "Coal Stove", "Heat Pump").
+    /// Empty string = no heating. Determines per-turn heating commodity consumption.
+    #[serde(default)]
+    pub active_heating: String,
+
+    /// Phase 81 Wave 2: Active power generation method (e.g., "None", "Rooftop PV").
+    /// Empty string = "None". Determines microgeneration output and CAPEX.
+    #[serde(default)]
+    pub active_power_generation: String,
+
+    /// Phase 83: Active water supply method (e.g., "Local Well", "Municipal Mains").
+    /// Empty string = "None". Determines whether the building draws from
+    /// WaterReserveState (standalone) or WaterNetworkState (centralized).
+    #[serde(default)]
+    pub active_water_supply: String,
+
+    /// Phase 83: Active sanitation method (e.g., "Open Defecation", "Municipal Sewer").
+    /// Empty string = "None". Determines whether the building discharges to
+    /// environment (standalone, biohazard) or SewerNetworkState (centralized).
+    #[serde(default)]
+    pub active_sanitation: String,
+
+    /// Phase 84: Active waste disposal method (e.g., "Primitive Dumping",
+    /// "Basic Homesteading", "Unsegregated Collection"). Empty string = "None".
+    /// Determines whether waste is self-disposed (standalone, pollution) or
+    /// collected by municipal WasteGridState (centralized).
+    #[serde(default)]
+    pub active_waste_disposal: String,
+
+    /// Phase 81 Wave 2: Pending consumption-method upgrade (None if no upgrade
+    /// in progress). Only one upgrade per building at a time. The active method
+    /// string ONLY flips when `is_complete()` returns true (Flaw 2 correction).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pending_upgrade: Option<crate::construction::upgrade_project::UpgradeProject>,
 }
 
 /// Commercial building type
@@ -443,6 +490,46 @@ pub struct CommercialBuilding {
     /// aggregated by blueprint+acquire turn+condition for RAM predictability.
     #[serde(default)]
     pub fixed_assets: Vec<crate::economy::fixed_assets::FixedAssetCohort>,
+
+    /// Phase 81 Wave 2: Active lighting method (e.g., "Kerosene Lamps", "LED Lighting").
+    /// Empty string = no lighting. Determines per-turn lighting commodity consumption.
+    #[serde(default)]
+    pub active_lighting: String,
+
+    /// Phase 81 Wave 2: Active heating method (e.g., "Coal Stove", "Heat Pump").
+    /// Empty string = no heating. Determines per-turn heating commodity consumption.
+    #[serde(default)]
+    pub active_heating: String,
+
+    /// Phase 81 Wave 2: Active power generation method (e.g., "None", "Rooftop PV").
+    /// Empty string = "None". Determines microgeneration output and CAPEX.
+    #[serde(default)]
+    pub active_power_generation: String,
+
+    /// Phase 83: Active water supply method (e.g., "Local Well", "Municipal Mains").
+    /// Empty string = "None". Determines whether the building draws from
+    /// WaterReserveState (standalone) or WaterNetworkState (centralized).
+    #[serde(default)]
+    pub active_water_supply: String,
+
+    /// Phase 83: Active sanitation method (e.g., "Open Defecation", "Municipal Sewer").
+    /// Empty string = "None". Determines whether the building discharges to
+    /// environment (standalone, biohazard) or SewerNetworkState (centralized).
+    #[serde(default)]
+    pub active_sanitation: String,
+
+    /// Phase 84: Active waste disposal method (e.g., "Primitive Dumping",
+    /// "Basic Homesteading", "Unsegregated Collection"). Empty string = "None".
+    /// Determines whether waste is self-disposed (standalone, pollution) or
+    /// collected by municipal WasteGridState (centralized).
+    #[serde(default)]
+    pub active_waste_disposal: String,
+
+    /// Phase 81 Wave 2: Pending consumption-method upgrade (None if no upgrade
+    /// in progress). Only one upgrade per building at a time. The active method
+    /// string ONLY flips when `is_complete()` returns true (Flaw 2 correction).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pending_upgrade: Option<crate::construction::upgrade_project::UpgradeProject>,
 }
 
 /// Housing inventory for a micro-region

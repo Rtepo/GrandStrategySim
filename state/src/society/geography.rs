@@ -642,6 +642,39 @@ pub struct Region {
     /// 0.0 = flat terrain (no pumped storage possible).
     #[serde(default = "default_elevation_difference")]
     pub elevation_difference_m: f64,
+
+    /// Phase 82: Thermal grid state — intra-regional pipe network for district heating.
+    /// Heat cannot be transmitted inter-regionally; each region has its own
+    /// insulated pipe network with aggressive transmission losses.
+    #[serde(default)]
+    pub thermal_grid: crate::energy::thermal_grid::ThermalGridState,
+
+    /// Phase 82: Local pollution (smog) state — accumulated air pollution
+    /// concentration from heating, industrial, and power generation sources.
+    /// Smog is a concentration (mass per km²), not raw mass.
+    #[serde(default)]
+    pub local_pollution: crate::environment::smog::LocalPollutionState,
+
+    /// Phase 83: Natural water reserves — groundwater and surface water with
+    /// dynamic quality (PARADIGM SHIFT: Water Quality Spectrum).
+    #[serde(default)]
+    pub water_reserves: crate::utilities::hydro_grid::WaterReserveState,
+
+    /// Phase 83: Water distribution network — carries water mass with a quality
+    /// attribute. Treatment plants upgrade quality; buildings degrade it.
+    #[serde(default)]
+    pub water_network: crate::utilities::hydro_grid::WaterNetworkState,
+
+    /// Phase 83: Sewer collection network — carries degraded water (blackwater)
+    /// from buildings to wastewater treatment plants.
+    #[serde(default)]
+    pub sewer_network: crate::utilities::hydro_grid::SewerNetworkState,
+
+    /// Phase 84: Waste collection and distribution grid — carries trash streams
+    /// (MixedWaste, BioWaste, etc.) as physical logistical transfers. Sorted
+    /// fractions (MetalWaste, etc.) may be sold on B2B by the waste utility.
+    #[serde(default)]
+    pub waste_grid: crate::utilities::waste_grid::WasteGridState,
 }
 
 /// Phase 47: Default development level for old saves (conservative mid-low).
@@ -1507,6 +1540,12 @@ pub fn generate_regional_topology(country: &str, population: i64, gdp: f64, star
             parcel_ids: Vec::new(),
             is_autonomous_republic: false,
             elevation_difference_m: 0.0,
+            thermal_grid: Default::default(),
+            local_pollution: Default::default(),
+            water_reserves: Default::default(),
+            water_network: Default::default(),
+            sewer_network: Default::default(),
+            waste_grid: Default::default(),
         });
     }
 
@@ -1819,6 +1858,12 @@ pub fn generate_maritime_nodes(
         parcel_ids: Vec::new(),
         is_autonomous_republic: false,
         elevation_difference_m: 0.0,
+        thermal_grid: Default::default(),
+        local_pollution: Default::default(),
+        water_reserves: Default::default(),
+        water_network: Default::default(),
+        sewer_network: Default::default(),
+        waste_grid: Default::default(),
     };
     maritime_nodes.insert(sea_node_id, sea_node);
 
@@ -1861,6 +1906,12 @@ pub fn generate_maritime_nodes(
         parcel_ids: Vec::new(),
         is_autonomous_republic: false,
         elevation_difference_m: 0.0,
+        thermal_grid: Default::default(),
+        local_pollution: Default::default(),
+        water_reserves: Default::default(),
+        water_network: Default::default(),
+        sewer_network: Default::default(),
+        waste_grid: Default::default(),
     };
     maritime_nodes.insert(ocean_node_id, ocean_node);
 
@@ -2846,6 +2897,12 @@ mod phase30_tests {
             parcel_ids: Vec::new(),
             is_autonomous_republic: false,
             elevation_difference_m: 0.0,
+            thermal_grid: Default::default(),
+            local_pollution: Default::default(),
+            water_reserves: Default::default(),
+            water_network: Default::default(),
+            sewer_network: Default::default(),
+            waste_grid: Default::default(),
         }
     }
 

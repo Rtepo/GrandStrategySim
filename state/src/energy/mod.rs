@@ -26,9 +26,23 @@
 
 #![allow(missing_docs)]
 
+pub mod chp;
 pub mod generation;
 pub mod grid;
+pub mod heating_types;
 pub mod load_shedding;
+pub mod municipal_heating_ai;
+pub mod municipal_infrastructure_ai;
+pub mod ppa;
+pub mod thermal_grid;
 pub mod types;
 
 pub use types::*;
+pub use heating_types::{ChpRetrofitMetadata, HeatingPlantMetadata, HeatingPlantType};
+pub use municipal_heating_ai::{
+    run_municipal_heating_ai, HeatSalesHistory, HeatingInvestmentPlan, PlantTypeCostData,
+};
+pub use thermal_grid::{
+    average_delivery_distance, compute_regulated_heat_price, effective_heat_supply,
+    max_connectable_buildings, transmission_loss, ThermalGridState,
+};

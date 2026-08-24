@@ -313,9 +313,11 @@ pub fn generate_corporate_entities(
             inventory: BTreeMap::new(),
             inventory_capacity: 0.0,
             active_project: None,
-            landfill_data: None,
+            landfill_state: None,
             deposit_id: None,
             fixed_assets: Vec::new(),
+            pending_method_upgrade: None,
+            active_emission_control: String::new(),
         };
         // Phase 46: Push to all_buildings only; state buildings are filtered
         // from all_buildings at save time to avoid cloning.
@@ -338,13 +340,12 @@ pub fn generate_corporate_entities(
     let waste_sector_name = sector_json_name(Sector::WasteManagement);
     for region in &country_regions {
         let building_id = idgen.next_building();
-        let landfill_data = crate::utilities::waste::LandfillData {
-            total_capacity: 500_000.0,
-            current_volume: 0.0,
-            processing_capacity: 5_000.0,
-            operating_cost: 2_000.0,
-            upgrades: Vec::new(),
-        };
+        let landfill_state = crate::utilities::waste_grid::LandfillState::new(
+            500_000.0, // total_capacity
+            0.5,       // liner_integrity (controlled landfill)
+            0.3,       // leachate_capture
+            0.1,       // gas_capture
+        );
         let building = Building {
             id: building_id.clone(),
             name: format!("Landfill ({})", region.id),
@@ -366,7 +367,7 @@ pub fn generate_corporate_entities(
                     automation: "Manual Sorting".to_string(),
                     production: "Basic Landfill Operation".to_string(),
                     organization: "Municipal Crew".to_string(),
-                    extra: Map::new(),
+                    ..Default::default()
                 },
                 active_blueprint: None,
                 extra: Map::new(),
@@ -395,9 +396,11 @@ pub fn generate_corporate_entities(
             inventory: BTreeMap::new(),
             inventory_capacity: 0.0,
             active_project: None,
-            landfill_data: Some(landfill_data),
+            landfill_state: Some(landfill_state),
             deposit_id: None,
             fixed_assets: Vec::new(),
+            pending_method_upgrade: None,
+            active_emission_control: String::new(),
         };
         // Phase 46: Push to all_buildings only; landfill buildings are filtered
         // from all_buildings at save time to avoid cloning.
@@ -1035,9 +1038,11 @@ fn generate_region_companies(
             inventory,
             inventory_capacity,
             active_project: None,
-            landfill_data: None,
+            landfill_state: None,
             deposit_id: None,
             fixed_assets,
+            pending_method_upgrade: None,
+            active_emission_control: String::new(),
         };
 
         company.building_ids.push(building_id);
@@ -1241,11 +1246,15 @@ fn find_storage_method_by_name(
             automation: String::new(),
             production: method_name.to_string(),
             organization: String::new(),
-            extra: Map::new(),
+            ..Default::default()
         },
         active_blueprint: None,
         thermal_efficiency: pm.thermal_efficiency,
         storage_efficiency: pm.storage_efficiency,
+        emission_factor: pm.emission_factor,
+        biohazard_factor: pm.biohazard_factor,
+        output_water_quality: pm.output_water_quality,
+        discharge_quality: pm.discharge_quality,
         extra: Default::default(),
     })
 }
@@ -2215,9 +2224,11 @@ fn create_seed_company_with_explicit_method(
         inventory,
         inventory_capacity,
         active_project: None,
-        landfill_data: None,
+        landfill_state: None,
         deposit_id: None,
         fixed_assets,
+        pending_method_upgrade: None,
+        active_emission_control: String::new(),
     };
 
     company.building_ids.push(building_id);
@@ -2613,9 +2624,11 @@ fn create_seed_company(
         inventory,
         inventory_capacity,
         active_project: None,
-        landfill_data: None,
+        landfill_state: None,
         deposit_id: None,
         fixed_assets,
+        pending_method_upgrade: None,
+        active_emission_control: String::new(),
     };
 
     company.building_ids.push(building_id);
@@ -2907,9 +2920,11 @@ fn create_strategic_reserve_agency(
             inventory: BTreeMap::new(),
             inventory_capacity: capacity_per_warehouse,
             active_project: None,
-            landfill_data: None,
+            landfill_state: None,
             deposit_id: None,
             fixed_assets: Vec::new(),
+            pending_method_upgrade: None,
+            active_emission_control: String::new(),
         };
         warehouses.push(building);
     }
@@ -2968,9 +2983,11 @@ fn create_strategic_reserve_agency(
             inventory: BTreeMap::new(),
             inventory_capacity: 0.0, // Storage buildings don't store commodities
             active_project: None,
-            landfill_data: None,
+            landfill_state: None,
             deposit_id: None,
             fixed_assets: Vec::new(),
+            pending_method_upgrade: None,
+            active_emission_control: String::new(),
         });
     }
 
@@ -3222,6 +3239,43 @@ fn generate_retail_stores(
     let mut retail_buildings: Vec<CommercialBuilding> = Vec::new();
     let mut retail_companies: Vec<Company> = Vec::new();
 
+    // Era-appropriate consumption method defaults
+    let default_lighting = if start_year >= 2000 {
+        "LED Lighting".to_string()
+    } else if start_year >= 1940 {
+        "Fluorescent Tubes".to_string()
+    } else if start_year >= 1900 {
+        "Incandescent Bulbs".to_string()
+    } else if start_year >= 1890 {
+        "Gas Mantle".to_string()
+    } else if start_year >= 1860 {
+        "Kerosene Lamps".to_string()
+    } else {
+        "None".to_string()
+    };
+
+    let default_heating = if start_year >= 1980 {
+        "Heat Pump".to_string()
+    } else if start_year >= 1930 {
+        "District Heating".to_string()
+    } else if start_year >= 1920 {
+        "Electric Radiator".to_string()
+    } else if start_year >= 1900 {
+        "Oil Heater".to_string()
+    } else if start_year >= 1850 {
+        "Coal Stove".to_string()
+    } else {
+        "None".to_string()
+    };
+
+    let default_power_generation = if start_year >= 2010 {
+        "Rooftop PV + Battery".to_string()
+    } else if start_year >= 2000 {
+        "Rooftop PV".to_string()
+    } else {
+        "None".to_string()
+    };
+
     for region in country_regions {
         let region_pop = region.population.max(1000) as f64;
 
@@ -3403,6 +3457,13 @@ fn generate_retail_stores(
             wholesale_profile: None,
             retail_leases: Vec::new(),
             fixed_assets: Vec::new(),
+            active_lighting: default_lighting.clone(),
+            active_heating: default_heating.clone(),
+            active_power_generation: default_power_generation.clone(),
+            active_water_supply: String::new(),
+            active_sanitation: String::new(),
+            active_waste_disposal: String::new(),
+            pending_upgrade: None,
         };
 
         retail_buildings.push(commercial_building);
@@ -3484,6 +3545,43 @@ fn generate_tourism_entities(
     let mut destinations = BTreeMap::new();
     let mut hospitality_companies: Vec<Company> = Vec::new();
     let mut tourism_buildings: Vec<CommercialBuilding> = Vec::new();
+
+    // Era-appropriate consumption method defaults
+    let default_lighting = if start_year >= 2000 {
+        "LED Lighting".to_string()
+    } else if start_year >= 1940 {
+        "Fluorescent Tubes".to_string()
+    } else if start_year >= 1900 {
+        "Incandescent Bulbs".to_string()
+    } else if start_year >= 1890 {
+        "Gas Mantle".to_string()
+    } else if start_year >= 1860 {
+        "Kerosene Lamps".to_string()
+    } else {
+        "None".to_string()
+    };
+
+    let default_heating = if start_year >= 1980 {
+        "Heat Pump".to_string()
+    } else if start_year >= 1930 {
+        "District Heating".to_string()
+    } else if start_year >= 1920 {
+        "Electric Radiator".to_string()
+    } else if start_year >= 1900 {
+        "Oil Heater".to_string()
+    } else if start_year >= 1850 {
+        "Coal Stove".to_string()
+    } else {
+        "None".to_string()
+    };
+
+    let default_power_generation = if start_year >= 2010 {
+        "Rooftop PV + Battery".to_string()
+    } else if start_year >= 2000 {
+        "Rooftop PV".to_string()
+    } else {
+        "None".to_string()
+    };
 
     for region in country_regions {
         // ~30% chance of getting a natural wonder
@@ -3576,6 +3674,13 @@ fn generate_tourism_entities(
                 wholesale_profile: None,
                 retail_leases: Vec::new(),
                 fixed_assets: Vec::new(),
+                active_lighting: default_lighting.clone(),
+                active_heating: default_heating.clone(),
+                active_power_generation: default_power_generation.clone(),
+                active_water_supply: String::new(),
+                active_sanitation: String::new(),
+                active_waste_disposal: String::new(),
+                pending_upgrade: None,
             };
             tourism_buildings.push(commercial_building);
 
@@ -3726,6 +3831,43 @@ fn generate_housing(
     let housing_store = DiskEntityStore::<HousingBuilding>::new(data_dir);
     let mut all_housing: Vec<HousingBuilding> = Vec::new();
 
+    // Era-appropriate consumption method defaults
+    let default_lighting = if start_year >= 2000 {
+        "LED Lighting".to_string()
+    } else if start_year >= 1940 {
+        "Fluorescent Tubes".to_string()
+    } else if start_year >= 1900 {
+        "Incandescent Bulbs".to_string()
+    } else if start_year >= 1890 {
+        "Gas Mantle".to_string()
+    } else if start_year >= 1860 {
+        "Kerosene Lamps".to_string()
+    } else {
+        "None".to_string()
+    };
+
+    let default_heating = if start_year >= 1980 {
+        "Heat Pump".to_string()
+    } else if start_year >= 1930 {
+        "District Heating".to_string()
+    } else if start_year >= 1920 {
+        "Electric Radiator".to_string()
+    } else if start_year >= 1900 {
+        "Oil Heater".to_string()
+    } else if start_year >= 1850 {
+        "Coal Stove".to_string()
+    } else {
+        "None".to_string()
+    };
+
+    let default_power_generation = if start_year >= 2010 {
+        "Rooftop PV + Battery".to_string()
+    } else if start_year >= 2000 {
+        "Rooftop PV".to_string()
+    } else {
+        "None".to_string()
+    };
+
     for region in country_regions {
         let region_pop = region.population.max(1000) as f64;
 
@@ -3843,7 +3985,15 @@ fn generate_housing(
                     sewage_treatment_capacity: total_capacity as f64 * 30.0,
                     district_heating_capacity: if start_year >= 1925 { total_capacity as f64 * 5.0 } else { 0.0 },
                     electricity_capacity: if start_year >= 1925 { total_capacity as f64 * 10.0 } else { 0.0 },
+                    water_quality_received: 0.0,
                 },
+                active_lighting: default_lighting.clone(),
+                active_heating: default_heating.clone(),
+                active_power_generation: default_power_generation.clone(),
+                active_water_supply: String::new(),
+                active_sanitation: String::new(),
+                active_waste_disposal: String::new(),
+                pending_upgrade: None,
             };
             all_housing.push(housing);
         }

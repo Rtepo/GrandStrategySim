@@ -150,18 +150,44 @@ impl Default for BudgetAllocations {
     }
 }
 
-/// The three-slot production-method selection for a sector.
+/// The multi-slot production-method selection for a sector.
+/// Phase 81 Wave 2: Expanded with 7 new slots (4 implemented + 3 future-proofed).
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct ProductionMethodChoice {
     /// Automation method.
-    
+
     pub automation: String,
     /// Production method.
-    
+
     pub production: String,
     /// Organization method.
-    
+
     pub organization: String,
+    /// Phase 81 Wave 2: Active lighting method (e.g., "Kerosene Lamps", "LED Lighting").
+    #[serde(default)]
+    pub lighting: String,
+    /// Phase 81 Wave 2: Active heating method (e.g., "Coal Stove", "Heat Pump").
+    #[serde(default)]
+    pub heating: String,
+    /// Phase 81 Wave 2: Active ventilation method (e.g., "Steam-Driven", "Electric Pumps/Fans").
+    #[serde(default)]
+    pub ventilation: String,
+    /// Phase 81 Wave 2: Active power generation method (e.g., "None", "Rooftop PV").
+    #[serde(default)]
+    pub power_generation: String,
+    /// Phase 83 (future-proofed): Active water supply method. Defaults to "None".
+    #[serde(default)]
+    pub water_supply: String,
+    /// Phase 83 (future-proofed): Active sanitation method. Defaults to "None".
+    #[serde(default)]
+    pub sanitation: String,
+    /// Phase 84 (future-proofed): Active waste disposal method. Defaults to "None".
+    #[serde(default)]
+    pub waste_disposal: String,
+    /// Phase 82B: Active emission control method (e.g., "None", "Wet Scrubber").
+    /// Upgradable independently of production method.
+    #[serde(default)]
+    pub emission_control: String,
     /// Any additional method slots.
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,

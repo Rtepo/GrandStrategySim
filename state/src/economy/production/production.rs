@@ -74,7 +74,7 @@ fn resolve_active_method(
     if let Some(methods) = methods {
         let mut best: Option<&crate::registries::production_methods::ProductionMethod> = None;
         let mut best_year = 0u32;
-        for pm in methods.iter_all() {
+        for pm in methods.iter_production_slots() {
             if pm.year <= current_year && pm.year >= best_year {
                 best = Some(pm);
                 best_year = pm.year;
@@ -93,6 +93,10 @@ fn resolve_active_method(
                 active_blueprint: None,
                 thermal_efficiency: pm.thermal_efficiency,
                 storage_efficiency: pm.storage_efficiency,
+                emission_factor: pm.emission_factor,
+                biohazard_factor: pm.biohazard_factor,
+                output_water_quality: pm.output_water_quality,
+                discharge_quality: pm.discharge_quality,
                 extra: Default::default(),
             };
         }
@@ -110,6 +114,10 @@ fn resolve_active_method(
         active_blueprint: None,
         thermal_efficiency: 0.0,
         storage_efficiency: 0.0,
+        emission_factor: 0.0,
+        biohazard_factor: 0.0,
+        output_water_quality: 0.0,
+        discharge_quality: 0.0,
         extra: Default::default(),
     }
 }

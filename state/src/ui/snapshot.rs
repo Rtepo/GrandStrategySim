@@ -1398,6 +1398,241 @@ pub struct CapitalGainsTaxSummary {
 // PHASE 49: REGION DETAIL (DRILL-DOWN)
 // ============================================================================
 
+/// Phase 82: Thermal grid snapshot for UI display.
+///
+/// Role-gated: only visible to regional/national government roles.
+/// Foreign observers do not see detailed pipe infrastructure data.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct ThermalGridSnapshot {
+    /// Total pipe network length (km).
+    pub pipe_network_km: f64,
+    /// Pipe condition (0.0 = collapsed, 1.0 = pristine).
+    pub pipe_condition: f64,
+    /// Transmission loss per km (fraction/km).
+    pub loss_per_km: f64,
+    /// Current effective heat supply after losses (GJ).
+    pub effective_heat_supply_gj: f64,
+    /// Maximum connectable buildings.
+    pub max_connectable_buildings: usize,
+    /// Number of active heating plants.
+    pub active_heating_plants: usize,
+    /// Average delivery distance (km).
+    pub average_delivery_distance_km: f64,
+    /// Transmission loss fraction (0.0 = no loss, 1.0 = total loss).
+    pub transmission_loss_fraction: f64,
+}
+
+/// Phase 82: Smog/air pollution snapshot for UI display.
+///
+/// Public information — air quality is visible to all roles.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct SmogSnapshot {
+    /// Accumulated smog concentration (0.0 = clean, 100.0 = lethal).
+    pub smog_level: f64,
+    /// Per-turn emissions from standalone heating (mass units).
+    pub standalone_emissions: f64,
+    /// Per-turn emissions from centralized plants (mass units).
+    pub centralized_emissions: f64,
+    /// Per-turn emissions from industrial production (mass units).
+    pub industrial_emissions: f64,
+    /// Smog mortality multiplier (1.0 = normal, 1.5 = 50% increase).
+    pub mortality_multiplier: f64,
+}
+
+// ============================================================================
+// PHASE 83: SANITATION EPIC SNAPSHOTS (Rule 17 — Full-Stack Accountability)
+// ============================================================================
+
+/// Phase 83: Water reserve snapshot for UI display.
+///
+/// Role-gating (Rule 11):
+/// - Foreign observers: do not see this (resource data is classified)
+/// - Domestic non-municipal: see surface water quality only
+/// - Municipal/government: see full snapshot including groundwater volumes
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct WaterReserveSnapshot {
+    /// Groundwater volume (liters).
+    pub groundwater_volume: f64,
+    /// Groundwater quality (0.0-1.0).
+    pub groundwater_quality: f64,
+    /// Surface water volume (liters).
+    pub surface_water_volume: f64,
+    /// Surface water quality (0.0-1.0).
+    pub surface_water_quality: f64,
+}
+
+/// Phase 83: Water grid snapshot for UI display.
+///
+/// Role-gating (Rule 11):
+/// - Foreign observers: do not see this
+/// - Domestic non-municipal: see current_quality only
+/// - Municipal/government: see full snapshot including pipe infrastructure
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct WaterGridSnapshot {
+    /// Total pipe network length (km).
+    pub pipe_network_km: f64,
+    /// Pipe condition (0.0 = collapsed, 1.0 = pristine).
+    pub pipe_condition: f64,
+    /// PARADIGM SHIFT: Current water quality in the grid (0.0-1.0).
+    pub current_quality: f64,
+    /// Current throughput (liters/turn).
+    pub throughput_liters: f64,
+    /// Effective water delivered after transmission losses (liters).
+    pub effective_water_delivered: f64,
+    /// Maximum connectable buildings.
+    pub max_connectable_buildings: usize,
+    /// Number of active water treatment plants.
+    pub active_water_plants: usize,
+    /// Transmission loss fraction (0.0 = no loss, 1.0 = total loss).
+    pub transmission_loss_fraction: f64,
+}
+
+/// Phase 83: Sewer grid snapshot for UI display.
+///
+/// Role-gating (Rule 11):
+/// - Foreign observers: do not see this
+/// - Domestic non-municipal: see current_quality only
+/// - Municipal/government: see full snapshot including pipe infrastructure
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct SewerGridSnapshot {
+    /// Total pipe network length (km).
+    pub pipe_network_km: f64,
+    /// Pipe condition (0.0 = collapsed, 1.0 = pristine).
+    pub pipe_condition: f64,
+    /// Current sewage quality (typically ~0.05 = blackwater).
+    pub current_quality: f64,
+    /// Current throughput (liters/turn).
+    pub throughput_liters: f64,
+    /// Water delivered to wastewater treatment plants (liters).
+    pub water_delivered_to_treatment: f64,
+    /// Leaked water mass (liters lost through cracked pipes).
+    pub leaked_water_mass: f64,
+    /// Maximum connectable buildings.
+    pub max_connectable_buildings: usize,
+    /// Number of active wastewater treatment plants.
+    pub active_wastewater_plants: usize,
+}
+
+/// Phase 84: Waste grid snapshot for UI display.
+///
+/// Role-gating (Rule 11):
+/// - Foreign observers: see only collection coverage and pollution levels
+/// - Domestic non-municipal: see collection coverage and landfill utilization
+/// - Municipal/government: see full snapshot including route infrastructure,
+///   uncollected waste by category, and separation efficiency
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct WasteGridSnapshot {
+    /// Collection route network length (km).
+    pub collection_route_km: f64,
+    /// Route condition (0.0 = collapsed, 1.0 = pristine).
+    pub route_condition: f64,
+    /// Per-turn collection capacity (tons).
+    pub collection_capacity: f64,
+    /// Total uncollected waste mass (tons).
+    pub total_uncollected: f64,
+    /// Active collection method separation efficiency (0.0-1.0).
+    pub separation_efficiency: f64,
+    /// Landfill capacity utilization (0.0-1.0).
+    pub landfill_utilization: f64,
+    /// Methane capture rate (0.0-1.0).
+    pub methane_capture_rate: f64,
+}
+
+/// Phase 84: Landfill snapshot for UI display.
+///
+/// Role-gating (Rule 11):
+/// - Foreign observers: see only utilization and is_full status
+/// - Municipal/government: see full snapshot including liner integrity,
+///   leachate capture, gas capture, and stored waste by category
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct LandfillSnapshot {
+    /// Total capacity (tons).
+    pub total_capacity: f64,
+    /// Remaining capacity (tons).
+    pub remaining_capacity: f64,
+    /// Total stored waste mass (tons).
+    pub total_stored: f64,
+    /// Liner integrity (0.0 = breached, 1.0 = intact).
+    pub liner_integrity: f64,
+    /// Leachate collection efficiency (0.0-1.0).
+    pub leachate_capture: f64,
+    /// Gas capture efficiency (0.0-1.0).
+    pub gas_capture: f64,
+    /// LOGISTICAL BOUND 2: True when landfill is full and rejecting waste.
+    pub is_full: bool,
+    /// Utilization fraction (0.0-1.0).
+    pub utilization: f64,
+}
+
+/// Phase 84: Waste pollution snapshot for UI display.
+///
+/// Role-gating (Rule 11): Pollution levels are public information.
+/// Source breakdown (burning vs dumping vs uncollected) is municipal only.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct WastePollutionSnapshot {
+    /// Smog mass from trash burning (public).
+    pub burning_emissions: f64,
+    /// Biohazard mass from illegal dumping (public).
+    pub dumping_biohazard: f64,
+    /// Biohazard mass from uncollected waste (public).
+    pub uncollected_biohazard: f64,
+    /// Leachate leakage mass (municipal only).
+    pub leachate_leakage: f64,
+}
+
+/// Phase 84: Recycling snapshot for UI display.
+///
+/// Role-gating (Rule 11):
+/// - Public: see recovered commodity totals only
+/// - Municipal/government: see full plant inventory and yields
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct RecyclingSnapshot {
+    /// Number of active recycling facilities.
+    pub active_recycling_plants: usize,
+    /// Number of active separation plants.
+    pub active_separation_plants: usize,
+    /// Number of active WtE plants.
+    pub active_wte_plants: usize,
+    /// Total waste recycled this turn (tons).
+    pub total_recycled: f64,
+    /// Total waste incinerated this turn (tons).
+    pub total_incinerated: f64,
+    /// Ash generated this turn (tons) — CRITICAL FIX 2.
+    pub ash_generated: f64,
+}
+
+/// Phase 83: Biohazard snapshot for UI display.
+///
+/// Role-gating (Rule 11):
+/// - Foreign observers: see only biohazard_level (public health data)
+/// - Domestic non-municipal: see biohazard_level and mortality_multiplier
+/// - Municipal/government: see full snapshot including source breakdown
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct BiohazardSnapshot {
+    /// Accumulated biological contamination (0.0 = clean, 100.0 = epidemic).
+    pub biohazard_level: f64,
+    /// Per-turn biohazard from standalone sanitation (open defecation, etc.).
+    pub standalone_biohazard: f64,
+    /// Per-turn biohazard from sewage overflow/leakage.
+    pub sewage_overflow_biohazard: f64,
+    /// Per-turn biohazard from industrial wastewater.
+    pub industrial_biohazard: f64,
+    /// PARADIGM SHIFT: Per-turn biohazard from low-quality water consumption.
+    pub low_quality_water_biohazard: f64,
+    /// Biohazard mortality multiplier (1.0 = normal, 2.0 = epidemic).
+    pub mortality_multiplier: f64,
+}
+
 /// Full region drill-down data for the Regions tab modal.
 #[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
 #[ts(export, export_to = "../../src/types/api.ts")]
@@ -1425,6 +1660,39 @@ pub struct RegionDetail {
     pub infrastructure_avg_condition: f64,
     pub sector_employment: Vec<(String, f64)>,
     pub durable_cohorts: Vec<DurableCohortSummary>,
+    /// Phase 82: Thermal grid snapshot (role-gated — only visible to
+    /// regional/national government roles, not to foreign observers).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub thermal_grid: Option<ThermalGridSnapshot>,
+    /// Phase 82: Smog/pollution snapshot (visible to all roles — air quality
+    /// is public information).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub smog: Option<SmogSnapshot>,
+    /// Phase 83: Water reserve snapshot (role-gated — municipal/government only).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub water_reserves: Option<WaterReserveSnapshot>,
+    /// Phase 83: Water grid snapshot (role-gated — municipal/government only).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub water_grid: Option<WaterGridSnapshot>,
+    /// Phase 83: Sewer grid snapshot (role-gated — municipal/government only).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sewer_grid: Option<SewerGridSnapshot>,
+    /// Phase 83: Biohazard snapshot (role-gated — biohazard_level is public,
+    /// source breakdown is municipal/government only).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub biohazard: Option<BiohazardSnapshot>,
+    /// Phase 84: Waste grid snapshot (role-gated — municipal/government only).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub waste_grid: Option<WasteGridSnapshot>,
+    /// Phase 84: Landfill snapshot (role-gated — municipal/government only).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub landfill: Option<LandfillSnapshot>,
+    /// Phase 84: Waste pollution snapshot (public — pollution is public info).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub waste_pollution: Option<WastePollutionSnapshot>,
+    /// Phase 84: Recycling snapshot (role-gated — municipal/government only).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub recycling: Option<RecyclingSnapshot>,
 }
 
 /// Summary of an unfunded mandate for the region drill-down.
@@ -2431,6 +2699,91 @@ fn build_region_detail(country: &Country, view: &ViewQuery) -> Option<RegionDeta
         infrastructure_avg_condition,
         sector_employment,
         durable_cohorts,
+        thermal_grid: Some(ThermalGridSnapshot {
+            pipe_network_km: region.thermal_grid.pipe_network_km,
+            pipe_condition: region.thermal_grid.pipe_condition,
+            loss_per_km: region.thermal_grid.loss_per_km,
+            effective_heat_supply_gj: region.capacity_pool
+                .get(&crate::infrastructure::CapacityType::DistrictHeating)
+                .copied()
+                .unwrap_or(0.0),
+            max_connectable_buildings: region.thermal_grid
+                .max_connectable_buildings(region.development_level),
+            active_heating_plants: 0, // Computed from buildings at query time
+            average_delivery_distance_km: region.thermal_grid.average_delivery_distance_km(1),
+            transmission_loss_fraction: region.thermal_grid.transmission_loss(1),
+        }),
+        smog: Some(SmogSnapshot {
+            smog_level: region.local_pollution.smog_level,
+            standalone_emissions: region.local_pollution.standalone_emissions,
+            centralized_emissions: region.local_pollution.centralized_emissions,
+            industrial_emissions: region.local_pollution.industrial_emissions,
+            mortality_multiplier: crate::environment::smog::smog_mortality_multiplier(
+                region.local_pollution.smog_level,
+            ),
+        }),
+        // Phase 83: Water reserve snapshot (role-gated by caller).
+        water_reserves: Some(WaterReserveSnapshot {
+            groundwater_volume: region.water_reserves.groundwater_volume,
+            groundwater_quality: region.water_reserves.groundwater_quality,
+            surface_water_volume: region.water_reserves.surface_water_volume,
+            surface_water_quality: region.water_reserves.surface_water_quality,
+        }),
+        // Phase 83: Water grid snapshot (role-gated by caller).
+        water_grid: Some(WaterGridSnapshot {
+            pipe_network_km: region.water_network.pipe_network_km,
+            pipe_condition: region.water_network.pipe_condition,
+            current_quality: region.water_network.current_quality,
+            throughput_liters: region.water_network.throughput_liters,
+            effective_water_delivered: region.water_network.effective_water_delivered(0),
+            max_connectable_buildings: region.water_network.max_connectable_buildings(region.development_level),
+            active_water_plants: 0, // Computed from buildings at query time
+            transmission_loss_fraction: region.water_network.transmission_loss(0),
+        }),
+        // Phase 83: Sewer grid snapshot (role-gated by caller).
+        sewer_grid: Some(SewerGridSnapshot {
+            pipe_network_km: region.sewer_network.pipe_network_km,
+            pipe_condition: region.sewer_network.pipe_condition,
+            current_quality: region.sewer_network.current_quality,
+            throughput_liters: region.sewer_network.throughput_liters,
+            water_delivered_to_treatment: region.sewer_network.water_delivered_to_treatment(0),
+            leaked_water_mass: region.sewer_network.leaked_water_mass(0),
+            max_connectable_buildings: region.sewer_network.max_connectable_buildings(region.development_level),
+            active_wastewater_plants: 0, // Computed from buildings at query time
+        }),
+        // Phase 83: Biohazard snapshot (role-gated by caller).
+        biohazard: Some(BiohazardSnapshot {
+            biohazard_level: region.local_pollution.biohazard_level,
+            standalone_biohazard: region.local_pollution.standalone_biohazard,
+            sewage_overflow_biohazard: region.local_pollution.sewage_overflow_biohazard,
+            industrial_biohazard: region.local_pollution.industrial_biohazard,
+            low_quality_water_biohazard: region.local_pollution.low_quality_water_biohazard,
+            mortality_multiplier: crate::environment::smog::biohazard_mortality_multiplier(
+                region.local_pollution.biohazard_level,
+            ),
+        }),
+        // Phase 84: Waste grid snapshot (role-gated by caller).
+        waste_grid: Some(WasteGridSnapshot {
+            collection_route_km: region.waste_grid.collection_route_km,
+            route_condition: region.waste_grid.route_condition,
+            collection_capacity: region.waste_grid.collection_capacity,
+            total_uncollected: region.waste_grid.total_uncollected(),
+            separation_efficiency: region.waste_grid.separation_efficiency,
+            landfill_utilization: region.waste_grid.landfill_utilization,
+            methane_capture_rate: region.waste_grid.methane_capture_rate,
+        }),
+        // Phase 84: Landfill snapshot (role-gated by caller — computed from
+        // the first landfill building in the region, if any).
+        landfill: None, // Populated by caller from buildings query
+        // Phase 84: Waste pollution snapshot (public — pollution is public info).
+        waste_pollution: Some(WastePollutionSnapshot {
+            burning_emissions: region.local_pollution.waste_burning_emissions,
+            dumping_biohazard: region.local_pollution.waste_dumping_biohazard,
+            uncollected_biohazard: region.local_pollution.uncollected_waste_biohazard,
+            leachate_leakage: 0.0, // Computed from landfill buildings
+        }),
+        // Phase 84: Recycling snapshot (role-gated by caller).
+        recycling: None, // Populated by caller from buildings query
     })
 }
 
@@ -3677,6 +4030,14 @@ pub struct EnergyGridSnapshot {
     pub interconnector_flows: Vec<InterconnectorFlowInfo>,
     /// Whether this snapshot is classified (foreign observer).
     pub is_classified: bool,
+    /// Phase 81 Wave 2: Spot market clearing info per region.
+    /// Empty for foreign observers (classified).
+    #[serde(default)]
+    pub spot_market: Vec<SpotMarketInfo>,
+    /// Phase 81 Wave 2: Active PPA count and total contracted MW.
+    /// Empty for foreign observers (classified).
+    #[serde(default)]
+    pub ppa_summary: Vec<PpaInfo>,
 }
 
 /// Phase 81: Regional energy information.
@@ -3740,6 +4101,38 @@ pub struct InterconnectorFlowInfo {
     pub condition: f64,
     /// Transmission loss fraction (0.0–1.0).
     pub loss_fraction: f64,
+}
+
+/// Phase 81 Wave 2: Spot market clearing info for a region.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct SpotMarketInfo {
+    /// Region ID.
+    pub region_id: String,
+    /// Clearing price per MWh (currency).
+    pub clearing_price: f64,
+    /// Number of plants dispatched in merit order.
+    pub dispatched_plant_count: usize,
+    /// Total dispatched MW.
+    pub total_dispatched_mw: f64,
+}
+
+/// Phase 81 Wave 2: PPA summary info.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct PpaInfo {
+    /// PPA ID.
+    pub ppa_id: String,
+    /// Seller company ID.
+    pub seller_company_id: String,
+    /// Buyer company ID.
+    pub buyer_company_id: String,
+    /// Fixed price per MWh.
+    pub fixed_price_per_mwh: f64,
+    /// Contracted capacity (MW).
+    pub contracted_mw: f64,
+    /// Remaining turns until expiration.
+    pub remaining_turns: u32,
 }
 
 /// Phase 81: Build an `EnergyGridSnapshot` from a country's power grid state.
@@ -3879,5 +4272,44 @@ pub fn build_energy_grid_snapshot(
         average_grid_condition: avg_cond,
         interconnector_flows,
         is_classified: is_foreign,
+        spot_market: if is_foreign {
+            Vec::new()
+        } else {
+            grid.spot_market
+                .clearing_prices
+                .iter()
+                .map(|(region_id, &price)| {
+                    let dispatched: f64 = grid
+                        .spot_market
+                        .dispatched_mw
+                        .values()
+                        .filter(|_| true)
+                        .sum();
+                    SpotMarketInfo {
+                        region_id: region_id.clone(),
+                        clearing_price: price,
+                        dispatched_plant_count: grid.spot_market.dispatch_order.len(),
+                        total_dispatched_mw: dispatched,
+                    }
+                })
+                .collect()
+        },
+        ppa_summary: if is_foreign {
+            Vec::new()
+        } else {
+            country
+                .ppa_registry
+                .active_ppas
+                .iter()
+                .map(|ppa| PpaInfo {
+                    ppa_id: ppa.id.clone(),
+                    seller_company_id: ppa.seller_company_id.clone(),
+                    buyer_company_id: ppa.buyer_company_id.clone(),
+                    fixed_price_per_mwh: ppa.fixed_price_per_mwh,
+                    contracted_mw: ppa.contracted_mw,
+                    remaining_turns: ppa.end_turn.saturating_sub(0),
+                })
+                .collect()
+        },
     }
 }

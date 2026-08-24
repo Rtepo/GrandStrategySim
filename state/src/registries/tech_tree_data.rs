@@ -1340,5 +1340,259 @@ fn era4_commercial() -> HashMap<TechId, TechNode> {
         TechType::Commercial, &["batt_002", "auto3_007"],
         &[("energy", &[("production", "Battery Bank Storage")])]);
 
+    // ── Phase 81 Wave 2: Consumption method technology unlocks ──
+    // These techs unlock lighting, heating, ventilation, and microgeneration
+    // method upgrades for housing, commercial, and industrial buildings.
+    // The unlocks_methods use the consumption registry sector keys
+    // (e.g., "housing_consumption") with slot keys matching MethodSlot::from_key().
+
+    // elec_001: Electrical Engineering (1900) — unlocks incandescent lighting and electric heating
+    tech(&mut m, "elec_001", "Electrical Engineering", 1900, 80,
+        "Foundation of electrical infrastructure: incandescent lighting and electric radiators.",
+        TechType::Fundamental, &[],
+        &[]);
+
+    // elec_005: Fluorescent Lighting (1940) — 50% energy reduction vs incandescent
+    tech(&mut m, "elec_005", "Fluorescent Lighting", 1940, 120,
+        "Fluorescent tube lighting: 50% energy reduction versus incandescent bulbs.",
+        TechType::Commercial, &["elec_001"],
+        &[("housing_consumption", &[("lighting", "Fluorescent Tubes")]),
+          ("commercial_consumption", &[("lighting", "Fluorescent Tubes")]),
+          ("heavy_industry_consumption", &[("lighting", "Fluorescent Tubes")]),
+          ("mining_consumption", &[("lighting", "Fluorescent Tubes")])]);
+
+    // elec_010: LED Technology (2000) — 90% energy reduction, also unlocks rooftop PV
+    tech(&mut m, "elec_010", "LED Technology", 2000, 200,
+        "Light-emitting diode lighting: 90% energy reduction. Also enables rooftop photovoltaic microgeneration.",
+        TechType::Commercial, &["elec_005", "semi_003"],
+        &[("housing_consumption", &[("lighting", "LED Lighting"), ("power_generation", "Rooftop PV")]),
+          ("commercial_consumption", &[("lighting", "LED Lighting"), ("power_generation", "Rooftop PV")]),
+          ("heavy_industry_consumption", &[("lighting", "LED Lighting")]),
+          ("mining_consumption", &[("lighting", "LED Lighting")])]);
+
+    // elec_012: Home Energy Storage (2010) — enables PV + Battery systems
+    tech(&mut m, "elec_012", "Home Energy Storage", 2010, 160,
+        "Residential battery storage for self-consumption of solar energy and grid feed-in.",
+        TechType::Commercial, &["elec_010", "batt_001"],
+        &[("housing_consumption", &[("power_generation", "Rooftop PV + Battery")]),
+          ("commercial_consumption", &[("power_generation", "Rooftop PV + Battery")])]);
+
+    // thermo_005 already exists (Thermodynamic Cycles, 1890). We add the
+    // District Heating unlock to a new node that depends on it.
+    // thermo_006: District Heating Systems (1930) — centralized heat distribution
+    tech(&mut m, "thermo_006", "District Heating Systems", 1930, 100,
+        "Centralized district heating: pipe network distributing heat from municipal plants.",
+        TechType::Commercial, &["thermo_005"],
+        &[("housing_consumption", &[("heating", "Unmetered Radiators")]),
+          ("commercial_consumption", &[("heating", "Unmetered Radiators")]),
+          ("heavy_industry_consumption", &[("heating", "Unmetered Radiators")])]);
+
+    // thermo_010: Heat Pump Technology (1980) — highly efficient electric heating
+    tech(&mut m, "thermo_010", "Heat Pump Technology", 1980, 180,
+        "Heat pumps: 3-4x coefficient of performance versus resistive heating.",
+        TechType::Commercial, &["thermo_005", "elec_001"],
+        &[("housing_consumption", &[("heating", "Heat Pump")]),
+          ("commercial_consumption", &[("heating", "Heat Pump")]),
+          ("heavy_industry_consumption", &[("heating", "Heat Pump")]),
+          ("mining_consumption", &[("heating", "Heat Pump")])]);
+
+    // === PHASE 82: THERMAL EPIC TECH TREE (thermo_020 through thermo_025) ===
+
+    // thermo_020: Basic Heating Technology (1890) — primitive boilers, coal stoves
+    tech(&mut m, "thermo_020", "Basic Heating Technology", 1890, 80,
+        "Foundational heating: hand-fired boilers, coal stoves, primitive district heating.",
+        TechType::Commercial, &["thermo_005"],
+        &[("housing_consumption", &[("heating", "Primitive Fireplace"),
+                                    ("heating", "Peat Stove"),
+                                    ("heating", "Coal Stove"),
+                                    ("heating", "Advanced Coal Stove"),
+                                    ("heating", "Unmetered Radiators")]),
+          ("commercial_consumption", &[("heating", "Primitive Fireplace"),
+                                       ("heating", "Peat Stove"),
+                                       ("heating", "Coal Stove"),
+                                       ("heating", "Advanced Coal Stove"),
+                                       ("heating", "Unmetered Radiators")]),
+          ("heavy_industry_consumption", &[("heating", "Primitive Fireplace"),
+                                           ("heating", "Peat Stove"),
+                                           ("heating", "Coal Stove"),
+                                           ("heating", "Advanced Coal Stove"),
+                                           ("heating", "Unmetered Radiators")]),
+          ("mining_consumption", &[("heating", "Primitive Fireplace"),
+                                   ("heating", "Peat Stove"),
+                                   ("heating", "Coal Stove"),
+                                   ("heating", "Advanced Coal Stove"),
+                                   ("heating", "Unmetered Radiators")])]);
+
+    // thermo_021: Coke-Oven Gas Utilization (1900) — CoalGas heating
+    tech(&mut m, "thermo_021", "Coke-Oven Gas Utilization", 1900, 120,
+        "Utilizing CoalGas byproduct from coking for heating plants and lighting.",
+        TechType::Commercial, &["thermo_020"],
+        &[]);
+
+    // thermo_022: Oil Heating Systems (1910) — oil boilers and oil heat plants
+    tech(&mut m, "thermo_022", "Oil Heating Systems", 1910, 140,
+        "Oil-fired boilers for residential and district heating applications.",
+        TechType::Commercial, &["thermo_020"],
+        &[("housing_consumption", &[("heating", "Oil Boiler")]),
+          ("commercial_consumption", &[("heating", "Oil Boiler")]),
+          ("heavy_industry_consumption", &[("heating", "Oil Boiler")]),
+          ("mining_consumption", &[("heating", "Oil Boiler")])]);
+
+    // thermo_023: Natural Gas Heating (1950) — clean-burning gas boilers
+    tech(&mut m, "thermo_023", "Natural Gas Heating", 1950, 160,
+        "Natural gas condensing boilers: high efficiency, low emissions.",
+        TechType::Commercial, &["thermo_022"],
+        &[("housing_consumption", &[("heating", "Condensing Gas Boiler")]),
+          ("commercial_consumption", &[("heating", "Condensing Gas Boiler")]),
+          ("heavy_industry_consumption", &[("heating", "Condensing Gas Boiler")]),
+          ("mining_consumption", &[("heating", "Condensing Gas Boiler")])]);
+
+    // thermo_024: Advanced Thermal Engineering (1970) — thermostatic valves,
+    // geothermal, pellet boilers, EGS
+    tech(&mut m, "thermo_024", "Advanced Thermal Engineering", 1970, 200,
+        "Advanced heating: thermostatic radiator valves, geothermal wells, pellet boilers.",
+        TechType::Commercial, &["thermo_023"],
+        &[("housing_consumption", &[("heating", "Thermostatic Valves")]),
+          ("commercial_consumption", &[("heating", "Thermostatic Valves")]),
+          ("heavy_industry_consumption", &[("heating", "Thermostatic Valves")]),
+          ("mining_consumption", &[("heating", "Thermostatic Valves")])]);
+
+    // thermo_025: Smart District Heating (1985) — smart substations, computerized control
+    tech(&mut m, "thermo_025", "Smart District Heating", 1985, 220,
+        "Computerized district heating: smart substations, automated combustion control, IoT meters.",
+        TechType::Commercial, &["thermo_024", "cs_005"],
+        &[("housing_consumption", &[("heating", "Smart Substations")]),
+          ("commercial_consumption", &[("heating", "Smart Substations")]),
+          ("heavy_industry_consumption", &[("heating", "Smart Substations")]),
+          ("mining_consumption", &[("heating", "Smart Substations")])]);
+
+    // === PHASE 83: SANITATION EPIC TECH TREE (sanit_001 through sanit_006) ===
+    // Sanitation technology branch: water treatment, wastewater treatment,
+    // and sanitation infrastructure. Unlocks production methods for water
+    // treatment plants, wastewater plants, and building sanitation tracks.
+
+    // sanit_001: Basic Sanitation (1880) — hand pump wells, sand filters, valve control
+    tech(&mut m, "sanit_001", "Basic Sanitation", 1880, 80,
+        "Foundational sanitation: hand pump wells, slow sand filtration, valve control.",
+        TechType::Commercial, &["thermo_005"],
+        &[("slow_sand_filter_plant", &[("production", "Improved Sand Bed")]),
+          ("water_automation", &[("automation", "Valve Control")]),
+          ("housing_consumption", &[("water_supply", "Hand Pump Well")]),
+          ("commercial_consumption", &[("water_supply", "Hand Pump Well")])]);
+
+    // sanit_002: Municipal Water Systems (1890) — rapid sand filters, chlorination,
+    // municipal mains, basic sewers, primary settling
+    tech(&mut m, "sanit_002", "Municipal Water Systems", 1890, 120,
+        "Municipal water and sewer systems: rapid sand filters, chlorination, centralized distribution.",
+        TechType::Commercial, &["sanit_001"],
+        &[("rapid_sand_filter_plant", &[("production", "Mechanical Sand Filter")]),
+          ("chlorination_plant", &[("production", "Chlorine Disinfection")]),
+          ("primary_settling_plant", &[("production", "Settling Tank")]),
+          ("housing_consumption", &[("water_supply", "Municipal Mains (Basic)"),
+                                    ("sanitation", "Septic Tank"),
+                                    ("sanitation", "Municipal Sewer (Basic)")]),
+          ("commercial_consumption", &[("water_supply", "Municipal Mains (Basic)"),
+                                       ("sanitation", "Septic Tank"),
+                                       ("sanitation", "Municipal Sewer (Basic)")])]);
+
+    // sanit_003: Biological Treatment (1910) — activated sludge, secondary treatment
+    tech(&mut m, "sanit_003", "Biological Treatment", 1910, 140,
+        "Biological wastewater treatment: activated sludge, trickling filters, aeration.",
+        TechType::Commercial, &["sanit_002"],
+        &[("activated_sludge_plant", &[("production", "Activated Sludge")]),
+          ("secondary_treatment_plant", &[("production", "Trickling Filter")]),
+          ("housing_consumption", &[("sanitation", "Improved Sewer Connection")]),
+          ("commercial_consumption", &[("sanitation", "Improved Sewer Connection")])]);
+
+    // sanit_004: Modern Water Treatment (1950) — coagulation-flocculation, modern plants
+    tech(&mut m, "sanit_004", "Modern Water Treatment", 1950, 160,
+        "Modern water treatment: coagulation, flocculation, optimized chemical dosing.",
+        TechType::Commercial, &["sanit_002", "chem_006"],
+        &[("modern_treatment_plant", &[("production", "Coagulation-Flocculation")])]);
+
+    // sanit_005: Advanced Sanitation (1970) — tertiary treatment, nutrient removal, UV
+    tech(&mut m, "sanit_005", "Advanced Sanitation", 1970, 200,
+        "Advanced wastewater treatment: nutrient removal, UV disinfection, modern sewer systems.",
+        TechType::Commercial, &["sanit_003", "chem_008"],
+        &[("tertiary_treatment_plant", &[("production", "Nutrient Removal"),
+                                         ("production", "UV Disinfection")]),
+          ("housing_consumption", &[("sanitation", "Modern Sewer + Treatment")]),
+          ("commercial_consumption", &[("sanitation", "Modern Sewer + Treatment")])]);
+
+    // sanit_006: Advanced Water Technology (2000) — membrane filtration, MBR, advanced tertiary
+    tech(&mut m, "sanit_006", "Advanced Water Technology", 2000, 220,
+        "Advanced water and wastewater technology: membrane bioreactors, advanced tertiary treatment, smart meters.",
+        TechType::Commercial, &["sanit_005", "advman_005"],
+        &[("advanced_treatment_plant", &[("production", "Membrane Filtration")]),
+          ("advanced_wastewater_plant", &[("production", "Advanced MBR")]),
+          ("tertiary_treatment_plant", &[("production", "Advanced Tertiary")]),
+          ("housing_consumption", &[("sanitation", "Advanced Sewer + Tertiary"),
+                                    ("water_supply", "Smart Meter Connection")]),
+          ("commercial_consumption", &[("sanitation", "Advanced Sewer + Tertiary"),
+                                       ("water_supply", "Smart Meter Connection")])]);
+
+    // === PHASE 84: WASTE EPIC TECH TREE (waste_001 through waste_006) ===
+    // Waste management technology branch: landfills, separation, recycling,
+    // WtE, and advanced circular economy. Unlocks production methods for
+    // waste plants and building waste disposal tracks.
+    // REFINEMENT 1: Cumulative rural track (Primitive → Homesteading → Scavenging).
+    // REFINEMENT 2: Geographically constrained dumping vectors.
+
+    // waste_001: Basic Waste Management (1880) — primitive dumping, basic homesteading, uncontrolled landfill
+    tech(&mut m, "waste_001", "Basic Waste Management", 1880, 80,
+        "Basic waste disposal: primitive dumping, rural composting (Basic Homesteading), uncontrolled landfills.",
+        TechType::Commercial, &["sanit_001"],
+        &[("uncontrolled_landfill", &[("production", "Open Tipping")]),
+          ("housing_consumption", &[("waste_disposal", "Basic Homesteading")]),
+          ("commercial_consumption", &[("waste_disposal", "Basic Homesteading")])]);
+
+    // waste_002: Municipal Collection (1890) — unsegregated collection, controlled landfill, advanced rural scavenging
+    tech(&mut m, "waste_002", "Municipal Collection", 1890, 120,
+        "Municipal waste collection: unsegregated curbside collection, controlled landfills with clay liners, advanced rural scavenging.",
+        TechType::Commercial, &["waste_001"],
+        &[("controlled_landfill", &[("production", "Clay-Lined Cell")]),
+          ("housing_consumption", &[("waste_disposal", "Unsegregated Collection"),
+                                    ("waste_disposal", "Advanced Rural Scavenging")]),
+          ("commercial_consumption", &[("waste_disposal", "Unsegregated Collection"),
+                                       ("waste_disposal", "Advanced Rural Scavenging")])]);
+
+    // waste_003: Waste Separation (1950) — source-separated curbside, separation plants, basic recycling
+    tech(&mut m, "waste_003", "Waste Separation", 1950, 150,
+        "Source-separated waste collection, manual separation plants, basic metal and glass recycling.",
+        TechType::Commercial, &["waste_002", "sanit_004"],
+        &[("waste_separation_plant", &[("production", "Manual Sorting Line")]),
+          ("metal_recycling", &[("production", "Basic Metal Smelting")]),
+          ("glass_recycling", &[("production", "Glass Crushing")]),
+          ("housing_consumption", &[("waste_disposal", "Source-Separated Curbside")]),
+          ("commercial_consumption", &[("waste_disposal", "Source-Separated Curbside")])]);
+
+    // waste_004: Modern Landfill & Recycling (1970) — modern landfills, plastic recycling, WtE
+    tech(&mut m, "waste_004", "Modern Landfill & Recycling", 1970, 180,
+        "Modern HDPE-lined landfills with leachate/gas capture, plastic recycling, mass-burn waste-to-energy plants.",
+        TechType::Commercial, &["waste_003", "chem_006"],
+        &[("modern_landfill", &[("production", "HDPE-Lined Cell")]),
+          ("plastic_recycling", &[("production", "Plastic Baling")]),
+          ("waste_to_energy_plant", &[("production", "Mass Burn Incinerator")])]);
+
+    // waste_005: Advanced Recycling (1990) — advanced sorting, electronic recycling, controlled combustion WtE
+    tech(&mut m, "waste_005", "Advanced Recycling", 1990, 200,
+        "AI-assisted optical sorting, electronic waste recycling with rare earth recovery, controlled combustion WtE.",
+        TechType::Commercial, &["waste_004", "advman_004"],
+        &[("advanced_sorting_facility", &[("production", "Optical Sorting Line")]),
+          ("electronic_recycling", &[("production", "Manual Dismantling")]),
+          ("waste_to_energy_plant", &[("production", "Controlled Combustion")]),
+          ("civic_amenity_site", &[("production", "Drop-off Reception")])]);
+
+    // waste_006: Circular Economy (2000) — smart sorted collection, advanced WtE CHP, textile recycling, bioreactor landfills
+    tech(&mut m, "waste_006", "Circular Economy", 2000, 220,
+        "Smart sorted collection, advanced WtE with CHP co-generation, textile recycling, bioreactor landfills, advanced PSZOK.",
+        TechType::Commercial, &["waste_005", "advman_005"],
+        &[("advanced_wte_chp", &[("production", "Fluidized Bed CHP")]),
+          ("textile_recycling", &[("production", "Textile Sorting + Shredding")]),
+          ("modern_landfill", &[("production", "Bioreactor Landfill")]),
+          ("civic_amenity_site", &[("production", "Sorted Reception")]),
+          ("housing_consumption", &[("waste_disposal", "Smart Sorted Collection")]),
+          ("commercial_consumption", &[("waste_disposal", "Smart Sorted Collection")])]);
+
     m
 }

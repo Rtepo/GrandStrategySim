@@ -113,6 +113,18 @@ pub fn generate_tender_name(project_type: &ConstructionProjectType, current_turn
         ConstructionProjectType::NationalTheater => format!("National Theater #{} ({})", seq_num, year_label),
         ConstructionProjectType::NationalLibrary => format!("National Library #{} ({})", seq_num, year_label),
         ConstructionProjectType::TransportDepot => format!("Transport Depot #{} ({})", seq_num, year_label),
+        ConstructionProjectType::ThermalGridPipe => format!("Thermal Grid Pipe #{} ({})", seq_num, year_label),
+        ConstructionProjectType::ThermalHeatingPlant => format!("Heating Plant #{} ({})", seq_num, year_label),
+        ConstructionProjectType::CHPRetrofit => format!("CHP Retrofit #{} ({})", seq_num, year_label),
+        ConstructionProjectType::WaterMainPipe => format!("Water Main Pipe #{} ({})", seq_num, year_label),
+        ConstructionProjectType::SewerMainPipe => format!("Sewer Main Pipe #{} ({})", seq_num, year_label),
+        ConstructionProjectType::WaterTreatmentPlant => format!("Water Treatment Plant #{} ({})", seq_num, year_label),
+        ConstructionProjectType::WastewaterTreatmentPlant => format!("Wastewater Treatment Plant #{} ({})", seq_num, year_label),
+        ConstructionProjectType::Landfill => format!("Landfill #{} ({})", seq_num, year_label),
+        ConstructionProjectType::WasteSeparationPlant => format!("Waste Separation Plant #{} ({})", seq_num, year_label),
+        ConstructionProjectType::RecyclingFacility => format!("Recycling Facility #{} ({})", seq_num, year_label),
+        ConstructionProjectType::WasteToEnergyPlant => format!("Waste-to-Energy Plant #{} ({})", seq_num, year_label),
+        ConstructionProjectType::CivicAmenitySite => format!("Civic Amenity Site (PSZOK) #{} ({})", seq_num, year_label),
     }
 }
 
