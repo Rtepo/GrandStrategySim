@@ -415,6 +415,20 @@ pub struct Company {
     /// Repaid automatically from future cash (30% of available cash per turn).
     #[serde(default)]
     pub wage_arrears: f64,
+    /// Emergency Stabilization: Accumulated unpaid severance owed to laid-off
+    /// workers. When a company cannot afford full severance, the unpaid portion
+    /// accrues here as a liability. Repaid from future cash at 30%/turn (same
+    /// pattern as wage_arrears). Ensures firing is expensive even when cash is
+    /// low, forcing the corporate AI to prefer furlough over permanent layoffs.
+    #[serde(default)]
+    pub severance_arrears: f64,
+    /// Emergency Stabilization: Cumulative turns workers have been furloughed.
+    /// Incremented each turn for every worker in `furloughed_workers_count`.
+    /// Reset to 0 when workers are re-instated. Drives the furlough attrition
+    /// rate — workers quit after prolonged unpaid furlough, returning to the
+    /// general labor pool. Prevents the "eternal furlough" trap (Rule 8).
+    #[serde(default)]
+    pub furlough_turns_accumulated: u32,
     /// Phase 40: Productivity penalty from wage arrears (0.0–0.50).
     /// Reduces production output proportionally. Capped at 50% to prevent
     /// total output collapse while still penalizing non-payment.
@@ -653,6 +667,8 @@ impl Company {
             offered_wage_per_fte: 0.0,
             prev_offered_wage_per_fte: 0.0,
             wage_arrears: 0.0,
+            severance_arrears: 0.0,
+            furlough_turns_accumulated: 0,
             productivity_penalty: 0.0,
             target_wage: 0.0,
             is_striking: false,
@@ -869,6 +885,12 @@ pub struct Building {
     /// Last turn profit (`"last_profit"`).
     #[serde(default)]
     pub last_profit: f64,
+    /// Emergency Stabilization: Last turn fulfillment ratio (0.0–1.0).
+    /// Set by `execute_production_cycle` to indicate what fraction of the BOM
+    /// inputs were physically available. Used by the corporate AI to distinguish
+    /// temporary raw-material distress from structural bankruptcy.
+    #[serde(default)]
+    pub last_fulfillment_ratio: f64,
     /// Building condition (0.0-1.0), degrades over time, restored by maintenance.
     #[serde(default = "default_building_condition")]
     pub condition: f64,
@@ -980,6 +1002,7 @@ impl Building {
             cluster_info: ClusterInfo::default(),
             last_production: BTreeMap::new(),
             last_profit: 0.0,
+            last_fulfillment_ratio: 1.0,
             condition: 1.0,
             is_heritage_site: false,
             experience_level: None,

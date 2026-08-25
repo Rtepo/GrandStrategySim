@@ -31,7 +31,12 @@ pub struct FinancialTransaction {
     pub commodity: Commodity,
 }
 
-/// Minimum/maximum price modifiers relative to the global base price.
+/// Minimum/maximum price modifiers relative to the **immutable** base price.
+/// These caps are anchored to `market_history.global_base_prices` (set once at
+/// world generation) to prevent the compounding VWAP feedback loop that causes
+/// f64 hyperinflation overflows. The dynamic `global_market.base_prices` is
+/// still used for import/export price calculation, but the HARD BOUNDS are
+/// always `immutable_base * PRICE_FLOOR` and `immutable_base * PRICE_CAP`.
 const PRICE_FLOOR: f64 = 0.2;
 const PRICE_CAP: f64 = 5.0;
 
@@ -53,6 +58,9 @@ pub struct VatMarketResult {
 ///   production cycle.
 /// * `country` - Country state containing the `TradePolicy`.
 /// * `global_market` - Shared global market with base prices and net surplus.
+/// * `immutable_base_prices` - Per-commodity base prices set once at world
+///   generation (`market_history.global_base_prices`). Used as the anchor for
+///   hard price caps/floors to prevent VWAP compounding hyperinflation.
 ///
 /// # Returns
 /// A map from commodity to the cleared local price.
@@ -62,33 +70,35 @@ pub struct VatMarketResult {
 ///   * Deficit is first met by importing from the global market.
 ///   * The imported price is `global_base * (1 + import_tariff)`.
 ///   * If the global market cannot cover the deficit, the price is pushed
-///     toward the shortage cap.
+///     toward the shortage cap (`immutable_base * PRICE_CAP`).
 /// * If local sell orders exceed buy orders, the country has a surplus.
 ///   * Exports are sold at `global_base * (1 - export_tax)`.
 ///   * If global demand cannot absorb the surplus, the price is pushed
-///     toward the surplus floor.
+///     toward the surplus floor (`immutable_base * PRICE_FLOOR`).
 /// * When local supply and demand match, the price equals the global base
 ///   price.
 pub fn resolve_market_prices(
     market_orders: &MarketOrders,
     country: &Country,
     global_market: &GlobalMarket,
+    immutable_base_prices: &HashMap<Commodity, f64>,
 ) -> HashMap<Commodity, f64> {
     let mut local_prices = HashMap::default();
 
     for (good, order) in &market_orders.orders {
         let net = order.buy - order.sell;
         let global_base = global_market.base_price(*good, 100.0);
+        let immutable_base = immutable_base_prices.get(good).copied().unwrap_or(global_base);
 
         if net > 0.0 {
             local_prices.insert(
                 *good,
-                resolve_deficit(*good, net, global_base, country, global_market),
+                resolve_deficit(*good, net, global_base, immutable_base, country, global_market),
             );
         } else if net < 0.0 {
             local_prices.insert(
                 *good,
-                resolve_surplus(*good, -net, global_base, country, global_market),
+                resolve_surplus(*good, -net, global_base, immutable_base, country, global_market),
             );
         } else {
             local_prices.insert(*good, global_base);
@@ -104,6 +114,9 @@ pub fn resolve_market_prices(
 /// * `market_orders` - Aggregate local buy/sell orders
 /// * `country` - Country state containing tax rates and trade policy
 /// * `global_market` - Shared global market with base prices
+/// * `immutable_base_prices` - Per-commodity base prices set once at world
+///   generation (`market_history.global_base_prices`). Used as the anchor for
+///   hard price caps/floors to prevent VWAP compounding hyperinflation.
 /// * `region_id` - Region ID for VAT routing
 ///
 /// # Returns
@@ -120,6 +133,7 @@ pub fn resolve_market_prices_with_vat(
     market_orders: &MarketOrders,
     country: &mut Country,
     global_market: &GlobalMarket,
+    immutable_base_prices: &HashMap<Commodity, f64>,
     region_id: &str,
 ) -> VatMarketResult {
     let mut local_prices = HashMap::default();
@@ -129,12 +143,13 @@ pub fn resolve_market_prices_with_vat(
     for (good, order) in &market_orders.orders {
         let net = order.buy - order.sell;
         let global_base = global_market.base_price(*good, 100.0);
+        let immutable_base = immutable_base_prices.get(good).copied().unwrap_or(global_base);
 
         // Resolve gross price (what buyer pays)
         let gross_price = if net > 0.0 {
-            resolve_deficit(*good, net, global_base, country, global_market)
+            resolve_deficit(*good, net, global_base, immutable_base, country, global_market)
         } else if net < 0.0 {
-            resolve_surplus(*good, -net, global_base, country, global_market)
+            resolve_surplus(*good, -net, global_base, immutable_base, country, global_market)
         } else {
             global_base
         };
@@ -230,6 +245,7 @@ fn resolve_deficit(
     good: Commodity,
     deficit: f64,
     global_base: f64,
+    immutable_base: f64,
     country: &Country,
     global_market: &GlobalMarket,
 ) -> f64 {
@@ -250,22 +266,28 @@ fn resolve_deficit(
         .copied()
         .unwrap_or(0.0);
 
+    // Emergency Stabilization: The shortage cap is anchored to the immutable
+    // base price (set once at world generation), NOT the dynamic VWAP-smoothed
+    // base price. This prevents the compounding feedback loop where a shortage
+    // spike pushes global_base up, which raises the cap, which allows even
+    // higher prices next turn → f64 hyperinflation overflow.
+    let shortage_cap = immutable_base * PRICE_CAP;
+
     if global_surplus >= deficit {
         // Fully covered by imports; the marginal cleared price is the
-        // tariff-adjusted global price.
-        return import_price;
+        // tariff-adjusted global price. Still clamp to the immutable cap.
+        return import_price.min(shortage_cap);
     }
 
     if global_surplus > 0.0 {
         // Partially covered: the uncovered share raises the price toward the
-        // hard shortage cap.
+        // hard shortage cap (anchored to immutable base).
         let coverage = global_surplus / deficit;
-        let shortage_price = global_base * PRICE_CAP;
-        return import_price + (shortage_price - import_price) * (1.0 - coverage);
+        return import_price + (shortage_cap - import_price) * (1.0 - coverage);
     }
 
     // No global surplus available; price hits the shortage cap.
-    global_base * PRICE_CAP
+    shortage_cap
 }
 
 /// Extract goods from warehouses to meet deficit (Phase 5.5).
@@ -414,6 +436,7 @@ fn resolve_surplus(
     good: Commodity,
     surplus: f64,
     global_base: f64,
+    immutable_base: f64,
     country: &Country,
     global_market: &GlobalMarket,
 ) -> f64 {
@@ -437,17 +460,21 @@ fn resolve_surplus(
         .map(|s| if s < 0.0 { -s } else { 0.0 })
         .unwrap_or(0.0);
 
+    // Emergency Stabilization: The surplus floor is anchored to the immutable
+    // base price (set once at world generation), NOT the dynamic VWAP-smoothed
+    // base price. This prevents deflationary spirals from compounding.
+    let surplus_floor = immutable_base * PRICE_FLOOR;
+
     if global_demand >= surplus {
         // Full export absorption; the marginal cleared price is the
-        // export-tax-adjusted global price.
-        return export_price;
+        // export-tax-adjusted global price. Still clamp to the immutable floor.
+        return export_price.max(surplus_floor);
     }
 
     if global_demand > 0.0 {
         // Partially absorbed; the unexported share pushes the price toward
-        // the surplus floor.
+        // the surplus floor (anchored to immutable base).
         let coverage = global_demand / surplus;
-        let surplus_floor = global_base * PRICE_FLOOR;
         return export_price - (export_price - surplus_floor) * (1.0 - coverage);
     }
 
@@ -455,7 +482,7 @@ fn resolve_surplus(
     // The surplus is stored in available warehouses, and the producer pays storage fees
     // This is a placeholder - actual warehouse routing would happen in a separate phase
     // For now, we still hit the surplus floor price, but goods are not destroyed
-    global_base * PRICE_FLOOR
+    surplus_floor
 }
 
 #[cfg(test)]
@@ -569,6 +596,7 @@ mod tests {
             &market_orders,
             &mut country,
             &global_market,
+            &HashMap::default(),
             "region_1",
         );
 

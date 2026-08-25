@@ -34,6 +34,7 @@ export function MacroPage() {
             <StatCard label="GDP/Capita" value={fmt(macro.gdp_per_capita)} />
             <StatCard label="Population" value={num(macro.population)} delta={macro.deltas.population_tot} />
             <StatCard label="Unemployment" value={`${macro.unemployment_rate.toFixed(2)}%`} delta={macro.deltas.unemployment_tot} />
+            <StatCard label="Furloughed" value={num(Math.round(macro.furloughed_total))} />
             <StatCard label="Avg Wage" value={fmt(macro.average_wage)} delta={macro.deltas.wage_tot} />
             <StatCard label="CPI" value={macro.cpi.toFixed(2)} delta={macro.deltas.cpi_tot} />
             <StatCard label="PPI" value={macro.ppi.toFixed(2)} delta={macro.deltas.ppi_tot} />

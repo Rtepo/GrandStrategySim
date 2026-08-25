@@ -75,31 +75,42 @@ pub struct Calendar {
     /// Global turn counter (1-indexed, increments each half-month)
     #[serde(default)]
     pub global_turn: u32,
-    
-    /// Current year (derived from global_turn: year = (global_turn - 1) / 24 + 1)
+
+    /// Current year (derived from global_turn: year = (global_turn - 1) / 24 + start_year)
     #[serde(default)]
     pub current_year: u32,
-    
-    /// Current month within year (1-12, derived from global_turn)
+
+    /// Current month within year (1-12, derived from global_turn and start_month)
     #[serde(default)]
     pub current_month: u32,
-    
+
     /// Half-month flag (0 = early month, 1 = late month)
     #[serde(default)]
     pub half_month: bool,
-    
+
     /// Start year of simulation (e.g., 1925)
     #[serde(default)]
     pub start_year: u32,
+
+    /// Emergency Stabilization: Start month of simulation (1-12, default 9 = September).
+    /// The game starts in the autumn harvest season so Agriculture 2.0 can
+    /// deposit crop yields into warehouses on the first turns without
+    /// artificial food seeding.
+    #[serde(default = "default_start_month")]
+    pub start_month: u32,
 }
+
+fn default_start_month() -> u32 { 9 }
 
 impl Calendar {
     /// Advance by one half-month tick
     pub fn advance(&mut self) {
         self.global_turn += 1;
         self.current_year = (self.global_turn - 1) / 24 + self.start_year;
-        self.current_month = ((self.global_turn - 1) % 24) / 2 + 1;
-        self.half_month = (self.global_turn - 1) % 2 == 1;
+        // Month is offset by start_month so Turn 1 = September when start_month = 9
+        let turn_in_year = (self.global_turn - 1) % 24;
+        self.current_month = (turn_in_year / 2 + self.start_month - 1) % 12 + 1;
+        self.half_month = turn_in_year % 2 == 1;
     }
     
     /// Check if this is the last half-month of the year (turn 24, 48, 72...)
@@ -348,6 +359,16 @@ pub struct Country {
     /// Each tuple is (company_id, building_id).
     #[serde(default)]
     pub halt_queue: Vec<(String, String)>,
+    /// Emergency Stabilization: Pending furlough wage payments to be credited
+    /// to regional worker class savings in the labor market post-pass.
+    /// Each tuple is (company_id, amount).
+    #[serde(default)]
+    pub furlough_wage_queue: Vec<(String, f64)>,
+    /// Emergency Stabilization: Pending recruitment cost payments to be credited
+    /// to regional worker class savings as signing bonuses. Each tuple is
+    /// (company_id, amount).
+    #[serde(default)]
+    pub recruitment_cost_queue: Vec<(String, f64)>,
     /// Phase D.4: Financial Supervision Authority (KNF).
     #[serde(default)]
     pub knf: crate::securities::KNF,
@@ -607,7 +628,7 @@ impl Country {
             bank_resolution: BankResolution::default(),
             bank_tax: BankTax::default(),
             stock_exchange: crate::securities::StockExchange::default(),
-            dividend_queue: Vec::new(), ipo_queue: Vec::new(), bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(), demolition_queue: Vec::new(), halt_queue: Vec::new(),
+            dividend_queue: Vec::new(), ipo_queue: Vec::new(), bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(), demolition_queue: Vec::new(), halt_queue: Vec::new(), furlough_wage_queue: Vec::new(), recruitment_cost_queue: Vec::new(),
             knf: crate::securities::KNF::default(),
             capital_gains_tax: crate::state::capital_gains_tax::CapitalGainsTaxRegistry::default(),
             sovereign_default_turns_remaining: 0,
@@ -962,7 +983,7 @@ impl CountryBuilder {
             bank_resolution: BankResolution::default(),
             bank_tax: BankTax::default(),
             stock_exchange: crate::securities::StockExchange::default(),
-            dividend_queue: Vec::new(), ipo_queue: Vec::new(), bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(), demolition_queue: Vec::new(), halt_queue: Vec::new(),
+            dividend_queue: Vec::new(), ipo_queue: Vec::new(), bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(), demolition_queue: Vec::new(), halt_queue: Vec::new(), furlough_wage_queue: Vec::new(), recruitment_cost_queue: Vec::new(),
             knf: crate::securities::KNF::default(),
             capital_gains_tax: crate::state::capital_gains_tax::CapitalGainsTaxRegistry::default(),
             sovereign_default_turns_remaining: 0,

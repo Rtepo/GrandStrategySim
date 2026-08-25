@@ -377,9 +377,14 @@ pub fn run_turn_in_memory(
                 );
             }
         });
+        // Emergency Stabilization: Clone the immutable base prices (set once at
+        // world generation in market_history.global_base_prices) so the clearing
+        // engine can anchor PRICE_CAP/FLOOR to a stable reference instead of the
+        // dynamically-updated VWAP-smoothed base prices that compound recursively.
+        let immutable_base_prices = state.market_history.global_base_prices.clone();
         tasks.par_iter_mut().for_each(|task| {
             task.ctx.market_prices =
-                resolve_market_prices(&task.orders, task.ctx.country, &market);
+                resolve_market_prices(&task.orders, task.ctx.country, &market, &immutable_base_prices);
             task.market_signal = build_market_signal(
                 task.ctx.country,
                 &task.orders,
@@ -2001,7 +2006,21 @@ pub fn run_turn_in_memory(
         // fulfilled_fte to standby levels for off-season companies, and
         // holds furloughed workers in furloughed_workers_count so they
         // don't flood the labor market.
+        //
+        // Emergency Stabilization: Furlough re-instatement and attrition run
+        // BEFORE seasonal furlough and BEFORE production so re-instated workers
+        // can participate in this turn's production cycle.
         tasks.par_iter_mut().for_each(|task| {
+            // 1. Re-instate furloughed workers when conditions improve
+            crate::corporate::process_furlough_reinstatement(
+                &mut task.companies,
+                &task.ctx.buildings,
+            );
+            // 2. Attrition: workers quit after prolonged unpaid furlough
+            crate::corporate::process_furlough_attrition(
+                &mut task.companies,
+            );
+            // 3. Seasonal furlough (existing)
             crate::corporate::apply_seasonal_furlough_all(
                 &mut task.companies,
                 current_season,
@@ -2203,6 +2222,12 @@ pub fn run_turn_in_memory(
             let bezrobotni = (sila_robocza - total_fulfilled).max(0.0);
             labor_market.unemployed = bezrobotni;
             labor_market.unemployment_rate = (bezrobotni / sila_robocza * 100.0).max(0.0);
+            // Emergency Stabilization: Aggregate total furloughed workers
+            // across all companies for the macro dashboard.
+            labor_market.furloughed_total = task.companies
+                .iter()
+                .map(|c| c.furloughed_workers_count)
+                .sum();
             // Phase 25: Overwrite the top-down average_wage with the actual
             // market-cleared wage. This prevents the divergent feedback loop
             // where the top-down model compounds wages each turn.

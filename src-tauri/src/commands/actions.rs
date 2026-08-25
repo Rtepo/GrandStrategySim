@@ -200,10 +200,20 @@ pub async fn get_game_status(
                 .cloned()
                 .collect();
 
+            let calendar = &engine_state.game_state.calendar;
+            let season = match calendar.get_season() {
+                sim_engine::state::Season::Winter => "Winter",
+                sim_engine::state::Season::Spring => "Spring",
+                sim_engine::state::Season::Summer => "Summer",
+                sim_engine::state::Season::Autumn => "Autumn",
+            };
+
             Ok(GameStatus {
                 has_game: true,
-                turn: engine_state.game_state.calendar.global_turn,
-                year: engine_state.game_state.calendar.current_year,
+                turn: calendar.global_turn,
+                year: calendar.current_year,
+                month: calendar.current_month,
+                season: season.to_string(),
                 countries,
                 processing,
             })
@@ -212,6 +222,8 @@ pub async fn get_game_status(
             has_game: false,
             turn: 0,
             year: 0,
+            month: 0,
+            season: String::new(),
             countries: Vec::new(),
             processing,
         }),

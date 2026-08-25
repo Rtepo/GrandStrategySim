@@ -502,12 +502,13 @@ pub fn resolve_regional_labor_market(
     }
 
     // Phase 37: Severance pay for laid-off workers.
-    // When fulfilled_fte < prev_fulfilled_fte, the company must pay severance
-    // equal to 2x weekly wage per laid-off FTE. This creates a natural brake
-    // on mass firing during short-term shocks and transfers cash to workers.
-    // Capped at 30% of available cash to prevent instant bankruptcy cascades.
-    const SEVERANCE_MULTIPLIER: f64 = 2.0; // 2 weeks of wages per laid-off FTE
-    const SEVERANCE_CASH_CAP_RATIO: f64 = 0.30; // Max 30% of cash on severance
+    // Emergency Stabilization: Severance pay — 4x weekly wage per laid-off FTE
+    // (increased from 2x). The old 30% cash cap is REMOVED. If the company
+    // cannot afford full severance, the unpaid portion accrues as
+    // `severance_arrears` (a liability repaid at 30%/turn from future cash,
+    // same pattern as wage_arrears). This makes firing expensive even when
+    // cash is low, forcing the corporate AI to prefer furlough.
+    const SEVERANCE_MULTIPLIER: f64 = 4.0; // 4 weeks of wages per laid-off FTE
     let mut total_severance_to_workers: f64 = 0.0;
     for company in companies.iter_mut().filter(|c| c.region_id == region.id) {
         let laid_off = company.prev_fulfilled_fte as f64 - company.fulfilled_fte as f64;
@@ -515,24 +516,53 @@ pub fn resolve_regional_labor_market(
             continue;
         }
         let gross_severance = laid_off * company.offered_wage_per_fte * SEVERANCE_MULTIPLIER;
-        // Cap at 30% of available cash
         let available = company.brokerage_account.as_ref()
             .map(|ba| ba.cash.max(0.0))
             .unwrap_or(company.available_cash.max(0.0));
-        let capped_severance = gross_severance.min(available * SEVERANCE_CASH_CAP_RATIO);
-        if capped_severance <= 0.0 {
+        let payable = gross_severance.min(available);
+        let unpaid = gross_severance - payable;
+
+        // Pay what's available
+        if payable > 0.0 {
+            if let Some(ba) = &mut company.brokerage_account {
+                ba.cash -= payable;
+            } else {
+                company.available_cash -= payable;
+            }
+            total_severance_to_workers += payable;
+            // Phase 43: Accumulate severance debit for batch bank sync.
+            if let Some(ref bank_id) = company.primary_bank_id {
+                *bank_debits.entry(bank_id.clone()).or_insert(0.0) += payable;
+            }
+        }
+        // Accrue unpaid severance as a liability (same pattern as wage_arrears)
+        if unpaid > 0.0 {
+            company.severance_arrears += unpaid;
+        }
+    }
+
+    // Emergency Stabilization: Repay severance arrears from remaining cash
+    // (30% of available cash per turn, same pattern as wage_arrears repayment).
+    for company in companies.iter_mut().filter(|c| c.region_id == region.id) {
+        if company.severance_arrears <= 0.0 {
             continue;
         }
-        // Debit company
-        if let Some(ba) = &mut company.brokerage_account {
-            ba.cash -= capped_severance;
-        } else {
-            company.available_cash -= capped_severance;
-        }
-        total_severance_to_workers += capped_severance;
-        // Phase 43: Accumulate severance debit for batch bank sync.
-        if let Some(ref bank_id) = company.primary_bank_id {
-            *bank_debits.entry(bank_id.clone()).or_insert(0.0) += capped_severance;
+        let remaining_cash = company.brokerage_account
+            .as_ref()
+            .map(|ba| ba.cash.max(0.0))
+            .unwrap_or(company.available_cash.max(0.0));
+        let repayment = (remaining_cash * 0.30).min(company.severance_arrears);
+        if repayment > 0.0 {
+            if let Some(ba) = &mut company.brokerage_account {
+                ba.cash -= repayment;
+            } else {
+                company.available_cash -= repayment;
+            }
+            company.severance_arrears -= repayment;
+            total_severance_to_workers += repayment;
+            if let Some(ref bank_id) = company.primary_bank_id {
+                *bank_debits.entry(bank_id.clone()).or_insert(0.0) += repayment;
+            }
         }
     }
 

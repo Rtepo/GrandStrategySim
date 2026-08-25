@@ -129,10 +129,14 @@ pub fn generate_world(
 
     // Phase 53: Initialize calendar with the selected scenario year so that
     // turn-zero snapshots report the correct year (was defaulting to 0).
+    // Emergency Stabilization: Start in September (month 9) so the autumn
+    // harvest provides organic food supply from Turn 1, eliminating the need
+    // for artificial 12-month food seeding.
     state.calendar.start_year = options.start_year.as_year();
     state.calendar.current_year = options.start_year.as_year();
     state.calendar.global_turn = 0;
-    state.calendar.current_month = 1;
+    state.calendar.start_month = 9; // September harvest start
+    state.calendar.current_month = 9;
     state.calendar.half_month = false;
 
     let mut regions = HashMap::new();
@@ -335,7 +339,7 @@ fn generate_country(
         bank_resolution: crate::state::BankResolution::default(),
         bank_tax: crate::state::BankTax::default(),
         stock_exchange: crate::securities::StockExchange::default(),
-        dividend_queue: Vec::new(), ipo_queue: Vec::new(), bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(), demolition_queue: Vec::new(), halt_queue: Vec::new(),
+        dividend_queue: Vec::new(), ipo_queue: Vec::new(), bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(), demolition_queue: Vec::new(), halt_queue: Vec::new(), furlough_wage_queue: Vec::new(), recruitment_cost_queue: Vec::new(),
         knf: crate::securities::KNF::default(),
         capital_gains_tax: crate::state::capital_gains_tax::CapitalGainsTaxRegistry::default(),
         sovereign_default_turns_remaining: 0,

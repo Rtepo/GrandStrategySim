@@ -202,6 +202,10 @@ pub struct LaborSummary {
     pub unemployed: f64,
     pub workforce: f64,
     pub average_wage: f64,
+    /// Emergency Stabilization: Total furloughed workers across all companies.
+    /// Distinct from unemployed — furloughed workers are retained by companies
+    /// and excluded from active labor clearing.
+    pub furloughed_total: f64,
 }
 
 /// ToT (Turn-over-Turn) and YoY (Year-over-Year) percentage deltas
@@ -2171,6 +2175,10 @@ pub struct GameStatus {
     pub has_game: bool,
     pub turn: u32,
     pub year: u32,
+    /// Emergency Stabilization: Current month (1-12).
+    pub month: u32,
+    /// Emergency Stabilization: Current season name (Winter/Spring/Summer/Autumn).
+    pub season: String,
     pub processing: bool,
     pub countries: Vec<String>,
 }
@@ -2204,6 +2212,10 @@ pub struct MacroIndicatorsResponse {
     pub cpi: f64,
     pub ppi: f64,
     pub deltas: TelemetryDeltas,
+    /// Emergency Stabilization: Total furloughed workers across all companies.
+    /// Distinct from unemployed — furloughed workers are retained by companies
+    /// and excluded from active labor clearing.
+    pub furloughed_total: f64,
 }
 
 /// Response for the get_banking_aggregates command.
@@ -2466,6 +2478,7 @@ pub fn build_country_snapshot(
         unemployed: macro_data.labor_market.unemployed,
         workforce: macro_data.labor_market.employed_total + macro_data.labor_market.unemployed,
         average_wage: macro_data.average_wage,
+        furloughed_total: macro_data.labor_market.furloughed_total,
     };
 
     // Corruption index

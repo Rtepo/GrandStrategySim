@@ -14,6 +14,12 @@ use std::collections::HashMap;
 
 use super::strategy::{CorporateAction, CorporateDecisionCtx, CorporateStrategy, FinanceSource, try_apply_ipo};
 
+/// Emergency Stabilization: Recruitment cost multiplier — 4 weeks of wages
+/// per new worker (2 turns of payroll). Applied to `average_wage` to derive
+/// the recruitment cost. This creates hiring friction so the corporate AI
+/// prefers furlough (free re-instatement) over fire+rehire (recruitment cost).
+const RECRUITMENT_MULTIPLIER: f64 = 4.0;
+
 /// Processes every company in the country after the production phase.
 ///
 /// # Arguments
@@ -62,6 +68,15 @@ pub fn process_companies(
 
         let total_profit: f64 = owned.iter().map(|j| buildings[*j].last_profit).sum();
 
+        // Emergency Stabilization: Compute average fulfillment ratio across
+        // owned buildings to detect raw-material distress.
+        let avg_fulfillment_ratio: f64 = if owned.is_empty() {
+            1.0
+        } else {
+            let sum: f64 = owned.iter().map(|j| buildings[*j].last_fulfillment_ratio).sum();
+            sum / owned.len() as f64
+        };
+
         // Phase 24A.3: Track liabilities before process_company to detect new loans.
         let liabilities_before = companies[i].liabilities;
         let company_id = companies[i].id.clone();
@@ -69,7 +84,7 @@ pub fn process_companies(
 
         let (_profitable, interest_paid) = {
             let company = &mut companies[i];
-            process_company(company, total_profit, country, year, market_signal)
+            process_company(company, total_profit, country, year, market_signal, avg_fulfillment_ratio)
         };
 
         // Phase 39: Accumulate annual profit for SOE dividend calculation.
@@ -617,6 +632,7 @@ pub fn process_company(
     country: &mut Country,
     year: u32,
     market_signal: &MarketSignal,
+    avg_fulfillment_ratio: f64,
 ) -> (bool, f64) {
     let corporate_tax_rate = country.tax_rates.corporate_tax;
     let xibor = market_signal.interest_rate;
@@ -739,6 +755,7 @@ pub fn process_company(
             gross_profit: total_profit,
             net_profit,
             behavior_modifiers,
+            avg_fulfillment_ratio,
         };
         company.legal_form.decide(&ctx)
     };
@@ -819,6 +836,32 @@ fn apply_action(
                     company.liquid_capital = (company.liquid_capital + amount - investment).max(0.0);
                 }
             }
+
+            // Emergency Stabilization: Recruitment cost — hiring new workers
+            // costs 4 weeks of wages (2 turns of payroll) per worker. This is
+            // a real cash flow to workers (signing bonus / onboarding incentive),
+            // NOT a sink. Double-entry: debit company cash, credit regional
+            // worker class savings via recruitment_cost_queue.
+            if new_workers > 0 {
+                let avg_wage = country.macro_indicators.average_wage.max(1.0);
+                let recruitment_cost = new_workers as f64 * avg_wage * RECRUITMENT_MULTIPLIER;
+                let available = company.brokerage_account
+                    .as_ref()
+                    .map(|ba| ba.cash.max(0.0))
+                    .unwrap_or(company.available_cash.max(0.0));
+                let payable = recruitment_cost.min(available);
+                if payable > 0.0 {
+                    if let Some(ba) = &mut company.brokerage_account {
+                        ba.cash -= payable;
+                    } else {
+                        company.available_cash -= payable;
+                    }
+                    // Credit to regional worker class savings (same routing
+                    // pattern as severance pay).
+                    country.recruitment_cost_queue.push((company.id.clone(), payable));
+                }
+            }
+
             // Store expansion intent — process_companies will create
             // a ConstructionProject on the building. Capacity/capital
             // is added only when materials are physically delivered.
@@ -929,6 +972,7 @@ fn apply_action(
                 gross_profit,
                 net_profit,
                 behavior_modifiers,
+                avg_fulfillment_ratio: 1.0, // IPO path: not used for furlough decisions
             };
             if let Some(new_form) = try_apply_ipo(&*company, &company.legal_form, shares_to_float, reserve_price, &ctx) {
                 let _ = ctx;
@@ -951,6 +995,39 @@ fn apply_action(
         CorporateAction::RaiseWages { .. } |
         CorporateAction::CutWages { .. } |
         CorporateAction::Idle => {}
+        CorporateAction::Furlough { fte_count, wage_fraction } => {
+            // Emergency Stabilization: Move workers from fulfilled_fte to
+            // furloughed_workers_count. They are retained by the company and
+            // excluded from active labor clearing. Re-instatement is free
+            // (no recruitment cost) when conditions improve.
+            let actual_furlough = fte_count.min(company.fulfilled_fte);
+            company.fulfilled_fte -= actual_furlough;
+            company.furloughed_workers_count += actual_furlough as f64;
+
+            // Pay furlough wages (wage_fraction * normal_wage * furloughed_count).
+            // Double-entry: debit company cash, credit furloughed workers via
+            // regional class savings (same routing as severance pay).
+            if wage_fraction > 0.0 && actual_furlough > 0 {
+                let furlough_wage = actual_furlough as f64
+                    * company.offered_wage_per_fte
+                    * wage_fraction;
+                let available = company.brokerage_account
+                    .as_ref()
+                    .map(|ba| ba.cash.max(0.0))
+                    .unwrap_or(company.available_cash.max(0.0));
+                let payable = furlough_wage.min(available);
+                if payable > 0.0 {
+                    if let Some(ba) = &mut company.brokerage_account {
+                        ba.cash -= payable;
+                    } else {
+                        company.available_cash -= payable;
+                    }
+                    // Credit to regional class savings (proportional distribution
+                    // handled in labor market post-pass via furlough_wage_queue).
+                    country.furlough_wage_queue.push((company.id.clone(), payable));
+                }
+            }
+        }
         CorporateAction::Demolish { building_id } => {
             // Phase 24A.9: Demolish building — return workers to labor pool,
             // fire-sale inventory, route assets to auction pool, conserve land.
@@ -1022,6 +1099,115 @@ pub fn apply_seasonal_furlough(company: &mut Company, season: crate::state::Seas
 pub fn apply_seasonal_furlough_all(companies: &mut [Company], season: crate::state::Season) {
     for company in companies.iter_mut() {
         apply_seasonal_furlough(company, season);
+    }
+}
+
+/// Emergency Stabilization: Re-instate furloughed workers when conditions
+/// improve. Called BEFORE production so re-instated workers can participate
+/// in this turn's production cycle.
+///
+/// # Re-instatement Conditions
+/// - The company has furloughed workers (`furloughed_workers_count > 0`)
+/// - The company is NOT in receivership
+/// - The company can cover full payroll for re-instated workers
+/// - The company's average fulfillment ratio is healthy (> 0.5)
+///
+/// # Arguments
+/// * `companies` - Mutable slice of companies.
+/// * `buildings` - Buildings slice for fulfillment ratio lookup.
+pub fn process_furlough_reinstatement(companies: &mut [Company], buildings: &[Building]) {
+    // Build owner -> fulfillment ratios map
+    let mut by_owner: HashMap<String, Vec<f64>> = HashMap::new();
+    for b in buildings {
+        by_owner.entry(b.owner_id.clone()).or_default().push(b.last_fulfillment_ratio);
+    }
+
+    for company in companies.iter_mut() {
+        if company.furloughed_workers_count <= 0.0 {
+            continue;
+        }
+        if company.is_in_receivership {
+            continue;
+        }
+
+        // Check average fulfillment ratio for this company's buildings
+        let avg_ratio = by_owner.get(&company.id)
+            .map(|ratios| {
+                if ratios.is_empty() { 1.0 }
+                else { ratios.iter().sum::<f64>() / ratios.len() as f64 }
+            })
+            .unwrap_or(1.0);
+
+        if avg_ratio < 0.5 {
+            continue; // Raw materials still scarce — don't re-instate yet
+        }
+
+        // Check if company can cover full payroll for re-instated workers
+        let available = company.brokerage_account
+            .as_ref()
+            .map(|ba| ba.cash.max(0.0))
+            .unwrap_or(company.available_cash.max(0.0));
+        let re_instate_count = company.furloughed_workers_count.round() as u32;
+        let payroll_cost = re_instate_count as f64 * company.offered_wage_per_fte;
+
+        if available < payroll_cost {
+            continue; // Can't afford to re-instate yet
+        }
+
+        // Re-instate: transfer furloughed workers back to fulfilled_fte
+        company.fulfilled_fte += re_instate_count;
+        company.furloughed_workers_count = 0.0;
+        company.furlough_turns_accumulated = 0; // Reset duration counter
+    }
+}
+
+/// Emergency Stabilization: Furlough attrition — workers quit after prolonged
+/// unpaid furlough and return to the general labor pool. Called AFTER
+/// re-instatement and BEFORE labor market clearing.
+///
+/// # Attrition Formula
+/// ```text
+/// wage_gap = 1.0 - wage_fraction   // 1.0 for 0% pay
+/// base_quit_rate = 0.05            // 5% per turn baseline
+/// duration_factor = 1.0 + (furlough_turns_accumulated * 0.10)
+/// quit_rate = (base_quit_rate * wage_gap * duration_factor).min(0.50)
+/// quit_count = ceil(furloughed_workers_count * quit_rate)
+/// ```
+///
+/// Workers who quit are released to the general labor pool. Since
+/// `available_fte` is recomputed each turn from `population ×
+/// labor_participation`, the released workers are automatically available
+/// for hire by other companies next turn.
+///
+/// # Rule 8 (Rational Actors)
+/// A rational worker will not sit unpaid forever. This mechanic prevents
+/// the "eternal furlough" trap where a dead company holds thousands of
+/// workers hostage infinitely.
+pub fn process_furlough_attrition(companies: &mut [Company]) {
+    for company in companies.iter_mut() {
+        if company.furloughed_workers_count <= 0.0 {
+            continue;
+        }
+
+        // Increment the duration counter
+        company.furlough_turns_accumulated += 1;
+
+        // Compute quit rate (wage_fraction = 0.0 for current era — no UI)
+        let wage_fraction = 0.0; // Future labor laws can increase this
+        let wage_gap = 1.0 - wage_fraction;
+        let base_quit_rate = 0.05;
+        let duration_factor = 1.0 + (company.furlough_turns_accumulated as f64 * 0.10);
+        let quit_rate = (base_quit_rate * wage_gap * duration_factor).min(0.50);
+
+        let quit_count = (company.furloughed_workers_count * quit_rate).ceil() as u32;
+        let quit_count = quit_count.min(company.furloughed_workers_count.round() as u32);
+
+        if quit_count > 0 {
+            company.furloughed_workers_count =
+                (company.furloughed_workers_count - quit_count as f64).max(0.0);
+            // Workers return to the general labor pool automatically via
+            // the available_fte recompute in labor.rs (population × participation)
+        }
     }
 }
 

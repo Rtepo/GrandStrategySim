@@ -145,7 +145,7 @@ pub fn load_game_state(data_dir: &Path) -> Result<GameState, SaveError> {
                 bank_resolution: crate::state::BankResolution::default(),
                 bank_tax: crate::state::BankTax::default(),
                 stock_exchange: crate::securities::StockExchange::default(),
-                dividend_queue: Vec::new(), ipo_queue: Vec::new(), bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(), demolition_queue: Vec::new(), halt_queue: Vec::new(),
+                dividend_queue: Vec::new(), ipo_queue: Vec::new(), bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(), demolition_queue: Vec::new(), halt_queue: Vec::new(), furlough_wage_queue: Vec::new(), recruitment_cost_queue: Vec::new(),
                 knf: crate::securities::KNF::default(),
                 capital_gains_tax: crate::state::capital_gains_tax::CapitalGainsTaxRegistry::default(),
                 sovereign_default_turns_remaining: 0,

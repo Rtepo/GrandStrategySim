@@ -23,14 +23,16 @@ pub fn crop_registry() -> &'static HashMap<String, CropDefinition> {
         let mut crops = HashMap::new();
 
         // Cereals
+        // Emergency Stabilization: Shifted for September-start calendar.
+        // Sowing: March-April (turns 13-15), Harvest: September-October (turns 1-3).
         crops.insert("wheat".to_string(), CropDefinition {
             id: "wheat".to_string(),
             name: "Wheat".to_string(),
             category: CropCategory::Cereal,
             land_type: LandType::Arable,
             compatible_climates: vec![ClimateProfile::Temperate, ClimateProfile::Continental],
-            sowing_schedule: TurnRange { start_turn: 5, end_turn: 7 },
-            harvest_schedule: TurnRange { start_turn: 17, end_turn: 19 },
+            sowing_schedule: TurnRange { start_turn: 13, end_turn: 15 },
+            harvest_schedule: TurnRange { start_turn: 1, end_turn: 3 },
             labor_demand: LaborDemandProfile {
                 sowing_fte_per_hectare: 0.12,
                 growing_fte_per_hectare: 0.04,
@@ -55,8 +57,8 @@ pub fn crop_registry() -> &'static HashMap<String, CropDefinition> {
             category: CropCategory::Cereal,
             land_type: LandType::Arable,
             compatible_climates: vec![ClimateProfile::Temperate, ClimateProfile::Continental],
-            sowing_schedule: TurnRange { start_turn: 5, end_turn: 7 },
-            harvest_schedule: TurnRange { start_turn: 17, end_turn: 19 },
+            sowing_schedule: TurnRange { start_turn: 13, end_turn: 15 },
+            harvest_schedule: TurnRange { start_turn: 1, end_turn: 3 },
             labor_demand: LaborDemandProfile {
                 sowing_fte_per_hectare: 0.12,
                 growing_fte_per_hectare: 0.04,
@@ -76,14 +78,16 @@ pub fn crop_registry() -> &'static HashMap<String, CropDefinition> {
         });
 
         // Vegetables
+        // Emergency Stabilization: Shifted for September-start calendar.
+        // Sowing: March-April (turns 13-15), Harvest: September-October (turns 1-3).
         crops.insert("potatoes".to_string(), CropDefinition {
             id: "potatoes".to_string(),
             name: "Potatoes".to_string(),
             category: CropCategory::Root,
             land_type: LandType::Arable,
             compatible_climates: vec![ClimateProfile::Temperate, ClimateProfile::Continental],
-            sowing_schedule: TurnRange { start_turn: 4, end_turn: 6 },
-            harvest_schedule: TurnRange { start_turn: 16, end_turn: 18 },
+            sowing_schedule: TurnRange { start_turn: 13, end_turn: 15 },
+            harvest_schedule: TurnRange { start_turn: 1, end_turn: 3 },
             labor_demand: LaborDemandProfile {
                 sowing_fte_per_hectare: 0.15,
                 growing_fte_per_hectare: 0.05,
@@ -129,14 +133,16 @@ pub fn crop_registry() -> &'static HashMap<String, CropDefinition> {
         });
 
         // Fodder
+        // Emergency Stabilization: Shifted for September-start calendar.
+        // Sowing: January-February (turns 11-13), Harvest: May-August (turns 20-24).
         crops.insert("alfalfa".to_string(), CropDefinition {
             id: "alfalfa".to_string(),
             name: "Alfalfa".to_string(),
             category: CropCategory::Fodder,
             land_type: LandType::Arable,
             compatible_climates: vec![ClimateProfile::Temperate, ClimateProfile::Continental],
-            sowing_schedule: TurnRange { start_turn: 3, end_turn: 5 },
-            harvest_schedule: TurnRange { start_turn: 12, end_turn: 20 },
+            sowing_schedule: TurnRange { start_turn: 11, end_turn: 13 },
+            harvest_schedule: TurnRange { start_turn: 20, end_turn: 24 },
             labor_demand: LaborDemandProfile {
                 sowing_fte_per_hectare: 0.08,
                 growing_fte_per_hectare: 0.02,
@@ -200,7 +206,7 @@ pub fn crop_registry() -> &'static HashMap<String, CropDefinition> {
                 ClimateProfile::Coastal,
             ],
             sowing_schedule: TurnRange { start_turn: 1, end_turn: 2 },
-            harvest_schedule: TurnRange { start_turn: 15, end_turn: 18 },
+            harvest_schedule: TurnRange { start_turn: 1, end_turn: 4 },
             labor_demand: LaborDemandProfile {
                 sowing_fte_per_hectare: 0.0,
                 growing_fte_per_hectare: 0.03,
@@ -230,7 +236,7 @@ pub fn crop_registry() -> &'static HashMap<String, CropDefinition> {
                 ClimateProfile::Temperate,
             ],
             sowing_schedule: TurnRange { start_turn: 1, end_turn: 2 },
-            harvest_schedule: TurnRange { start_turn: 13, end_turn: 16 },
+            harvest_schedule: TurnRange { start_turn: 1, end_turn: 4 },
             labor_demand: LaborDemandProfile {
                 sowing_fte_per_hectare: 0.0,
                 growing_fte_per_hectare: 0.04,

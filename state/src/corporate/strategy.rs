@@ -42,6 +42,10 @@ pub struct CorporateDecisionCtx<'a> {
     pub net_profit: f64,
     /// Phase 57: Trait-driven behavior modifiers (no raw trait string checks).
     pub behavior_modifiers: MarketBehaviorModifiers,
+    /// Emergency Stabilization: Average production fulfillment ratio this turn
+    /// (0.0 = no inputs available, 1.0 = full inputs). Used by the corporate AI
+    /// to distinguish temporary raw-material distress from structural bankruptcy.
+    pub avg_fulfillment_ratio: f64,
 }
 
 /// Actions a company can choose.
@@ -103,6 +107,18 @@ pub enum CorporateAction {
     HaltProduction {
         /// Building ID to halt.
         building_id: String,
+    },
+    /// Emergency Stabilization: Furlough a fraction of the workforce.
+    /// Workers are temporarily moved to `furloughed_workers_count` (retained
+    /// by the company, excluded from active labor clearing) and re-instated
+    /// when conditions improve without recruitment cost. Used during temporary
+    /// cash/raw-material distress instead of permanent layoffs.
+    Furlough {
+        /// Number of FTE to furlough (moved from fulfilled_fte to furloughed_workers_count).
+        fte_count: u32,
+        /// Fraction of normal wage paid to furloughed workers (0.0–1.0).
+        /// Set by labor law; 0.0 means no pay during furlough.
+        wage_fraction: f64,
     },
 }
 
@@ -213,6 +229,13 @@ impl CorporateStrategy for LegalForm {
         }
 
         if is_distressed(ctx) {
+            // Emergency Stabilization: If the distress is temporary (raw-material
+            // shortage or cash-flow issue, NOT structural bankruptcy), prefer
+            // furlough over permanent layoffs. Furloughed workers are retained
+            // and can be re-instated without recruitment cost.
+            if let Some(furlough) = evaluate_furlough(ctx) {
+                return furlough;
+            }
             return self.evaluate_restructure(ctx);
         }
 
@@ -709,6 +732,65 @@ fn evaluate_cooperative_ipo(data: &CooperativeData, ctx: &CorporateDecisionCtx) 
 fn is_distressed(ctx: &CorporateDecisionCtx) -> bool {
     ctx.company.company_capital < 0.0
         || (ctx.net_profit < 0.0 && ctx.company.liquid_capital == 0.0)
+}
+
+/// Emergency Stabilization: Evaluate whether a distressed company should
+/// furlough workers instead of firing them. Furlough is preferred when:
+/// - The company is NOT structurally bankrupt (company_capital >= 0.0)
+/// - There is a temporary cash shortage OR raw-material shortage
+/// - The company has workers to furlough
+///
+/// Returns `Some(Furlough)` if furlough is appropriate, `None` if the company
+/// should proceed to permanent restructuring/liquidation.
+fn evaluate_furlough(ctx: &CorporateDecisionCtx) -> Option<CorporateAction> {
+    // Structurally bankrupt companies must restructure, not furlough.
+    if ctx.company.company_capital < 0.0 {
+        return None;
+    }
+
+    // No workers to furlough.
+    if ctx.company.fulfilled_fte == 0 {
+        return None;
+    }
+
+    // Determine the nature of the distress:
+    // - Raw-material shortage: fulfillment_ratio < 0.1 (can't produce)
+    // - Cash-flow distress: can't cover 2 turns of payroll
+    let wage_per_fte = ctx.company.offered_wage_per_fte.max(1.0);
+    let total_payroll = ctx.company.fulfilled_fte as f64 * wage_per_fte;
+    let cash_shortage = ctx.company.liquid_capital < total_payroll * 2.0;
+    let material_shortage = ctx.avg_fulfillment_ratio < 0.1;
+
+    if !cash_shortage && !material_shortage {
+        return None;
+    }
+
+    // Calculate furlough count:
+    // - If material shortage: furlough proportionally to the shortage
+    //   (e.g., 90% shortage → furlough 90% of workers)
+    // - If cash shortage: furlough enough to bring payroll within cash budget
+    let furlough_count = if material_shortage {
+        let shortage_fraction = 1.0 - ctx.avg_fulfillment_ratio;
+        ((ctx.company.fulfilled_fte as f64) * shortage_fraction).ceil() as u32
+    } else {
+        // Cash shortage: furlough enough to bring payroll within budget
+        let affordable_fte = (ctx.company.liquid_capital / wage_per_fte).floor() as u32;
+        ctx.company.fulfilled_fte.saturating_sub(affordable_fte)
+    };
+
+    // Clamp: can't furlough more than we have, and furlough at least 1.
+    let furlough_count = furlough_count.min(ctx.company.fulfilled_fte).max(1);
+
+    if furlough_count == 0 {
+        return None;
+    }
+
+    // wage_fraction = 0.0 (no pay during furlough — era-appropriate, no UI).
+    // Future labor law mechanics can increase this.
+    Some(CorporateAction::Furlough {
+        fte_count: furlough_count,
+        wage_fraction: 0.0,
+    })
 }
 
 /// Phase 37: Cap new worker hiring to 20% of current capacity per turn.

@@ -22,6 +22,7 @@ mod tests {
     use sim_engine::economy::market::clearing::resolve_market_prices;
     use sim_engine::state::Country;
     use sim_engine::entities::{AgriculturalProfile, CropBatch, CropState};
+    use rustc_hash::FxHashMap;
 
     /// Test 1: Clearing engine — deficit with no global surplus should NOT
     /// pin at 102.5% of base price. It should rise toward PRICE_CAP (5.0x).
@@ -38,7 +39,7 @@ mod tests {
 
         let country = Country::default();
 
-        let prices = resolve_market_prices(&market_orders, &country, &global_market);
+        let prices = resolve_market_prices(&market_orders, &country, &global_market, &FxHashMap::default());
         let steel_price = prices.get(&Commodity::Steel).copied().unwrap_or(0.0);
 
         // The old bug would return ~102.5 (100 * 1.025 tariff).
@@ -65,7 +66,7 @@ mod tests {
 
         let country = Country::default();
 
-        let prices = resolve_market_prices(&market_orders, &country, &global_market);
+        let prices = resolve_market_prices(&market_orders, &country, &global_market, &FxHashMap::default());
         let steel_price = prices.get(&Commodity::Steel).copied().unwrap_or(0.0);
 
         // The old bug would return ~97.5 (100 * 0.975 export tax).
@@ -179,10 +180,12 @@ mod tests {
         let registries = Registries::native_only();
         let wheat = registries.crops.get("wheat").expect("Wheat should be defined");
         assert_eq!(wheat.name, "Wheat", "Wheat name should be English");
-        assert_eq!(wheat.sowing_schedule.start_turn, 5, "Wheat sowing starts at turn 5 (Spring)");
-        assert_eq!(wheat.sowing_schedule.end_turn, 7, "Wheat sowing ends at turn 7");
-        assert_eq!(wheat.harvest_schedule.start_turn, 17, "Wheat harvest starts at turn 17 (Autumn)");
-        assert_eq!(wheat.harvest_schedule.end_turn, 19, "Wheat harvest ends at turn 19");
+        // Emergency Stabilization: Shifted for September-start calendar.
+        // Sowing: March-April (turns 13-15), Harvest: September-October (turns 1-3).
+        assert_eq!(wheat.sowing_schedule.start_turn, 13, "Wheat sowing starts at turn 13 (March, September-start calendar)");
+        assert_eq!(wheat.sowing_schedule.end_turn, 15, "Wheat sowing ends at turn 15");
+        assert_eq!(wheat.harvest_schedule.start_turn, 1, "Wheat harvest starts at turn 1 (September, autumn harvest)");
+        assert_eq!(wheat.harvest_schedule.end_turn, 3, "Wheat harvest ends at turn 3");
         // Yield: 4.5 tons Cereal per hectare
         let cereal_yield = wheat.yields.get(&Commodity::Cereal).copied().unwrap_or(0.0);
         assert_eq!(cereal_yield, 4.5, "Wheat should yield 4.5 tons Cereal per hectare");

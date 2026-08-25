@@ -628,7 +628,15 @@ export type FxBasketEntry = { currency: string, amount: number, exchange_rate: n
 /**
  * Response for the get_game_status command.
  */
-export type GameStatus = { has_game: boolean, turn: number, year: number, processing: boolean, countries: Array<string>, };
+export type GameStatus = { has_game: boolean, turn: number, year: number, 
+/**
+ * Emergency Stabilization: Current month (1-12).
+ */
+month: number, 
+/**
+ * Emergency Stabilization: Current season name (Winter/Spring/Summer/Autumn).
+ */
+season: string, processing: boolean, countries: Array<string>, };
 
 /**
  * Phase 81: Generation mix entry (fraction of total supply by plant type).
@@ -755,7 +763,13 @@ export type KnfFindingRow = { entity_id: string, entity_name: string, violation_
 /**
  * Labor market summary.
  */
-export type LaborSummary = { unemployment_rate: number, employed_total: number, unemployed: number, workforce: number, average_wage: number, };
+export type LaborSummary = { unemployment_rate: number, employed_total: number, unemployed: number, workforce: number, average_wage: number, 
+/**
+ * Emergency Stabilization: Total furloughed workers across all companies.
+ * Distinct from unemployed — furloughed workers are retained by companies
+ * and excluded from active labor clearing.
+ */
+furloughed_total: number, };
 
 /**
  * Phase 84: Landfill snapshot for UI display.
@@ -817,7 +831,13 @@ export type ListedCompanyRow = { company_id: string, name: string, sector: strin
 /**
  * Response for the get_macro_indicators command.
  */
-export type MacroIndicatorsResponse = { gdp: number, gdp_per_capita: number, population: bigint, unemployment_rate: number, inflation_rate: number, average_wage: number, money_supply_m0: number, money_supply_m3: number, consumption: number, investment: number, government_spending: number, net_exports: number, cpi: number, ppi: number, deltas: TelemetryDeltas, };
+export type MacroIndicatorsResponse = { gdp: number, gdp_per_capita: number, population: bigint, unemployment_rate: number, inflation_rate: number, average_wage: number, money_supply_m0: number, money_supply_m3: number, consumption: number, investment: number, government_spending: number, net_exports: number, cpi: number, ppi: number, deltas: TelemetryDeltas, 
+/**
+ * Emergency Stabilization: Total furloughed workers across all companies.
+ * Distinct from unemployed — furloughed workers are retained by companies
+ * and excluded from active labor clearing.
+ */
+furloughed_total: number, };
 
 /**
  * Summary of an unfunded mandate for the region drill-down.

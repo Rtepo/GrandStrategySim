@@ -374,6 +374,12 @@ pub struct LaborMarket {
     /// Explicit serf population (excluded from labor market).
     #[serde(default)]
     pub serf_population: f64,
+    /// Emergency Stabilization: Total furloughed workers across all companies.
+    /// Aggregated each turn from `company.furloughed_workers_count`. Exposed
+    /// in the Macro Indicators DTO so the player can see furloughed count
+    /// alongside unemployment on the dashboard.
+    #[serde(default)]
+    pub furloughed_total: f64,
     /// Any additional labor-market fields.
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,

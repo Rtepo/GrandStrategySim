@@ -305,6 +305,7 @@ pub fn generate_corporate_entities(
             },
             last_production: BTreeMap::new(),
             last_profit: 0.0,
+            last_fulfillment_ratio: 1.0,
             condition: 1.0,
             is_heritage_site: false,
             experience_level: None,
@@ -388,6 +389,7 @@ pub fn generate_corporate_entities(
             },
             last_production: BTreeMap::new(),
             last_profit: 0.0,
+            last_fulfillment_ratio: 1.0,
             condition: 1.0,
             is_heritage_site: false,
             experience_level: None,
@@ -446,34 +448,11 @@ pub fn generate_corporate_entities(
         registries,
     );
 
-    // Stabilization Sprint: Seed the Strategic Reserve Agency warehouses
-    // with 12 months of Cereal and Food to sustain the population until
-    // the first harvest (turn 17). No free food to agriculture companies.
-    {
-        let reserve_warehouse_ids: Vec<String> = all_companies
-            .iter()
-            .find(|c| c.id.starts_with("STRATEGIC_RESERVE_"))
-            .map(|c| c.building_ids.clone())
-            .unwrap_or_default();
-        // Collect indices to avoid borrow conflicts
-        let reserve_indices: Vec<usize> = all_buildings
-            .iter()
-            .enumerate()
-            .filter(|(_, b)| reserve_warehouse_ids.contains(&b.id))
-            .map(|(i, _)| i)
-            .collect();
-        if !reserve_indices.is_empty() {
-            // Seed food reserve into SRA warehouses
-            let pop_f = total_population as f64;
-            let cereal_reserve = 0.18 * 24.0 * pop_f * 0.5; // 12 months
-            let food_reserve = 0.22 * 24.0 * pop_f * 0.5;   // 12 months
-            let n = reserve_indices.len() as f64;
-            for &idx in &reserve_indices {
-                *all_buildings[idx].inventory.entry(Commodity::Cereal).or_insert(0.0) += cereal_reserve / n;
-                *all_buildings[idx].inventory.entry(Commodity::Food).or_insert(0.0) += food_reserve / n;
-            }
-        }
-    }
+    // Emergency Stabilization: The 12-month Strategic Reserve Agency food
+    // seed has been REMOVED. The game now starts in September (autumn harvest
+    // season), and crop batches are pre-seeded in Growing state, so the
+    // first harvest deposits organic yields into warehouses at turns 1-3.
+    // The B2C retail buffer below is retained for Turn 1 market function.
 
     // Stabilization Sprint: Seed B2C retail stores with a 4-turn buffer
     // of Cereal and Food so consumers can buy food on Turn 1.
@@ -1064,6 +1043,8 @@ fn generate_region_companies(
             offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0),
             prev_offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0).max(50.0),
             wage_arrears: 0.0,
+            severance_arrears: 0.0,
+            furlough_turns_accumulated: 0,
             productivity_penalty: 0.0,
             target_wage: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(50.0),
             is_striking: false,
@@ -1145,6 +1126,7 @@ fn generate_region_companies(
             },
             last_production: BTreeMap::new(),
             last_profit: 0.0,
+            last_fulfillment_ratio: 1.0,
             condition: 1.0,
             is_heritage_site: false,
             experience_level: None,
@@ -2267,6 +2249,8 @@ fn create_seed_company_with_explicit_method(
         offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0),
         prev_offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0).max(50.0),
         wage_arrears: 0.0,
+        severance_arrears: 0.0,
+        furlough_turns_accumulated: 0,
         productivity_penalty: 0.0,
         target_wage: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(50.0),
         is_striking: false,
@@ -2337,6 +2321,7 @@ fn create_seed_company_with_explicit_method(
         },
         last_production: BTreeMap::new(),
         last_profit: 0.0,
+        last_fulfillment_ratio: 1.0,
         condition: 1.0,
         is_heritage_site: false,
         experience_level: None,
@@ -2651,6 +2636,8 @@ fn create_seed_company(
         offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0),
         prev_offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0).max(50.0),
         wage_arrears: 0.0,
+        severance_arrears: 0.0,
+        furlough_turns_accumulated: 0,
         productivity_penalty: 0.0,
         target_wage: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(50.0),
         is_striking: false,
@@ -2746,6 +2733,7 @@ fn create_seed_company(
         },
         last_production: BTreeMap::new(),
         last_profit: 0.0,
+        last_fulfillment_ratio: 1.0,
         condition: 1.0,
         is_heritage_site: false,
         experience_level: None,
@@ -2835,10 +2823,11 @@ fn seed_fixed_assets(
 /// seeded goods at estimated base prices. This cost must be deducted from the
 /// company's `liquid_capital` and credited to `country.budget.liquid_reserves`
 /// to maintain double-entry accounting.
-/// Stabilization Sprint: Number of turns of input inventory to seed at world
-/// generation. Companies need enough raw materials to survive the first few
-/// turns before B2B trade establishes a reliable supply chain.
-const SEED_INVENTORY_TURNS: f64 = 5.0;
+/// Emergency Stabilization: Number of turns of input inventory to seed at world
+/// generation. Reduced from 5.0 to 2.0 (1 month) because the September harvest
+/// start provides organic food supply and B2B trade establishes within 2 turns.
+/// Oversupplying raw materials at start distorts early market prices.
+const SEED_INVENTORY_TURNS: f64 = 2.0;
 
 fn seed_inventory(
     method: &ActiveProductionMethod,
@@ -3064,7 +3053,12 @@ fn initialize_agricultural_profiles(
 ///
 /// Allocates arable land across cereal, vegetable, and fodder crops using
 /// the CROP_*_RATIO constants. Plantation land is assigned to cattle/orchard.
-/// Each batch starts in CropState::Idle.
+///
+/// Emergency Stabilization: Crop batches start in CropState::Growing with
+/// active_hectares set to planned_hectares. This is because the game now
+/// starts in September (autumn harvest season) — the crops are already in
+/// the field and ready to harvest at turns 1-3. Without this pre-seeding,
+/// the first harvest wouldn't occur until the following year.
 fn build_crop_batches(
     arable_hectares: f64,
     plantation_hectares: f64,
@@ -3078,52 +3072,56 @@ fn build_crop_batches(
     let fodder_hectares = arable_hectares * CROP_FODDER_RATIO;
 
     // Cereal batch (wheat — the most common cereal crop)
+    // Pre-seeded in Growing state: sown in spring, ready for autumn harvest.
     if cereal_hectares > 0.0 && registries.crops.get("wheat").is_some() {
         batches.push(CropBatch {
             crop_id: "wheat".to_string(),
             planned_hectares: cereal_hectares,
-            active_hectares: 0.0,
-            state: CropState::Idle,
-            planted_turn: 0,
+            active_hectares: cereal_hectares,
+            state: CropState::Growing,
+            planted_turn: 13, // Sown in March (turn 13 of previous year)
             accumulated_yield: 0.0,
             rot_accumulator: 0.0,
         });
     }
 
     // Vegetable batch (potatoes — the most common root crop)
+    // Pre-seeded in Growing state: sown in spring, ready for autumn harvest.
     if vegetable_hectares > 0.0 && registries.crops.get("potatoes").is_some() {
         batches.push(CropBatch {
             crop_id: "potatoes".to_string(),
             planned_hectares: vegetable_hectares,
-            active_hectares: 0.0,
-            state: CropState::Idle,
-            planted_turn: 0,
+            active_hectares: vegetable_hectares,
+            state: CropState::Growing,
+            planted_turn: 13,
             accumulated_yield: 0.0,
             rot_accumulator: 0.0,
         });
     }
 
     // Fodder batch (alfalfa — the most common fodder crop)
+    // Pre-seeded in Growing state: sown in January, harvest May-August.
     if fodder_hectares > 0.0 && registries.crops.get("alfalfa").is_some() {
         batches.push(CropBatch {
             crop_id: "alfalfa".to_string(),
             planned_hectares: fodder_hectares,
-            active_hectares: 0.0,
-            state: CropState::Idle,
-            planted_turn: 0,
+            active_hectares: fodder_hectares,
+            state: CropState::Growing,
+            planted_turn: 11,
             accumulated_yield: 0.0,
             rot_accumulator: 0.0,
         });
     }
 
     // Plantation land: assign to cattle (livestock ranching)
+    // Pre-seeded in Growing state: perennial, year-round production.
     if plantation_hectares > 0.0 && registries.crops.get("cattle").is_some() {
         batches.push(CropBatch {
             crop_id: "cattle".to_string(),
             planned_hectares: plantation_hectares,
-            active_hectares: 0.0,
-            state: CropState::Idle,
-            planted_turn: 0,
+            active_hectares: plantation_hectares,
+            state: CropState::Growing,
+            planted_turn: 1,
             accumulated_yield: 0.0,
             rot_accumulator: 0.0,
         });
@@ -3259,6 +3257,7 @@ fn create_strategic_reserve_agency(
             },
             last_production: BTreeMap::new(),
             last_profit: 0.0,
+            last_fulfillment_ratio: 1.0,
             condition: 1.0,
             is_heritage_site: false,
             experience_level: None,
@@ -3322,6 +3321,7 @@ fn create_strategic_reserve_agency(
             },
             last_production: BTreeMap::new(),
             last_profit: 0.0,
+            last_fulfillment_ratio: 1.0,
             condition: 1.0,
             is_heritage_site: false,
             experience_level: None,
@@ -3392,6 +3392,8 @@ fn create_strategic_reserve_agency(
         offered_wage_per_fte: 0.0,
         prev_offered_wage_per_fte: 0.0,
         wage_arrears: 0.0,
+        severance_arrears: 0.0,
+        furlough_turns_accumulated: 0,
         productivity_penalty: 0.0,
         target_wage: 0.0,
         is_striking: false,
@@ -3710,6 +3712,8 @@ fn generate_retail_stores(
             offered_wage_per_fte: (company_liquid * 0.6 / (base_capacity as f64).max(1.0)).max(1.0),
             prev_offered_wage_per_fte: (company_liquid * 0.6 / (base_capacity as f64).max(1.0)).max(1.0).max(50.0),
             wage_arrears: 0.0,
+            severance_arrears: 0.0,
+            furlough_turns_accumulated: 0,
             productivity_penalty: 0.0,
             target_wage: (company_liquid * 0.6 / (base_capacity as f64).max(1.0)).max(50.0),
             is_striking: false,
@@ -4086,6 +4090,8 @@ fn generate_tourism_entities(
                 offered_wage_per_fte: base_wage * 0.5,
                 prev_offered_wage_per_fte: (base_wage * 0.5).max(50.0),
                 wage_arrears: 0.0,
+                severance_arrears: 0.0,
+                furlough_turns_accumulated: 0,
                 productivity_penalty: 0.0,
                 target_wage: (base_wage * 0.5).max(50.0),
                 is_striking: false,
@@ -4601,6 +4607,8 @@ fn create_charity_company(
         offered_wage_per_fte: subsistence_wage,
         prev_offered_wage_per_fte: subsistence_wage.max(50.0),
         wage_arrears: 0.0,
+        severance_arrears: 0.0,
+        furlough_turns_accumulated: 0,
         productivity_penalty: 0.0,
         target_wage: subsistence_wage.max(50.0),
         is_striking: false,
@@ -4832,6 +4840,8 @@ pub fn generate_investment_funds(
             offered_wage_per_fte: 5000.0,
             prev_offered_wage_per_fte: 5000.0,
             wage_arrears: 0.0,
+            severance_arrears: 0.0,
+            furlough_turns_accumulated: 0,
             productivity_penalty: 0.0,
             target_wage: 5000.0,
             is_striking: false,

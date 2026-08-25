@@ -218,7 +218,7 @@ pub fn spawn_rebel_proto_state(
         bank_resolution: crate::state::BankResolution::default(), // New bank resolution
         bank_tax: crate::state::BankTax::default(), // New bank tax
         stock_exchange: crate::securities::StockExchange::default(), // New stock exchange
-        dividend_queue: Vec::new(), ipo_queue: Vec::new(), bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(), demolition_queue: Vec::new(), halt_queue: Vec::new(), // Phase 24A.6
+        dividend_queue: Vec::new(), ipo_queue: Vec::new(), bankruptcy_auction_pool: crate::corporate::BankruptcyAuctionPool::default(), demolition_queue: Vec::new(), halt_queue: Vec::new(), furlough_wage_queue: Vec::new(), recruitment_cost_queue: Vec::new(), // Phase 24A.6
         knf: crate::securities::KNF::default(), // New KNF
         capital_gains_tax: crate::state::capital_gains_tax::CapitalGainsTaxRegistry::default(),
         sovereign_default_turns_remaining: 0, // No default initially

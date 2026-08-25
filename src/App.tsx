@@ -69,6 +69,13 @@ interface SidebarProps {
   updateChecking: boolean;
 }
 
+/// Emergency Stabilization: Map month number (1-12) to short month name.
+function monthName(month: number): string {
+  const names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                 "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return names[(month - 1) % 12] ?? "";
+}
+
 function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
   const { gameStatus, selectedCountry, setSelectedCountry, processing, refreshStatus, bumpTurn } = useGameStore();
   const queryClient = useQueryClient();
@@ -94,7 +101,7 @@ function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
         <h1 className="text-lg font-bold text-foreground">Grand Strategy</h1>
         {gameStatus && (
           <p className="text-sm text-muted-foreground mt-1">
-            Turn {gameStatus.turn} · Year {gameStatus.year}
+            Turn {gameStatus.turn} · {monthName(gameStatus.month)} {gameStatus.year} · {gameStatus.season}
           </p>
         )}
       </div>

@@ -67,6 +67,7 @@ pub async fn get_macro_indicators(
             cpi: md.inflation_indices.cpi_index,
             ppi: md.inflation_indices.ppi_index,
             deltas: md.deltas.clone(),
+            furloughed_total: md.labor.furloughed_total,
         })
     })
     .await

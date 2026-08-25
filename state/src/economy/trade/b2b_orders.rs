@@ -1032,6 +1032,11 @@ pub fn execute_production_cycle(
         // which would allow output beyond physical input availability.
         fulfillment_ratio = fulfillment_ratio.clamp(0.0, 1.0);
 
+        // Emergency Stabilization: Store the fulfillment ratio on the building
+        // so the corporate AI can detect raw-material distress and choose
+        // furlough over permanent layoffs.
+        building.last_fulfillment_ratio = fulfillment_ratio;
+
         // Consume inputs (skip fixed-asset commodities — they're not consumed).
         let mut inputs_consumed: HashMap<Commodity, f64> = HashMap::default();
         for (&commodity, &qty_per_1k) in &method.inputs {

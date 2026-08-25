@@ -16,7 +16,7 @@ pub mod bankruptcy;
 pub mod market_behavior;
 
 pub use lifecycle::CompanyLifecycle;
-pub use manager::{apply_seasonal_furlough_all, process_companies, process_company, set_wage_offers};
+pub use manager::{apply_seasonal_furlough_all, process_companies, process_company, set_wage_offers, process_furlough_reinstatement, process_furlough_attrition};
 pub use strategy::{CorporateAction, CorporateDecisionCtx, CorporateStrategy, FinanceSource, IpoStrategy, try_apply_ipo, calculate_administrative_overhead};
 pub use unions::process_unions;
 pub use development::{PropertyDeveloper, MarketOpportunity, publish_developer_tenders, publish_gas_station_tenders};
