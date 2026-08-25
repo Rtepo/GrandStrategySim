@@ -675,6 +675,12 @@ pub struct Region {
     /// fractions (MetalWaste, etc.) may be sold on B2B by the waste utility.
     #[serde(default)]
     pub waste_grid: crate::utilities::waste_grid::WasteGridState,
+
+    /// Phase 85B: City Region metadata. Present only if this Region was
+    /// emancipated from a parent Rural Region via the urbanization cycle.
+    /// None = normal rural region. Some = City Region.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub city_metadata: Option<CityRegionMetadata>,
 }
 
 /// Phase 47: Default development level for old saves (conservative mid-low).
@@ -961,6 +967,29 @@ pub struct ClassDemographics {
     /// Drops when casualties are routed back to demographics.
     /// Below threshold → factory strikes and military desertions.
     pub war_morale: f64,
+
+    /// Phase 85: FTE allocated to cottage industry self-production this turn.
+    /// Reserved in the Pre-labor phase BEFORE the industrial labor market clears.
+    /// Clamped to [0.0, (available_fte - allocated_fte - guild_fte_allocated).max(0.0)]
+    #[serde(default)]
+    pub cottage_fte_allocated: f64,
+
+    /// Phase 85: FTE allocated to guild workshops this turn.
+    /// Reserved in the Pre-labor phase BEFORE the industrial labor market clears.
+    /// Clamped to [0.0, (available_fte - allocated_fte).max(0.0)]
+    #[serde(default)]
+    pub guild_fte_allocated: f64,
+
+    /// Phase 85: Cottage goods self-produced this turn (clamped to >= 0.0).
+    #[serde(default)]
+    pub cottage_output: BTreeMap<crate::registries::enums::Commodity, f64>,
+
+    /// Phase 85 (Fix 5/6): Raw material inventory for cottage production.
+    /// Purchased in Turn N-1 via B2B orders, consumed in Turn N for production.
+    /// Physically stored at the household's HousingBuilding location.
+    /// Bounded by HousingBuilding storage capacity (Rule 20).
+    #[serde(default)]
+    pub cottage_raw_inventory: BTreeMap<crate::registries::enums::Commodity, f64>,
 }
 
 /// Phase 47: A cohort of household durable goods held by a demographic class.
@@ -1148,19 +1177,58 @@ pub struct RegionalClassDemographics {
     pub urban_classes: BTreeMap<String, ClassDemographics>,
 }
 
-/// Micro-region type for nested administrative hierarchy
+/// Phase 85: Factional domain type — replaces the dead `MicroRegionType`.
+///
+/// Microregions are NO LONGER mini-counties. They are dynamic, faction-controlled
+/// legal/economic overlays placed upon specific parcels within a Region.
+/// They represent local jurisdiction, not physical macro-infrastructure.
+///
+/// Legacy mapping (for world-gen upgrade of existing data):
+/// - CityDistrict → GuildBurgher
+/// - Village/RuralSettlement → PeasantCommunity or AristocraticEstate
+/// - IndustrialZone → IndustrialistDomain
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
-pub enum MicroRegionType {
+pub enum FactionDomainType {
+    /// Guild/Burgher Domain (Proto-City): entry tariffs, artisanal quality,
+    /// unlocks commercial zoning.
+    GuildBurgher,
+    /// Aristocratic Estate (Latyfundia): feudal dues (labor extraction),
+    /// monopolizes agricultural processing, blocks heavy industrial zoning.
+    AristocraticEstate,
+    /// Clergy/Church Lands: collects tithes, passively generates
+    /// EducationSlots and HealthCapacity (monasteries, hospitals).
+    ClergyLand,
+    /// Peasant Community: emancipated but poor, pays taxes directly to state,
+    /// high reliance on Cottage Industry.
     #[default]
-    /// City district (Dzielnica)
-    CityDistrict,
-    /// Village (Village)
-    Village,
-    /// Rural settlement
-    RuralSettlement,
-    /// Industrial zone
-    IndustrialZone,
+    PeasantCommunity,
+    /// Industrialist/State Domain: industrial zoning, no feudal restrictions.
+    /// Integrates with existing SEZ system.
+    IndustrialistDomain,
+}
+
+/// Phase 85: Local laws imposed by the ruling faction of a FactionalDomain.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct LocalLaws {
+    /// GuildBurgher: tariff rate on external goods crossing domain boundary (0.0-1.0).
+    #[serde(default)]
+    pub entry_tariff_rate: f64,
+    /// AristocraticEstate: labor obligation fraction (0.0-1.0 of available_fte).
+    #[serde(default)]
+    pub feudal_dues_rate: f64,
+    /// ClergyLand: local tax rate (tithe) on residents' income (0.0-1.0).
+    #[serde(default)]
+    pub tithe_rate: f64,
+    /// AristocraticEstate: blocks Industrial zoning to retain cheap labor.
+    #[serde(default)]
+    pub blocks_heavy_industry: bool,
+    /// GuildBurgher: unlocks Commercial zoning for artisanal workshops.
+    #[serde(default)]
+    pub allows_commercial_zoning: bool,
+    /// PeasantCommunity: bonus to cottage production efficiency (0.0-1.0).
+    #[serde(default)]
+    pub cottage_industry_bonus: f64,
 }
 
 /// Micro-region budget (sub-budget derived from local property taxes)
@@ -1187,36 +1255,104 @@ pub struct MicroRegionBudget {
     pub social_housing_allocation: f64,
 }
 
-/// Micro-region nested within a Region
+/// Phase 85: Factional domain (formerly MicroRegion).
+///
+/// A dynamic, faction-controlled legal/economic overlay placed upon specific
+/// parcels within a Region. Represents local jurisdiction, not physical
+/// macro-infrastructure.
+///
+/// Lifecycle (Rule 4):
+/// - Birth: Created during world generation based on initial land ownership.
+/// - Life: Persists and applies local_laws modifiers each turn.
+/// - Death/Transition: Can change faction type via political events (land reform,
+///   urbanization). Dissolves if population drops to 0.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct MicroRegion {
-    /// Unique micro-region ID
+    /// Unique domain ID
     #[serde(default)]
     pub id: String,
-    
+
     /// Parent Region ID
     #[serde(rename = "region_id", default)]
     pub parent_region_id: String,
-    
-    /// Micro-region type
 
-    pub micro_type: MicroRegionType,
-    
+    /// Phase 85: Factional domain type (replaces micro_type: MicroRegionType)
+    #[serde(default)]
+    pub faction_type: FactionDomainType,
+
     /// Name (e.g., "Capital-Center", "Village-Smithville")
     #[serde(default)]
     pub name: String,
-    
-    /// Population within this micro-region
+
+    /// Population within this domain
     #[serde(default)]
     pub population: i64,
-    
-    /// Sub-budget derived from local property taxes
+
+    /// Sub-budget derived from local property taxes and tariffs
     #[serde(default)]
     pub sub_budget: MicroRegionBudget,
-    
+
     /// Autonomy level 0-1 (affects independent spending power)
     #[serde(default)]
     pub autonomy_level: f64,
+
+    /// Phase 85: Governing faction entity ID (company_id or vip_id of ruling faction)
+    #[serde(default)]
+    pub governing_faction_id: Option<String>,
+
+    /// Phase 85: Local laws imposed by the ruling faction
+    #[serde(default)]
+    pub local_laws: LocalLaws,
+
+    /// Phase 85: Passive education slots generated by clergy domains (monasteries)
+    #[serde(default)]
+    pub education_slots: u32,
+
+    /// Phase 85: Passive health capacity generated by clergy domains (hospitals)
+    #[serde(default)]
+    pub health_capacity: f64,
+
+    /// Phase 85: Parcels under this domain's jurisdiction
+    #[serde(default)]
+    pub controlled_parcel_ids: Vec<crate::society::cadastre::ParcelId>,
+}
+
+/// Phase 85B: Metadata for a City Region — a Region that was emancipated from
+/// a parent Rural Region via the urbanization cycle.
+///
+/// Lifecycle (Rule 4):
+/// - Birth: Set during emancipation when a GuildBurgher domain becomes independent.
+/// - Life: City operates as a normal Region, can annex adjacent parcels.
+/// - Death: NONE. Depopulated cities become ghost towns (population = 0, dormant
+///   governance). They do NOT re-merge into the parent region.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct CityRegionMetadata {
+    /// Whether this region is an active City Region.
+    #[serde(default)]
+    pub is_city: bool,
+
+    /// Turn when the city emancipated from its parent region.
+    #[serde(default)]
+    pub emancipated_turn: u32,
+
+    /// Original parent Rural Region ID.
+    #[serde(default)]
+    pub parent_region_id: String,
+
+    /// Cooldown turns remaining before next annexation attempt.
+    #[serde(default)]
+    pub annexation_cooldown: u32,
+
+    /// Parcels currently targeted for annexation (pending resolution).
+    #[serde(default)]
+    pub pending_annexation_targets: Vec<crate::society::cadastre::ParcelId>,
+}
+
+impl Region {
+    /// Phase 85B: Returns true if this region is a City Region.
+    pub fn is_city(&self) -> bool {
+        self.city_metadata.as_ref().is_some_and(|m| m.is_city)
+    }
 }
 
 impl RegionalClassDemographics {
@@ -1546,6 +1682,7 @@ pub fn generate_regional_topology(country: &str, population: i64, gdp: f64, star
             water_network: Default::default(),
             sewer_network: Default::default(),
             waste_grid: Default::default(),
+            city_metadata: None,
         });
     }
 
@@ -1864,6 +2001,7 @@ pub fn generate_maritime_nodes(
         water_network: Default::default(),
         sewer_network: Default::default(),
         waste_grid: Default::default(),
+        city_metadata: None,
     };
     maritime_nodes.insert(sea_node_id, sea_node);
 
@@ -1912,6 +2050,7 @@ pub fn generate_maritime_nodes(
         water_network: Default::default(),
         sewer_network: Default::default(),
         waste_grid: Default::default(),
+        city_metadata: None,
     };
     maritime_nodes.insert(ocean_node_id, ocean_node);
 
@@ -2903,6 +3042,7 @@ mod phase30_tests {
             water_network: Default::default(),
             sewer_network: Default::default(),
             waste_grid: Default::default(),
+            city_metadata: None,
         }
     }
 

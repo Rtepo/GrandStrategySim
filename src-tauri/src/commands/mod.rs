@@ -8,6 +8,7 @@ pub mod governance_queries;
 pub mod macro_queries;
 pub mod military_queries;
 pub mod parliament_queries;
+pub mod phase85_queries;
 pub mod region_queries;
 pub mod securities_queries;
 pub mod vip_queries;

@@ -84,6 +84,10 @@ fn main() {
             // Phase 73: Military & Crisis dashboard (read-only)
             commands::military_queries::get_military_dashboard,
             commands::energy_queries::get_energy_grid,
+            // Phase 85: Factional domains, cottage industry, and guilds
+            commands::phase85_queries::get_factional_domains_snapshot,
+            commands::phase85_queries::get_guilds_snapshot,
+            commands::phase85_queries::get_cities_snapshot,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

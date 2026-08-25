@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use super::ideology::IdeologyCompass;
+use super::legislative_weight::LegislativeWeight;
 
 /// Legislative bill with modular clauses and concessions
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
@@ -47,6 +48,11 @@ pub struct Bill {
     /// Turn when bill should complete committee review
     #[serde(skip_serializing_if = "Option::is_none")]
     pub committee_completion_turn: Option<u32>,
+
+    /// Phase 86: Legislative weight — determines voting majority threshold.
+    /// Derived from the bill's provisions via `derive_weight_from_provisions()`.
+    #[serde(default)]
+    pub weight: LegislativeWeight,
 }
 
 /// Individual clause within a bill
@@ -164,6 +170,12 @@ impl Bill {
         core_clauses: Vec<Clause>,
         current_turn: u32,
     ) -> Self {
+        // Phase 86: Derive legislative weight from provisions.
+        let provisions: Vec<&BillProvision> = core_clauses
+            .iter()
+            .filter_map(|c| c.provision.as_ref())
+            .collect();
+        let weight = super::legislative_weight::derive_weight_from_provisions(&provisions);
         Bill {
             id,
             title,
@@ -175,6 +187,7 @@ impl Bill {
             committee_modifier: 0.0,
             introduction_turn: current_turn,
             committee_completion_turn: None,
+            weight,
         }
     }
     

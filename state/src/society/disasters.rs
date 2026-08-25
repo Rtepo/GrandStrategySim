@@ -452,6 +452,7 @@ mod tests {
                 pollution_level: 0.0,
                 topography: ParcelTopography::default(),
                 devastation_index: 0.0,
+                micro_region_id: None,
             };
             c.insert(parcel);
         }

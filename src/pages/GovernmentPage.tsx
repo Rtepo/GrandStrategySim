@@ -3,6 +3,7 @@ import { useGameStore } from "../store/gameStore";
 import { getGovernment } from "../hooks/useTauriCommand";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Button, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Tabs } from "../components/ui";
 import { VipHoverCard } from "../components/VipHoverCard";
+import { DynastyTree } from "../components/DynastyTree";
 import { fmt } from "../lib/format";
 
 export function GovernmentPage() {
@@ -235,6 +236,15 @@ export function GovernmentPage() {
           </Card>
         </div>
       ),
+    });
+  }
+
+  // Phase 86: Add Dynasty Tree sub-tab for monarchies (genealogy visualization).
+  if (isMonarchy && gov.royal_dynasty) {
+    tabs.push({
+      label: "Dynasty Tree",
+      value: "dynasty-tree",
+      content: <DynastyTree dynasty={gov.royal_dynasty} />,
     });
   }
 

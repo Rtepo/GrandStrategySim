@@ -290,9 +290,10 @@ pub fn process_executive_review(
 /// * `has_veto_power` - Whether executive has veto power
 /// * `current_turn` - Current game turn
 /// * `initiator_is_ruling` - Whether bill initiator is in ruling coalition
-/// 
+///
 /// # Returns
 /// (final_bill, enacted, all_messages)
+#[deprecated(note = "Phase 86: Use process_legislation_turn() for per-turn bill advancement. This instant lifecycle bypasses the per-turn pipeline.")]
 pub fn process_bill_lifecycle(
     bill: Bill,
     committee_system: &mut CommitteeSystem,
@@ -471,8 +472,27 @@ pub fn process_legislation_turn(
                 }
 
                 LegislativeStage::FloorVote => {
-                    // Perform floor vote.
-                    let (votes_for, votes_against, abstentions) = calculate_floor_vote(
+                    // Phase 86: Get health capacity and social unrest for attendance.
+                    // social_unrest is 0–100 on macro_indicators; normalize to 0.0–1.0.
+                    let social_unrest = (country.macro_indicators.social_unrest / 100.0).clamp(0.0, 1.0);
+                    // Health capacity ratio: derived from healthcare law universality.
+                    // Default to 0.5 (moderate) if no healthcare law is set.
+                    let health_capacity_ratio = country
+                        .politics
+                        .healthcare_law
+                        .as_ref()
+                        .map(|law| {
+                            match law.universality {
+                                crate::politics::laws::UniversalityLevel::Universal => 1.0,
+                                crate::politics::laws::UniversalityLevel::MeansTested => 0.7,
+                                crate::politics::laws::UniversalityLevel::Categorical => 0.6,
+                                crate::politics::laws::UniversalityLevel::Limited => 0.3,
+                            }
+                        })
+                        .unwrap_or(0.5);
+
+                    // Perform floor vote with attendance and quorum.
+                    let (votes_for, votes_against, abstentions, quorum_met) = calculate_floor_vote(
                         &bill,
                         &lower_seats,
                         &coalition,
@@ -480,9 +500,40 @@ pub fn process_legislation_turn(
                         parties,
                         &bill_title,
                         current_turn,
+                        health_capacity_ratio,
+                        social_unrest,
                     );
 
-                    let passed = votes_for * 2 > total_lower_seats;
+                    // Phase 86: If quorum failed, bill stays in FloorVote for next turn.
+                    if !quorum_met {
+                        messages.push(format!(
+                            "[QUORUM] Bill '{}' failed quorum — insufficient attendance. Bill held for next turn.",
+                            bill_title
+                        ));
+                        sess.active_bills.insert(bill_id.clone(), bill);
+                        continue;
+                    }
+
+                    // Phase 86: Three majority thresholds based on legislative weight.
+                    let passed = match bill.weight {
+                        super::legislative_weight::LegislativeWeight::Ordinary => {
+                            // Relative: >50% of present (non-abstaining) MPs
+                            let present = votes_for + votes_against;
+                            if present == 0 {
+                                false
+                            } else {
+                                votes_for * 2 > present
+                            }
+                        }
+                        super::legislative_weight::LegislativeWeight::Organic => {
+                            // Absolute: >50% of total seats
+                            votes_for * 2 > total_lower_seats
+                        }
+                        super::legislative_weight::LegislativeWeight::Constitutional => {
+                            // Qualified: 2/3 of total seats
+                            votes_for * 3 > total_lower_seats * 2
+                        }
+                    };
                     let vote_record = super::parliament::VoteRecord {
                         bill_id: bill_id.clone(),
                         bill_title: bill_title.clone(),
@@ -526,7 +577,22 @@ pub fn process_legislation_turn(
 
                 LegislativeStage::BicameralPending => {
                     // Upper house vote.
-                    let (votes_for, votes_against, _abstentions) = calculate_upper_house_vote(
+                    // Phase 86: Pass attendance parameters to upper house vote.
+                    let social_unrest_norm = (country.macro_indicators.social_unrest / 100.0).clamp(0.0, 1.0);
+                    let health_cap = country
+                        .politics
+                        .healthcare_law
+                        .as_ref()
+                        .map(|law| {
+                            match law.universality {
+                                crate::politics::laws::UniversalityLevel::Universal => 1.0,
+                                crate::politics::laws::UniversalityLevel::MeansTested => 0.7,
+                                crate::politics::laws::UniversalityLevel::Categorical => 0.6,
+                                crate::politics::laws::UniversalityLevel::Limited => 0.3,
+                            }
+                        })
+                        .unwrap_or(0.5);
+                    let (votes_for, votes_against, _abstentions, upper_quorum_met) = calculate_upper_house_vote(
                         &bill,
                         &upper_house_composition,
                         &coalition,
@@ -534,11 +600,36 @@ pub fn process_legislation_turn(
                         parties,
                         &bill_title,
                         current_turn,
+                        health_cap,
+                        social_unrest_norm,
                     );
 
                     let total_upper: u32 = upper_house_composition.values().sum();
+
+                    // Phase 86: If upper house quorum failed, bill stays in BicameralPending.
+                    if !upper_quorum_met && total_upper > 0 {
+                        messages.push(format!(
+                            "[QUORUM] Bill '{}' failed upper house quorum — held for next turn.",
+                            bill_title
+                        ));
+                        sess.active_bills.insert(bill_id.clone(), bill);
+                        continue;
+                    }
+
                     let passed = if total_upper > 0 {
-                        votes_for * 2 > total_upper
+                        // Phase 86: Apply same majority threshold as lower house.
+                        match bill.weight {
+                            super::legislative_weight::LegislativeWeight::Ordinary => {
+                                let present = votes_for + votes_against;
+                                if present == 0 { false } else { votes_for * 2 > present }
+                            }
+                            super::legislative_weight::LegislativeWeight::Organic => {
+                                votes_for * 2 > total_upper
+                            }
+                            super::legislative_weight::LegislativeWeight::Constitutional => {
+                                votes_for * 3 > total_upper * 2
+                            }
+                        }
                     } else {
                         true // No upper house → auto-pass.
                     };
@@ -658,20 +749,45 @@ fn process_committee_stage_phase32(
 }
 
 /// Calculate floor vote results (deterministic).
+/// Phase 86: Integrates dynamic attendance and quorum checks.
 fn calculate_floor_vote(
-    _bill: &Bill,
+    bill: &Bill,
     lower_seats: &HashMap<String, u32>,
     coalition: &[String],
     ruling_party: &str,
     parties: &std::collections::HashMap<String, super::system::Party>,
     bill_title: &str,
     current_turn: u32,
-) -> (u32, u32, u32) {
+    health_capacity_ratio: f64,
+    social_unrest: f64,
+) -> (u32, u32, u32, bool) {
+    // Phase 86: Calculate attendance and check quorum.
+    let attendance = super::attendance::calculate_attendance(
+        lower_seats,
+        parties,
+        health_capacity_ratio,
+        social_unrest,
+        bill.weight,
+        bill_title,
+        current_turn,
+    );
+
+    // If quorum is not met, the vote is blocked.
+    if !attendance.quorum_met {
+        return (0, 0, 0, false);
+    }
+
     let mut votes_for: u32 = 0;
     let mut votes_against: u32 = 0;
     let mut abstentions: u32 = 0;
 
-    for (party_name, &seats) in lower_seats {
+    // Phase 86: Use present seats (from attendance) instead of total seats.
+    for (party_name, &_total_seats) in lower_seats {
+        let present_seats = attendance.present_by_party.get(party_name).copied().unwrap_or(0);
+        if present_seats == 0 {
+            continue; // No MPs from this party are present
+        }
+
         let is_coalition = coalition.contains(party_name) || party_name == ruling_party;
 
         if is_coalition {
@@ -682,10 +798,10 @@ fn calculate_floor_vote(
 
             let seed = format!("floor_{}_{}_{}", bill_title, party_name, current_turn);
             if deterministic_roll(&seed, yes_prob) {
-                votes_for += seats;
+                votes_for += present_seats;
             } else {
-                abstentions += seats / 3;
-                votes_against += seats - seats / 3;
+                abstentions += present_seats / 3;
+                votes_against += present_seats - present_seats / 3;
             }
         } else {
             // Opposition parties vote based on ideological alignment.
@@ -698,17 +814,18 @@ fn calculate_floor_vote(
 
             let seed = format!("floor_{}_{}_{}", bill_title, party_name, current_turn);
             if deterministic_roll(&seed, yes_prob) {
-                votes_for += seats;
+                votes_for += present_seats;
             } else {
-                votes_against += seats;
+                votes_against += present_seats;
             }
         }
     }
 
-    (votes_for, votes_against, abstentions)
+    (votes_for, votes_against, abstentions, true)
 }
 
 /// Calculate upper house vote results (deterministic).
+/// Phase 86: Integrates attendance and quorum (same model as floor vote).
 fn calculate_upper_house_vote(
     bill: &Bill,
     upper_seats: &HashMap<String, u32>,
@@ -717,9 +834,21 @@ fn calculate_upper_house_vote(
     parties: &std::collections::HashMap<String, super::system::Party>,
     bill_title: &str,
     current_turn: u32,
-) -> (u32, u32, u32) {
+    health_capacity_ratio: f64,
+    social_unrest: f64,
+) -> (u32, u32, u32, bool) {
     // Same logic as floor vote but for upper house.
-    calculate_floor_vote(bill, upper_seats, coalition, ruling_party, parties, bill_title, current_turn)
+    calculate_floor_vote(
+        bill,
+        upper_seats,
+        coalition,
+        ruling_party,
+        parties,
+        bill_title,
+        current_turn,
+        health_capacity_ratio,
+        social_unrest,
+    )
 }
 
 /// Calculate the probability that the executive signs a bill.

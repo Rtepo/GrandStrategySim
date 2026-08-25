@@ -534,6 +534,10 @@ pub enum LegalForm {
     /// A non-profit organization (NGO, church, charity). Phase 13.
     /// Cannot issue shares, cannot be nationalized, tax-exempt.
     NonProfit(NonProfitData),
+    /// Phase 85: A craft guild with member workshops. Multi-sector.
+    /// Does NOT hire workers — members allocate FTE to workshops.
+    /// Pays dividends pro-rata by production volume, maintains welfare fund.
+    Guild(GuildData),
 }
 
 /// Data for non-profit entities (NGOs, churches, religious charities). Phase 13.
@@ -545,6 +549,44 @@ pub struct NonProfitData {
     /// Whether this is a religious charity (true) or secular NGO (false).
     #[serde(default)]
     pub is_religious: bool,
+}
+
+/// Phase 85: Guild data — a multi-sector craft guild with member workshops.
+///
+/// Guilds are companies with LegalForm::Guild. They do NOT hire workers
+/// directly (fulfilled_fte = 0). Instead, member craftsmen allocate FTE
+/// to workshops in HousingBuilding.commercial_slots. The guild coordinates
+/// raw material purchasing, production aggregation, and dividend distribution.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+pub struct GuildData {
+    /// HousingBuilding IDs with member workshops
+    #[serde(default)]
+    pub member_workshop_ids: Vec<String>,
+    /// Demographic class IDs of master craftsmen
+    #[serde(default)]
+    pub master_class_ids: Vec<String>,
+    /// Welfare fund for HealthCapacity + EducationSlots (clamped >= 0.0)
+    #[serde(default)]
+    pub welfare_fund: f64,
+    /// Fraction of profits to welfare (0.0-1.0)
+    #[serde(default)]
+    pub welfare_contribution_rate: f64,
+    /// Output quality premium (0.0-1.0) — FINANCIAL ONLY, not physical (Fix 1)
+    #[serde(default)]
+    pub quality_standard: f64,
+    /// State-granted monopoly charter
+    #[serde(default)]
+    pub has_charter: bool,
+    /// MicroRegion where guild holds jurisdiction
+    #[serde(default)]
+    pub jurisdiction_domain_id: String,
+    /// Production sector (LightIndustry, Agriculture, Construction)
+    #[serde(default)]
+    pub guild_sector: String,
+    /// Fix 5: Raw material inventory purchased in Turn N-1, consumed in Turn N.
+    /// Physically stored at the guild's warehouse CommercialBuilding.
+    #[serde(default)]
+    pub guild_raw_inventory: std::collections::BTreeMap<crate::registries::enums::Commodity, f64>,
 }
 
 impl Default for LegalForm {
@@ -567,6 +609,11 @@ impl LegalForm {
                 ..
             }) if *free_float > 0.0
         )
+    }
+
+    /// Phase 85B: Returns `true` if this legal form is a Guild.
+    pub fn is_guild(&self) -> bool {
+        matches!(self, LegalForm::Guild(_))
     }
 
     /// Phase 56: Returns the free float fraction (0.0–1.0) for this legal form.
@@ -744,6 +791,7 @@ impl LegalFormTransition for LegalForm {
             LegalForm::StrategicReserveAgency(_) => Vec::new(), // Strategic Reserve Agency cannot transition
             LegalForm::LogisticsCompany(_) => Vec::new(), // Logistics companies cannot transition
             LegalForm::NonProfit(_) => Vec::new(), // Non-profits cannot transition
+            LegalForm::Guild(_) => Vec::new(), // Phase 85: Guilds transition via guild_system.rs evolution
         }
     }
 

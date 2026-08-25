@@ -1303,6 +1303,14 @@ fn housing_consumption_methods() -> BuildingMethods {
     // The `efficiency` field represents how much delivered heat is useful
     // (0.6 = 40% wasted for Unmetered Radiators, 0.95 = 5% wasted for Smart Substations).
     // Emissions are at the central plant, not the building — emission_factor = 0.0.
+    // Phase 85B: Base "District Heating" method — the generic entry point for
+    // district heating connection. Functionally identical to "Unmetered Radiators"
+    // (same year, tech, inputs, efficiency) but serves as the canonical registry
+    // key that tests and `is_district_heating_method()` check for.
+    m.insert(MethodSlot::Heating, "District Heating".into(),
+        pm_capex(1890, Some("thermo_020"), 0.0, 0.0, 1.0, 0.6,
+           &[(Commodity::Heat, 5.0)], &[],
+           &[(Commodity::Steel, 0.2), (Commodity::Copper, 0.05)]));
     m.insert(MethodSlot::Heating, "Unmetered Radiators".into(),
         pm_capex(1890, Some("thermo_020"), 0.0, 0.0, 1.0, 0.6,
            &[(Commodity::Heat, 5.0)], &[],

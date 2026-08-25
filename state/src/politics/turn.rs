@@ -864,6 +864,15 @@ pub fn process_political_turn(
     );
     messages.extend(legislation_msgs);
 
+    // Phase 86: Advisory Council turn — loyalty drift, influence modifiers, coup checks.
+    // Called after legislation so council modifiers don't affect the same turn's votes.
+    let council_msgs = process_advisory_council_turn(country, current_turn);
+    messages.extend(council_msgs);
+
+    // Phase 86: Dynasty turn — marriages, births, succession order updates.
+    let dynasty_msgs = process_dynasty_turn(country, current_turn);
+    messages.extend(dynasty_msgs);
+
     // Phase 11g: Leader traits
     let trait_msgs = super::traits::process_leader_traits_turn(
         country,
@@ -1735,4 +1744,172 @@ fn random_head_of_state(country: &Country, form: GovernmentForm, rng: &mut impl 
         base_influence: rng.gen_range(30..80),
         faction: faction.to_string(),
     }
+}
+
+// ============================================================================
+// PHASE 86: ADVISORY COUNCIL TURN PROCESSING
+// ============================================================================
+
+/// Phase 86: Process advisory council for authoritarian/royal regimes.
+///
+/// This function is called after legislation processing in the political turn.
+/// It applies per-turn loyalty drift based on macro variables, calculates
+/// influence modifiers on existing Country fields, and checks for coup triggers.
+///
+/// # Arguments
+/// * `country` - Mutable country
+/// * `current_turn` - Current game turn
+///
+/// # Returns
+/// Vector of diagnostic messages.
+pub fn process_advisory_council_turn(
+    country: &mut Country,
+    current_turn: u32,
+) -> Vec<String> {
+    let mut messages = Vec::new();
+
+    // Only process if an advisory council exists.
+    let council = match country.politics.advisory_council.as_mut() {
+        Some(c) => c,
+        None => return messages,
+    };
+
+    // Gather macro variables for loyalty drift.
+    let gdp = country.macro_indicators.gdp_breakdown.official_gdp.max(1.0);
+    let prev_gdp = country.macro_indicators.gdp_breakdown.previous_gdp.max(1.0);
+    let gdp_growth_rate = if prev_gdp > 0.0 {
+        ((gdp - prev_gdp) / prev_gdp) * 100.0
+    } else {
+        0.0
+    };
+    let inflation_rate = country.macro_indicators.inflation;
+    let social_unrest = country.macro_indicators.social_unrest;
+    // Military spending ratio: derived from GDP (heuristic — no stored field).
+    // Uses the same formula as military/oob.rs: share scales inversely with GDP per capita.
+    let gdp_per_capita = if country.budget.population > 0 {
+        gdp / country.budget.population as f64
+    } else {
+        1000.0
+    };
+    let military_spending_ratio = (0.06 - gdp_per_capita * 0.000009).max(0.015).min(0.06);
+
+    // Apply loyalty drift.
+    council.apply_loyalty_drift(
+        gdp_growth_rate,
+        inflation_rate,
+        social_unrest,
+        military_spending_ratio,
+    );
+
+    // Calculate and apply influence modifiers to existing Country fields.
+    let modifiers = council.calculate_influence_modifiers();
+
+    // Apply social_unrest_delta to macro_indicators (clamped to 0–100).
+    if modifiers.social_unrest_delta.abs() > 1e-6 {
+        country.macro_indicators.social_unrest =
+            (country.macro_indicators.social_unrest + modifiers.social_unrest_delta).clamp(0.0, 100.0);
+        messages.push(format!(
+            "[COUNCIL] Social unrest adjusted by {:.2} → new total: {:.1}",
+            modifiers.social_unrest_delta, country.macro_indicators.social_unrest
+        ));
+    }
+
+    // Apply autonomy stabilization to regions (if any).
+    if modifiers.autonomy_stabilization.abs() > 1e-6 {
+        for region in &mut country.regions {
+            for domain in region.micro_regions.values_mut() {
+                domain.autonomy_level =
+                    (domain.autonomy_level - modifiers.autonomy_stabilization).clamp(0.0, 1.0);
+            }
+        }
+    }
+
+    // Log council status.
+    messages.push(format!(
+        "[COUNCIL] Aggregate loyalty: {:.3} (coup risk: {})",
+        council.aggregate_loyalty,
+        if council.coup_risk_active(current_turn) { "ACTIVE" } else { "inactive" }
+    ));
+
+    // Check for coup trigger.
+    if council.coup_risk_active(current_turn) {
+        // Deterministic coup attempt roll.
+        let coup_seed = format!("coup_{}_{}", country.name, current_turn);
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        use std::hash::Hasher;
+        for b in coup_seed.bytes() {
+            hasher.write_u8(b);
+        }
+        let hash = hasher.finish();
+        // Coup success probability increases as loyalty decreases.
+        let coup_success_prob = ((council.coup_risk_threshold - council.aggregate_loyalty) / council.coup_risk_threshold).clamp(0.0, 0.8);
+        let roll = (hash % 1000) as f64 / 1000.0;
+
+        if roll < coup_success_prob {
+            // Coup succeeds — set cooldown and emit crisis message.
+            council.coup_cooldown_until_turn = current_turn + 24;
+            messages.push(format!(
+                "[COUP] Advisory council coup attempt SUCCEEDED (loyalty={:.3}, roll={:.3}, threshold={:.3}). Cooldown set for 24 turns.",
+                council.aggregate_loyalty, roll, coup_success_prob
+            ));
+            // Increase social unrest dramatically due to coup.
+            country.macro_indicators.social_unrest =
+                (country.macro_indicators.social_unrest + 20.0).clamp(0.0, 100.0);
+        } else {
+            messages.push(format!(
+                "[COUP] Advisory council coup attempt FAILED (loyalty={:.3}, roll={:.3}, threshold={:.3}).",
+                council.aggregate_loyalty, roll, coup_success_prob
+            ));
+        }
+    }
+
+    messages
+}
+
+// ============================================================================
+// PHASE 86: DYNASTY TURN PROCESSING
+// ============================================================================
+
+/// Phase 86: Process royal dynasty per turn — marriages, births, succession updates.
+///
+/// Called after advisory council processing in the political turn.
+/// Only processes countries with an active royal dynasty (monarchies).
+///
+/// # Arguments
+/// * `country` - Mutable country
+/// * `current_turn` - Current game turn
+///
+/// # Returns
+/// Vector of diagnostic messages.
+pub fn process_dynasty_turn(
+    country: &mut Country,
+    current_turn: u32,
+) -> Vec<String> {
+    let mut messages = Vec::new();
+
+    // Only process if a royal dynasty exists.
+    if country.politics.royal_dynasty.is_none() {
+        return messages;
+    }
+
+    // Get culture for name generation.
+    let culture = country.macro_indicators.culture.clone();
+    let dynasty_id = country
+        .politics
+        .royal_dynasty
+        .as_ref()
+        .map(|d| d.dynasty_name.clone())
+        .unwrap_or_default();
+
+    // Process marriages and births via the succession module.
+    let dynasty_msgs = super::succession::process_dynasty_turn(
+        &mut country.politics.royal_dynasty,
+        &mut country.politics.vip_registry,
+        &culture,
+        &dynasty_id,
+        current_turn,
+    );
+    messages.extend(dynasty_msgs);
+
+    messages
 }

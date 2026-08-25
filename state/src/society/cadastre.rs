@@ -249,6 +249,11 @@ pub struct ParcelChunk {
     /// earthquakes). Spreads to adjacent parcels via the topological graph.
     /// Decays naturally when no combat or disasters occur.
     pub devastation_index: f64,
+    /// Phase 85: Factional domain (MicroRegion) this parcel belongs to.
+    /// None = no domain overlay (unmanaged land). Links parcels to factional
+    /// jurisdictions for local laws, tariffs, and zoning restrictions.
+    #[serde(default)]
+    pub micro_region_id: Option<String>,
 }
 
 impl Default for ParcelChunk {
@@ -277,6 +282,7 @@ impl Default for ParcelChunk {
             pollution_level: 0.0,
             topography: ParcelTopography::default(),
             devastation_index: 0.0,
+            micro_region_id: None,
         }
     }
 }
@@ -385,6 +391,7 @@ impl Cadastre {
             pollution_level: original.pollution_level,
             topography: original.topography.clone(),
             devastation_index: original.devastation_index,
+            micro_region_id: original.micro_region_id.clone(),
         };
         // Mark the split as a new acquisition
         new_parcel.acquisition_turn = current_turn;
@@ -887,6 +894,7 @@ pub fn generate_cadastre(
                 pollution_level: 0.0,
                 topography,
                 devastation_index: 0.0,
+                micro_region_id: None,
             };
 
             // Set acquisition price to the hedonic value at generation

@@ -65,7 +65,7 @@ impl ConsumptionBom {
 pub fn is_district_heating_method(method_name: &str) -> bool {
     matches!(
         method_name,
-        "Unmetered Radiators" | "Thermostatic Valves" | "Smart Substations"
+        "District Heating" | "Unmetered Radiators" | "Thermostatic Valves" | "Smart Substations"
     )
 }
 

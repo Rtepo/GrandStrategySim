@@ -241,6 +241,7 @@ mod tests {
             water_network: Default::default(),
             sewer_network: Default::default(),
             waste_grid: Default::default(),
+            city_metadata: None,
         }
     }
 

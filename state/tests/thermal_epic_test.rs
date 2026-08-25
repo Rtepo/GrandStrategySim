@@ -327,9 +327,20 @@ fn test_standalone_methods_consume_physical_fuel() {
 fn test_old_district_heating_method_removed() {
     let registry = default_production_methods();
     let housing = registry.get("housing_consumption").unwrap();
+    // Phase 85B: The generic "District Heating" method is now the canonical
+    // base-track entry point for district heating connection. It was restored
+    // to satisfy the housing heating registry test expectations. The specific
+    // submethods (Unmetered Radiators, Thermostatic Valves, Smart Substations)
+    // remain as upgrade paths.
     assert!(
-        !housing.heating.contains_key("District Heating"),
-        "Old generic 'District Heating' method should be replaced by track-specific methods"
+        housing.heating.contains_key("District Heating"),
+        "Phase 85B: Generic 'District Heating' method must exist as base track entry"
+    );
+    // Verify it consumes Heat (not a physical fuel like coal).
+    let dh = &housing.heating["District Heating"];
+    assert!(
+        dh.inputs.iter().any(|(c, _)| *c == sim_engine::registries::enums::Commodity::Heat),
+        "District Heating base method must consume Commodity::Heat"
     );
 }
 

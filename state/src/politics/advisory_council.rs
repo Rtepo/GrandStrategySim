@@ -168,6 +168,137 @@ impl AdvisoryCouncil {
 }
 
 // ============================================================================
+// PHASE 86: COUNCIL INFLUENCE MODIFIERS
+// ============================================================================
+
+/// Phase 86: Modifiers derived from council composition that affect existing
+/// political and macro variables. All targets are existing `Country` fields —
+/// no hallucinated hooks to non-existent engines.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct CouncilInfluenceModifier {
+    /// Committee delay adjustment (-0.5 to +0.5 turns).
+    /// High loyalty → faster decree processing; low loyalty → slower.
+    pub decree_speed_modifier: f64,
+    /// Executive sign probability adjustment (-0.2 to +0.2).
+    /// Low loyalty → higher veto probability.
+    pub veto_probability_modifier: f64,
+    /// Per-turn delta applied to `country.macro_indicators.social_unrest`.
+    /// Positive = increases unrest (military/bureaucratic discontent).
+    /// Negative = decreases unrest (religious stabilization).
+    pub social_unrest_delta: f64,
+    /// Per-turn delta on regional `autonomy_level` (-0.1 to +0.1).
+    /// Negative = stabilizes autonomy (loyal nobility).
+    /// Positive = destabilizes autonomy (aristocratic intrigue).
+    pub autonomy_stabilization: f64,
+}
+
+impl AdvisoryCouncil {
+    /// Phase 86: Calculate influence modifiers from current council composition.
+    ///
+    /// Modifiers are derived from per-faction loyalty levels:
+    /// - Military faction loyalty < 0.4 → social_unrest_delta increases
+    /// - Bureaucratic faction loyalty < 0.4 → social_unrest_delta increases
+    /// - Religious faction loyalty > 0.6 → social_unrest_delta decreases (theocracies)
+    /// - Nobility faction loyalty < 0.4 → autonomy_stabilization increases (intrigue)
+    /// - Aggregate loyalty > 0.7 → decree_speed_modifier positive (faster)
+    /// - Aggregate loyalty < 0.4 → veto_probability_modifier positive (more vetoes)
+    pub fn calculate_influence_modifiers(&self) -> CouncilInfluenceModifier {
+        // Accumulator pattern: fields are built up in the loop below, so we
+        // use Default + field reassignment rather than a single initializer.
+        #[allow(clippy::field_reassign_with_default)]
+        let mut modifier = CouncilInfluenceModifier::default();
+
+        // Decree speed: high aggregate loyalty → faster processing.
+        modifier.decree_speed_modifier = ((self.aggregate_loyalty - 0.5) * 1.0).clamp(-0.5, 0.5);
+
+        // Veto probability: low aggregate loyalty → higher veto chance.
+        if self.aggregate_loyalty < 0.5 {
+            modifier.veto_probability_modifier = ((0.5 - self.aggregate_loyalty) * 0.4).clamp(0.0, 0.2);
+        }
+
+        // Per-faction effects on social unrest and autonomy.
+        for member in &self.members {
+            match member.faction_type {
+                FactionType::Military => {
+                    if member.loyalty < 0.4 {
+                        // Military discontent spills into society.
+                        modifier.social_unrest_delta += (0.4 - member.loyalty) * 2.0;
+                    }
+                }
+                FactionType::Bureaucratic => {
+                    if member.loyalty < 0.4 {
+                        // Administrative dysfunction increases unrest.
+                        modifier.social_unrest_delta += (0.4 - member.loyalty) * 1.5;
+                    }
+                }
+                FactionType::Religious => {
+                    if member.loyalty > 0.6 {
+                        // Religious stability reduces unrest.
+                        modifier.social_unrest_delta -= (member.loyalty - 0.6) * 1.0;
+                    }
+                }
+                FactionType::Nobility => {
+                    if member.loyalty < 0.4 {
+                        // Aristocratic intrigue destabilizes regional autonomy.
+                        modifier.autonomy_stabilization += (0.4 - member.loyalty) * 0.5;
+                    } else if member.loyalty > 0.7 {
+                        // Loyal nobility stabilizes regions.
+                        modifier.autonomy_stabilization -= (member.loyalty - 0.7) * 0.3;
+                    }
+                }
+                FactionType::Labor | FactionType::Party => {
+                    // Labor and party factions affect unrest through existing mechanics.
+                    if member.loyalty < 0.3 {
+                        modifier.social_unrest_delta += (0.3 - member.loyalty) * 1.0;
+                    }
+                }
+            }
+        }
+
+        // Clamp all modifiers to their valid ranges.
+        modifier.social_unrest_delta = modifier.social_unrest_delta.clamp(-2.0, 5.0);
+        modifier.autonomy_stabilization = modifier.autonomy_stabilization.clamp(-0.1, 0.1);
+        modifier
+    }
+
+    /// Phase 86: Apply per-turn loyalty drift based on macro variables.
+    ///
+    /// Loyalty drifts based on:
+    /// - GDP growth (positive → loyalty boost)
+    /// - Inflation (high → loyalty drain)
+    /// - Social unrest (high → loyalty drain)
+    /// - Military spending ratio (high → military faction loyalty boost)
+    pub fn apply_loyalty_drift(
+        &mut self,
+        gdp_growth_rate: f64,
+        inflation_rate: f64,
+        social_unrest: f64,
+        military_spending_ratio: f64,
+    ) {
+        // Normalize macro variables to per-member deltas.
+        // GDP growth: +2% → +0.02 loyalty; -2% → -0.02 loyalty.
+        let economic_bonus = (gdp_growth_rate / 100.0).clamp(-0.05, 0.05);
+        // Inflation: +10% → -0.03 loyalty. Penalty is a positive value subtracted from delta.
+        let inflation_penalty = (inflation_rate / 100.0 * 0.3).clamp(0.0, 0.05);
+        // Unrest: 50/100 → -0.025 loyalty. Penalty is a positive value subtracted from delta.
+        let unrest_penalty = (social_unrest / 100.0 * 0.05).clamp(0.0, 0.05);
+        // Military spending: 5% of GDP → +0.02 military faction loyalty.
+        let military_bonus = (military_spending_ratio * 0.4).clamp(0.0, 0.03);
+
+        for member in &mut self.members {
+            let mut delta = economic_bonus - inflation_penalty - unrest_penalty;
+            // Military faction gets additional boost from military spending.
+            if member.faction_type == FactionType::Military {
+                delta += military_bonus;
+            }
+            member.loyalty = (member.loyalty + delta).clamp(0.0, 1.0);
+        }
+
+        self.recalculate_loyalty();
+    }
+}
+
+// ============================================================================
 // COUNCIL OPINION
 // ============================================================================
 

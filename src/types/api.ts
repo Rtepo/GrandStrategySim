@@ -144,6 +144,11 @@ low_quality_water_biohazard: number,
 mortality_multiplier: number, };
 
 /**
+ * Phase 86: A royal birth event row for UI display.
+ */
+export type BirthEventRow = { turn: number, child_name: string, father_name: string, mother_name: string, is_legitimate: boolean, };
+
+/**
  * Phase 55: Board member row for governance display.
  */
 export type BoardMemberRow = { vip_id: string, name: string, role: string, loyalty_to_ceo: number, appointed_turn: number, age: number, main_trait: string, };
@@ -182,6 +187,52 @@ export type CapitalGainsTaxSummary = { rows: Array<CapitalGainsTaxRow>, total_ta
  * A chamber snapshot for the Parliament tab.
  */
 export type ChamberSnapshot = { name: string, total_seats: number, speaker_name: string, speaker_club: string, seat_distribution: Array<[string, number]>, };
+
+/**
+ * Phase 85B: Cities snapshot for the CitiesPage.
+ */
+export type CitiesSnapshot = { cities: Array<CityRegionRow>, };
+
+/**
+ * Phase 85B: A single City Region row in the Cities snapshot.
+ */
+export type CityRegionRow = { 
+/**
+ * City region ID.
+ */
+id: string, 
+/**
+ * Display name.
+ */
+display_name: string, 
+/**
+ * Parent (original rural) region ID.
+ */
+parent_region_id: string, 
+/**
+ * Population.
+ */
+population: bigint, 
+/**
+ * Turn when the city emancipated.
+ */
+emancipated_turn: number, 
+/**
+ * Number of parcels under city control.
+ */
+parcel_count: number, 
+/**
+ * Annexation cooldown remaining (turns).
+ */
+annexation_cooldown: number, 
+/**
+ * City treasury liquid reserves (classified for foreign observers).
+ */
+treasury_reserves: number, 
+/**
+ * Development level (0.0-1.0).
+ */
+development_level: number, };
 
 /**
  * A parliamentary club row.
@@ -282,6 +333,34 @@ export type CompanyPageResponse = { rows: Array<CompanyRow>, total_count: number
  * A row in the Company explorer list (compact form for table display).
  */
 export type CompanyRow = { id: string, name: string, sector: string, region: string, fulfilled_fte: number, average_wage: number, seasonal_state: string, wage_arrears: number, };
+
+/**
+ * Phase 85: Cottage industry summary for MarketPage and FactionalDomainsPage.
+ * Role-gated (Rule 11): foreign observers see only aggregate estimates.
+ */
+export type CottageIndustrySummary = { 
+/**
+ * Total FTE allocated to cottage production
+ */
+total_cottage_fte: number, 
+/**
+ * Output by commodity name
+ */
+output_by_commodity: Array<CottageOutputEntry>, 
+/**
+ * Raw material demand by commodity name
+ */
+raw_input_demand: Array<CottageInputEntry>, };
+
+/**
+ * Phase 85: Single cottage raw input entry.
+ */
+export type CottageInputEntry = { commodity: string, demand: number, };
+
+/**
+ * Phase 85: Single cottage output entry.
+ */
+export type CottageOutputEntry = { commodity: string, volume: number, };
 
 /**
  * A single council member row.
@@ -386,7 +465,11 @@ export type DurableCohortSummary = { commodity: string, count: number, avg_condi
 /**
  * A single dynasty member row.
  */
-export type DynastyMemberRow = { vip_id: string, name: string, relation: string, age: number, succession_order: number, is_heir_apparent: boolean, };
+export type DynastyMemberRow = { vip_id: string, name: string, relation: string, age: number, succession_order: number, is_heir_apparent: boolean, 
+/**
+ * Phase 86: Genealogy links.
+ */
+father_vip_id: string | null, mother_vip_id: string | null, spouse_vip_id: string | null, children_vip_ids: Array<string>, is_dead: boolean, death_cause: string | null, };
 
 /**
  * State of Emergency snapshot.
@@ -458,6 +541,65 @@ spot_market: Array<SpotMarketInfo>,
 ppa_summary: Array<PpaInfo>, };
 
 /**
+ * Phase 85: Factional domain row for the FactionalDomainsPage.
+ * Role-gated (Rule 11): foreign observers see only faction_type and population.
+ */
+export type FactionalDomainRow = { 
+/**
+ * Domain ID
+ */
+id: string, 
+/**
+ * Parent region name
+ */
+region_name: string, 
+/**
+ * Faction type display name
+ */
+faction_type: string, 
+/**
+ * Population within the domain
+ */
+population: bigint, 
+/**
+ * Governing faction entity name (classified for foreign observers)
+ */
+governing_faction: string | null, 
+/**
+ * Entry tariff rate (classified for foreign observers)
+ */
+entry_tariff_rate: number | null, 
+/**
+ * Feudal dues rate (classified for foreign observers)
+ */
+feudal_dues_rate: number | null, 
+/**
+ * Tithe rate (classified for foreign observers)
+ */
+tithe_rate: number | null, 
+/**
+ * Whether commercial zoning is allowed
+ */
+allows_commercial_zoning: boolean, 
+/**
+ * Education slots (passive, clergy domains)
+ */
+education_slots: number, 
+/**
+ * Health capacity (passive, clergy domains)
+ */
+health_capacity: number, 
+/**
+ * Number of controlled parcels
+ */
+parcel_count: number, };
+
+/**
+ * Phase 85: Factional domains snapshot for the FactionalDomainsPage.
+ */
+export type FactionalDomainsSnapshot = { domains: Array<FactionalDomainRow>, cottage_summary: CottageIndustrySummary, };
+
+/**
  * Phase 35: Finance tab data — treasury, ministries, tax, debt, CB, banks,
  * consumer debt, and shadow economy. Reuses existing snapshot data rather
  * than creating disconnected accounting.
@@ -522,6 +664,53 @@ government_form: string,
  * Phase 54: Royal dynasty snapshot (only populated for monarchies).
  */
 royal_dynasty: RoyalDynastySnapshot | null, };
+
+/**
+ * Phase 85: Guild row for the GuildsPage.
+ * Role-gated (Rule 11): foreign observers see only public registry data.
+ */
+export type GuildRow = { 
+/**
+ * Guild company ID
+ */
+id: string, 
+/**
+ * Guild name
+ */
+name: string, 
+/**
+ * Production sector
+ */
+sector: string, 
+/**
+ * Number of member workshops
+ */
+member_count: number, 
+/**
+ * Welfare fund amount (classified for foreign observers)
+ */
+welfare_fund: number | null, 
+/**
+ * Dividend per member last turn (classified for foreign observers)
+ */
+dividend_per_member: number | null, 
+/**
+ * Quality standard (financial premium)
+ */
+quality_standard: number, 
+/**
+ * Whether the guild has a state charter
+ */
+has_charter: boolean, 
+/**
+ * Jurisdiction domain ID
+ */
+jurisdiction_domain_id: string, };
+
+/**
+ * Phase 85: Guilds snapshot for the GuildsPage.
+ */
+export type GuildsSnapshot = { guilds: Array<GuildRow>, };
 
 /**
  * Infrastructure link summary.
@@ -639,6 +828,11 @@ export type MandateSummary = { description: string, required_spending: number, c
  * Phase 56: Market index snapshot for the stock exchange UI.
  */
 export type MarketIndexSnapshot = { value: number, change_pct: number, history: Array<number>, total_market_cap: number, total_volume: bigint, advancing: number, declining: number, volatility: number, };
+
+/**
+ * Phase 86: A royal marriage event row for UI display.
+ */
+export type MarriageEventRow = { turn: number, spouse1_name: string, spouse2_name: string, significance: string, foreign_dynasty: string | null, };
 
 /**
  * Phase 53: Megaregion drill-down data for the Regions tab.
@@ -1022,7 +1216,11 @@ export type RoleOption = { value: string, label: string, };
 /**
  * Royal dynasty snapshot for the Parliament tab (monarchies).
  */
-export type RoyalDynastySnapshot = { dynasty_name: string, current_monarch_id: string | null, current_monarch_name: string, current_regent_id: string | null, current_regent_name: string, regency_active: boolean, members: Array<DynastyMemberRow>, };
+export type RoyalDynastySnapshot = { dynasty_name: string, current_monarch_id: string | null, current_monarch_name: string, current_regent_id: string | null, current_regent_name: string, regency_active: boolean, members: Array<DynastyMemberRow>, 
+/**
+ * Phase 86: Genealogy event history.
+ */
+marriage_history: Array<MarriageEventRow>, birth_history: Array<BirthEventRow>, };
 
 /**
  * Phase 56: Sector index snapshot.

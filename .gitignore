@@ -28,7 +28,15 @@ release_commit.txt
 npm_build.txt
 *.build_log.txt
 
+# Root-level temp/test output files
+build*.txt
+cicd_*.txt
+test*.txt
+.commit_msg_*.txt
+commit_v*.txt
+
 # Devin workflow state files (ephemeral, not committed)
 .devin/.plan_submitted
 .devin/.clearance_granted
 .devin/.cicd_state
+.devin/.cicd_bypass

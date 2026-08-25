@@ -280,6 +280,17 @@ pub fn run_turn_in_memory(
             .collect();
 
         // ═══════════════════════════════════════════════════════════
+        // PHASE 85: FACTIONAL DOMAIN MODIFIERS
+        // Must run BEFORE process_demographics_and_labor so that:
+        // - AristocraticEstate feudal dues reduce available_fte before labor market
+        // - ClergyLand education/health capacity is available for social systems
+        // - Domain modifiers are applied before any FTE allocation decisions
+        // ═══════════════════════════════════════════════════════════
+        tasks.par_iter_mut().for_each(|task| {
+            crate::society::factional_domains::apply_domain_modifiers(task.ctx.country);
+        });
+
+        // ═══════════════════════════════════════════════════════════
         // PHASE 14: PRISON LABOR PREPROCESSING
         // Must run BEFORE process_demographics_and_labor so that:
         // - PrivateLaborCamps: company.target_fte_demand is reduced before labor market
@@ -4405,6 +4416,27 @@ pub fn run_turn_in_memory(
 
             // Also update Treasury.gdp for downstream consumers (CB rate setter, etc.)
             task.ctx.country.budget.gdp = task.ctx.country.macro_indicators.gdp_breakdown.official_gdp;
+        });
+
+        // ═══════════════════════════════════════════════════════════
+        // PHASE 85B: URBANIZATION CYCLE
+        // Runs after B2C clearing and GDP computation, before entity collection.
+        // - 85B.1: Emancipation check (GuildBurgher domains → City Regions)
+        // - 85B.2: Annexation attempts (City Regions → adjacent parcels)
+        // Must run here so that emancipation/annexation effects are visible
+        // to the next turn's demographics/labor phase (Rule 16).
+        // ═══════════════════════════════════════════════════════════
+        let urbanization_config = crate::society::urbanization::EmancipationConfig::default();
+        tasks.par_iter_mut().for_each(|task| {
+            crate::society::urbanization::process_urbanization_cycle(
+                task.ctx.country,
+                &mut task.companies,
+                &mut task.ctx.buildings,
+                &mut task.housing_buildings,
+                &mut task.commercial_buildings,
+                turn,
+                &urbanization_config,
+            );
         });
 
         // Collect entities back from tasks into ctx.entities format.

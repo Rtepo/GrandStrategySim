@@ -207,6 +207,18 @@ pub fn generate_world(
         crate::energy::grid::init_power_grid(country, &housing_buildings, &commercial_buildings, options.start_year as u32, &mut rng);
     }
 
+    // Phase 85: Generate factional domains AFTER cadastre and corporate entities
+    // are generated, so parcel ownership and building data are available for
+    // faction type assignment (Rule 4 — complete lifecycle from world gen).
+    let domain_config = crate::society::factional_domains::FactionalDomainConfig::default();
+    for country in state.countries.values_mut() {
+        crate::society::factional_domains::generate_factional_domains(
+            country,
+            &domain_config,
+            &mut rng,
+        );
+    }
+
     // Phase 57: Generate investment funds for each country.
     for country in state.countries.values_mut() {
         let cultural_group = if country.macro_indicators.cultural_group.is_empty() {

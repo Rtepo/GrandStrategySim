@@ -88,21 +88,52 @@ if (-not (Test-Path $cicdStateFile)) {
     exit 2
 }
 
-# Check if the CI/CD pass is recent (within the last 30 minutes)
+# Check if the CI/CD pass is valid by comparing timestamps.
+# Instead of an arbitrary 30-minute expiration, we compare the LastWriteTime
+# of the .cicd_state file against the most recently modified source file.
+# If the .cicd_state file is NEWER than all source files, no code has changed
+# since the last successful pipeline run, and we allow stop — regardless of age.
 $content = Get-Content $cicdStateFile -Raw
 if ($content -match "^PASSED (.+)$") {
-    $passTime = [DateTime]::Parse($matches[1])
-    $age = (Get-Date) - $passTime
-    if ($age.TotalMinutes -gt 30) {
-        $output = @{
-            decision = "block"
-            reason = "IRON CI/CD: The last CI/CD pass was more than 30 minutes ago and source code has changed since. Invoke the /run_iron_cicd skill to re-run the pipeline."
-        } | ConvertTo-Json -Compress
-        Write-Output $output
-        exit 2
+    $cicdStateTime = (Get-Item $cicdStateFile).LastWriteTime
+
+    # Find the most recently modified source file in the workspace.
+    # Only check extensions that require CI/CD enforcement.
+    $newestSourceTime = [DateTime]::MinValue
+    $sourceFiles = @()
+    try {
+        # Search for source files recursively, excluding target/ and node_modules/
+        $sourceFiles = Get-ChildItem -Path $projectDir -Recurse -File `
+            -Include *.rs, *.ts, *.tsx, *.js, *.jsx, *.mjs, *.cjs, *.toml, *.py, `
+                     *.c, *.cpp, *.cc, *.h, *.hpp, *.go, *.java, *.kt, *.swift, `
+                     *.rb, *.vue, *.svelte, *.astro, *.css, *.scss, *.sass, *.less `
+            -ErrorAction SilentlyContinue |
+            Where-Object {
+                $_.FullName -notmatch '\\target\\' -and
+                $_.FullName -notmatch '\\node_modules\\' -and
+                $_.FullName -notmatch '\\\.git\\'
+            }
+    } catch {}
+
+    foreach ($file in $sourceFiles) {
+        if ($file.LastWriteTime -gt $newestSourceTime) {
+            $newestSourceTime = $file.LastWriteTime
+        }
     }
-    # CI/CD passed recently — allow stop
-    exit 0
+
+    # If the CI/CD state file is NEWER than the newest source file,
+    # no code has changed since the pipeline passed — allow stop.
+    if ($cicdStateTime -ge $newestSourceTime) {
+        exit 0
+    }
+
+    # Source code was modified after the last CI/CD pass — block.
+    $output = @{
+        decision = "block"
+        reason = "IRON CI/CD: Source code was modified after the last CI/CD pass. Invoke the /run_iron_cicd skill to re-run the pipeline."
+    } | ConvertTo-Json -Compress
+    Write-Output $output
+    exit 2
 }
 
 # State file exists but doesn't contain PASSED — block

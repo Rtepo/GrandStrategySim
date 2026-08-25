@@ -274,6 +274,7 @@ impl CorporateStrategy for LegalForm {
             LegalForm::StrategicReserveAgency(_) => CorporateAction::Idle, // Strategic Reserve Agency expands via state budget, not capital
             LegalForm::LogisticsCompany(_) => logistics_expansion(ctx), // Phase 29: ROI-driven warehouse expansion
             LegalForm::NonProfit(_) => CorporateAction::Idle, // Non-profits don't pursue corporate expansion
+            LegalForm::Guild(_) => CorporateAction::Idle, // Phase 85: Guilds expand via member recruitment, not capital
         }
     }
 

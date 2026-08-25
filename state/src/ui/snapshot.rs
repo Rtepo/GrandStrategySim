@@ -2081,6 +2081,9 @@ pub struct RoyalDynastySnapshot {
     pub current_regent_name: String,
     pub regency_active: bool,
     pub members: Vec<DynastyMemberRow>,
+    /// Phase 86: Genealogy event history.
+    pub marriage_history: Vec<MarriageEventRow>,
+    pub birth_history: Vec<BirthEventRow>,
 }
 
 /// A single dynasty member row.
@@ -2093,6 +2096,35 @@ pub struct DynastyMemberRow {
     pub age: u32,
     pub succession_order: u32,
     pub is_heir_apparent: bool,
+    /// Phase 86: Genealogy links.
+    pub father_vip_id: Option<String>,
+    pub mother_vip_id: Option<String>,
+    pub spouse_vip_id: Option<String>,
+    pub children_vip_ids: Vec<String>,
+    pub is_dead: bool,
+    pub death_cause: Option<String>,
+}
+
+/// Phase 86: A royal marriage event row for UI display.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct MarriageEventRow {
+    pub turn: u32,
+    pub spouse1_name: String,
+    pub spouse2_name: String,
+    pub significance: String,
+    pub foreign_dynasty: Option<String>,
+}
+
+/// Phase 86: A royal birth event row for UI display.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct BirthEventRow {
+    pub turn: u32,
+    pub child_name: String,
+    pub father_name: String,
+    pub mother_name: String,
+    pub is_legitimate: bool,
 }
 
 // ============================================================================
@@ -3195,13 +3227,21 @@ fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapsho
         .members
         .iter()
         .map(|m| {
+            let vip = registry.as_ref().and_then(|r| r.get(&m.vip_id));
             DynastyMemberRow {
                 vip_id: m.vip_id.clone(),
                 name: resolve_name(&m.vip_id),
                 relation: format!("{:?}", m.relation),
-                age: 0,
+                age: vip.map(|v| v.age).unwrap_or(0),
                 succession_order: m.succession_order,
                 is_heir_apparent: m.is_heir_apparent,
+                // Phase 86: Genealogy links.
+                father_vip_id: m.father_vip_id.clone(),
+                mother_vip_id: m.mother_vip_id.clone(),
+                spouse_vip_id: m.spouse_vip_id.clone(),
+                children_vip_ids: m.children_vip_ids.clone(),
+                is_dead: vip.map(|v| v.is_dead).unwrap_or(false),
+                death_cause: m.death_cause.as_ref().map(|c| format!("{:?}", c)),
             }
         })
         .collect();
@@ -3215,6 +3255,31 @@ fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapsho
         .as_ref()
         .map(|id| resolve_name(id))
         .unwrap_or_default();
+
+    // Phase 86: Build marriage and birth event history rows.
+    let marriage_history = dynasty
+        .marriage_history
+        .iter()
+        .map(|m| MarriageEventRow {
+            turn: m.turn,
+            spouse1_name: resolve_name(&m.spouse1_vip_id),
+            spouse2_name: resolve_name(&m.spouse2_vip_id),
+            significance: format!("{:?}", m.political_significance),
+            foreign_dynasty: m.foreign_dynasty.clone(),
+        })
+        .collect();
+    let birth_history = dynasty
+        .birth_history
+        .iter()
+        .map(|b| BirthEventRow {
+            turn: b.turn,
+            child_name: resolve_name(&b.child_vip_id),
+            father_name: resolve_name(&b.father_vip_id),
+            mother_name: resolve_name(&b.mother_vip_id),
+            is_legitimate: b.is_legitimate,
+        })
+        .collect();
+
     Some(RoyalDynastySnapshot {
         dynasty_name: dynasty.dynasty_name.clone(),
         current_monarch_id: dynasty.current_monarch_id.clone(),
@@ -3223,6 +3288,8 @@ fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapsho
         current_regent_name,
         regency_active: dynasty.regency_active,
         members,
+        marriage_history,
+        birth_history,
     })
 }
 

@@ -21,7 +21,14 @@ pub mod trade;
 // Modules that remain at the top level (not moved in Phase 24B)
 pub mod banking_history;
 pub mod corporate_rd;
+pub mod cottage_industry;
+pub mod guild_system;
 pub mod indicators;
+#[cfg(test)]
+mod phase85_tests;
+
+#[cfg(test)]
+mod phase85b_tests;
 pub mod real_estate;
 pub mod telemetry;
 

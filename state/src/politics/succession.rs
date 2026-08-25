@@ -6,6 +6,7 @@
 //! - Succession triggers: death, incapacity, coup, resignation.
 
 use serde::{Deserialize, Serialize};
+use rand::Rng;
 
 // ============================================================================
 // ROAL DYNASTY
@@ -32,6 +33,29 @@ pub struct RoyalFamilyMember {
     /// Succession order (1 = first in line).
     #[serde(default)]
     pub succession_order: u32,
+
+    // Phase 86: Genealogy links — parent, spouse, children.
+    /// VIP ID of the father (if known).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub father_vip_id: Option<String>,
+    /// VIP ID of the mother (if known).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mother_vip_id: Option<String>,
+    /// VIP ID of the spouse (if married).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub spouse_vip_id: Option<String>,
+    /// VIP IDs of all children.
+    #[serde(default)]
+    pub children_vip_ids: Vec<String>,
+    /// Turn when this member married (if applicable).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub marriage_turn: Option<u32>,
+    /// Turn when this member died (if dead).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub death_turn: Option<u32>,
+    /// Cause of death (if dead).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub death_cause: Option<crate::politics::vip_registry::DeathCause>,
 }
 
 /// Relationship of a royal family member to the monarch.
@@ -73,6 +97,66 @@ pub struct RoyalDynasty {
     /// Regency council members (VIP IDs).
     #[serde(default)]
     pub regency_council: Vec<String>,
+
+    // Phase 86: Genealogy event history.
+    /// History of royal marriages.
+    #[serde(default)]
+    pub marriage_history: Vec<RoyalMarriage>,
+    /// History of royal births.
+    #[serde(default)]
+    pub birth_history: Vec<RoyalBirth>,
+}
+
+/// Phase 86: A royal marriage event.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct RoyalMarriage {
+    /// Turn when the marriage occurred.
+    #[serde(default)]
+    pub turn: u32,
+    /// VIP ID of the first spouse (typically the royal family member).
+    #[serde(default)]
+    pub spouse1_vip_id: String,
+    /// VIP ID of the second spouse (the partner).
+    #[serde(default)]
+    pub spouse2_vip_id: String,
+    /// Political significance of the marriage.
+    #[serde(default)]
+    pub political_significance: MarriageSignificance,
+    /// Foreign dynasty name (for diplomatic marriages), if applicable.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub foreign_dynasty: Option<String>,
+}
+
+/// Phase 86: Political significance of a royal marriage.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Default)]
+pub enum MarriageSignificance {
+    /// Royal-to-royal marriage (major diplomatic event).
+    #[default]
+    Dynastic,
+    /// Royal-to-noble marriage (domestic alliance).
+    Noble,
+    /// Royal-to-commoner marriage (no succession rights for children).
+    Morganatic,
+}
+
+/// Phase 86: A royal birth event.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct RoyalBirth {
+    /// Turn when the birth occurred.
+    #[serde(default)]
+    pub turn: u32,
+    /// VIP ID of the child (instantiated in the global registry).
+    #[serde(default)]
+    pub child_vip_id: String,
+    /// VIP ID of the father.
+    #[serde(default)]
+    pub father_vip_id: String,
+    /// VIP ID of the mother.
+    #[serde(default)]
+    pub mother_vip_id: String,
+    /// Whether the child is a legitimate heir.
+    #[serde(default)]
+    pub is_legitimate: bool,
 }
 
 impl RoyalDynasty {
@@ -85,6 +169,8 @@ impl RoyalDynasty {
             current_regent_id: None,
             regency_active: false,
             regency_council: Vec::new(),
+            marriage_history: Vec::new(),
+            birth_history: Vec::new(),
         }
     }
 
@@ -114,6 +200,374 @@ impl RoyalDynasty {
             }
         }
         false
+    }
+}
+
+// ============================================================================
+// PHASE 86: DYNASTY TURN PROCESSING — MARRIAGES AND BIRTHS
+// ============================================================================
+
+/// Phase 86: Process royal dynasty per turn — marriages, births, succession updates.
+///
+/// This function checks if the monarch or heir needs to marry, and if married
+/// couples should have children. All new VIPs (spouses and children) are
+/// fully instantiated in the global `vip_registry` — no phantom IDs.
+///
+/// # Arguments
+/// * `dynasty` - Mutable reference to the royal dynasty (Option, may be None)
+/// * `vip_registry` - Mutable reference to the VIP registry (Option, may be None)
+/// * `culture` - Cultural group for name generation
+/// * `dynasty_id` - Dynasty name (for setting on new VIPs)
+/// * `current_turn` - Current game turn
+///
+/// # Returns
+/// Vector of diagnostic messages.
+pub fn process_dynasty_turn(
+    dynasty: &mut Option<RoyalDynasty>,
+    vip_registry: &mut Option<crate::politics::vip_registry::VipRegistry>,
+    culture: &str,
+    dynasty_id: &str,
+    current_turn: u32,
+) -> Vec<String> {
+    let mut messages = Vec::new();
+
+    let dyn_ref = match dynasty.as_mut() {
+        Some(d) => d,
+        None => return messages,
+    };
+    let registry = match vip_registry.as_mut() {
+        Some(r) => r,
+        None => return messages,
+    };
+
+    // 1. Marriage check: find unmarried monarch or heir of marriageable age (≥18).
+    let monarch_id = dyn_ref.current_monarch_id.clone();
+    if let Some(monarch_id) = monarch_id {
+        // Check if monarch is unmarried.
+        let monarch_unmarried = dyn_ref
+            .members
+            .iter()
+            .find(|m| m.vip_id == monarch_id)
+            .map(|m| m.spouse_vip_id.is_none())
+            .unwrap_or(false);
+
+        let monarch_age = registry.get(&monarch_id).map(|v| v.age).unwrap_or(0);
+        let monarch_is_dead = registry.get(&monarch_id).map(|v| v.is_dead).unwrap_or(false);
+
+        if monarch_unmarried && monarch_age >= 18 && !monarch_is_dead {
+            // Generate a spouse VIP.
+            let mut rng = rand::thread_rng();
+            let spouse_name = crate::politics::names::generate_full_vip(culture, &mut rng);
+            let spouse_gender = if registry.get(&monarch_id).map(|v| v.gender.as_str()).unwrap_or("M") == "M" {
+                "F"
+            } else {
+                "M"
+            };
+
+            let (traits, main_trait) = crate::politics::vip_registry::assign_core_traits(&mut rng);
+
+            let spouse_vip = crate::politics::vip_registry::Vip {
+                id: String::new(), // Will be assigned by register_new
+                full_name: spouse_name.full_name.clone(),
+                gender: spouse_gender.to_string(),
+                age: 18 + rng.gen_range(0..15), // Spouse aged 18-32
+                health: crate::politics::vip_registry::VipHealth {
+                    physical_health: 0.9,
+                    mental_health: 0.9,
+                },
+                incapacity: crate::politics::vip_registry::IncapacityStatus::Healthy,
+                traits,
+                main_trait,
+                ideology: String::new(),
+                religion: String::new(),
+                nationality: String::new(),
+                dynasty: Some(dynasty_id.to_string()),
+                roles: vec![crate::politics::vip_registry::VipRoleExtended::RoyalConsort],
+                base_influence: 20,
+                faction: String::new(),
+                born_turn: current_turn.saturating_sub(18 * 24), // Approximate birth turn
+                is_dead: false,
+                death_turn: None,
+                death_cause: None,
+                acting_replacement_id: None,
+                diplomatic_post: None,
+            };
+
+            let spouse_vip_id = registry.register_new(spouse_vip);
+
+            // Update monarch's RoyalFamilyMember with spouse link.
+            if let Some(monarch_member) = dyn_ref.members.iter_mut().find(|m| m.vip_id == monarch_id) {
+                monarch_member.spouse_vip_id = Some(spouse_vip_id.clone());
+                monarch_member.marriage_turn = Some(current_turn);
+            }
+
+            // Add spouse as a new dynasty member.
+            dyn_ref.members.push(RoyalFamilyMember {
+                vip_id: spouse_vip_id.clone(),
+                relation: RoyalRelation::Consort,
+                birth_turn: current_turn.saturating_sub(18 * 24),
+                is_legitimate: true,
+                is_heir_apparent: false,
+                succession_order: 999, // Consorts are not in succession line
+                father_vip_id: None,
+                mother_vip_id: None,
+                spouse_vip_id: Some(monarch_id.clone()),
+                children_vip_ids: Vec::new(),
+                marriage_turn: Some(current_turn),
+                death_turn: None,
+                death_cause: None,
+            });
+
+            // Log marriage event.
+            dyn_ref.marriage_history.push(RoyalMarriage {
+                turn: current_turn,
+                spouse1_vip_id: monarch_id.clone(),
+                spouse2_vip_id: spouse_vip_id.clone(),
+                political_significance: MarriageSignificance::Dynastic,
+                foreign_dynasty: None,
+            });
+
+            messages.push(format!(
+                "[DYNASTY] {} married {} (dynastic marriage, turn {}).",
+                monarch_id, spouse_vip_id, current_turn
+            ));
+        }
+    }
+
+    // 2. Birth check: for married couples where one partner is of childbearing age.
+    // Women: 18-45, Men: 18-60. Roll for birth (deterministic, ~20% chance per turn).
+    let members_clone = dyn_ref.members.clone();
+    for member in &members_clone {
+        // Skip if no spouse or already has many children.
+        if member.spouse_vip_id.is_none() || member.children_vip_ids.len() >= 6 {
+            continue;
+        }
+
+        // Skip dead members.
+        let vip = match registry.get(&member.vip_id) {
+            Some(v) if !v.is_dead => v.clone(),
+            _ => continue,
+        };
+
+        // Check childbearing age.
+        let is_female = vip.gender == "F" || vip.gender == "Female";
+        let age_ok = if is_female {
+            vip.age >= 18 && vip.age <= 45
+        } else {
+            vip.age >= 18 && vip.age <= 60
+        };
+        if !age_ok {
+            continue;
+        }
+
+        // Check spouse is alive and of childbearing age.
+        let spouse_id = member.spouse_vip_id.as_ref().unwrap();
+        let spouse = match registry.get(spouse_id) {
+            Some(s) if !s.is_dead => s.clone(),
+            _ => continue,
+        };
+        let spouse_age_ok = if spouse.gender == "F" || spouse.gender == "Female" {
+            spouse.age >= 18 && spouse.age <= 45
+        } else {
+            spouse.age >= 18 && spouse.age <= 60
+        };
+        if !spouse_age_ok {
+            continue;
+        }
+
+        // Deterministic birth roll: ~20% chance per turn.
+        let birth_seed = format!("birth_{}_{}_{}", member.vip_id, spouse_id, current_turn);
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        use std::hash::Hasher;
+        for b in birth_seed.bytes() {
+            hasher.write_u8(b);
+        }
+        let hash = hasher.finish();
+        let roll = (hash % 1000) as f64 / 1000.0;
+
+        if roll < 0.20 {
+            // Birth occurs — instantiate a new VIP.
+            let mut rng = rand::thread_rng();
+            let child_name = crate::politics::names::generate_full_vip(culture, &mut rng);
+            let child_gender = if rng.gen::<f64>() < 0.5 { "M" } else { "F" };
+            let (traits, main_trait) = crate::politics::vip_registry::assign_core_traits(&mut rng);
+
+            // Determine father and mother.
+            let (father_id, mother_id) = if is_female {
+                (spouse_id.clone(), member.vip_id.clone())
+            } else {
+                (member.vip_id.clone(), spouse_id.clone())
+            };
+
+            let child_vip = crate::politics::vip_registry::Vip {
+                id: String::new(),
+                full_name: child_name.full_name.clone(),
+                gender: child_gender.to_string(),
+                age: 0,
+                health: crate::politics::vip_registry::VipHealth {
+                    physical_health: 1.0,
+                    mental_health: 1.0,
+                },
+                incapacity: crate::politics::vip_registry::IncapacityStatus::Healthy,
+                traits,
+                main_trait,
+                ideology: String::new(),
+                religion: String::new(),
+                nationality: String::new(),
+                dynasty: Some(dynasty_id.to_string()),
+                roles: vec![crate::politics::vip_registry::VipRoleExtended::RoyalHeir],
+                base_influence: 5,
+                faction: String::new(),
+                born_turn: current_turn,
+                is_dead: false,
+                death_turn: None,
+                death_cause: None,
+                acting_replacement_id: None,
+                diplomatic_post: None,
+            };
+
+            let child_vip_id = registry.register_new(child_vip);
+
+            // Update both parents' children_vip_ids.
+            if let Some(m) = dyn_ref.members.iter_mut().find(|m| m.vip_id == member.vip_id) {
+                m.children_vip_ids.push(child_vip_id.clone());
+            }
+            if let Some(m) = dyn_ref.members.iter_mut().find(|m| m.vip_id == *spouse_id) {
+                m.children_vip_ids.push(child_vip_id.clone());
+            }
+
+            // Add child as a new dynasty member.
+            let child_relation = if member.relation == RoyalRelation::Monarch || member.relation == RoyalRelation::Consort {
+                RoyalRelation::Child
+            } else {
+                RoyalRelation::Cousin // For other family members
+            };
+
+            dyn_ref.members.push(RoyalFamilyMember {
+                vip_id: child_vip_id.clone(),
+                relation: child_relation,
+                birth_turn: current_turn,
+                is_legitimate: true,
+                is_heir_apparent: false, // Will be set by succession order update
+                succession_order: 999,   // Will be recalculated
+                father_vip_id: Some(father_id.clone()),
+                mother_vip_id: Some(mother_id.clone()),
+                spouse_vip_id: None,
+                children_vip_ids: Vec::new(),
+                marriage_turn: None,
+                death_turn: None,
+                death_cause: None,
+            });
+
+            // Log birth event.
+            dyn_ref.birth_history.push(RoyalBirth {
+                turn: current_turn,
+                child_vip_id: child_vip_id.clone(),
+                father_vip_id: father_id.clone(),
+                mother_vip_id: mother_id.clone(),
+                is_legitimate: true,
+            });
+
+            messages.push(format!(
+                "[DYNASTY] Royal birth: {} born to {} and {} (turn {}).",
+                child_vip_id, father_id, mother_id, current_turn
+            ));
+        }
+    }
+
+    // 3. Succession order update: recalculate based on primogeniture
+    //    (eldest legitimate child of monarch first).
+    recalculate_succession_order(dyn_ref, registry);
+
+    // 4. Death check: update dynasty members whose VIPs have died.
+    let dead_members: Vec<(String, Option<crate::politics::vip_registry::DeathCause>, Option<u32>)> = dyn_ref
+        .members
+        .iter()
+        .filter_map(|m| {
+            if let Some(vip) = registry.get(&m.vip_id) {
+                if vip.is_dead && m.death_turn.is_none() {
+                    return Some((m.vip_id.clone(), vip.death_cause.clone(), vip.death_turn));
+                }
+            }
+            None
+        })
+        .collect();
+
+    for (vip_id, cause, death_turn) in dead_members {
+        if let Some(member) = dyn_ref.members.iter_mut().find(|m| m.vip_id == vip_id) {
+            member.death_turn = death_turn;
+            member.death_cause = cause;
+        }
+        messages.push(format!(
+            "[DYNASTY] Dynasty member {} died (turn {}).",
+            vip_id, current_turn
+        ));
+    }
+
+    messages
+}
+
+/// Phase 86: Recalculate succession order using primogeniture.
+/// Eldest legitimate children of the monarch come first, ordered by age.
+fn recalculate_succession_order(
+    dynasty: &mut RoyalDynasty,
+    registry: &crate::politics::vip_registry::VipRegistry,
+) {
+    let monarch_id = match &dynasty.current_monarch_id {
+        Some(id) => id.clone(),
+        None => return,
+    };
+
+    // Find legitimate children of the monarch, sorted by age (eldest first).
+    let mut children: Vec<(String, u32)> = dynasty
+        .members
+        .iter()
+        .filter(|m| {
+            m.is_legitimate
+                && (m.father_vip_id.as_deref() == Some(monarch_id.as_str())
+                    || m.mother_vip_id.as_deref() == Some(monarch_id.as_str()))
+        })
+        .filter_map(|m| {
+            if let Some(vip) = registry.get(&m.vip_id) {
+                if !vip.is_dead {
+                    return Some((m.vip_id.clone(), vip.age));
+                }
+            }
+            None
+        })
+        .collect();
+
+    // Sort by age descending (eldest first). Using sort_unstable_by since
+    // we need descending order (sort_by_key only works for ascending).
+    children.sort_unstable_by(|a, b| b.1.cmp(&a.1));
+
+    // Assign succession orders.
+    let mut order = 1u32;
+    for (child_id, _) in &children {
+        if let Some(member) = dynasty.members.iter_mut().find(|m| m.vip_id == *child_id) {
+            member.succession_order = order;
+            member.is_heir_apparent = order == 1;
+            order += 1;
+        }
+    }
+
+    // All other legitimate members get higher order numbers.
+    let next_order = order;
+    let mut other_order = next_order;
+    for member in &mut dynasty.members {
+        if member.is_legitimate
+            && member.succession_order >= 999
+            && !member.vip_id.is_empty()
+            && member.relation != RoyalRelation::Monarch
+            && member.relation != RoyalRelation::Consort
+        {
+            if let Some(vip) = registry.get(&member.vip_id) {
+                if !vip.is_dead {
+                    member.succession_order = other_order;
+                    other_order += 1;
+                }
+            }
+        }
     }
 }
 

@@ -36,6 +36,9 @@ import { LandPage } from "./pages/LandPage";
 import { DiplomacyPage } from "./pages/DiplomacyPage";
 import { MilitaryPage } from "./pages/MilitaryPage";
 import { EnergyPage } from "./pages/EnergyPage";
+import FactionalDomainsPage from "./pages/FactionalDomainsPage";
+import GuildsPage from "./pages/GuildsPage";
+import CitiesPage from "./pages/CitiesPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { useUpdater } from "./hooks/useUpdater";
@@ -56,6 +59,9 @@ const NAV_ITEMS = [
   { to: "/diplomacy", label: "Diplomacy", icon: Globe },
   { to: "/military", label: "Military", icon: Shield },
   { to: "/energy", label: "Energy", icon: Zap },
+  { to: "/domains", label: "Domains", icon: Map },
+  { to: "/guilds", label: "Guilds", icon: Building2 },
+  { to: "/cities", label: "Cities", icon: Building2 },
 ];
 
 interface SidebarProps {
@@ -325,6 +331,9 @@ export default function App() {
             <Route path="/diplomacy" element={<DiplomacyPage />} />
             <Route path="/military" element={<MilitaryPage />} />
             <Route path="/energy" element={<EnergyPage />} />
+            <Route path="/domains" element={<FactionalDomainsPage />} />
+            <Route path="/guilds" element={<GuildsPage />} />
+            <Route path="/cities" element={<CitiesPage />} />
           </Routes>
         </ErrorBoundary>
       </main>

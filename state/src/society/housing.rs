@@ -89,6 +89,57 @@ pub struct UtilityConnections {
     pub water_quality_received: f64,
 }
 
+/// Phase 85: Workshop production method (Rule 13 — Technological Matrices).
+/// Each method has distinct inputs, output multipliers, and CAPEX.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum WorkshopMethod {
+    /// Pre-industrial: hand tools, lowest output, lowest CAPEX
+    #[default]
+    ManualHandTool,
+    /// Medieval: foot-powered machinery, moderate output
+    FootPoweredLathe,
+    /// Industrial: steam engine drive, high output, requires Coal
+    SteamPowered,
+    /// Modern: electric motor drive, highest output, requires Electricity
+    ElectricMotor,
+}
+
+/// Phase 85: Reference to a workshop occupying a commercial slot.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct WorkshopRef {
+    /// Guild company ID that coordinates this workshop
+    #[serde(default)]
+    pub guild_id: String,
+    /// Demographic class ID that provides FTE
+    #[serde(default)]
+    pub craftsman_class_id: String,
+    /// Output commodity produced by this workshop
+    #[serde(default)]
+    pub output_commodity: String,
+    /// FTE allocated to this workshop this turn
+    #[serde(default)]
+    pub fte_allocated: f64,
+}
+
+/// Phase 85: Commercial slot on a HousingBuilding for ground-floor workshops.
+/// Represents mixed-use zoning — residential above, workshop below.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct CommercialSlot {
+    /// Floor area available for workshop in sqm (clamped to building floor_area)
+    #[serde(default)]
+    pub capacity_sqm: f64,
+    /// Current workshop occupying the slot (None = vacant)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub active_workshop: Option<WorkshopRef>,
+    /// Which commodities can be produced here (based on zoning + utilities)
+    #[serde(default)]
+    pub allowed_crafts: Vec<String>,
+    /// Current production method (Rule 13 — upgradeable)
+    #[serde(default)]
+    pub active_method: WorkshopMethod,
+}
+
 /// Housing building with capacity and utility connections
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct HousingBuilding {
@@ -175,6 +226,12 @@ pub struct HousingBuilding {
     /// string ONLY flips when `is_complete()` returns true (Flaw 2 correction).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub pending_upgrade: Option<crate::construction::upgrade_project::UpgradeProject>,
+
+    /// Phase 85: Commercial slot for ground-floor workshop (mixed-use zoning).
+    /// None = purely residential. Some = mixed-use with workshop capacity.
+    /// Capacity scales with building floor_area (Rule 15 — no flat rates).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub commercial_slots: Option<CommercialSlot>,
 }
 
 /// Commercial building type
