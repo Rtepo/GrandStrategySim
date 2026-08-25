@@ -63,6 +63,7 @@ fn legal_form_display(legal_form: &LegalForm) -> String {
         LegalForm::LogisticsCompany(_) => "Logistics Company",
         LegalForm::NonProfit(_) => "Non-Profit",
         LegalForm::MutualAidCircle(_) => "Mutual Aid Circle",
+        LegalForm::Guild(_) => "Craft Guild",
     }
     .to_string()
 }
@@ -628,6 +629,305 @@ pub struct SanctionRow {
     pub reason: String,
     /// Whether the sanction is still active.
     pub is_active: bool,
+}
+
+// ============================================================================
+// PHASE 85: FACTIONAL DOMAINS, COTTAGE INDUSTRY, AND GUILDS
+// ============================================================================
+
+/// Phase 85: Factional domain row for the FactionalDomainsPage.
+/// Role-gated (Rule 11): foreign observers see only faction_type and population.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct FactionalDomainRow {
+    /// Domain ID
+    pub id: String,
+    /// Parent region name
+    pub region_name: String,
+    /// Faction type display name
+    pub faction_type: String,
+    /// Population within the domain
+    pub population: i64,
+    /// Governing faction entity name (classified for foreign observers)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub governing_faction: Option<String>,
+    /// Entry tariff rate (classified for foreign observers)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub entry_tariff_rate: Option<f64>,
+    /// Feudal dues rate (classified for foreign observers)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub feudal_dues_rate: Option<f64>,
+    /// Tithe rate (classified for foreign observers)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tithe_rate: Option<f64>,
+    /// Whether commercial zoning is allowed
+    pub allows_commercial_zoning: bool,
+    /// Education slots (passive, clergy domains)
+    pub education_slots: u32,
+    /// Health capacity (passive, clergy domains)
+    pub health_capacity: f64,
+    /// Number of controlled parcels
+    pub parcel_count: usize,
+}
+
+/// Phase 85: Cottage industry summary for MarketPage and FactionalDomainsPage.
+/// Role-gated (Rule 11): foreign observers see only aggregate estimates.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CottageIndustrySummary {
+    /// Total FTE allocated to cottage production
+    pub total_cottage_fte: f64,
+    /// Output by commodity name
+    pub output_by_commodity: Vec<CottageOutputEntry>,
+    /// Raw material demand by commodity name
+    pub raw_input_demand: Vec<CottageInputEntry>,
+}
+
+/// Phase 85: Single cottage output entry.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CottageOutputEntry {
+    pub commodity: String,
+    pub volume: f64,
+}
+
+/// Phase 85: Single cottage raw input entry.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CottageInputEntry {
+    pub commodity: String,
+    pub demand: f64,
+}
+
+/// Phase 85: Guild row for the GuildsPage.
+/// Role-gated (Rule 11): foreign observers see only public registry data.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct GuildRow {
+    /// Guild company ID
+    pub id: String,
+    /// Guild name
+    pub name: String,
+    /// Production sector
+    pub sector: String,
+    /// Number of member workshops
+    pub member_count: usize,
+    /// Welfare fund amount (classified for foreign observers)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub welfare_fund: Option<f64>,
+    /// Dividend per member last turn (classified for foreign observers)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dividend_per_member: Option<f64>,
+    /// Quality standard (financial premium)
+    pub quality_standard: f64,
+    /// Whether the guild has a state charter
+    pub has_charter: bool,
+    /// Jurisdiction domain ID
+    pub jurisdiction_domain_id: String,
+}
+
+/// Phase 85: Factional domains snapshot for the FactionalDomainsPage.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct FactionalDomainsSnapshot {
+    pub domains: Vec<FactionalDomainRow>,
+    pub cottage_summary: CottageIndustrySummary,
+}
+
+/// Phase 85: Guilds snapshot for the GuildsPage.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct GuildsSnapshot {
+    pub guilds: Vec<GuildRow>,
+}
+
+/// Phase 85: Build a factional domains snapshot for a country.
+/// Role-gated (Rule 11): strips classified data for foreign observers.
+pub fn build_factional_domains_snapshot(
+    country: &crate::state::Country,
+    is_classified: bool,
+) -> FactionalDomainsSnapshot {
+    let mut domains = Vec::new();
+
+    for region in &country.regions {
+        for domain in region.micro_regions.values() {
+            let faction_type_str = format!("{:?}", domain.faction_type);
+
+            domains.push(FactionalDomainRow {
+                id: domain.id.clone(),
+                region_name: region.display_name.clone(),
+                faction_type: faction_type_str,
+                population: domain.population,
+                governing_faction: if is_classified {
+                    None
+                } else {
+                    domain.governing_faction_id.clone()
+                },
+                entry_tariff_rate: if is_classified {
+                    None
+                } else {
+                    Some(domain.local_laws.entry_tariff_rate)
+                },
+                feudal_dues_rate: if is_classified {
+                    None
+                } else {
+                    Some(domain.local_laws.feudal_dues_rate)
+                },
+                tithe_rate: if is_classified {
+                    None
+                } else {
+                    Some(domain.local_laws.tithe_rate)
+                },
+                allows_commercial_zoning: domain.local_laws.allows_commercial_zoning,
+                education_slots: domain.education_slots,
+                health_capacity: domain.health_capacity,
+                parcel_count: domain.controlled_parcel_ids.len(),
+            });
+        }
+    }
+
+    // Build cottage summary from class demographics
+    let mut total_cottage_fte = 0.0;
+    let mut output_map: std::collections::BTreeMap<String, f64> = std::collections::BTreeMap::new();
+    let mut input_map: std::collections::BTreeMap<String, f64> = std::collections::BTreeMap::new();
+
+    for region in &country.regions {
+        for demo in region.class_demographics.rural_classes.values() {
+            total_cottage_fte += demo.cottage_fte_allocated;
+            for (commodity, volume) in &demo.cottage_output {
+                let name = format!("{:?}", commodity);
+                *output_map.entry(name).or_insert(0.0) += volume;
+            }
+            for (commodity, qty) in &demo.cottage_raw_inventory {
+                let name = format!("{:?}", commodity);
+                *input_map.entry(name).or_insert(0.0) += qty;
+            }
+        }
+    }
+
+    // Add noise for foreign observers (Rule 11)
+    if is_classified {
+        total_cottage_fte *= 1.2; // ±20% estimate
+    }
+
+    let output_by_commodity = output_map
+        .into_iter()
+        .map(|(commodity, volume)| CottageOutputEntry { commodity, volume })
+        .collect();
+    let raw_input_demand = input_map
+        .into_iter()
+        .map(|(commodity, demand)| CottageInputEntry { commodity, demand })
+        .collect();
+
+    FactionalDomainsSnapshot {
+        domains,
+        cottage_summary: CottageIndustrySummary {
+            total_cottage_fte,
+            output_by_commodity,
+            raw_input_demand,
+        },
+    }
+}
+
+/// Phase 85: Build a guilds snapshot for a country.
+/// Role-gated (Rule 11): strips financial data for foreign observers.
+pub fn build_guilds_snapshot(
+    companies: &[crate::entities::Company],
+    is_classified: bool,
+) -> GuildsSnapshot {
+    let mut guilds = Vec::new();
+
+    for company in companies {
+        if let crate::entities::LegalForm::Guild(data) = &company.legal_form {
+            guilds.push(GuildRow {
+                id: company.id.clone(),
+                name: company.name.clone(),
+                sector: data.guild_sector.clone(),
+                member_count: data.member_workshop_ids.len(),
+                welfare_fund: if is_classified {
+                    None
+                } else {
+                    Some(data.welfare_fund)
+                },
+                dividend_per_member: if is_classified {
+                    None
+                } else {
+                    // Would be computed from last turn's dividends
+                    None
+                },
+                quality_standard: data.quality_standard,
+                has_charter: data.has_charter,
+                jurisdiction_domain_id: data.jurisdiction_domain_id.clone(),
+            });
+        }
+    }
+
+    GuildsSnapshot { guilds }
+}
+
+/// Phase 85B: A single City Region row in the Cities snapshot.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CityRegionRow {
+    /// City region ID.
+    pub id: String,
+    /// Display name.
+    pub display_name: String,
+    /// Parent (original rural) region ID.
+    pub parent_region_id: String,
+    /// Population.
+    pub population: i64,
+    /// Turn when the city emancipated.
+    pub emancipated_turn: u32,
+    /// Number of parcels under city control.
+    pub parcel_count: usize,
+    /// Annexation cooldown remaining (turns).
+    pub annexation_cooldown: u32,
+    /// City treasury liquid reserves (classified for foreign observers).
+    pub treasury_reserves: f64,
+    /// Development level (0.0-1.0).
+    pub development_level: f64,
+}
+
+/// Phase 85B: Cities snapshot for the CitiesPage.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CitiesSnapshot {
+    pub cities: Vec<CityRegionRow>,
+}
+
+/// Phase 85B: Build a cities snapshot for a country.
+/// Role-gated (Rule 11): strips treasury data for foreign observers.
+pub fn build_cities_snapshot(
+    country: &crate::state::Country,
+    is_classified: bool,
+) -> CitiesSnapshot {
+    let mut cities = Vec::new();
+
+    for region in &country.regions {
+        if !region.is_city() {
+            continue;
+        }
+        let meta = region.city_metadata.as_ref();
+        let treasury_reserves = if is_classified {
+            0.0 // Strip classified financial data for foreign observers.
+        } else {
+            region.treasury.liquid_reserves
+        };
+        cities.push(CityRegionRow {
+            id: region.id.clone(),
+            display_name: region.display_name.clone(),
+            parent_region_id: meta.map(|m| m.parent_region_id.clone()).unwrap_or_default(),
+            population: region.population,
+            emancipated_turn: meta.map(|m| m.emancipated_turn).unwrap_or(0),
+            parcel_count: region.parcel_ids.len(),
+            annexation_cooldown: meta.map(|m| m.annexation_cooldown).unwrap_or(0),
+            treasury_reserves,
+            development_level: region.development_level,
+        });
+    }
+
+    CitiesSnapshot { cities }
 }
 
 /// Phase 66: Build a diplomacy snapshot for a country.
@@ -1950,8 +2250,11 @@ pub fn build_country_snapshot(
     let macro_data = &country.macro_indicators;
 
     // Commodities: build rows for all 140 commodities.
+    // Stabilization Sprint: Exclude local grid utilities (Energy, Heat, Water,
+    // WasteUtility) — these are managed by physical grids, not the B2B market.
     let commodities: Vec<CommodityRow> = Commodity::all()
         .iter()
+        .filter(|&&c| !c.is_local_utility())
         .map(|&c| {
             let name = format!("{:?}", c);
             let vwap = market_history.vwap_per_commodity.get(&c).copied().unwrap_or(0.0);

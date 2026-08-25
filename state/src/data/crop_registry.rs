@@ -2,6 +2,10 @@
 //!
 //! This module provides a compile-time initialized crop registry that replaces
 //! JSON-based data loading for improved type safety and performance.
+//!
+//! Stabilization Sprint: All crop names are in English (Rule 12). Added
+//! livestock, orchard, and tobacco crop definitions to cover the full
+//! agriculture production matrix.
 
 use crate::registries::crops::{CropDefinition, CropCategory, LandType, TurnRange, LaborDemandProfile};
 use crate::society::geography::ClimateProfile;
@@ -21,7 +25,7 @@ pub fn crop_registry() -> &'static HashMap<String, CropDefinition> {
         // Cereals
         crops.insert("wheat".to_string(), CropDefinition {
             id: "wheat".to_string(),
-            name: "Pszenica".to_string(),
+            name: "Wheat".to_string(),
             category: CropCategory::Cereal,
             land_type: LandType::Arable,
             compatible_climates: vec![ClimateProfile::Temperate, ClimateProfile::Continental],
@@ -47,7 +51,7 @@ pub fn crop_registry() -> &'static HashMap<String, CropDefinition> {
 
         crops.insert("corn".to_string(), CropDefinition {
             id: "corn".to_string(),
-            name: "Kukurydza".to_string(),
+            name: "Corn".to_string(),
             category: CropCategory::Cereal,
             land_type: LandType::Arable,
             compatible_climates: vec![ClimateProfile::Temperate, ClimateProfile::Continental],
@@ -74,7 +78,7 @@ pub fn crop_registry() -> &'static HashMap<String, CropDefinition> {
         // Vegetables
         crops.insert("potatoes".to_string(), CropDefinition {
             id: "potatoes".to_string(),
-            name: "Ziemniaki".to_string(),
+            name: "Potatoes".to_string(),
             category: CropCategory::Root,
             land_type: LandType::Arable,
             compatible_climates: vec![ClimateProfile::Temperate, ClimateProfile::Continental],
@@ -127,7 +131,7 @@ pub fn crop_registry() -> &'static HashMap<String, CropDefinition> {
         // Fodder
         crops.insert("alfalfa".to_string(), CropDefinition {
             id: "alfalfa".to_string(),
-            name: "Lucerna".to_string(),
+            name: "Alfalfa".to_string(),
             category: CropCategory::Fodder,
             land_type: LandType::Arable,
             compatible_climates: vec![ClimateProfile::Temperate, ClimateProfile::Continental],
@@ -148,6 +152,100 @@ pub fn crop_registry() -> &'static HashMap<String, CropDefinition> {
             seed_quantity_per_hectare: 0.04,
             sowing_wage_multiplier: 1.2,
             harvesting_wage_multiplier: 1.8,
+        });
+
+        // Stabilization Sprint: Livestock (cattle ranching)
+        // Pasture-based, yields Meat + Livestock. Plantation land type
+        // (perennial pasture, no annual sowing).
+        crops.insert("cattle".to_string(), CropDefinition {
+            id: "cattle".to_string(),
+            name: "Cattle".to_string(),
+            category: CropCategory::Fodder, // Uses fodder as feed input
+            land_type: LandType::Plantation,
+            compatible_climates: vec![
+                ClimateProfile::Temperate,
+                ClimateProfile::Continental,
+                ClimateProfile::Coastal,
+            ],
+            sowing_schedule: TurnRange { start_turn: 1, end_turn: 2 },
+            harvest_schedule: TurnRange { start_turn: 6, end_turn: 20 },
+            labor_demand: LaborDemandProfile {
+                sowing_fte_per_hectare: 0.0,  // Plantation skips sowing
+                growing_fte_per_hectare: 0.03,
+                harvesting_fte_per_hectare: 0.08,
+            },
+            yields: {
+                let mut map = HashMap::new();
+                map.insert(Commodity::Meat, 0.8);
+                map.insert(Commodity::Livestock, 0.3);
+                map
+            },
+            seed_cost_per_hectare: 0.0,
+            seed_commodity: Commodity::Seeds,
+            seed_quantity_per_hectare: 0.0,
+            sowing_wage_multiplier: 1.0,
+            harvesting_wage_multiplier: 2.0,
+        });
+
+        // Stabilization Sprint: Orchard (fruit trees)
+        // Plantation land type (perennial, no annual sowing).
+        crops.insert("orchard".to_string(), CropDefinition {
+            id: "orchard".to_string(),
+            name: "Orchard".to_string(),
+            category: CropCategory::Orchard,
+            land_type: LandType::Plantation,
+            compatible_climates: vec![
+                ClimateProfile::Temperate,
+                ClimateProfile::Continental,
+                ClimateProfile::Coastal,
+            ],
+            sowing_schedule: TurnRange { start_turn: 1, end_turn: 2 },
+            harvest_schedule: TurnRange { start_turn: 15, end_turn: 18 },
+            labor_demand: LaborDemandProfile {
+                sowing_fte_per_hectare: 0.0,
+                growing_fte_per_hectare: 0.03,
+                harvesting_fte_per_hectare: 0.15,
+            },
+            yields: {
+                let mut map = HashMap::new();
+                map.insert(Commodity::Fruit, 12.0);
+                map
+            },
+            seed_cost_per_hectare: 0.0,
+            seed_commodity: Commodity::Seeds,
+            seed_quantity_per_hectare: 0.0,
+            sowing_wage_multiplier: 1.0,
+            harvesting_wage_multiplier: 2.5,
+        });
+
+        // Stabilization Sprint: Tobacco (luxury plantation crop)
+        crops.insert("tobacco".to_string(), CropDefinition {
+            id: "tobacco".to_string(),
+            name: "Tobacco".to_string(),
+            category: CropCategory::Industrial,
+            land_type: LandType::Plantation,
+            compatible_climates: vec![
+                ClimateProfile::Tropical,
+                ClimateProfile::Coastal,
+                ClimateProfile::Temperate,
+            ],
+            sowing_schedule: TurnRange { start_turn: 1, end_turn: 2 },
+            harvest_schedule: TurnRange { start_turn: 13, end_turn: 16 },
+            labor_demand: LaborDemandProfile {
+                sowing_fte_per_hectare: 0.0,
+                growing_fte_per_hectare: 0.04,
+                harvesting_fte_per_hectare: 0.22,
+            },
+            yields: {
+                let mut map = HashMap::new();
+                map.insert(Commodity::Luxury, 1.5);
+                map
+            },
+            seed_cost_per_hectare: 0.0,
+            seed_commodity: Commodity::Seeds,
+            seed_quantity_per_hectare: 0.0,
+            sowing_wage_multiplier: 1.0,
+            harvesting_wage_multiplier: 3.0,
         });
 
         crops

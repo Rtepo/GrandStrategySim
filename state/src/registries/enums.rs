@@ -697,8 +697,23 @@ impl Commodity {
     /// not traded on the global B2B commodity market. Placing them on the
     /// B2B market creates phantom supply with no matching demand, causing
     /// huge surpluses that distort the market UI.
+    ///
+    /// Stabilization Sprint: Water and B2B-excluded waste streams are also
+    /// local grid utilities managed by the hydro grid (Phase 81) and waste
+    /// grid (Phase 84). They must be excluded from the B2B market and the
+    /// Market UI snapshot.
     pub fn is_local_utility(&self) -> bool {
-        matches!(self, Commodity::Energy | Commodity::Heat)
+        matches!(
+            self,
+            Commodity::Energy
+                | Commodity::Heat
+                | Commodity::Water
+                | Commodity::MixedWaste
+                | Commodity::BioWaste
+                | Commodity::BulkyWaste
+                | Commodity::ConstructionWaste
+                | Commodity::HazardousWaste
+        )
     }
 
     /// Phase 19C: Returns `true` if this commodity is a quality consumer

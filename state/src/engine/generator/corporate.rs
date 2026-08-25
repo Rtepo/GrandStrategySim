@@ -15,6 +15,7 @@ use crate::entities::{
     CooperativeData, FamilyBusinessData, JointStockData, LegalForm, SeasonalProfile,
     SeasonalState, Union, UnionScale,
     StrategicReserveData, PurchaseTrigger, ReleaseTrigger, NonProfitData,
+    CropBatch, CropState,
 };
 use crate::io::entity_store::{DiskEntityStore, EntityStore};
 use crate::registries::enums::{Commodity, Sector};
@@ -433,6 +434,121 @@ pub fn generate_corporate_entities(
     }
     for ((sector, region), list) in private_by_key {
         building_store.save_sector(&country.name, &sector, Some(&region), &list)?;
+    }
+
+    // Stabilization Sprint: Activate Agriculture 2.0 by initializing
+    // agricultural profiles and linking farms to Cadastre parcels.
+    // This must happen AFTER all companies are generated and BEFORE
+    // buildings are moved into ctx.
+    initialize_agricultural_profiles(
+        &mut all_companies,
+        &mut country.cadastre,
+        registries,
+    );
+
+    // Stabilization Sprint: Seed the Strategic Reserve Agency warehouses
+    // with 12 months of Cereal and Food to sustain the population until
+    // the first harvest (turn 17). No free food to agriculture companies.
+    {
+        let reserve_warehouse_ids: Vec<String> = all_companies
+            .iter()
+            .find(|c| c.id.starts_with("STRATEGIC_RESERVE_"))
+            .map(|c| c.building_ids.clone())
+            .unwrap_or_default();
+        // Collect indices to avoid borrow conflicts
+        let reserve_indices: Vec<usize> = all_buildings
+            .iter()
+            .enumerate()
+            .filter(|(_, b)| reserve_warehouse_ids.contains(&b.id))
+            .map(|(i, _)| i)
+            .collect();
+        if !reserve_indices.is_empty() {
+            // Seed food reserve into SRA warehouses
+            let pop_f = total_population as f64;
+            let cereal_reserve = 0.18 * 24.0 * pop_f * 0.5; // 12 months
+            let food_reserve = 0.22 * 24.0 * pop_f * 0.5;   // 12 months
+            let n = reserve_indices.len() as f64;
+            for &idx in &reserve_indices {
+                *all_buildings[idx].inventory.entry(Commodity::Cereal).or_insert(0.0) += cereal_reserve / n;
+                *all_buildings[idx].inventory.entry(Commodity::Food).or_insert(0.0) += food_reserve / n;
+            }
+        }
+    }
+
+    // Stabilization Sprint: Seed B2C retail stores with a 4-turn buffer
+    // of Cereal and Food so consumers can buy food on Turn 1.
+    {
+        let pop_f = total_population as f64;
+        let cereal_buffer = 0.18 * 4.0 * pop_f;
+        let food_buffer = 0.22 * 4.0 * pop_f;
+        let retail_indices: Vec<usize> = all_buildings
+            .iter()
+            .enumerate()
+            .filter(|(_, b)| b.sector == Sector::LocalServices)
+            .map(|(i, _)| i)
+            .collect();
+        if !retail_indices.is_empty() {
+            let n = retail_indices.len() as f64;
+            for &idx in &retail_indices {
+                *all_buildings[idx].inventory.entry(Commodity::Cereal).or_insert(0.0) += cereal_buffer / n;
+                *all_buildings[idx].inventory.entry(Commodity::Food).or_insert(0.0) += food_buffer / n;
+            }
+        }
+    }
+
+    // Re-save agriculture companies with initialized agricultural profiles.
+    {
+        let agri_sector_name = sector_json_name(Sector::Agriculture);
+        let agri_companies: Vec<Company> = all_companies
+            .iter()
+            .filter(|c| c.sector == Sector::Agriculture)
+            .cloned()
+            .collect();
+        if !agri_companies.is_empty() {
+            company_store.save_sector(&country.name, &agri_sector_name, None, &agri_companies)?;
+        }
+    }
+
+    // Re-save buildings with seeded food inventory.
+    {
+        let public_sector_name = sector_json_name(Sector::PublicServices);
+        let local_services_name = sector_json_name(Sector::LocalServices);
+        // Re-save SRA warehouses (PublicServices sector, owner = STRATEGIC_RESERVE_*)
+        let sra_buildings: Vec<Building> = all_buildings
+            .iter()
+            .filter(|b| b.owner_id.starts_with("STRATEGIC_RESERVE_"))
+            .cloned()
+            .collect();
+        if !sra_buildings.is_empty() {
+            for region in &country_regions {
+                let region_sra: Vec<Building> = sra_buildings
+                    .iter()
+                    .filter(|b| b.region_id == region.id)
+                    .cloned()
+                    .collect();
+                if !region_sra.is_empty() {
+                    building_store.save_sector(&country.name, &public_sector_name, Some(&region.id), &region_sra)?;
+                }
+            }
+        }
+        // Re-save retail stores with food buffer
+        let retail_buildings: Vec<Building> = all_buildings
+            .iter()
+            .filter(|b| b.sector == Sector::LocalServices)
+            .cloned()
+            .collect();
+        if !retail_buildings.is_empty() {
+            for region in &country_regions {
+                let region_retail: Vec<Building> = retail_buildings
+                    .iter()
+                    .filter(|b| b.region_id == region.id)
+                    .cloned()
+                    .collect();
+                if !region_retail.is_empty() {
+                    building_store.save_sector(&country.name, &local_services_name, Some(&region.id), &region_retail)?;
+                }
+            }
+        }
     }
 
     // Reconcile private capital and recalculate sector employment / PMI.
@@ -1000,7 +1116,7 @@ fn generate_region_companies(
         // Phase 27: Deduct seed inventory cost from company's liquid capital
         // to maintain double-entry accounting. The cost is credited to the
         // country's treasury in generate_corporate_entities.
-        let deductible = seed_cost.min(company.liquid_capital * 0.3);
+        let deductible = seed_cost.min(company.liquid_capital * 0.5);
         company.liquid_capital -= deductible;
         company.available_cash -= deductible;
         company.extra.insert("seed_inventory_cost".to_string(), Value::from(deductible));
@@ -1184,6 +1300,7 @@ fn legal_form_suffix(legal_form: &crate::entities::LegalForm) -> &'static str {
         LegalForm::LogisticsCompany(_) => "Logistics Inc",
         LegalForm::NonProfit(_) => "Foundation",
         LegalForm::MutualAidCircle(_) => "Mutual Aid",
+        LegalForm::Guild(_) => "Guild",
     }
 }
 
@@ -2191,7 +2308,7 @@ fn create_seed_company_with_explicit_method(
     let inventory_capacity = (base_capacity as f64 * 10.0).max(100.0);
 
     // Phase 27: Deduct seed inventory cost from company's liquid capital.
-    let deductible = seed_cost.min(company.liquid_capital * 0.3);
+    let deductible = seed_cost.min(company.liquid_capital * 0.5);
     company.liquid_capital -= deductible;
     company.available_cash -= deductible;
     company.extra.insert("seed_inventory_cost".to_string(), Value::from(deductible));
@@ -2600,7 +2717,7 @@ fn create_seed_company(
     let inventory_capacity = (base_capacity as f64 * 10.0).max(100.0);
 
     // Phase 27: Deduct seed inventory cost from company's liquid capital.
-    let deductible = seed_cost.min(company.liquid_capital * 0.3);
+    let deductible = seed_cost.min(company.liquid_capital * 0.5);
     company.liquid_capital -= deductible;
     company.available_cash -= deductible;
     company.extra.insert("seed_inventory_cost".to_string(), Value::from(deductible));
@@ -2718,6 +2835,11 @@ fn seed_fixed_assets(
 /// seeded goods at estimated base prices. This cost must be deducted from the
 /// company's `liquid_capital` and credited to `country.budget.liquid_reserves`
 /// to maintain double-entry accounting.
+/// Stabilization Sprint: Number of turns of input inventory to seed at world
+/// generation. Companies need enough raw materials to survive the first few
+/// turns before B2B trade establishes a reliable supply chain.
+const SEED_INVENTORY_TURNS: f64 = 5.0;
+
 fn seed_inventory(
     method: &ActiveProductionMethod,
     building_capacity: u32,
@@ -2726,11 +2848,20 @@ fn seed_inventory(
     let mut inventory = BTreeMap::new();
     let mut total_cost = 0.0;
 
+    // Stabilization Sprint: Seed SEED_INVENTORY_TURNS turns of inputs (was 1x).
+    // Without this buffer, companies exhaust inventory by Turn 2 and cannot
+    // produce, causing the Tabula Rasa crash.
     for (&commodity, &qty_per_1k) in &method.inputs {
         if commodity.is_fixed_asset() {
             continue;
         }
-        let seed_qty = qty_per_1k * production_scale;
+        // Stabilization Sprint: Skip local utility commodities (Energy, Heat,
+        // Water, WasteUtility) -- these are delivered by physical grids, not
+        // stored in building inventory.
+        if commodity.is_local_utility() {
+            continue;
+        }
+        let seed_qty = qty_per_1k * production_scale * SEED_INVENTORY_TURNS;
         if seed_qty > 0.0 {
             let unit_cost = estimated_base_price(commodity);
             total_cost += seed_qty * unit_cost;
@@ -2738,14 +2869,15 @@ fn seed_inventory(
         }
     }
 
-    // Phase 25: Seed initial output inventory for transport companies.
-    // FreightCapacity is produced during the production cycle, but B2B trade
-    // settlement runs BEFORE production. Without seeded FreightCapacity, all
-    // cross-region trades fail on Turn 1 (the freight cold-start problem).
-    // Seeding one turn of output is realistic Ă˘â‚¬â€ť transport companies start
-    // with existing capacity (their trucks/animals are already running).
+    // Stabilization Sprint: Seed 1 turn of output inventory for ALL sectors
+    // (was transport-only). Companies start with existing stock to sell on
+    // Turn 1, breaking the "no VWAP -> no asks -> no trades -> no VWAP" deadlock.
+    // Also skip local utility commodities -- they are grid-managed, not tradable.
     for (&commodity, &qty_per_1k) in &method.outputs {
         if commodity.is_fixed_asset() {
+            continue;
+        }
+        if commodity.is_local_utility() {
             continue;
         }
         let seed_qty = qty_per_1k * production_scale;
@@ -2795,6 +2927,209 @@ pub fn estimated_base_price(commodity: Commodity) -> f64 {
         Commodity::FreightCapacity => 50.0,
         _ => 100.0, // Generic fallback
     }
+}
+
+// ============================================================================
+// STABILIZATION SPRINT: AGRICULTURE 2.0 ACTIVATION
+// ============================================================================
+
+/// Stabilization Sprint: Soil fertility index from soil class string.
+/// Mirrors the mapping in geography.rs (lines 2314-2320).
+fn soil_fertility_index(soil_class: &str) -> f64 {
+    match soil_class {
+        "Class_I" => 1.0,
+        "Class_II" => 0.9,
+        "Class_III" => 0.75,
+        "Class_IV" => 0.6,
+        "Class_V" => 0.4,
+        "Class_VI" => 0.2,
+        _ => 0.5, // Unknown soil class — moderate fallback
+    }
+}
+
+/// Stabilization Sprint: Crop designation ratios for monoculture allocation.
+/// These determine what fraction of arable land is assigned to each crop type.
+/// Values are derived from historical 1890s-era farming distributions.
+const CROP_CEREAL_RATIO: f64 = 0.60;   // 60% of arable land to cereal crops
+const CROP_VEGETABLE_RATIO: f64 = 0.25; // 25% to vegetable/root crops
+const CROP_FODDER_RATIO: f64 = 0.15;   // 15% to fodder crops
+
+/// Stabilization Sprint: Initialize agricultural profiles for all agriculture
+/// companies, linking them to physical parcels from the Cadastre.
+///
+/// This function activates the dormant Agriculture 2.0 system by:
+/// 1. Assigning Cadastre parcels to each agriculture company based on region.
+/// 2. Computing arable_land_hectares from parcel sizes weighted by soil fertility.
+/// 3. Creating CropBatch entries with monoculture crop designation.
+/// 4. Setting company.agricultural_profile = Some(...).
+///
+/// # Rules
+/// * Only Sector::Agriculture companies are processed.
+/// * Parcels with zoning Agricultural or Unplanned and owner_type State are
+///   eligible for assignment.
+/// * Each parcel is assigned to exactly one company (no double-assignment).
+/// * Crop batches start in CropState::Idle (will transition via the turn loop).
+/// * Plantation crops (cotton, orchard, tobacco, cattle) use plantation_hectares.
+fn initialize_agricultural_profiles(
+    companies: &mut [Company],
+    cadastre: &mut crate::society::cadastre::Cadastre,
+    registries: &Registries,
+) {
+    use crate::entities::AgriculturalProfile;
+    use crate::society::cadastre::{ParcelOwnerType, ZoningDesignation, parcel_id_to_index};
+
+    // Collect parcel indices by region for assignment.
+    // Only Agricultural or Unplanned parcels currently owned by State are eligible.
+    let mut available_parcels_by_region: HashMap<String, Vec<crate::society::cadastre::ParcelId>> = HashMap::new();
+    for (parcel_id, parcel) in cadastre.iter() {
+        let eligible = matches!(parcel.zoning, ZoningDesignation::Agricultural | ZoningDesignation::Unplanned)
+            && matches!(parcel.owner_type, ParcelOwnerType::State);
+        if eligible {
+            available_parcels_by_region
+                .entry(parcel.region_id.clone())
+                .or_default()
+                .push(parcel_id);
+        }
+    }
+
+    for company in companies.iter_mut() {
+        if company.sector != Sector::Agriculture {
+            continue;
+        }
+
+        let region_id = &company.region_id;
+        let available = match available_parcels_by_region.get_mut(region_id) {
+            Some(parcels) if !parcels.is_empty() => parcels,
+            _ => continue, // No parcels available for this region
+        };
+
+        // Assign parcels to this company. Assign up to a reasonable farm size
+        // based on worker capacity (5 hectares per worker for manual farming).
+        let target_hectares = (company.worker_capacity as f64) * 5.0;
+        let mut assigned_parcel_indices: Vec<u32> = Vec::new();
+        let mut total_arable_hectares = 0.0;
+        let mut total_plantation_hectares = 0.0;
+
+        while total_arable_hectares + total_plantation_hectares < target_hectares {
+            let parcel_id = match available.pop() {
+                Some(id) => id,
+                None => break, // No more parcels available
+            };
+
+            // Update the parcel ownership on the cadastre.
+            if let Some(parcel) = cadastre.get_mut(parcel_id) {
+                parcel.owner_id = company.id.clone();
+                parcel.owner_type = ParcelOwnerType::Corporate;
+                parcel.usufruct_holder = Some(company.id.clone());
+
+                let fertility = soil_fertility_index(&parcel.soil_class);
+                let effective_hectares = parcel.size_hectares * fertility;
+
+                // Class IV-VI soil is better suited for pasture/plantation
+                // (lower fertility, suitable for livestock or perennials).
+                if fertility < 0.6 {
+                    total_plantation_hectares += effective_hectares;
+                } else {
+                    total_arable_hectares += effective_hectares;
+                }
+                assigned_parcel_indices.push(parcel_id_to_index(parcel_id));
+            }
+        }
+
+        if assigned_parcel_indices.is_empty() {
+            continue;
+        }
+
+        // Create monoculture crop batches based on the region's climate.
+        // Determine which crops are compatible with the region's climate.
+        // We need the region's climate_profile, but we don't have direct access
+        // here. Use the crop registry to find crops compatible with Temperate
+        // and Continental climates (the most common in the game).
+        let batches = build_crop_batches(
+            total_arable_hectares,
+            total_plantation_hectares,
+            registries,
+        );
+
+        company.agricultural_profile = Some(AgriculturalProfile {
+            arable_land_hectares: total_arable_hectares,
+            plantation_hectares: total_plantation_hectares,
+            batches,
+            owned_parcel_ids: assigned_parcel_indices,
+        });
+    }
+}
+
+/// Stabilization Sprint: Build crop batches with monoculture designation.
+///
+/// Allocates arable land across cereal, vegetable, and fodder crops using
+/// the CROP_*_RATIO constants. Plantation land is assigned to cattle/orchard.
+/// Each batch starts in CropState::Idle.
+fn build_crop_batches(
+    arable_hectares: f64,
+    plantation_hectares: f64,
+    registries: &Registries,
+) -> Vec<CropBatch> {
+    let mut batches = Vec::new();
+
+    // Arable land: allocate across cereal, vegetable, fodder
+    let cereal_hectares = arable_hectares * CROP_CEREAL_RATIO;
+    let vegetable_hectares = arable_hectares * CROP_VEGETABLE_RATIO;
+    let fodder_hectares = arable_hectares * CROP_FODDER_RATIO;
+
+    // Cereal batch (wheat — the most common cereal crop)
+    if cereal_hectares > 0.0 && registries.crops.get("wheat").is_some() {
+        batches.push(CropBatch {
+            crop_id: "wheat".to_string(),
+            planned_hectares: cereal_hectares,
+            active_hectares: 0.0,
+            state: CropState::Idle,
+            planted_turn: 0,
+            accumulated_yield: 0.0,
+            rot_accumulator: 0.0,
+        });
+    }
+
+    // Vegetable batch (potatoes — the most common root crop)
+    if vegetable_hectares > 0.0 && registries.crops.get("potatoes").is_some() {
+        batches.push(CropBatch {
+            crop_id: "potatoes".to_string(),
+            planned_hectares: vegetable_hectares,
+            active_hectares: 0.0,
+            state: CropState::Idle,
+            planted_turn: 0,
+            accumulated_yield: 0.0,
+            rot_accumulator: 0.0,
+        });
+    }
+
+    // Fodder batch (alfalfa — the most common fodder crop)
+    if fodder_hectares > 0.0 && registries.crops.get("alfalfa").is_some() {
+        batches.push(CropBatch {
+            crop_id: "alfalfa".to_string(),
+            planned_hectares: fodder_hectares,
+            active_hectares: 0.0,
+            state: CropState::Idle,
+            planted_turn: 0,
+            accumulated_yield: 0.0,
+            rot_accumulator: 0.0,
+        });
+    }
+
+    // Plantation land: assign to cattle (livestock ranching)
+    if plantation_hectares > 0.0 && registries.crops.get("cattle").is_some() {
+        batches.push(CropBatch {
+            crop_id: "cattle".to_string(),
+            planned_hectares: plantation_hectares,
+            active_hectares: 0.0,
+            state: CropState::Idle,
+            planted_turn: 0,
+            accumulated_yield: 0.0,
+            rot_accumulator: 0.0,
+        });
+    }
+
+    batches
 }
 
 /// Creates a Strategic Reserve Agency for the country (Phase 2, Phase 79).
@@ -4008,6 +4343,7 @@ fn generate_housing(
                 active_sanitation: String::new(),
                 active_waste_disposal: String::new(),
                 pending_upgrade: None,
+                commercial_slots: None,
             };
             all_housing.push(housing);
         }

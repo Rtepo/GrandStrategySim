@@ -322,6 +322,27 @@ pub fn process_building_cycle(
             // Phase 80: Removed market_orders.add_sell(Commodity::Energy, ...)
             // Energy is a local grid utility, not a global B2B commodity.
         }
+    } else if building.sector == crate::registries::enums::Sector::Agriculture {
+        // Stabilization Sprint: Agriculture 2.0 bypass.
+        // Agriculture buildings consume inputs (Seeds, Fodder, Water, Fuels)
+        // via B2B orders, but do NOT produce outputs via the per-turn BOM.
+        // The actual output is governed by the harvest cycle in agriculture.rs,
+        // which deposits yield to warehouses during the Harvesting state.
+        // This prevents farms from producing food every turn AND via the
+        // harvest cycle (double production bug).
+        for (&input_name, amount_per_1k) in &method.inputs {
+            // Skip local utility commodities — delivered by physical grids
+            if input_name.is_local_utility() {
+                continue;
+            }
+            let amount = amount_per_1k * production_scale;
+            let price = price_for(input_name, market_prices, base_wage, true);
+            input_costs += amount * price;
+            result.inputs_consumed.insert(input_name, amount);
+            market_orders.add_buy(input_name, amount);
+        }
+        // No output production — the harvest cycle handles output.
+        // Wages are still paid (workers maintain crops during growing phase).
     } else {
         // Standard fixed-rate production path (non-energy buildings)
         for (&input_name, amount_per_1k) in &method.inputs {

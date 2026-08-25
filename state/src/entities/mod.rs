@@ -38,6 +38,13 @@ pub struct AgriculturalProfile {
     /// Active crop batches currently growing/harvesting
     #[serde(default)]
     pub batches: Vec<CropBatch>,
+
+    /// Stabilization Sprint: Parcel IDs from the Cadastre that this farm
+    /// owns or leases. Links the farm to specific spatial land parcels,
+    /// constraining maximum output by physical land area and soil fertility.
+    /// Stored as serializable u32 indices (ParcelId -> u32 via parcel_id_to_index).
+    #[serde(default)]
+    pub owned_parcel_ids: Vec<u32>,
 }
 
 /// Active crop batch tracked per-company

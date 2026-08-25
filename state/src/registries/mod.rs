@@ -76,7 +76,10 @@ impl Registries {
             production_methods,
             building_templates: state_apparatus_templates(),
             government_forms: government_forms(),
-            crops: CropRegistry::default(),
+            // Stabilization Sprint: Load the static crop registry (was empty default).
+            crops: CropRegistry {
+                crops: crate::data::crop_registry::crop_registry().clone(),
+            },
         }))
     }
 
@@ -98,7 +101,10 @@ impl Registries {
             production_methods,
             building_templates: state_apparatus_templates(),
             government_forms: government_forms(),
-            crops: CropRegistry::default(),
+            // Stabilization Sprint: Load the static crop registry (was empty default).
+            crops: CropRegistry {
+                crops: crate::data::crop_registry::crop_registry().clone(),
+            },
         })
     }
 }

@@ -241,11 +241,14 @@ fn resolve_deficit(
         .unwrap_or(0.0);
     let import_price = global_base * (1.0 + tariff);
 
+    // Stabilization Sprint: If no net_surplus entry exists for this commodity,
+    // there is NO global surplus available — the commodity cannot be imported.
+    // Default to 0.0 (not deficit) so the price correctly hits the shortage cap.
     let global_surplus = global_market
         .net_surplus
         .get(&good)
         .copied()
-        .unwrap_or(deficit);
+        .unwrap_or(0.0);
 
     if global_surplus >= deficit {
         // Fully covered by imports; the marginal cleared price is the
@@ -424,12 +427,15 @@ fn resolve_surplus(
 
     // A negative net surplus means the world has a deficit (i.e. demand for
     // exports); a positive value means the world is already saturated.
+    // Stabilization Sprint: If no net_surplus entry exists for this commodity,
+    // there is NO global demand for exports — the commodity cannot be exported.
+    // Default to 0.0 (not surplus) so the price correctly hits the surplus floor.
     let global_demand = global_market
         .net_surplus
         .get(&good)
         .copied()
         .map(|s| if s < 0.0 { -s } else { 0.0 })
-        .unwrap_or(surplus);
+        .unwrap_or(0.0);
 
     if global_demand >= surplus {
         // Full export absorption; the marginal cleared price is the
