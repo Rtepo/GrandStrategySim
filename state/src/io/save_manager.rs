@@ -262,6 +262,14 @@ pub fn load_game_state(data_dir: &Path) -> Result<GameState, SaveError> {
         }
     }
 
+    // World Generation & Climate Audit (v0.5.3): Ensure the climate-season
+    // matrix is populated even for saves created before v0.5.3. If the matrix
+    // is empty, fill it with defaults. Existing non-empty matrices are preserved
+    // (they may contain custom scenario data).
+    if state.climate_config.climate_season_matrix.is_empty() {
+        state.climate_config.populate_defaults();
+    }
+
     Ok(state)
 }
 

@@ -85,7 +85,7 @@ pub fn crop_registry() -> &'static HashMap<String, CropDefinition> {
             name: "Potatoes".to_string(),
             category: CropCategory::Root,
             land_type: LandType::Arable,
-            compatible_climates: vec![ClimateProfile::Temperate, ClimateProfile::Continental],
+            compatible_climates: vec![ClimateProfile::Temperate, ClimateProfile::Continental, ClimateProfile::Tropical],
             sowing_schedule: TurnRange { start_turn: 13, end_turn: 15 },
             harvest_schedule: TurnRange { start_turn: 1, end_turn: 3 },
             labor_demand: LaborDemandProfile {
@@ -252,6 +252,157 @@ pub fn crop_registry() -> &'static HashMap<String, CropDefinition> {
             seed_quantity_per_hectare: 0.0,
             sowing_wage_multiplier: 1.0,
             harvesting_wage_multiplier: 3.0,
+        });
+
+        // World Generation & Climate Audit (v0.5.3): Tropical and
+        // climate-diverse crops to enable year-round growing in tropical
+        // and sub-tropical regions.
+
+        // Rice — Cereal crop for tropical and coastal climates.
+        // Supports 2 harvest cycles per year in tropical regions.
+        // First cycle: sowing turns 1-2, harvest turns 6-8.
+        // (Second cycle is handled by the state machine re-entering Sowing
+        // when the sowing window opens again at turns 13-14.)
+        crops.insert("rice".to_string(), CropDefinition {
+            id: "rice".to_string(),
+            name: "Rice".to_string(),
+            category: CropCategory::Cereal,
+            land_type: LandType::Arable,
+            compatible_climates: vec![ClimateProfile::Tropical, ClimateProfile::Coastal],
+            sowing_schedule: TurnRange { start_turn: 1, end_turn: 2 },
+            harvest_schedule: TurnRange { start_turn: 6, end_turn: 8 },
+            labor_demand: LaborDemandProfile {
+                sowing_fte_per_hectare: 0.20,  // Labor-intensive transplanting
+                growing_fte_per_hectare: 0.06,  // Water management
+                harvesting_fte_per_hectare: 0.25,
+            },
+            yields: {
+                let mut map = HashMap::new();
+                map.insert(Commodity::Cereal, 6.0);  // Higher yield than wheat
+                map.insert(Commodity::Fodder, 3.0);  // Rice straw
+                map
+            },
+            seed_cost_per_hectare: 120.0,
+            seed_commodity: Commodity::Seeds,
+            seed_quantity_per_hectare: 0.04,
+            sowing_wage_multiplier: 1.8,
+            harvesting_wage_multiplier: 3.0,
+        });
+
+        // Sugarcane — Luxury/industrial crop for tropical climates.
+        // Long growing season, high yield. Plantation (perennial ratooning).
+        crops.insert("sugarcane".to_string(), CropDefinition {
+            id: "sugarcane".to_string(),
+            name: "Sugarcane".to_string(),
+            category: CropCategory::Industrial,
+            land_type: LandType::Plantation,
+            compatible_climates: vec![ClimateProfile::Tropical, ClimateProfile::Coastal],
+            sowing_schedule: TurnRange { start_turn: 1, end_turn: 2 },
+            harvest_schedule: TurnRange { start_turn: 8, end_turn: 14 },  // Long harvest
+            labor_demand: LaborDemandProfile {
+                sowing_fte_per_hectare: 0.0,  // Plantation skips sowing
+                growing_fte_per_hectare: 0.03,
+                harvesting_fte_per_hectare: 0.15,
+            },
+            yields: {
+                let mut map = HashMap::new();
+                map.insert(Commodity::Luxury, 8.0);  // High yield, processed as sugar
+                map.insert(Commodity::Fodder, 4.0);  // Bagasse
+                map
+            },
+            seed_cost_per_hectare: 0.0,
+            seed_commodity: Commodity::Seeds,
+            seed_quantity_per_hectare: 0.0,
+            sowing_wage_multiplier: 1.0,
+            harvesting_wage_multiplier: 2.5,
+        });
+
+        // Coffee — Luxury plantation crop for tropical and coastal climates.
+        crops.insert("coffee".to_string(), CropDefinition {
+            id: "coffee".to_string(),
+            name: "Coffee".to_string(),
+            category: CropCategory::Industrial,
+            land_type: LandType::Plantation,
+            compatible_climates: vec![ClimateProfile::Tropical, ClimateProfile::Coastal],
+            sowing_schedule: TurnRange { start_turn: 1, end_turn: 2 },
+            harvest_schedule: TurnRange { start_turn: 4, end_turn: 7 },
+            labor_demand: LaborDemandProfile {
+                sowing_fte_per_hectare: 0.0,
+                growing_fte_per_hectare: 0.04,  // Pruning, shade management
+                harvesting_fte_per_hectare: 0.30,  // Hand-picking is labor-intensive
+            },
+            yields: {
+                let mut map = HashMap::new();
+                map.insert(Commodity::Luxury, 2.5);
+                map
+            },
+            seed_cost_per_hectare: 0.0,
+            seed_commodity: Commodity::Seeds,
+            seed_quantity_per_hectare: 0.0,
+            sowing_wage_multiplier: 1.0,
+            harvesting_wage_multiplier: 3.5,
+        });
+
+        // Tea — Luxury plantation crop for tropical and mountainous climates.
+        // Very long harvest window (year-round in tropical climates).
+        crops.insert("tea".to_string(), CropDefinition {
+            id: "tea".to_string(),
+            name: "Tea".to_string(),
+            category: CropCategory::Industrial,
+            land_type: LandType::Plantation,
+            compatible_climates: vec![ClimateProfile::Tropical, ClimateProfile::Mountainous],
+            sowing_schedule: TurnRange { start_turn: 1, end_turn: 2 },
+            harvest_schedule: TurnRange { start_turn: 4, end_turn: 18 },  // Very long harvest
+            labor_demand: LaborDemandProfile {
+                sowing_fte_per_hectare: 0.0,
+                growing_fte_per_hectare: 0.03,
+                harvesting_fte_per_hectare: 0.25,  // Hand-plucking
+            },
+            yields: {
+                let mut map = HashMap::new();
+                map.insert(Commodity::Luxury, 1.8);
+                map
+            },
+            seed_cost_per_hectare: 0.0,
+            seed_commodity: Commodity::Seeds,
+            seed_quantity_per_hectare: 0.0,
+            sowing_wage_multiplier: 1.0,
+            harvesting_wage_multiplier: 3.0,
+        });
+
+        // Soybeans — Versatile cereal/legume crop for temperate AND tropical.
+        // Can grow in both climate zones with different schedules.
+        // In temperate: sowing spring (turns 13-15), harvest autumn (turns 1-3).
+        // In tropical: sowing turns 1-2, harvest turns 6-8 (same as rice cycle).
+        crops.insert("soybeans".to_string(), CropDefinition {
+            id: "soybeans".to_string(),
+            name: "Soybeans".to_string(),
+            category: CropCategory::Legume,
+            land_type: LandType::Arable,
+            compatible_climates: vec![
+                ClimateProfile::Temperate,
+                ClimateProfile::Continental,
+                ClimateProfile::Tropical,
+            ],
+            // Temperate schedule (also used for tropical pre-seeding at game start)
+            sowing_schedule: TurnRange { start_turn: 13, end_turn: 15 },
+            harvest_schedule: TurnRange { start_turn: 1, end_turn: 3 },
+            labor_demand: LaborDemandProfile {
+                sowing_fte_per_hectare: 0.10,
+                growing_fte_per_hectare: 0.03,
+                harvesting_fte_per_hectare: 0.15,
+            },
+            yields: {
+                let mut map = HashMap::new();
+                map.insert(Commodity::Cereal, 3.0);  // Soybeans are a grain legume
+                map.insert(Commodity::Fodder, 2.5);  // Soybean meal
+                map
+            },
+            seed_cost_per_hectare: 110.0,
+            seed_commodity: Commodity::Seeds,
+            seed_quantity_per_hectare: 0.08,
+            sowing_wage_multiplier: 1.3,
+            harvesting_wage_multiplier: 2.5,
         });
 
         crops

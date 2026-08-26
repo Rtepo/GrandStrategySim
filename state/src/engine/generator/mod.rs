@@ -127,6 +127,12 @@ pub fn generate_world(
     let mut rng = rand::thread_rng();
     let mut state = GameState::new();
 
+    // World Generation & Climate Audit (v0.5.3): Populate the climate-season
+    // matrix with biologically sensible multipliers for all 7 climate profiles
+    // × 4 seasons. Without this, the matrix is empty and agricultural yields
+    // are zeroed out (the Phantom Harvest bug).
+    state.climate_config.populate_defaults();
+
     // Phase 53: Initialize calendar with the selected scenario year so that
     // turn-zero snapshots report the correct year (was defaulting to 0).
     // Emergency Stabilization: Start in September (month 9) so the autumn
@@ -433,6 +439,19 @@ fn generate_country(
 
     // Phase 21A: Generate geological formations with finite, depletable deposits.
     let region_ids: Vec<String> = country_regions.keys().cloned().collect();
+    let formations = crate::society::geography::generate_geological_formations(&region_ids, rng);
+
+    // World Generation & Climate Audit (v0.5.3): Re-seed region resources
+    // from the geological formations, replacing the homogeneous smear that
+    // generate_regional_topology applied via seed_geological_deposits().
+    // This enforces geographic sparsity — regions without overlapping
+    // formations get NO geological resources (forcing reliance on biomass,
+    // hydro, or imports).
+    crate::society::geography::reseed_resources_from_formations(
+        &mut country_regions,
+        &formations,
+        rng,
+    );
 
     // Phase 58: Generate topological cadastre with slotmap-backed ParcelChunks.
     let region_list: Vec<Region> = country_regions.values().cloned().collect();
@@ -450,7 +469,7 @@ fn generate_country(
 
     // Store the cadastre on the country.
     country.cadastre = cadastre;
-    country.geological_formations = crate::society::geography::generate_geological_formations(&region_ids, rng);
+    country.geological_formations = formations;
 
     // Phase 26: Generate baseline transport network links from regional adjacency.
     // Only DirtRoad or None levels are seeded — advanced infrastructure (Rail,

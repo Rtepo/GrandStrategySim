@@ -1505,6 +1505,100 @@ fn resource_category(good: &str) -> &'static str {
     }
 }
 
+/// World Generation & Climate Audit (v0.5.3): Re-seed region resources from
+/// geological formations, replacing the homogeneous `seed_geological_deposits`
+/// smear with geographically clustered, sparse resource deposits.
+///
+/// # Rules
+/// * Regions with NO overlapping geological formations get NO geological
+///   resources (forcing reliance on biomass, hydro, or imports).
+/// * Common resources (stone, sand, limestone) have a 50% chance of appearing
+///   in any region, as they are genuinely ubiquitous.
+/// * Rare resources (uranium, diamonds, gold) only appear via formations.
+/// * Resource keys use the `Commodity` enum's serde serialization
+///   (e.g., "hard_coal", "brown_coal", "natural_gas").
+/// * Freshwater and forest data are preserved from the initial seeding.
+///
+/// # Arguments
+/// * `regions` - Mutable map of region_id -> Region (resources will be rewritten)
+/// * `formations` - Geological formations generated for this country
+/// * `rng` - Random number generator for common-resource probability rolls
+pub fn reseed_resources_from_formations(
+    regions: &mut HashMap<String, Region>,
+    formations: &[GeologicalFormation],
+    rng: &mut impl Rng,
+) {
+    use crate::registries::enums::Commodity;
+
+    // Common resources that are genuinely ubiquitous — 50% chance per region.
+    // These use the Commodity enum's serde keys.
+    let common_resources: &[(Commodity, f64)] = &[
+        (Commodity::Stone, 100.0),
+        (Commodity::Sand, 100.0),
+        (Commodity::Limestone, 100.0),
+    ];
+
+    for region in regions.values_mut() {
+        let region_id = &region.id;
+        let region_gdp = region.gdp;
+
+        // Preserve non-geological resources (freshwater, forests) that were
+        // seeded by generate_regional_topology. We rebuild the geological
+        // portion from scratch.
+        let mut new_resources = Map::new();
+
+        // Preserve freshwater and forest data (these are not geological).
+        if let Some(water) = region.resources.get("woda_slodka") {
+            new_resources.insert("woda_slodka".to_string(), water.clone());
+        }
+        if let Some(forest) = region.resources.get("lasy") {
+            new_resources.insert("lasy".to_string(), forest.clone());
+        }
+
+        // Common resources (stone, sand, limestone) — 50% chance per region.
+        for &(commodity, multiplier) in common_resources {
+            if rng.gen::<f64>() < 0.5 {
+                let key = commodity.to_string();
+                new_resources.insert(
+                    key,
+                    serde_json::json!({
+                        "geological_reserves": int(region_gdp * multiplier * 1000.0),
+                        "reserves": 0,
+                        "annual_extraction": 0,
+                        "efficiency": 1.0,
+                        "domestic_consumption": 0
+                    }),
+                );
+            }
+        }
+
+        // Formation-based resources — only from overlapping formations.
+        let overlapping = get_formations_for_region(region_id, formations);
+        for formation in overlapping {
+            for (commodity_key, deposit) in &formation.resource_deposits {
+                // Use the formation's deposit data directly — this provides
+                // realistic reserve quantities, quality, and depth.
+                new_resources.insert(
+                    commodity_key.clone(),
+                    serde_json::json!({
+                        "geological_reserves": deposit.estimated_reserves as i64,
+                        "reserves": 0,
+                        "annual_extraction": 0,
+                        "efficiency": deposit.quality,
+                        "domestic_consumption": 0,
+                        "extraction_cost": deposit.extraction_cost,
+                        "depth": deposit.depth,
+                        "discovered": deposit.discovered
+                    }),
+                );
+            }
+        }
+
+        // Replace the region's resources with the new sparse set.
+        region.resources = new_resources;
+    }
+}
+
 /// Serde helper: returns true if the f64 is zero (for `skip_serializing_if`).
 fn is_zero_f64(v: &f64) -> bool {
     *v == 0.0

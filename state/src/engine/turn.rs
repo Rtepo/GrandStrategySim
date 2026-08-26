@@ -2543,12 +2543,20 @@ pub fn run_turn_in_memory(
         });
 
         // D.6: Deposit remaining harvest to warehouses
-        // Phase 25: Process ALL regions, not just the first.
+        // World Generation & Climate Audit (v0.5.3): FIX — Previously this
+        // loop iterated over ALL regions for EACH company, calling
+        // calculate_harvest_yield_and_rot N times per company (where N =
+        // number of regions in the country). This caused N× mass duplication
+        // of harvest yield. Now each company is harvested exactly once,
+        // using its own region's climate profile.
         tasks.par_iter_mut().for_each(|task| {
             for company in &mut task.companies {
-                let num_regions = task.ctx.country.regions.len();
-                for region_idx in 0..num_regions {
-                    let region = &mut task.ctx.country.regions[region_idx];
+                // Find the company's own region by region_id.
+                let region_idx = task.ctx.country.regions
+                    .iter()
+                    .position(|r| r.id == company.region_id);
+                if let Some(region_idx) = region_idx {
+                    let region = &task.ctx.country.regions[region_idx];
                     crate::agriculture::calculate_harvest_yield_and_rot(
                         company,
                         turn_calendar,

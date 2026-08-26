@@ -442,9 +442,17 @@ pub fn generate_corporate_entities(
     // agricultural profiles and linking farms to Cadastre parcels.
     // This must happen AFTER all companies are generated and BEFORE
     // buildings are moved into ctx.
+    //
+    // World Generation & Climate Audit (v0.5.3): Pass a region_id -> ClimateProfile
+    // map so that crop batch building can select climate-appropriate crops.
+    let region_climates: HashMap<String, ClimateProfile> = country_regions
+        .iter()
+        .map(|r| (r.id.clone(), r.climate_profile))
+        .collect();
     initialize_agricultural_profiles(
         &mut all_companies,
         &mut country.cadastre,
+        &region_climates,
         registries,
     );
 
@@ -2429,8 +2437,12 @@ fn create_specialized_power_plant(
     // data instead of hardcoding all flags to false. This was the root cause of
     // the "Biomass Clones" bug — every region got BiomassFired plants because
     // all other plant types required resource flags that were always false.
-    let has_coal_deposit = has_geological_resource(region, "coal")
-        || has_geological_resource(region, "lignite");
+    //
+    // World Generation & Climate Audit (v0.5.3): Updated resource keys to match
+    // the Commodity enum's serde serialization (hard_coal, brown_coal, etc.)
+    // instead of the old Polish-era keys (coal, lignite).
+    let has_coal_deposit = has_geological_resource(region, "hard_coal")
+        || has_geological_resource(region, "brown_coal");
     let has_uranium = has_geological_resource(region, "uranium");
     let has_geothermal = region.geographic_traits.has_geothermal_potential;
     let has_forest = has_forest_tract(region);
@@ -2971,13 +2983,6 @@ fn soil_fertility_index(soil_class: &str) -> f64 {
     }
 }
 
-/// Stabilization Sprint: Crop designation ratios for monoculture allocation.
-/// These determine what fraction of arable land is assigned to each crop type.
-/// Values are derived from historical 1890s-era farming distributions.
-const CROP_CEREAL_RATIO: f64 = 0.60;   // 60% of arable land to cereal crops
-const CROP_VEGETABLE_RATIO: f64 = 0.25; // 25% to vegetable/root crops
-const CROP_FODDER_RATIO: f64 = 0.15;   // 15% to fodder crops
-
 /// Stabilization Sprint: Initialize agricultural profiles for all agriculture
 /// companies, linking them to physical parcels from the Cadastre.
 ///
@@ -2997,6 +3002,7 @@ const CROP_FODDER_RATIO: f64 = 0.15;   // 15% to fodder crops
 fn initialize_agricultural_profiles(
     companies: &mut [Company],
     cadastre: &mut crate::society::cadastre::Cadastre,
+    region_climates: &HashMap<String, ClimateProfile>,
     registries: &Registries,
 ) {
     use crate::entities::AgriculturalProfile;
@@ -3065,13 +3071,16 @@ fn initialize_agricultural_profiles(
         }
 
         // Create monoculture crop batches based on the region's climate.
-        // Determine which crops are compatible with the region's climate.
-        // We need the region's climate_profile, but we don't have direct access
-        // here. Use the crop registry to find crops compatible with Temperate
-        // and Continental climates (the most common in the game).
+        // World Generation & Climate Audit (v0.5.3): Now passes the actual
+        // region climate profile to select climate-appropriate crops.
+        let climate_profile = region_climates
+            .get(region_id)
+            .copied()
+            .unwrap_or(ClimateProfile::Temperate);
         let batches = build_crop_batches(
             total_arable_hectares,
             total_plantation_hectares,
+            climate_profile,
             registries,
         );
 
@@ -3094,72 +3103,118 @@ fn initialize_agricultural_profiles(
 /// starts in September (autumn harvest season) — the crops are already in
 /// the field and ready to harvest at turns 1-3. Without this pre-seeding,
 /// the first harvest wouldn't occur until the following year.
+///
+/// World Generation & Climate Audit (v0.5.3):
+/// * Now accepts `climate_profile` to select climate-appropriate crops.
+/// * Pre-injects `accumulated_yield` for pre-seeded crops so the Turn 1
+///   harvest actually produces physical commodities. The accumulated yield
+///   represents the full growing-season biomass that has accumulated by
+///   September (the game start month).
 fn build_crop_batches(
     arable_hectares: f64,
     plantation_hectares: f64,
+    climate_profile: ClimateProfile,
     registries: &Registries,
 ) -> Vec<CropBatch> {
+    use ClimateProfile as CP;
+
+    // Select crop sets based on climate compatibility.
+    // Each tuple is (crop_id, land_type, planted_turn_for_pre_seed).
+    // planted_turn represents when the crop was sown in the PREVIOUS year
+    // so it's ready for harvest at the September start.
+    let arable_crop_sets: &[(&str, u32)] = match climate_profile {
+        CP::Tropical | CP::Coastal => &[
+            ("rice", 13),
+            ("soybeans", 13),
+            ("potatoes", 13),
+        ],
+        CP::Temperate | CP::Continental => &[
+            ("wheat", 13),
+            ("corn", 13),
+            ("potatoes", 13),
+            ("soybeans", 13),
+        ],
+        CP::Mountainous => &[
+            ("potatoes", 13),
+            ("alfalfa", 11),
+        ],
+        CP::Desert => &[
+            ("soybeans", 13),
+        ],
+        CP::Arctic => &[],
+    };
+
+    let plantation_crop_sets: &[(&str, u32)] = match climate_profile {
+        CP::Tropical | CP::Coastal => &[
+            ("sugarcane", 1),
+            ("coffee", 1),
+            ("cattle", 1),
+            ("orchard", 1),
+        ],
+        CP::Temperate | CP::Continental | CP::Mountainous => &[
+            ("cattle", 1),
+            ("orchard", 1),
+            ("tobacco", 1),
+        ],
+        CP::Desert => &[
+            ("cattle", 1),
+        ],
+        CP::Arctic => &[],
+    };
+
     let mut batches = Vec::new();
 
-    // Arable land: allocate across cereal, vegetable, fodder
-    let cereal_hectares = arable_hectares * CROP_CEREAL_RATIO;
-    let vegetable_hectares = arable_hectares * CROP_VEGETABLE_RATIO;
-    let fodder_hectares = arable_hectares * CROP_FODDER_RATIO;
+    // Distribute arable land across compatible arable crops.
+    if !arable_crop_sets.is_empty() && arable_hectares > 0.0 {
+        let per_crop_hectares = arable_hectares / arable_crop_sets.len() as f64;
+        for &(crop_id, planted_turn) in arable_crop_sets {
+            if per_crop_hectares <= 0.0 {
+                continue;
+            }
+            if let Some(crop_def) = registries.crops.get(crop_id) {
+                // Pre-calculate accumulated_yield: the full growing-season
+                // biomass that has accumulated by September (game start).
+                // Formula: active_hectares * sum(tons_per_hectare for all yields)
+                let total_yield_per_hectare: f64 = crop_def.yields.values().sum();
+                let pre_accumulated = per_crop_hectares * total_yield_per_hectare;
 
-    // Cereal batch (wheat — the most common cereal crop)
-    // Pre-seeded in Growing state: sown in spring, ready for autumn harvest.
-    if cereal_hectares > 0.0 && registries.crops.get("wheat").is_some() {
-        batches.push(CropBatch {
-            crop_id: "wheat".to_string(),
-            planned_hectares: cereal_hectares,
-            active_hectares: cereal_hectares,
-            state: CropState::Growing,
-            planted_turn: 13, // Sown in March (turn 13 of previous year)
-            accumulated_yield: 0.0,
-            rot_accumulator: 0.0,
-        });
+                batches.push(CropBatch {
+                    crop_id: crop_id.to_string(),
+                    planned_hectares: per_crop_hectares,
+                    active_hectares: per_crop_hectares,
+                    state: CropState::Growing,
+                    planted_turn,
+                    accumulated_yield: pre_accumulated,
+                    rot_accumulator: 0.0,
+                });
+            }
+        }
     }
 
-    // Vegetable batch (potatoes — the most common root crop)
-    // Pre-seeded in Growing state: sown in spring, ready for autumn harvest.
-    if vegetable_hectares > 0.0 && registries.crops.get("potatoes").is_some() {
-        batches.push(CropBatch {
-            crop_id: "potatoes".to_string(),
-            planned_hectares: vegetable_hectares,
-            active_hectares: vegetable_hectares,
-            state: CropState::Growing,
-            planted_turn: 13,
-            accumulated_yield: 0.0,
-            rot_accumulator: 0.0,
-        });
-    }
+    // Distribute plantation land across compatible plantation crops.
+    if !plantation_crop_sets.is_empty() && plantation_hectares > 0.0 {
+        let per_crop_hectares = plantation_hectares / plantation_crop_sets.len() as f64;
+        for &(crop_id, planted_turn) in plantation_crop_sets {
+            if per_crop_hectares <= 0.0 {
+                continue;
+            }
+            if let Some(crop_def) = registries.crops.get(crop_id) {
+                // Plantation crops are perennial — pre-accumulate yield
+                // representing the current season's growth.
+                let total_yield_per_hectare: f64 = crop_def.yields.values().sum();
+                let pre_accumulated = per_crop_hectares * total_yield_per_hectare;
 
-    // Fodder batch (alfalfa — the most common fodder crop)
-    // Pre-seeded in Growing state: sown in January, harvest May-August.
-    if fodder_hectares > 0.0 && registries.crops.get("alfalfa").is_some() {
-        batches.push(CropBatch {
-            crop_id: "alfalfa".to_string(),
-            planned_hectares: fodder_hectares,
-            active_hectares: fodder_hectares,
-            state: CropState::Growing,
-            planted_turn: 11,
-            accumulated_yield: 0.0,
-            rot_accumulator: 0.0,
-        });
-    }
-
-    // Plantation land: assign to cattle (livestock ranching)
-    // Pre-seeded in Growing state: perennial, year-round production.
-    if plantation_hectares > 0.0 && registries.crops.get("cattle").is_some() {
-        batches.push(CropBatch {
-            crop_id: "cattle".to_string(),
-            planned_hectares: plantation_hectares,
-            active_hectares: plantation_hectares,
-            state: CropState::Growing,
-            planted_turn: 1,
-            accumulated_yield: 0.0,
-            rot_accumulator: 0.0,
-        });
+                batches.push(CropBatch {
+                    crop_id: crop_id.to_string(),
+                    planned_hectares: per_crop_hectares,
+                    active_hectares: per_crop_hectares,
+                    state: CropState::Growing,
+                    planted_turn,
+                    accumulated_yield: pre_accumulated,
+                    rot_accumulator: 0.0,
+                });
+            }
+        }
     }
 
     batches

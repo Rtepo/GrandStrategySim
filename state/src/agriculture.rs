@@ -501,15 +501,46 @@ pub fn calculate_harvest_yield_and_rot(
             }
             let harvest_duration_turns = (duration + 1) as f64;
 
+            // World Generation & Climate Audit (v0.5.3):
+            // Calculate the total yield-per-hectare across all commodities
+            // to determine each commodity's share of the pre-accumulated yield.
+            let total_yield_per_hectare: f64 = crop_def.yields.values().sum();
+
             // For each (commodity, tons_per_hectare) in crop_def.yields:
             for (commodity, tons_per_hectare) in &crop_def.yields {
+                // Standard per-turn yield calculation (climate-modulated).
                 let base_commodity_yield = batch.active_hectares * tons_per_hectare * modifiers.agriculture_multiplier;
                 let turn_commodity_yield = base_commodity_yield / harvest_duration_turns;
                 let final_yield = turn_commodity_yield * (1.0 - batch.rot_accumulator);
+
+                // Pre-accumulated yield guarantee: if the crop was pre-seeded
+                // at world generation with accumulated_yield > 0, ensure the
+                // harvest produces at least the pre-accumulated biomass
+                // distributed across the harvest window. This represents the
+                // physical biomass that grew during the previous growing season
+                // and is now being harvested.
+                //
+                // The accumulated yield is distributed proportionally across
+                // commodities (by their yield share) and across harvest turns.
+                // It is decremented each turn so it is consumed over the
+                // harvest window and does not create infinite food.
+                let guaranteed_yield = if total_yield_per_hectare > 0.0 && batch.accumulated_yield > 0.0 {
+                    let commodity_share = tons_per_hectare / total_yield_per_hectare;
+                    let per_turn_accumulated = batch.accumulated_yield * commodity_share / harvest_duration_turns;
+                    per_turn_accumulated * (1.0 - batch.rot_accumulator)
+                } else {
+                    0.0
+                };
+
+                // The actual yield is the maximum of the standard calculation
+                // and the pre-accumulated guarantee. This ensures pre-seeded
+                // crops produce food even if the climate multiplier is low,
+                // while not suppressing higher yields from favorable conditions.
+                let actual_yield = final_yield.max(guaranteed_yield);
                 let commodity_key = commodity.inventory_key();
 
                 // Find company's owned warehouse buildings and deposit using encapsulated methods
-                let mut remaining_yield = final_yield;
+                let mut remaining_yield = actual_yield;
                 for building_id in &company.building_ids {
                     if let Some(building) = commercial_buildings.iter_mut().find(|b| &b.id == building_id) {
                         if matches!(building.building_type, crate::society::housing::CommercialBuildingType::Warehouse) {
@@ -530,6 +561,13 @@ pub fn calculate_harvest_yield_and_rot(
                 // Phase 46: Excess beyond warehouse capacity rots in the field.
                 // No fire sale, no cash generation. remaining_yield is simply lost.
                 // This forces companies to build sufficient storage or lose harvest.
+            }
+
+            // Decrement accumulated_yield proportionally for this turn's harvest.
+            // Each turn consumes 1/harvest_duration_turns of the accumulated yield.
+            if harvest_duration_turns > 0.0 && batch.accumulated_yield > 0.0 {
+                let consumed = batch.accumulated_yield / harvest_duration_turns;
+                batch.accumulated_yield = (batch.accumulated_yield - consumed).max(0.0);
             }
         }
     }
