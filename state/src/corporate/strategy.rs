@@ -730,8 +730,15 @@ fn evaluate_cooperative_ipo(data: &CooperativeData, ctx: &CorporateDecisionCtx) 
 }
 
 fn is_distressed(ctx: &CorporateDecisionCtx) -> bool {
+    // AI & Stability Audit (Pillar 1C + 4A): Broadened distress detection to
+    // include raw-material shortage and payroll-coverage threshold. Uses a
+    // 3-turn moving average of net profit instead of single-turn value to
+    // prevent 1-turn panic firings.
+    let avg_profit = ctx.company.moving_avg_net_profit(3);
+    let payroll = ctx.company.offered_wage_per_fte * ctx.company.fulfilled_fte as f64;
     ctx.company.company_capital < 0.0
-        || (ctx.net_profit < 0.0 && ctx.company.liquid_capital == 0.0)
+        || (avg_profit < 0.0 && ctx.company.liquid_capital < payroll * 2.0)
+        || ctx.avg_fulfillment_ratio < 0.1
 }
 
 /// Emergency Stabilization: Evaluate whether a distressed company should
@@ -804,7 +811,15 @@ fn family_expansion(ctx: &CorporateDecisionCtx) -> CorporateAction {
     // Phase 29: GDP thresholds eradicated. A profitable company invests
     // based on its own gross_profit and company_capital, not national GDP.
     if ctx.gross_profit > 0.0 && ctx.company.company_capital > 0.0 {
-        let investment = ctx.gross_profit * 0.30;
+        // AI & Stability Audit (Pillar 4B): Apply proto-learning penalty weight.
+        // If past expansions led to declining ROI, reduce investment accordingly.
+        // If weight > 0.8, skip expansion entirely (the company has "learned"
+        // that expansion is counterproductive in current conditions).
+        let expansion_weight = ctx.company.action_ledger.weight_for("Expand");
+        if expansion_weight > 0.8 {
+            return CorporateAction::Idle;
+        }
+        let investment = ctx.gross_profit * 0.30 * (1.0 - expansion_weight);
         let new_workers = cap_new_workers(ctx.company, ((ctx.gross_profit / 1_000.0) as u32).max(1));
         CorporateAction::Expand {
             investment,
@@ -820,7 +835,11 @@ fn cooperative_expansion(ctx: &CorporateDecisionCtx) -> CorporateAction {
     // Phase 29: GDP thresholds eradicated. A profitable cooperative invests
     // based on its own gross_profit and company_capital, not national GDP.
     if ctx.gross_profit > 0.0 && ctx.company.company_capital > 0.0 {
-        let investment = ctx.gross_profit * 0.20;
+        let expansion_weight = ctx.company.action_ledger.weight_for("Expand");
+        if expansion_weight > 0.8 {
+            return CorporateAction::Idle;
+        }
+        let investment = ctx.gross_profit * 0.20 * (1.0 - expansion_weight);
         let new_workers = cap_new_workers(ctx.company, ((ctx.gross_profit / 1_000.0) as u32).max(1));
         CorporateAction::Expand {
             investment,
@@ -834,7 +853,11 @@ fn cooperative_expansion(ctx: &CorporateDecisionCtx) -> CorporateAction {
 
 fn mutual_aid_expansion(ctx: &CorporateDecisionCtx) -> CorporateAction {
     if ctx.company.company_capital > 0.0 && ctx.gross_profit > 0.0 {
-        let investment = ctx.gross_profit * 0.10;
+        let expansion_weight = ctx.company.action_ledger.weight_for("Expand");
+        if expansion_weight > 0.8 {
+            return CorporateAction::Idle;
+        }
+        let investment = ctx.gross_profit * 0.10 * (1.0 - expansion_weight);
         let new_workers = cap_new_workers(ctx.company, ((ctx.gross_profit / 1_000.0) as u32).max(1));
         CorporateAction::Expand {
             investment,
@@ -847,7 +870,11 @@ fn mutual_aid_expansion(ctx: &CorporateDecisionCtx) -> CorporateAction {
 }
 
 fn joint_stock_expansion(ctx: &CorporateDecisionCtx) -> CorporateAction {
-    let desired = ctx.company.desired_investment(ctx.market_signal);
+    let expansion_weight = ctx.company.action_ledger.weight_for("Expand");
+    if expansion_weight > 0.8 {
+        return CorporateAction::Idle;
+    }
+    let desired = ctx.company.desired_investment(ctx.market_signal) * (1.0 - expansion_weight);
     let internal = ctx.company.liquid_capital;
 
     if desired <= internal {

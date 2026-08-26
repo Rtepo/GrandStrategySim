@@ -1322,6 +1322,184 @@ pub fn execute_crisis_response(
 }
 
 // ============================================================================
+// AI & STABILITY AUDIT (PILLAR 4C): COUNTER-CYCLICAL STATE AI
+// ============================================================================
+//
+// A simple Keynesian counter-cyclical mechanism that runs EVERY turn (not just
+// during crises). When unemployment spikes above 8% AND is rising, the state:
+//   1. Transfers cash from treasury to UNEMPLOYED workers' savings (stimulus)
+//   2. Reduces the central bank reserve requirement (monetary easing)
+//
+// When unemployment drops below 5%, the reserve requirement is restored.
+//
+// Double-Entry: Treasury is debited, unemployed worker class savings are
+// credited. The national total unemployed FTE is pre-computed in a separate
+// pass to prevent fiat duplication across regions.
+
+/// AI & Stability Audit (Pillar 4C): Counter-cyclical fiscal and monetary
+/// response to unemployment spikes. Called every turn BEFORE crisis detection.
+///
+/// # Arguments
+/// * `country` - Mutable reference to the country
+/// * `current_turn` - Current global turn
+///
+/// # Returns
+/// Vector of diagnostic messages for the government action log.
+///
+/// # Rules
+/// * Fiscal stimulus targets ONLY unemployed workers (available_fte - allocated_fte)
+/// * National total unemployed FTE is pre-computed to prevent fiat duplication
+/// * Stimulus is capped at 5% of liquid reserves to prevent treasury exhaustion
+/// * Sum of distributed amounts == treasury debit (asserted)
+pub fn counter_cyclical_response(
+    country: &mut Country,
+    _current_turn: u32,
+) -> Vec<String> {
+    let mut messages = Vec::new();
+
+    let unemployment_rate = country.macro_indicators.labor_market.unemployment_rate;
+    let prev_unemployment = country.macro_indicators.labor_market.prev_unemployment_rate;
+    let gdp = country.budget.gdp.max(1.0);
+
+    // Store current unemployment as previous for next turn's comparison.
+    country.macro_indicators.labor_market.prev_unemployment_rate = unemployment_rate;
+
+    // Fiscal stimulus: only when unemployment is high AND rising.
+    if unemployment_rate > 8.0 && unemployment_rate > prev_unemployment {
+        // Step 1: Calculate national total unemployed FTE (single pass, no duplication).
+        let mut national_total_unemployed_fte: f64 = 0.0;
+        for region in &country.regions {
+            for class in region.class_demographics.rural_classes.values() {
+                national_total_unemployed_fte +=
+                    (class.available_fte - class.allocated_fte).max(0.0);
+            }
+            for class in region.class_demographics.urban_classes.values() {
+                national_total_unemployed_fte +=
+                    (class.available_fte - class.allocated_fte).max(0.0);
+            }
+        }
+
+        if national_total_unemployed_fte > 0.0 {
+            // Stimulus capped at 5% of liquid reserves.
+            let raw_stimulus = (unemployment_rate - 8.0).min(10.0) * 0.01 * gdp;
+            let stimulus = raw_stimulus.min(country.budget.liquid_reserves * 0.05);
+
+            if stimulus > 0.0 {
+                country.budget.liquid_reserves -= stimulus;
+
+                // Step 2: Distribute to UNEMPLOYED workers only, pro-rata by
+                // unemployed FTE. Each class receives:
+                //   stimulus * (class_unemployed_fte / national_total_unemployed_fte)
+                let mut distributed_total: f64 = 0.0;
+                // Track the largest unemployed class for residual crediting.
+                let mut largest_unemployed: Option<(String, f64)> = None;
+
+                for region in &mut country.regions {
+                    for class in region.class_demographics.rural_classes.values_mut() {
+                        let class_unemployed =
+                            (class.available_fte - class.allocated_fte).max(0.0);
+                        if class_unemployed > 0.0 {
+                            let share = stimulus * (class_unemployed / national_total_unemployed_fte);
+                            class.savings += share;
+                            distributed_total += share;
+                            if largest_unemployed.is_none()
+                                || largest_unemployed.as_ref().map(|(_, f)| *f).unwrap_or(0.0) < class_unemployed
+                            {
+                                largest_unemployed = Some(("rural".to_string(), class_unemployed));
+                            }
+                        }
+                    }
+                    for class in region.class_demographics.urban_classes.values_mut() {
+                        let class_unemployed =
+                            (class.available_fte - class.allocated_fte).max(0.0);
+                        if class_unemployed > 0.0 {
+                            let share = stimulus * (class_unemployed / national_total_unemployed_fte);
+                            class.savings += share;
+                            distributed_total += share;
+                            if largest_unemployed.is_none()
+                                || largest_unemployed.as_ref().map(|(_, f)| *f).unwrap_or(0.0) < class_unemployed
+                            {
+                                largest_unemployed = Some(("urban".to_string(), class_unemployed));
+                            }
+                        }
+                    }
+                }
+
+                // Credit any floating-point residual to the largest unemployed class.
+                let residual = stimulus - distributed_total;
+                if residual.abs() > 1e-6 {
+                    // Find the largest unemployed class and credit the residual.
+                    let mut max_unemployed: f64 = 0.0;
+                    for region in &mut country.regions {
+                        for class in region.class_demographics.rural_classes.values_mut() {
+                            let class_unemployed =
+                                (class.available_fte - class.allocated_fte).max(0.0);
+                            if class_unemployed > max_unemployed {
+                                max_unemployed = class_unemployed;
+                            }
+                        }
+                        for class in region.class_demographics.urban_classes.values_mut() {
+                            let class_unemployed =
+                                (class.available_fte - class.allocated_fte).max(0.0);
+                            if class_unemployed > max_unemployed {
+                                max_unemployed = class_unemployed;
+                            }
+                        }
+                    }
+                    // Credit residual to the first class with max_unemployed.
+                    'outer: for region in &mut country.regions {
+                        for class in region.class_demographics.rural_classes.values_mut() {
+                            let class_unemployed =
+                                (class.available_fte - class.allocated_fte).max(0.0);
+                            if (class_unemployed - max_unemployed).abs() < 1e-9 {
+                                class.savings += residual;
+                                break 'outer;
+                            }
+                        }
+                        for class in region.class_demographics.urban_classes.values_mut() {
+                            let class_unemployed =
+                                (class.available_fte - class.allocated_fte).max(0.0);
+                            if (class_unemployed - max_unemployed).abs() < 1e-9 {
+                                class.savings += residual;
+                                break 'outer;
+                            }
+                        }
+                    }
+                }
+
+                messages.push(format!(
+                    "[COUNTER-CYCLICAL] Fiscal stimulus: {:.0} transferred from treasury to unemployed workers (unemployment {:.1}% → {:.1}%)",
+                    stimulus, prev_unemployment, unemployment_rate
+                ));
+            }
+        }
+
+        // Monetary easing: reduce reserve requirement.
+        if country.central_bank.reserve_requirement_ratio > 0.05 {
+            country.central_bank.reserve_requirement_ratio -= 0.01;
+            messages.push(format!(
+                "[COUNTER-CYCLICAL] Monetary easing: reserve requirement reduced to {:.0}%",
+                country.central_bank.reserve_requirement_ratio * 100.0
+            ));
+        }
+    }
+
+    // Recovery: restore reserve requirement when unemployment drops below 5%.
+    if unemployment_rate < 5.0 && prev_unemployment >= 5.0 {
+        if country.central_bank.reserve_requirement_ratio < 0.15 {
+            country.central_bank.reserve_requirement_ratio =
+                (country.central_bank.reserve_requirement_ratio + 0.01).min(0.15);
+            messages.push(format!(
+                "[COUNTER-CYCLICAL] Recovery: reserve requirement restored to {:.0}%",
+                country.central_bank.reserve_requirement_ratio * 100.0
+            ));
+        }
+    }
+
+    messages
+}
+
+// ============================================================================
 // TESTS
 // ============================================================================
 

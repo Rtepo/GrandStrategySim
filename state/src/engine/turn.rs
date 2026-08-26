@@ -902,6 +902,20 @@ pub fn run_turn_in_memory(
                 nx_zero,
             );
 
+            // AI & Stability Audit (Pillar 4C): Counter-cyclical response runs
+            // EVERY turn BEFORE crisis detection. This provides a smooth
+            // Keynesian fiscal/monetary response to unemployment spikes,
+            // preventing panic spirals before they become full crises.
+            let counter_cyclical_msgs = crate::politics::crisis_management::counter_cyclical_response(
+                task.ctx.country,
+                turn,
+            );
+            if !counter_cyclical_msgs.is_empty() {
+                let entry = serde_json::json!(counter_cyclical_msgs);
+                task.ctx.country.macro_indicators.extra
+                    .insert("counter_cyclical_messages".to_string(), entry);
+            }
+
             let crisis_msgs = crate::politics::crisis_management::execute_crisis_response(
                 task.ctx.country,
                 &mut task.companies,
@@ -1996,6 +2010,7 @@ pub fn run_turn_in_memory(
             for company in &mut task.companies {
                 crate::agriculture::calculate_agricultural_fte_demand(
                     company,
+                    turn_calendar,
                     task.ctx.registries,
                 );
             }
@@ -5157,13 +5172,20 @@ pub fn run_turn_in_memory(
     }
 
     // Sync state.calendar so the TUI and snapshots show the correct turn/year.
+    // AI & Stability Audit (Pillar 1A): Use start_month-aware formula to fix
+    // the time-travel bug where Turn 1 jumped back to January instead of
+    // staying in September (start_month = 9). The old formula
+    // `((turn - 1) % 24) / 2 + 1` ignored start_month entirely.
     state.calendar.global_turn = turn;
     state.calendar.current_year = year;
     if turn > 0 {
-        state.calendar.current_month = ((turn - 1) % 24) / 2 + 1;
-        state.calendar.half_month = (turn - 1) % 2 == 1;
+        let turn_in_year = (turn - 1) % 24;
+        state.calendar.current_month =
+            (turn_in_year / 2 + state.calendar.start_month.saturating_sub(1)) % 12 + 1;
+        state.calendar.half_month = turn_in_year % 2 == 1;
     } else {
-        state.calendar.current_month = 1;
+        // Turn 0: use start_month directly (game start).
+        state.calendar.current_month = state.calendar.start_month.max(1).min(12);
         state.calendar.half_month = false;
     }
     update_storage(state, turn, year);

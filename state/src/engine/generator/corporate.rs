@@ -1067,6 +1067,7 @@ fn generate_region_companies(
             furloughed_workers_count: 0.0,
             ceo_vip_id: None,
             eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
+            action_ledger: crate::entities::ActionLedger::default(),
             extra: serde_json::Map::new(),
         };
 
@@ -2273,6 +2274,7 @@ fn create_seed_company_with_explicit_method(
         furloughed_workers_count: 0.0,
         ceo_vip_id: None,
         eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
+        action_ledger: crate::entities::ActionLedger::default(),
         extra: serde_json::Map::new(),
     };
 
@@ -2370,6 +2372,34 @@ fn create_seed_energy_company(
     )
 }
 
+/// AI & Stability Audit (Pillar 1B): Check if a region has a non-zero
+/// geological resource deposit for the given commodity key.
+///
+/// Returns `true` if `region.resources` contains the key with
+/// `geological_reserves > 0`.
+fn has_geological_resource(region: &Region, resource_key: &str) -> bool {
+    if let Some(Value::Object(map)) = region.resources.get(resource_key) {
+        if let Some(Value::Number(n)) = map.get("geological_reserves") {
+            if let Some(reserves) = n.as_f64() {
+                return reserves > 0.0;
+            }
+        }
+    }
+    false
+}
+
+/// AI & Stability Audit (Pillar 1B): Check if a region has forest tracts
+/// suitable for biomass feedstock. Uses the LandUseInventory Forests category
+/// area — a region with > 1000 hectares of forest can support biomass plants.
+fn has_forest_tract(region: &Region) -> bool {
+    if let Some(forest_data) = region.land_use_inventory.get_category(
+        crate::society::geography::LandCategory::Forests,
+    ) {
+        return forest_data.area_hectares > 1000.0;
+    }
+    false
+}
+
 /// Phase 81: Create a specialized power plant with `PowerPlantMetadata`.
 ///
 /// Determines the plant type based on geographic constraints and era,
@@ -2395,12 +2425,16 @@ fn create_specialized_power_plant(
     let has_river = region.geographic_traits.has_navigable_river;
     let has_water = has_coast || has_river;
 
-    // Check for coal deposits in this region.
-    let has_coal_deposit = false; // TODO: query geological_formations for coal deposits.
-    let has_uranium = false; // TODO: query geological_formations for uranium.
-    let has_geothermal = false; // TODO: check for volcanic formations.
-    let has_forest = false; // TODO: check for forest tracts.
-    let has_livestock = false; // TODO: check for livestock production.
+    // AI & Stability Audit (Pillar 1B): Query actual geological and geographic
+    // data instead of hardcoding all flags to false. This was the root cause of
+    // the "Biomass Clones" bug — every region got BiomassFired plants because
+    // all other plant types required resource flags that were always false.
+    let has_coal_deposit = has_geological_resource(region, "coal")
+        || has_geological_resource(region, "lignite");
+    let has_uranium = has_geological_resource(region, "uranium");
+    let has_geothermal = region.geographic_traits.has_geothermal_potential;
+    let has_forest = has_forest_tract(region);
+    let has_livestock = has_geological_resource(region, "peat"); // Peat is organic fuel
 
     // Get available plant types.
     let plant_types = available_plant_types(
@@ -2660,6 +2694,7 @@ fn create_seed_company(
         furloughed_workers_count: 0.0,
         ceo_vip_id: None,
         eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
+        action_ledger: crate::entities::ActionLedger::default(),
         extra: serde_json::Map::new(),
     };
 
@@ -3416,6 +3451,7 @@ fn create_strategic_reserve_agency(
         furloughed_workers_count: 0.0,
         ceo_vip_id: None,
         eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
+        action_ledger: crate::entities::ActionLedger::default(),
         extra: Map::new(),
     };
 
@@ -3736,6 +3772,7 @@ fn generate_retail_stores(
             furloughed_workers_count: 0.0,
             ceo_vip_id: None,
             eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
+            action_ledger: crate::entities::ActionLedger::default(),
             extra: serde_json::Map::new(),
         };
 
@@ -4117,6 +4154,7 @@ fn generate_tourism_entities(
                 furloughed_workers_count: 0.0,
                 ceo_vip_id: None,
                 eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
+                action_ledger: crate::entities::ActionLedger::default(),
                 extra: serde_json::Map::new(),
             };
             // Phase 42: Genesis Labor Fix
@@ -4634,6 +4672,7 @@ fn create_charity_company(
         furloughed_workers_count: 0.0,
         ceo_vip_id: None,
         eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
+        action_ledger: crate::entities::ActionLedger::default(),
         extra: serde_json::Map::new(),
     }
 }
@@ -4871,6 +4910,7 @@ pub fn generate_investment_funds(
             dividend_yield: 0.0,
             open_price: 1.0,
             close_price: 1.0,
+            action_ledger: crate::entities::ActionLedger::default(),
             extra: serde_json::Map::new(),
         };
 

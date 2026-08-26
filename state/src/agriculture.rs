@@ -225,6 +225,98 @@ fn transition_plantation_crop(
     }
 }
 
+/// AI & Stability Audit (Pillar 3): Predict the crop state for the next turn.
+///
+/// Applies the same transition logic as `transition_arable_crop` and
+/// `transition_plantation_crop` but without mutating the batch. Used for
+/// anticipatory labor ramp-up.
+fn predict_next_crop_state(
+    batch: &CropBatch,
+    crop_def: &CropDefinition,
+    next_turn: u32,
+) -> CropState {
+    match crop_def.land_type {
+        LandType::Arable => predict_next_arable_state(batch, crop_def, next_turn),
+        LandType::Plantation => predict_next_plantation_state(batch, crop_def, next_turn),
+    }
+}
+
+fn predict_next_arable_state(
+    batch: &CropBatch,
+    crop_def: &CropDefinition,
+    next_turn: u32,
+) -> CropState {
+    match batch.state {
+        CropState::Idle => {
+            if next_turn >= crop_def.sowing_schedule.start_turn
+                && next_turn <= crop_def.sowing_schedule.end_turn
+            {
+                CropState::Sowing
+            } else {
+                CropState::Idle
+            }
+        }
+        CropState::Sowing => {
+            if next_turn > crop_def.sowing_schedule.end_turn {
+                CropState::Growing
+            } else {
+                CropState::Sowing
+            }
+        }
+        CropState::Growing => {
+            if next_turn >= crop_def.harvest_schedule.start_turn
+                && next_turn <= crop_def.harvest_schedule.end_turn
+            {
+                CropState::Harvesting
+            } else {
+                CropState::Growing
+            }
+        }
+        CropState::Harvesting => {
+            if next_turn > crop_def.harvest_schedule.end_turn {
+                CropState::Idle
+            } else {
+                CropState::Harvesting
+            }
+        }
+    }
+}
+
+fn predict_next_plantation_state(
+    batch: &CropBatch,
+    crop_def: &CropDefinition,
+    next_turn: u32,
+) -> CropState {
+    match batch.state {
+        CropState::Idle => {
+            if next_turn >= crop_def.sowing_schedule.start_turn
+                && next_turn <= crop_def.sowing_schedule.end_turn
+            {
+                CropState::Growing
+            } else {
+                CropState::Idle
+            }
+        }
+        CropState::Sowing => CropState::Growing,
+        CropState::Growing => {
+            if next_turn >= crop_def.harvest_schedule.start_turn
+                && next_turn <= crop_def.harvest_schedule.end_turn
+            {
+                CropState::Harvesting
+            } else {
+                CropState::Growing
+            }
+        }
+        CropState::Harvesting => {
+            if next_turn > crop_def.harvest_schedule.end_turn {
+                CropState::Idle
+            } else {
+                CropState::Harvesting
+            }
+        }
+    }
+}
+
 /// Calculate agricultural FTE demand (physical and target)
 ///
 /// # Arguments
@@ -237,6 +329,7 @@ fn transition_plantation_crop(
 /// * Receivership companies bid for all active states (Sowing, Growing, Harvesting)
 pub fn calculate_agricultural_fte_demand(
     company: &mut Company,
+    calendar: &Calendar,
     registries: &Registries,
 ) {
     let Some(agri_profile) = &company.agricultural_profile else {
@@ -284,6 +377,37 @@ pub fn calculate_agricultural_fte_demand(
         };
 
         physical_demand += labor_fte;
+
+        // AI & Stability Audit (Pillar 3): Anticipatory labor ramp-up.
+        // Predict next turn's crop state and pre-ramp FTE demand to 50% of
+        // the next turn's requirement. This ensures workers are hired BEFORE
+        // the seasonal phase begins, preventing 1-turn labor demand spikes
+        // that the labor market cannot satisfy.
+        //
+        // Only ramp up if next turn's demand is HIGHER than current (e.g.,
+        // Growing → Harvesting transition). No ramp-down needed (furlough
+        // handles that).
+        let next_turn = (calendar.global_turn + 1) % 24;
+        if next_turn == 0 {
+            continue; // Invalid turn
+        }
+        let next_state = predict_next_crop_state(batch, crop_def, next_turn);
+        let next_labor_fte = match next_state {
+            CropState::Sowing => {
+                crop_def.labor_demand.sowing_fte_per_hectare * batch.active_hectares.max(batch.planned_hectares)
+            }
+            CropState::Growing => {
+                crop_def.labor_demand.growing_fte_per_hectare * batch.active_hectares
+            }
+            CropState::Harvesting => {
+                crop_def.labor_demand.harvesting_fte_per_hectare * batch.active_hectares
+            }
+            CropState::Idle => 0.0,
+        };
+        // Ramp factor: 50% of next turn's demand this turn
+        const RAMP_FACTOR: f64 = 0.5;
+        let anticipatory_demand = next_labor_fte * RAMP_FACTOR;
+        physical_demand = physical_demand.max(anticipatory_demand);
     }
 
     company.physical_fte_demand = physical_demand.round() as u32;

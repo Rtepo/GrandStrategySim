@@ -252,6 +252,99 @@ pub enum SeasonalState {
     Furloughed,
 }
 
+/// AI & Stability Audit (Pillar 4B): Proto-learning ledger tracking the ROI
+/// outcome of past actions. If an action type (e.g., Expansion) was followed
+/// by declining ROI, a negative penalty weight is applied to future decisions
+/// of the same type. This simulates trial-and-error learning without requiring
+/// complex ML.
+///
+/// # Lifecycle
+/// * **Birth**: Created with `Default` when a company is created.
+/// * **Life**: Updated each turn — new actions are recorded, old outcomes are
+///   evaluated, weights are recomputed.
+/// * **Death**: Pruned entries >12 turns old are removed. The ledger is
+///   destroyed when the company goes bankrupt.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
+pub struct ActionLedger {
+    /// Map of action type → list of (turn_taken, net_profit_at_action) pairs.
+    /// The ROI is evaluated 3 turns later by comparing current net_profit
+    /// to the recorded value.
+    #[serde(default)]
+    pub action_records: BTreeMap<String, Vec<(u32, f64)>>,
+
+    /// Current penalty weights per action type (0.0 = no penalty, 1.0 = full block).
+    /// Computed from action_records: if average ROI < 0, penalty increases.
+    #[serde(default)]
+    pub action_weights: BTreeMap<String, f64>,
+}
+
+impl ActionLedger {
+    /// Record that a major action was taken this turn.
+    ///
+    /// # Arguments
+    /// * `action_type` - String identifier for the action (e.g., "Expand", "Furlough")
+    /// * `turn` - Current global turn
+    /// * `net_profit` - Current net profit (for later ROI comparison)
+    pub fn record_action(&mut self, action_type: &str, turn: u32, net_profit: f64) {
+        self.action_records
+            .entry(action_type.to_string())
+            .or_default()
+            .push((turn, net_profit));
+    }
+
+    /// Evaluate past actions and update penalty weights.
+    ///
+    /// For each action recorded 3+ turns ago, compute the ROI delta
+    /// (current_profit - recorded_profit) and update the weight.
+    /// Old records (>12 turns) are pruned.
+    ///
+    /// # Arguments
+    /// * `current_turn` - Current global turn
+    /// * `current_net_profit` - Current net profit for ROI comparison
+    pub fn evaluate_and_update(&mut self, current_turn: u32, current_net_profit: f64) {
+        const EVALUATION_DELAY: u32 = 3;
+        const PRUNE_AGE: u32 = 12;
+
+        for (action_type, records) in &mut self.action_records {
+            let mut roi_sum = 0.0;
+            let mut roi_count = 0;
+
+            records.retain(|(turn, profit_at_action)| {
+                let age = current_turn.saturating_sub(*turn);
+                // Prune old records
+                if age > PRUNE_AGE {
+                    return false;
+                }
+                // Evaluate records that are old enough (3+ turns)
+                if age >= EVALUATION_DELAY {
+                    let roi = current_net_profit - profit_at_action;
+                    roi_sum += roi;
+                    roi_count += 1;
+                }
+                true
+            });
+
+            // Update weight: negative ROI → higher penalty
+            if roi_count > 0 {
+                let avg_roi = roi_sum / roi_count as f64;
+                // weight = clamp(-avg_roi * 0.5, 0.0, 1.0)
+                // Negative ROI (profit declined) → positive weight (penalty)
+                // Positive ROI (profit improved) → zero weight (no penalty)
+                let weight = (-avg_roi * 0.5).clamp(0.0, 1.0);
+                self.action_weights.insert(action_type.clone(), weight);
+            }
+        }
+
+        // Remove empty action_types
+        self.action_records.retain(|_, v| !v.is_empty());
+    }
+
+    /// Get the penalty weight for a given action type (0.0 = no penalty, 1.0 = full block).
+    pub fn weight_for(&self, action_type: &str) -> f64 {
+        self.action_weights.get(action_type).copied().unwrap_or(0.0)
+    }
+}
+
 /// `Company` stores ownership through the typed [`LegalForm`] enum and links
 /// to an independent [`Union`] via `union_id`.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
@@ -570,6 +663,12 @@ pub struct Company {
     #[serde(default)]
     pub close_price: f64,
 
+    /// AI & Stability Audit (Pillar 4B): Proto-learning ledger tracking the
+    /// ROI outcome of past actions. Applies penalty weights to future decisions
+    /// of the same type if past actions led to declining ROI.
+    #[serde(default)]
+    pub action_ledger: ActionLedger,
+
     /// Any additional company fields.
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -694,6 +793,7 @@ impl Company {
             furloughed_workers_count: 0.0,
             ceo_vip_id: None,
             eps: 0.0, pe_ratio: 0.0, dividend_yield: 0.0, open_price: 0.0, close_price: 0.0,
+            action_ledger: ActionLedger::default(),
             extra: Map::new(),
         }
     }
@@ -708,6 +808,39 @@ impl Company {
     /// * liquid_capital field is zeroed after transfer to prevent cloning
     pub fn computed_liquid_capital(&self) -> f64 {
         self.brokerage_account.as_ref().map(|b| b.cash).unwrap_or(0.0)
+    }
+
+    /// AI & Stability Audit (Pillar 4A): Moving average of net profit over
+    /// the last `window` entries in `financial_history`.
+    ///
+    /// Returns 0.0 if there is insufficient history. This smooths 1-turn
+    /// shocks (e.g., a bad harvest turn) so the corporate AI doesn't panic-fire
+    /// workers or immediately restructure based on a single bad data point.
+    ///
+    /// # Arguments
+    /// * `window` - Number of recent entries to average (e.g., 3 for a 3-turn
+    ///   moving average = 1.5 months of data)
+    ///
+    /// # Returns
+    /// The average net profit over the window, or 0.0 if no history exists.
+    pub fn moving_avg_net_profit(&self, window: usize) -> f64 {
+        let history = &self.financial_history;
+        if history.is_empty() {
+            return 0.0;
+        }
+        let start = history.len().saturating_sub(window);
+        let records = &history[start..];
+        let sum: f64 = records
+            .iter()
+            .filter_map(|r| {
+                if let Value::Object(map) = r {
+                    map.get("zysk_netto")?.as_f64()
+                } else {
+                    None
+                }
+            })
+            .sum();
+        sum / records.len().max(1) as f64
     }
 }
 

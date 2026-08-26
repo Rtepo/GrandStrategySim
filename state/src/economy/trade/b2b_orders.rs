@@ -403,7 +403,26 @@ pub fn submit_company_b2b_orders(
             let unit_cost = calculate_unit_cost(building, &ref_prices, 0.0);
 
             for (&commodity, &qty_per_1k) in &method.outputs {
-                let sell_qty = qty_per_1k * production_scale;
+                // AI & Stability Audit (Pillar 2): Sell from accumulated inventory
+                // + current production, clamped by a hard logistical throughput
+                // limit to prevent market flooding and FreightCapacity overwhelm.
+                //
+                // The old logic only offered `qty_per_1k * production_scale`
+                // (current-turn production capacity), ignoring warehouse
+                // inventory. Harvest yields sitting in warehouses never reached
+                // the market.
+                //
+                // The throughput clamp (MAX_THROUGHPUT_MULTIPLIER × per-turn
+                // production) ensures a building can only ship out what its
+                // workforce can physically load/dispatch per turn. A farm with
+                // 1000 tons in inventory but 50 tons/turn production can only
+                // sell 150 tons/turn, preventing instant price crashes.
+                const MAX_THROUGHPUT_MULTIPLIER: f64 = 3.0;
+                let production_qty = qty_per_1k * production_scale;
+                let inventory_qty = building.inventory.get(&commodity).copied().unwrap_or(0.0);
+                let max_sell_per_turn = production_qty * MAX_THROUGHPUT_MULTIPLIER;
+                let total_available = inventory_qty + production_qty;
+                let sell_qty = total_available.min(max_sell_per_turn).max(0.0);
                 if sell_qty <= 0.0 {
                     continue;
                 }

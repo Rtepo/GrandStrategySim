@@ -170,15 +170,19 @@ pub fn available_plant_types(
     start_year: u32,
     has_coal_deposit: bool,
     has_river_or_coast: bool,
-    _has_forest: bool,
+    has_forest: bool,
     has_livestock: bool,
     has_uranium: bool,
     has_geothermal: bool,
 ) -> Vec<(PowerPlantType, f64)> {
     let mut types = Vec::new();
 
-    // Biomass: available from 1880, no geographic constraint (but prefers forests).
-    types.push((PowerPlantType::BiomassFired, 0.3));
+    // AI & Stability Audit (Pillar 1B): Biomass weight is now conditional on
+    // forest/livestock availability (organic feedstock). Without local
+    // feedstock, biomass weight is reduced to 0.1 (representing imported fuel).
+    // This prevents every region from defaulting to BiomassFired plants.
+    let biomass_weight = if has_forest || has_livestock { 0.3 } else { 0.1 };
+    types.push((PowerPlantType::BiomassFired, biomass_weight));
 
     // Coal/Lignite: available from 1880, requires deposit.
     if has_coal_deposit {

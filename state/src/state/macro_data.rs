@@ -380,6 +380,11 @@ pub struct LaborMarket {
     /// alongside unemployment on the dashboard.
     #[serde(default)]
     pub furloughed_total: f64,
+    /// AI & Stability Audit (Pillar 4C): Previous turn's unemployment rate.
+    /// Used by the counter-cyclical response to detect unemployment SPIKES
+    /// (current > previous) vs stable high unemployment.
+    #[serde(default)]
+    pub prev_unemployment_rate: f64,
     /// Any additional labor-market fields.
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,

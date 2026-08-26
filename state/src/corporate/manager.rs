@@ -84,7 +84,7 @@ pub fn process_companies(
 
         let (_profitable, interest_paid) = {
             let company = &mut companies[i];
-            process_company(company, total_profit, country, year, market_signal, avg_fulfillment_ratio)
+            process_company(company, total_profit, country, year, market_signal, avg_fulfillment_ratio, current_turn)
         };
 
         // Phase 39: Accumulate annual profit for SOE dividend calculation.
@@ -633,6 +633,7 @@ pub fn process_company(
     year: u32,
     market_signal: &MarketSignal,
     avg_fulfillment_ratio: f64,
+    current_turn: u32,
 ) -> (bool, f64) {
     let corporate_tax_rate = country.tax_rates.corporate_tax;
     let xibor = market_signal.interest_rate;
@@ -761,6 +762,22 @@ pub fn process_company(
     };
 
     // 7. Apply the chosen action.
+    // AI & Stability Audit (Pillar 4B): Record major actions in the ActionLedger
+    // BEFORE applying (action is moved into apply_action).
+    let action_type_str = match &action {
+        CorporateAction::Expand { .. } => Some("Expand"),
+        CorporateAction::Restructure { .. } => Some("Restructure"),
+        CorporateAction::Furlough { .. } => Some("Furlough"),
+        CorporateAction::Ipo { .. } => Some("Ipo"),
+        _ => None,
+    };
+    if let Some(action_str) = action_type_str {
+        company.action_ledger.record_action(action_str, current_turn, net_profit);
+    }
+
+    // Evaluate past actions and update penalty weights.
+    company.action_ledger.evaluate_and_update(current_turn, net_profit);
+
     apply_action(company, action, market_signal, country, year, total_profit, net_profit);
 
     // 8. Recalculate equity after the action.
