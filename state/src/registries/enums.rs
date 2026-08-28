@@ -111,10 +111,10 @@ pub enum WealthBracket {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum Sector {
-    /// `"mining"` (was: sektor_wydobywczy).
+    /// `"mining"`.
     #[default]
     Mining,
-    /// `"agriculture"` (was: rolnictwo).
+    /// `"agriculture"`.
     Agriculture,
     /// `"heavy_industry"`.
     HeavyIndustry,
@@ -126,9 +126,9 @@ pub enum Sector {
     LocalServices,
     /// `"export_services"`.
     ExportServices,
-    /// `"construction"` (was: budownictwo).
+    /// `"construction"`.
     Construction,
-    /// `"energy"` (was: energetyka).
+    /// `"energy"`.
     Energy,
     /// `"public_services"`.
     PublicServices,
@@ -136,19 +136,19 @@ pub enum Sector {
     MedicalServices,
     /// `"educational_services"`.
     EducationalServices,
-    /// `"transport_logistics"` (was: transport_i_logistyka).
+    /// `"transport_logistics"`.
     TransportLogistics,
     // STAGE C: Public Administration sector for Tax Offices
-    /// `"public_administration"` (was: administracja_publiczna).
+    /// `"public_administration"`.
     PublicAdministration,
     // STAGE D PHASE 2: Banking and financial services sector
-    /// `"banking"` (was: sektor_bankowy).
+    /// `"banking"`.
     Banking,
     // PHASE 3: Media and entertainment sector
     /// `"media_and_entertainment"` (radio, TV, publishing, opera, music academies).
     #[serde(rename = "media_and_entertainment")]
     MediaAndEntertainment,
-    /// `"waste_management"` (was: gospodarka_odpadami).
+    /// `"waste_management"`.
     WasteManagement,
     /// `"hospitality"` (hotels, resorts, restaurants, casinos).
     Hospitality,
@@ -268,7 +268,7 @@ impl Sector {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Commodity {
-    /// "agd" (was: AGD).
+    /// "agd".
     Agd,
     /// "aluminum".
     Aluminum,

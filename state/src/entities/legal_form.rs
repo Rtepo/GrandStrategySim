@@ -132,7 +132,10 @@ pub struct LatifundiumData {
     #[serde(default)]
     pub serf_population: u32,
     
-    /// Serf labor cost multiplier (typically 0.0-0.2 for corvée/underpaid labor)
+    /// Default 0.0 is INTENTIONAL: serfs on a latifundium perform corvée labor
+    /// for free — this is not a missing-data hazard but a deliberate economic
+    /// model of feudal bondage. A value of 0.0 means the estate pays nothing
+    /// for serf labor (the cost is borne by the serf via subsistence farming).
     #[serde(default)]
     pub serf_labor_cost_multiplier: f64,
     
@@ -614,6 +617,14 @@ impl LegalForm {
     /// Phase 85B: Returns `true` if this legal form is a Guild.
     pub fn is_guild(&self) -> bool {
         matches!(self, LegalForm::Guild(_))
+    }
+
+    /// Phase 86.5B: Returns a reference to the GuildData if this is a Guild.
+    pub fn guild_data(&self) -> Option<&GuildData> {
+        match self {
+            LegalForm::Guild(data) => Some(data),
+            _ => None,
+        }
     }
 
     /// Phase 56: Returns the free float fraction (0.0–1.0) for this legal form.

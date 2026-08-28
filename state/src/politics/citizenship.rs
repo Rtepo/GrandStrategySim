@@ -1,6 +1,6 @@
 //! Citizenship law and economic discrimination system.
 //!
-//! Replaces the raw `prawo_obywatelskie` string with structured discrimination
+//! Replaces the raw `civil_rights_law` string with structured discrimination
 //! rules that affect wages, job access, and property ownership for non-citizens.
 //!
 //! # Rules
@@ -24,11 +24,11 @@ pub enum CitizenshipLaw {
 }
 
 impl CitizenshipLaw {
-    /// Parse from the existing Polish string in `Politics.civil_rights_law`.
-    pub fn from_polish(s: &str) -> Self {
+    /// Parse from the existing string in `Politics.civil_rights_law`.
+    pub fn parse_law(s: &str) -> Self {
         match s {
-            "Segregacja" => CitizenshipLaw::Segregation,
-            "5-Year Assimilation" | "Asymilacja 10 lat" => CitizenshipLaw::CulturalAssimilation,
+            "Segregation" => CitizenshipLaw::Segregation,
+            "5-Year Assimilation" | "10-Year Assimilation" => CitizenshipLaw::CulturalAssimilation,
             _ => CitizenshipLaw::OpenCitizenship,
         }
     }
@@ -121,18 +121,18 @@ mod tests {
     }
 
     #[test]
-    fn test_from_polish() {
-        assert_eq!(CitizenshipLaw::from_polish("Segregacja"), CitizenshipLaw::Segregation);
+    fn test_from_str() {
+        assert_eq!(CitizenshipLaw::parse_law("Segregation"), CitizenshipLaw::Segregation);
         assert_eq!(
-            CitizenshipLaw::from_polish("5-Year Assimilation"),
+            CitizenshipLaw::parse_law("5-Year Assimilation"),
             CitizenshipLaw::CulturalAssimilation
         );
         assert_eq!(
-            CitizenshipLaw::from_polish("Asymilacja 10 lat"),
+            CitizenshipLaw::parse_law("10-Year Assimilation"),
             CitizenshipLaw::CulturalAssimilation
         );
         assert_eq!(
-            CitizenshipLaw::from_polish(""),
+            CitizenshipLaw::parse_law(""),
             CitizenshipLaw::OpenCitizenship
         );
     }

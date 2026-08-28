@@ -4247,7 +4247,7 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
     let mut recent_battles = Vec::new();
     let mut army_compositions = Vec::new();
     let mut war_morale = Vec::new();
-    let pow_camps = Vec::new();
+    let mut pow_camps = Vec::new();
 
     for (country_name, country) in &state.countries {
         // Active wars/fronts
@@ -4331,9 +4331,38 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
             }
         }
 
-        // POW camp stats — POW camps are managed in the turn context, not on Country.
-        // The dashboard exposes zero-row POW data when no camps are active.
-        // (POW data would be populated from the turn context's POW registry if present.)
+        // POW camp stats — Phase 86.5B: Now wired from country.pow_camp.
+        let pow_camp = &country.pow_camp;
+        let total_prisoners = pow_camp.prisoners.len() as i64;
+        let prisoner_groups = pow_camp.prisoners.iter()
+            .map(|p| p.origin_country.clone())
+            .collect::<std::collections::HashSet<_>>()
+            .len();
+        let forced_labor_assigned = pow_camp.prisoners.iter()
+            .filter(|p| p.status == crate::military::pows::PowStatus::ForcedLabor)
+            .count() as i64;
+        let prisoners_by_origin: Vec<(String, i64)> = {
+            let mut map: std::collections::HashMap<String, i64> = std::collections::HashMap::new();
+            for p in &pow_camp.prisoners {
+                *map.entry(p.origin_country.clone()).or_insert(0) += 1;
+            }
+            map.into_iter().collect()
+        };
+        let average_health = if !pow_camp.prisoners.is_empty() {
+            pow_camp.prisoners.iter().map(|p| p.productivity_factor).sum::<f64>() / pow_camp.prisoners.len() as f64
+        } else {
+            0.0
+        };
+        if total_prisoners > 0 {
+            pow_camps.push(PowCampRow {
+                country: country_name.clone(),
+                total_prisoners,
+                prisoner_groups,
+                prisoners_by_origin,
+                average_health,
+                forced_labor_assigned,
+            });
+        }
     }
 
     // Devastation map — aggregate per region per country
@@ -4394,6 +4423,113 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
 
 /// Phase 81: Energy grid snapshot for the Energy dashboard.
 ///
+/// Phase 86.5B: Municipal AI investment plan snapshot.
+/// Shows the AI's investment decisions for water, sanitation, heating, and waste infrastructure.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct MunicipalPlanRow {
+    /// Region ID for the planned investment.
+    pub region_id: String,
+    /// Investment domain (heating, water, sanitation, waste).
+    pub domain: String,
+    /// Planned investment amount (fiat).
+    pub planned_amount: f64,
+    /// Priority (0.0–1.0, higher = more urgent).
+    pub priority: f64,
+    /// Crisis flag (true if triggered by mortality risk).
+    pub is_crisis: bool,
+}
+
+/// Phase 86.5B: Municipal AI snapshot for a country.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct MunicipalAiSnapshot {
+    /// Total planned investment across all domains.
+    pub total_planned_investment: f64,
+    /// Per-region investment plans.
+    pub plans: Vec<MunicipalPlanRow>,
+    /// Available budget for municipal investments.
+    pub available_budget: f64,
+    /// Number of regions with crisis-level needs.
+    pub crisis_regions: u32,
+}
+
+/// Phase 86.5B: Build a municipal AI snapshot for a country.
+pub fn build_municipal_ai_snapshot(country: &Country) -> MunicipalAiSnapshot {
+    let plan = &country.municipal_infrastructure_plan;
+    let mut plans = Vec::new();
+    let mut crisis_count = 0u32;
+
+    // Heating plan (no is_crisis field — use passes_cost_benefit_gate as priority signal)
+    if plan.thermal_plan.estimated_capex > 0.0 {
+        let is_crisis = !plan.thermal_plan.passes_cost_benefit_gate
+            && plan.thermal_plan.expected_mortality_reduction_value > 0.0;
+        plans.push(MunicipalPlanRow {
+            region_id: "national".to_string(),
+            domain: "heating".to_string(),
+            planned_amount: plan.thermal_plan.estimated_capex,
+            priority: if is_crisis { 1.0 } else { 0.5 },
+            is_crisis,
+        });
+        if is_crisis { crisis_count += 1; }
+    }
+
+    // Electrical plan
+    if plan.electrical_plan.estimated_capex > 0.0 {
+        plans.push(MunicipalPlanRow {
+            region_id: "national".to_string(),
+            domain: "electrical".to_string(),
+            planned_amount: plan.electrical_plan.estimated_capex,
+            priority: if plan.electrical_plan.is_crisis { 1.0 } else { 0.5 },
+            is_crisis: plan.electrical_plan.is_crisis,
+        });
+        if plan.electrical_plan.is_crisis { crisis_count += 1; }
+    }
+
+    // Water plan
+    if plan.water_plan.estimated_capex > 0.0 {
+        plans.push(MunicipalPlanRow {
+            region_id: "national".to_string(),
+            domain: "water".to_string(),
+            planned_amount: plan.water_plan.estimated_capex,
+            priority: if plan.water_plan.is_crisis { 1.0 } else { 0.5 },
+            is_crisis: plan.water_plan.is_crisis,
+        });
+        if plan.water_plan.is_crisis { crisis_count += 1; }
+    }
+
+    // Sanitation plan
+    if plan.sanitation_plan.estimated_capex > 0.0 {
+        plans.push(MunicipalPlanRow {
+            region_id: "national".to_string(),
+            domain: "sanitation".to_string(),
+            planned_amount: plan.sanitation_plan.estimated_capex,
+            priority: if plan.sanitation_plan.is_crisis { 1.0 } else { 0.5 },
+            is_crisis: plan.sanitation_plan.is_crisis,
+        });
+        if plan.sanitation_plan.is_crisis { crisis_count += 1; }
+    }
+
+    // Waste plan
+    if plan.waste_plan.estimated_capex > 0.0 {
+        plans.push(MunicipalPlanRow {
+            region_id: "national".to_string(),
+            domain: "waste".to_string(),
+            planned_amount: plan.waste_plan.estimated_capex,
+            priority: if plan.waste_plan.is_crisis { 1.0 } else { 0.5 },
+            is_crisis: plan.waste_plan.is_crisis,
+        });
+        if plan.waste_plan.is_crisis { crisis_count += 1; }
+    }
+
+    MunicipalAiSnapshot {
+        total_planned_investment: plan.total_capex,
+        plans,
+        available_budget: plan.available_budget,
+        crisis_regions: crisis_count,
+    }
+}
+
 /// Role-gated: foreign observers see only public aggregate data (national
 /// supply/demand/capacity), not detailed plant counts, spot prices, or
 /// interconnector flows. The backend strips classified fields before

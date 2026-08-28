@@ -2,6 +2,13 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use serde_json::Value;
 
+/// Default security power multiplier for state suppression.
+/// Defaults to 1.0 (neutral effectiveness) to prevent a missing-data hazard
+/// where state suppression becomes impossible with 0.0 security power.
+fn default_security_power_multiplier() -> f64 {
+    1.0
+}
+
 /// Sentiment drivers for political radicalization calculation (Phase 5)
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct SentimentDrivers {
@@ -85,8 +92,9 @@ pub struct ChaosConfig {
     #[serde(default)]
     pub suppression_cost_per_participant: f64,
     
-    /// Security sector power multiplier (0-1, effectiveness of police/military)
-    #[serde(default)]
+    /// Defaults to 1.0 (neutral effectiveness) to prevent a missing-data hazard
+    /// where state suppression becomes impossible with 0.0 security power.
+    #[serde(default = "default_security_power_multiplier")]
     pub security_power_multiplier: f64,
     
     /// Casualty rate during suppression (0-1, fraction of participants killed)

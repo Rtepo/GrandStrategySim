@@ -327,6 +327,9 @@ fn generate_country(
         military_fronts: Vec::new(),
         military_stockpile: rustc_hash::FxHashMap::default(),
         military_config: crate::military::config::MilitaryCombatConfig::default(),
+        pow_camp: crate::military::pows::PowCamp::default(),
+        morale_config: crate::military::morale::MoraleConfig::default(),
+        guild_config: crate::economy::guild_system::GuildConfig::default(),
         war_economy: crate::military::war_economy::WarEconomyState::default(),
         at_war_with: Vec::new(),
         pending_defense_orders: Vec::new(),
@@ -413,6 +416,11 @@ fn generate_country(
         geopolitical_doctrine: crate::international::ai_doctrines::GeopoliticalDoctrine::default(),
         power_grid_state: crate::energy::PowerGridState::default(),
         ppa_registry: crate::energy::types::PpaRegistry::default(),
+        turn_config: crate::engine::turn_config::TurnConfig::default(),
+        market_clearing_config: crate::economy::market::clearing_config::MarketClearingConfig::default(),
+        labor_config: crate::economy::labor::labor_config::LaborConfig::default(),
+        geography_config: crate::society::geography_config::GeographyConfig::default(),
+        municipal_infrastructure_plan: crate::energy::municipal_infrastructure_ai::MunicipalInfrastructurePlan::default(),
     };
     country.macro_indicators.currency = currency.prefix.clone();
 
@@ -1002,10 +1010,10 @@ fn build_demographics(cultural: &CulturalBackground, _population: u64, gdp_pc: f
     wyzsze.insert("Medyczne".to_string(), wyzsze_total * 0.2);
 
     let education = Education {
-        brak: analfabetyzm,
-        podstawowe,
-        srednie,
-        wyzsze,
+        none: analfabetyzm,
+        basic: podstawowe,
+        secondary: srednie,
+        higher: wyzsze,
         extra: Map::new(),
     };
 
@@ -1261,39 +1269,21 @@ fn build_macro_data(
     };
 
     let mut extra = Map::new();
-    extra.insert(
-        "statystyki_zdrowotne".to_string(),
-        serde_json::json!({
-            "baza_infrastruktury_medycznej": rng.gen_range(20.0..60.0) * (gdp_pc / 2.0),
-            "baza_rehabilitacyjna": rng.gen_range(10.0..40.0) * (gdp_pc / 2.0),
-            "jakosc_sluzby_zdrowia": rng.gen_range(30.0..70.0),
-            "sila_sanepidu": rng.gen_range(20.0..80.0),
-            "wyleczeni_z_kalectwa": 0,
-            "wypadki_w_pracy": 0,
-            "zgony_w_pracy": 0,
-            "nowi_niepelnosprawni": 0,
-            "oczekiwana_dlugosc_zycia": 40.0 + (gdp_pc * 10.0),
-            "dlugosc_zycia_w_zdrowiu": 35.0 + (gdp_pc * 8.0)
-        }),
-    );
-    extra.insert(
-        "statystyki_edukacyjne".to_string(),
-        serde_json::json!({
-            "baza_infrastruktury_edukacyjnej": rng.gen_range(20.0..70.0) * (gdp_pc / 2.0)
-        }),
-    );
+    // health_statistics and education_statistics are now typed fields on MacroData,
+    // so they must NOT be duplicated in extra (Rule 12 — duplicate field error).
+    // Only legacy/untyped keys remain in extra.
     extra.insert("minimum_wage".to_string(), Value::from(average_wage * 0.0));
 
-    let mut polityka_extra = Map::new();
-    polityka_extra.insert(
-        "prawo_wojskowe".to_string(),
+    let mut policy_extra = Map::new();
+    policy_extra.insert(
+        "military_law".to_string(),
         serde_json::json!({
-            "obowiazkowa_sluzba": "obowiazkowe_szkolenia",
-            "kobiety_w_armii": "jedynie_w_rezerwie",
-            "zakres_poboru": "dobrowolna"
+            "mandatory_service": "mandatory_training",
+            "women_in_army": "reserve_only",
+            "conscription_scope": "voluntary"
         }),
     );
-    extra.insert("polityka".to_string(), Value::Object(polityka_extra));
+    extra.insert("policy".to_string(), Value::Object(policy_extra));
 
     MacroData {
         inflation: rng.gen_range(1.0..15.0),
@@ -1311,8 +1301,17 @@ fn build_macro_data(
         election_turn: 0,
         labor_market,
         demographics: demographics.clone(),
-        health_statistics: crate::state::macro_data::HealthStatistics::default(),
-        education_statistics: crate::state::macro_data::EducationStatistics::default(),
+        health_statistics: crate::state::macro_data::HealthStatistics {
+            service_quality: rng.gen_range(30.0..70.0),
+            average_lifespan: 40.0 + (gdp_pc * 10.0),
+            mortality_rate: 0.0,
+            hospital_coverage: rng.gen_range(20.0..60.0) * (gdp_pc / 2.0),
+        },
+        education_statistics: crate::state::macro_data::EducationStatistics {
+            infrastructure_base: rng.gen_range(20.0..70.0) * (gdp_pc / 2.0),
+            literacy_rate: 0.0,
+            higher_education_rate: 0.0,
+        },
         gdp_breakdown: crate::state::macro_data::GdpBreakdown::default(),
         inflation_indices: crate::state::macro_data::InflationIndices::default(),
         money_supply: crate::state::macro_data::MoneySupplySnapshot::default(),

@@ -74,6 +74,127 @@ impl IntelLevel {
     }
 }
 
+/// Phase 86.5A: Player role/clearance level for role-gated data access.
+///
+/// The player is an embedded actor within the simulation, not an omniscient
+/// deity. Their access to classified data is strictly role-gated based on
+/// their active position in the game world.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
+pub enum PlayerRole {
+    /// Head of State / Monarch — full access to own country's data,
+    /// limited access to foreign data based on intel level.
+    #[default]
+    HeadOfState,
+    /// Minister of Defense — full access to military data, limited civilian.
+    MinisterOfDefense,
+    /// Minister of Finance — full access to financial data, limited military.
+    MinisterOfFinance,
+    /// Intelligence Director — access to foreign intel, limited domestic detail.
+    IntelligenceDirector,
+    /// Opposition leader / private citizen — minimal access, heavy fog of war.
+    PrivateCitizen,
+    /// Game master / admin — full access (debug/testing only).
+    Admin,
+}
+
+impl PlayerRole {
+    /// Returns true if this role can see exact own-country military data.
+    pub fn can_see_own_military(self) -> bool {
+        matches!(self, PlayerRole::HeadOfState | PlayerRole::MinisterOfDefense | PlayerRole::Admin)
+    }
+
+    /// Returns true if this role can see exact own-country financial data.
+    pub fn can_see_own_finances(self) -> bool {
+        matches!(self, PlayerRole::HeadOfState | PlayerRole::MinisterOfFinance | PlayerRole::Admin)
+    }
+
+    /// Returns true if this role can see foreign country succession/dynasty details.
+    pub fn can_see_foreign_dynasty(self) -> bool {
+        matches!(self, PlayerRole::HeadOfState | PlayerRole::IntelligenceDirector | PlayerRole::Admin)
+    }
+
+    /// Returns true if this role can see KNF fraud investigation details.
+    pub fn can_see_knf_investigations(self) -> bool {
+        matches!(self, PlayerRole::HeadOfState | PlayerRole::MinisterOfFinance | PlayerRole::Admin)
+    }
+
+    /// Returns true if this role can see enemy military morale/POW details.
+    pub fn can_see_enemy_morale(self) -> bool {
+        matches!(self, PlayerRole::HeadOfState | PlayerRole::MinisterOfDefense | PlayerRole::IntelligenceDirector | PlayerRole::Admin)
+    }
+
+    /// Returns true if this role can see rebellion risk in other countries.
+    pub fn can_see_foreign_rebellion_risk(self) -> bool {
+        matches!(self, PlayerRole::HeadOfState | PlayerRole::IntelligenceDirector | PlayerRole::Admin)
+    }
+}
+
+/// Phase 86.5A: Type-safe numeric obfuscation for Fog of War.
+///
+/// Instead of sending `null` or strings like `"±20%"` to strict TypeScript
+/// `number` fields, this function returns a randomized numeric estimate
+/// within an uncertainty band. The frontend always receives a valid `f64`.
+///
+/// **Strategy A (default)**: Randomize within ±error_margin of the true value.
+/// The result is always a valid finite `f64`, never `null` or a string.
+///
+/// For fields where `Option<f64>` is preferred (Strategy B), use the existing
+/// `Option<(f64, f64)>` range pattern in `FogOfWarResult`.
+///
+/// # Arguments
+/// * `true_value` - The actual value (only known to the backend).
+/// * `intel_level` - The observer's intelligence level for this data.
+/// * `rng` - Random number generator for deterministic obfuscation.
+///
+/// # Returns
+/// A numeric estimate that the frontend can safely consume as a `number`.
+/// Returns `0.0` when `IntelLevel::Unknown` (not `null`).
+pub fn obfuscate_numeric(
+    true_value: f64,
+    intel_level: IntelLevel,
+    rng: &mut impl Rng,
+) -> f64 {
+    if !true_value.is_finite() {
+        return 0.0;
+    }
+    match intel_level {
+        IntelLevel::Exact => true_value,
+        IntelLevel::Unknown => 0.0, // No data — return 0.0, not null
+        IntelLevel::BroadRange | IntelLevel::NarrowRange => {
+            let margin = intel_level.error_margin();
+            let noise = rng.gen_range(-margin..=margin);
+            let estimated = true_value * (1.0 + noise);
+            // Clamp to non-negative for values that should never be negative.
+            if true_value >= 0.0 {
+                estimated.max(0.0)
+            } else {
+                estimated
+            }
+        }
+    }
+}
+
+/// Phase 86.5A: Type-safe nullable obfuscation for Fog of War.
+///
+/// For fields where the frontend DTO uses `Option<f64>` (Strategy B),
+/// this returns `None` when intel is Unknown, and `Some(estimate)` otherwise.
+pub fn obfuscate_numeric_nullable(
+    true_value: f64,
+    intel_level: IntelLevel,
+    rng: &mut impl Rng,
+) -> Option<f64> {
+    if !true_value.is_finite() {
+        return None;
+    }
+    match intel_level {
+        IntelLevel::Exact => Some(true_value),
+        IntelLevel::Unknown => None,
+        IntelLevel::BroadRange | IntelLevel::NarrowRange => {
+            Some(obfuscate_numeric(true_value, intel_level, rng))
+        }
+    }
+}
+
 /// Intelligence data about a foreign country, stored per observer.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct ForeignIntelligence {

@@ -1,5 +1,6 @@
 //! Market subdirectory: market clearing, order books, and price history.
 pub mod clearing;
+pub mod clearing_config;
 pub mod market;
 pub mod market_history;
 pub mod order_book;

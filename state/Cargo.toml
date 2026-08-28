@@ -5,6 +5,9 @@ edition = "2021"
 description = "Rust migration of the Grand Strategy simulation engine (Target 0: static registries & core math)."
 license = "MIT"
 
+[lints]
+workspace = true
+
 [lib]
 name = "sim_engine"
 path = "src/lib.rs"

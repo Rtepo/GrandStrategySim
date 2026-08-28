@@ -1426,6 +1426,70 @@ impl SobkScheme {
     }
 }
 
+/// Phase 86.5A: A distressed asset seized from a failed bank.
+///
+/// Represents a loan or bond transferred from a failed bank's balance sheet
+/// to the State's distressed assets ledger at RECOVERY value (not face value).
+///
+/// **Critical invariant**: Distressed assets are NOT spendable Treasury funds.
+/// They must not be counted in `liquid_reserves`, budget projections, or
+/// State AI spending capacity. Cash enters liquid reserves only when
+/// actually collected from loan recovery or bond maturity.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+pub struct DistressedAsset {
+    /// Original face value of the asset (for accounting reference only).
+    #[serde(default)]
+    pub face_value: f64,
+
+    /// Estimated recovery value (what can realistically be collected).
+    /// This is the value used for all accounting purposes.
+    #[serde(default)]
+    pub recovery_value: f64,
+
+    /// Asset type: "loan" or "bond".
+    #[serde(default)]
+    pub asset_type: String,
+
+    /// Original borrower/issuer ID (for loan recovery routing).
+    #[serde(default)]
+    pub counterparty_id: String,
+
+    /// Source bank ID (the failed bank this was seized from).
+    #[serde(default)]
+    pub source_bank_id: String,
+
+    /// Turn when the asset was seized.
+    #[serde(default)]
+    pub seized_turn: u32,
+
+    /// Amount recovered so far (updated as collections come in).
+    #[serde(default)]
+    pub recovered_amount: f64,
+
+    /// Whether this asset has been fully resolved (recovered or written off).
+    #[serde(default)]
+    pub is_resolved: bool,
+}
+
+impl DistressedAsset {
+    /// Phase 86.5A: Record a cash recovery from this distressed asset.
+    /// Returns the amount recovered (clamped to remaining recovery value).
+    pub fn record_recovery(&mut self, amount: f64) -> f64 {
+        let remaining = self.recovery_value - self.recovered_amount;
+        let actual = amount.min(remaining).max(0.0);
+        self.recovered_amount += actual;
+        if self.recovered_amount >= self.recovery_value {
+            self.is_resolved = true;
+        }
+        actual
+    }
+
+    /// Phase 86.5A: Remaining unrecovered value.
+    pub fn remaining_value(&self) -> f64 {
+        (self.recovery_value - self.recovered_amount).max(0.0)
+    }
+}
+
 /// Bank resolution authority for handling failed banks through bridge institutions.
 /// Implements Good Bank/Bad Bank split: Bridge Bank gets assets + insured liabilities,
 /// BFG absorbs toxic liabilities.
@@ -1434,28 +1498,41 @@ pub struct BankResolution {
     /// Banks currently under bridge bank administration (bank_id -> takeover_turn).
     #[serde(default)]
     pub bridge_banks: HashMap<String, u32>,
-    
+
     /// Maximum duration a bridge bank can operate before resolution.
     /// After this, the bank must be reprivatized or liquidated.
     #[serde(default = "default_bridge_duration")]
     pub max_bridge_duration_turns: u32,
-    
+
     /// Total number of banks resolved (historical).
     #[serde(default)]
     pub banks_resolved: u32,
-    
+
     /// Total equity wiped out from shareholders (historical).
     #[serde(default)]
     pub equity_wiped_out: f64,
-    
+
     /// Total toxic liabilities absorbed by BFG (historical).
     #[serde(default)]
     pub toxic_liabilities_absorbed: f64,
-    
+
     /// Revenue generated from bridge bank privatizations (historical).
     #[serde(default)]
     pub privatization_revenue: f64,
-    
+
+    /// Phase 86.5A: Distressed assets ledger — seized loans and bonds from
+    /// failed banks at RECOVERY value (not face value).
+    ///
+    /// These assets are PHYSICALLY ISOLATED from `liquid_reserves` and must
+    /// NOT be treated as spendable Treasury funds. Cash received later from
+    /// loan recovery or bond maturity may enter liquid reserves only when
+    /// actually collected.
+    ///
+    /// Key: asset_id (e.g., "failed_bank_id:loan:borrower_id")
+    /// Value: DistressedAsset entry with recovery value and metadata.
+    #[serde(default)]
+    pub distressed_assets: HashMap<String, DistressedAsset>,
+
     /// Any additional bank resolution fields.
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -1724,8 +1801,138 @@ impl BankResolution {
         
         // Remove from bridge bank registry
         self.bridge_banks.remove(&bridge_bank.id);
-        
+
         // In full implementation: Delete bank entity from simulation
+    }
+
+    /// Phase 86.5A: Transfer failed bank loans to distressed assets ledger.
+    ///
+    /// Loans are transferred at RECOVERY value, not face value. Recovery value
+    /// is estimated as a fraction of face value based on collateral and borrower
+    /// creditworthiness. These assets must NOT enter spendable liquid reserves.
+    ///
+    /// # Arguments
+    /// * `bank_id` - The failed bank's ID
+    /// * `loans` - Map of borrower_id -> outstanding loan amount (face value)
+    /// * `recovery_rate` - Estimated recovery fraction (0.0-1.0)
+    /// * `seized_turn` - Current turn number
+    pub fn transfer_loans_to_distressed(
+        &mut self,
+        bank_id: &str,
+        loans: &HashMap<String, f64>,
+        recovery_rate: f64,
+        seized_turn: u32,
+    ) {
+        for (borrower_id, face_value) in loans {
+            let recovery_value = face_value * recovery_rate.clamp(0.0, 1.0);
+            let asset_id = format!("{}:loan:{}", bank_id, borrower_id);
+            self.distressed_assets.insert(asset_id, DistressedAsset {
+                face_value: *face_value,
+                recovery_value,
+                asset_type: "loan".to_string(),
+                counterparty_id: borrower_id.clone(),
+                source_bank_id: bank_id.to_string(),
+                seized_turn,
+                recovered_amount: 0.0,
+                is_resolved: recovery_value <= 0.0,
+            });
+        }
+    }
+
+    /// Phase 86.5A: Transfer failed bank bonds to distressed assets ledger.
+    ///
+    /// Bonds are transferred at current market value (not face value).
+    pub fn transfer_bonds_to_distressed(
+        &mut self,
+        bank_id: &str,
+        bonds: &HashMap<String, f64>,
+        market_value_rate: f64,
+        seized_turn: u32,
+    ) {
+        for (issuer_id, face_value) in bonds {
+            let recovery_value = face_value * market_value_rate.clamp(0.0, 1.0);
+            let asset_id = format!("{}:bond:{}", bank_id, issuer_id);
+            self.distressed_assets.insert(asset_id, DistressedAsset {
+                face_value: *face_value,
+                recovery_value,
+                asset_type: "bond".to_string(),
+                counterparty_id: issuer_id.clone(),
+                source_bank_id: bank_id.to_string(),
+                seized_turn,
+                recovered_amount: 0.0,
+                is_resolved: recovery_value <= 0.0,
+            });
+        }
+    }
+
+    /// Phase 86.5A: Record a cash recovery from a distressed asset.
+    ///
+    /// Returns the amount recovered. This amount may be added to liquid
+    /// reserves (it is now actual cash, not a contingent asset).
+    pub fn record_distressed_recovery(
+        &mut self,
+        asset_id: &str,
+        amount: f64,
+    ) -> f64 {
+        if let Some(asset) = self.distressed_assets.get_mut(asset_id) {
+            asset.record_recovery(amount)
+        } else {
+            0.0
+        }
+    }
+
+    /// Phase 86.5A: Total recovery value of all distressed assets.
+    /// This is NOT spendable Treasury funds.
+    pub fn total_distressed_recovery_value(&self) -> f64 {
+        self.distressed_assets
+            .values()
+            .filter(|a| !a.is_resolved)
+            .map(|a| a.remaining_value())
+            .sum()
+    }
+
+    /// Phase 86.5A: Total unrecovered distressed assets.
+    /// This is NOT spendable Treasury funds.
+    pub fn total_unrecovered_distressed(&self) -> f64 {
+        self.distressed_assets
+            .values()
+            .filter(|a| !a.is_resolved)
+            .map(|a| a.remaining_value())
+            .sum()
+    }
+
+    /// Phase 86.5A: Check if a bridge bank's balance sheet sums to zero.
+    ///
+    /// A bank can only be removed from the simulation after its balance sheet
+    /// is fully settled (assets = liabilities = 0).
+    pub fn verify_zero_balance(
+        &self,
+        bridge_bank: &crate::entities::Company,
+    ) -> bool {
+        if let Some(bs) = &bridge_bank.balance_sheet {
+            let total_assets = bs.total_assets();
+            let total_liabilities = bs.total_liabilities();
+            // Both must be effectively zero (within floating point tolerance).
+            total_assets.abs() < 0.01 && total_liabilities.abs() < 0.01
+        } else {
+            false
+        }
+    }
+
+    /// Phase 86.5A: Check if a bridge bank has exceeded its sunset timer.
+    ///
+    /// After `max_bridge_duration_turns`, the bridge bank must be liquidated
+    /// or reprivatized — it cannot operate indefinitely.
+    pub fn check_bridge_sunset(
+        &self,
+        bank_id: &str,
+        current_turn: u32,
+    ) -> bool {
+        if let Some(&takeover_turn) = self.bridge_banks.get(bank_id) {
+            current_turn - takeover_turn >= self.max_bridge_duration_turns
+        } else {
+            false
+        }
     }
 }
 

@@ -477,8 +477,6 @@ father_vip_id: string | null, mother_vip_id: string | null, spouse_vip_id: strin
 export type EmergencySnapshot = { active: boolean, reason: string, turns_remaining: number, parliament_suspended: boolean, };
 
 /**
- * Phase 81: Energy grid snapshot for the Energy dashboard.
- *
  * Role-gated: foreign observers see only public aggregate data (national
  * supply/demand/capacity), not detailed plant counts, spot prices, or
  * interconnector flows. The backend strips classified fields before
@@ -954,6 +952,55 @@ strikes_active: boolean,
  * Whether desertions are active.
  */
 desertions_active: boolean, };
+
+/**
+ * Phase 86.5B: Municipal AI snapshot for a country.
+ */
+export type MunicipalAiSnapshot = { 
+/**
+ * Total planned investment across all domains.
+ */
+total_planned_investment: number, 
+/**
+ * Per-region investment plans.
+ */
+plans: Array<MunicipalPlanRow>, 
+/**
+ * Available budget for municipal investments.
+ */
+available_budget: number, 
+/**
+ * Number of regions with crisis-level needs.
+ */
+crisis_regions: number, };
+
+/**
+ * Phase 81: Energy grid snapshot for the Energy dashboard.
+ *
+ * Phase 86.5B: Municipal AI investment plan snapshot.
+ * Shows the AI's investment decisions for water, sanitation, heating, and waste infrastructure.
+ */
+export type MunicipalPlanRow = { 
+/**
+ * Region ID for the planned investment.
+ */
+region_id: string, 
+/**
+ * Investment domain (heating, water, sanitation, waste).
+ */
+domain: string, 
+/**
+ * Planned investment amount (fiat).
+ */
+planned_amount: number, 
+/**
+ * Priority (0.0–1.0, higher = more urgent).
+ */
+priority: number, 
+/**
+ * Crisis flag (true if triggered by mortality risk).
+ */
+is_crisis: boolean, };
 
 /**
  * OHS / casualty summary.

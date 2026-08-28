@@ -4,6 +4,13 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::BTreeMap;
 
+/// Default wealth weight multiplier for census elections.
+/// Defaults to 1.0 (neutral weighting) to prevent a missing-data hazard where
+/// census elections become meaningless with 0.0 weighting.
+fn default_wealth_weight_multiplier() -> f64 {
+    1.0
+}
+
 /// Local council structure (regional legislative body)
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct LocalCouncil {
@@ -224,8 +231,9 @@ pub struct CensusConfiguration {
     #[serde(default)]
     pub tax_threshold: f64,
     
-    /// Vote weight multiplier based on wealth
-    #[serde(default)]
+    /// Defaults to 1.0 (neutral weighting) to prevent a missing-data hazard
+    /// where census elections become meaningless with 0.0 weighting.
+    #[serde(default = "default_wealth_weight_multiplier")]
     pub wealth_weight_multiplier: f64,
     
     /// Property qualification for candidacy

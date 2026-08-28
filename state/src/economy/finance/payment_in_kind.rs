@@ -1,4 +1,4 @@
-//! Payment in kind (Wynagrodzenie w naturze) for agricultural workers (Phase 6.5).
+//! Payment in kind for agricultural workers (Phase 6.5).
 //!
 //! Implements the deduction of harvest commodities to satisfy subsistence needs
 //! of agricultural workers before crops are sent to warehouses or sold on B2B markets.

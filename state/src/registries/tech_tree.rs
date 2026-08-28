@@ -30,11 +30,11 @@ pub struct TechNode {
 
     pub name: String,
 
-    /// Historical year the technology becomes available (`"rok"`).
+    /// Historical year the technology becomes available.
 
     pub year: u32,
 
-    /// Research cost in innovation points (`"koszt"`).
+    /// Research cost in innovation points.
 
     pub cost: u32,
 

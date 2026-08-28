@@ -38,7 +38,7 @@ const RECRUITMENT_MULTIPLIER: f64 = 4.0;
 ///   company capital.
 pub fn process_companies(
     companies: &mut [Company],
-    buildings: &mut [Building],
+    buildings: &mut Vec<Building>,
     country: &mut Country,
     year: u32,
     market_signal: &MarketSignal,
@@ -389,10 +389,11 @@ pub fn process_companies(
                 &crate::state::BankruptcyPolicy::with_defaults(),
             );
 
-            // Remove the building
-            buildings[idx].owner_id.clear();
-            buildings[idx].current_employment = 0;
-            buildings[idx].worker_capacity = 0;
+            // Phase 86.5A: Actually REMOVE the building from the collection.
+            // Previously, the code only cleared owner_id and zeroed employment,
+            // leaving a zombie building that leaked memory and stale references.
+            // Now we remove it entirely after all accounting is settled.
+            buildings.remove(idx);
         }
     }
 
@@ -786,12 +787,12 @@ pub fn process_company(
     // 9. Financial history ring buffer.
     let record = Value::Object(
         [
-            ("rok".to_string(), Value::from(year)),
-            ("przychody".to_string(), Value::from(total_profit + overhead)),
-            ("koszty_operacyjne".to_string(), Value::from(overhead)),
-            ("odsetki".to_string(), Value::from(interest)),
-            ("podatki".to_string(), Value::from(tax)),
-            ("zysk_netto".to_string(), Value::from(net_profit)),
+            ("year".to_string(), Value::from(year)),
+            ("revenue".to_string(), Value::from(total_profit + overhead)),
+            ("operating_costs".to_string(), Value::from(overhead)),
+            ("interest".to_string(), Value::from(interest)),
+            ("taxes".to_string(), Value::from(tax)),
+            ("net_profit".to_string(), Value::from(net_profit)),
         ]
         .into_iter()
         .collect(),

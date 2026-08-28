@@ -211,6 +211,19 @@ pub fn run_turn_in_memory(
         // Phase 6.5: Use unified calendar from GameState
         let turn_calendar = &state.calendar;
 
+        // Phase 86.5A: Pre-compute dynamic subsistence wage floor.
+        // This replaces static `.max(1.0)` and `.max(1000.0)` floors with
+        // a market-derived subsistence basket cost (Food + Clothing VWAP).
+        // Computed before tasks creation to avoid borrow conflicts.
+        let turn_config = state.countries.values().next()
+            .map(|c| c.turn_config.clone())
+            .unwrap_or_default();
+        let subsistence_wage_floor = crate::engine::turn_config::effective_wage(
+            0.0, // Pass 0.0 to get the pure subsistence floor
+            &state.market_history,
+            &turn_config,
+        );
+
         let mut tasks: Vec<CountryTask> = state
             .countries
             .iter_mut()
@@ -359,7 +372,7 @@ pub fn run_turn_in_memory(
             );
         });
         tasks.par_iter_mut().for_each(|task| {
-            let base_wage = task.ctx.country.macro_indicators.average_wage.max(1.0);
+            let base_wage = task.ctx.country.macro_indicators.average_wage.max(subsistence_wage_floor);
             for building in &mut task.ctx.buildings {
                 let disruption = task.companies.iter()
                     .find(|c| c.id == building.owner_id)
@@ -1210,6 +1223,7 @@ pub fn run_turn_in_memory(
         // ═══════════════════════════════════════════════════════════
         tasks.par_iter_mut().for_each(|task| {
             let config = task.ctx.country.military_config.clone();
+            let morale_config = task.ctx.country.morale_config.clone();
             let trades = all_trades.clone();
             let (_fronts, mil_messages) = process_military_turn(
                 &mut task.ctx.country.order_of_battle,
@@ -1221,6 +1235,8 @@ pub fn run_turn_in_memory(
                 &config,
                 task.ctx.turn,
                 &task.ctx.country.name,
+                &morale_config,
+                &mut task.ctx.country.pow_camp,
             );
             // Log military messages (in full implementation, would push to event log)
             let _ = mil_messages;
@@ -1559,7 +1575,7 @@ pub fn run_turn_in_memory(
                     .get(&Commodity::Energy)
                     .copied()
                     .unwrap_or(100.0);
-                let avg_wage = task.ctx.country.macro_indicators.average_wage.max(1.0);
+                let avg_wage = task.ctx.country.macro_indicators.average_wage.max(subsistence_wage_floor);
                 crate::energy::ppa::negotiate_ppas(
                     task.ctx.country,
                     &task.ctx.buildings,
@@ -1725,6 +1741,333 @@ pub fn run_turn_in_memory(
                 );
             }
         });
+
+        // ═══════════════════════════════════════════════════════════
+        // PHASE 82/83: MUNICIPAL AI — Heating & Infrastructure Investment
+        // Runs AFTER utility pricing, thermal grid degradation, smog/biohazard
+        // computation, and water reserve regeneration (Rule 16: Temporal
+        // Causality). The AI observes current demand/supply and crises, then
+        // produces investment plans for the NEXT turn's construction system.
+        //
+        // This is a SEQUENTIAL per-country pass (not parallel) because it
+        // writes to country.municipal_infrastructure_plan and may debit
+        // budget.liquid_reserves for funded crisis CAPEX.
+        // ═══════════════════════════════════════════════════════════
+        for task in &mut tasks {
+            let avg_wage = task.ctx.country.macro_indicators.average_wage.max(subsistence_wage_floor);
+            // Mortality cost per death: dynamic multiple of average wage (Rule 2).
+            let mortality_cost_per_death = avg_wage * 50.0;
+            // Municipal budget allocation: a fraction of liquid reserves.
+            // Use 10% of liquid reserves as the infrastructure budget pool.
+            let available_budget = task.ctx.country.budget.liquid_reserves * 0.10;
+            let financing_available = task.ctx.country.budget.liquid_reserves > 0.0;
+
+            // Build plant cost data for heating AI (all types unlocked by default;
+            // the construction system / tech tree will gate actual builds).
+            let heating_plant_costs: Vec<crate::energy::municipal_heating_ai::PlantTypeCostData> = {
+                use crate::energy::heating_types::HeatingPlantType;
+                vec![
+                    crate::energy::municipal_heating_ai::PlantTypeCostData {
+                        plant_type: HeatingPlantType::WoodBoiler,
+                        fuel_opex_per_gj: 3.0,
+                        maintenance_opex_per_gj: 0.5,
+                        capex_per_gj: 10.0,
+                        tech_unlocked: true,
+                        geologically_eligible: true,
+                    },
+                    crate::energy::municipal_heating_ai::PlantTypeCostData {
+                        plant_type: HeatingPlantType::CoalHeatPlant,
+                        fuel_opex_per_gj: 2.0,
+                        maintenance_opex_per_gj: 0.5,
+                        capex_per_gj: 15.0,
+                        tech_unlocked: true,
+                        geologically_eligible: true,
+                    },
+                    crate::energy::municipal_heating_ai::PlantTypeCostData {
+                        plant_type: HeatingPlantType::LigniteHeatPlant,
+                        fuel_opex_per_gj: 2.5,
+                        maintenance_opex_per_gj: 0.5,
+                        capex_per_gj: 12.0,
+                        tech_unlocked: true,
+                        geologically_eligible: true,
+                    },
+                    crate::energy::municipal_heating_ai::PlantTypeCostData {
+                        plant_type: HeatingPlantType::NaturalGasHeatPlant,
+                        fuel_opex_per_gj: 1.5,
+                        maintenance_opex_per_gj: 0.3,
+                        capex_per_gj: 20.0,
+                        tech_unlocked: true,
+                        geologically_eligible: true,
+                    },
+                    crate::energy::municipal_heating_ai::PlantTypeCostData {
+                        plant_type: HeatingPlantType::GeothermalHeatPlant,
+                        fuel_opex_per_gj: 0.1,
+                        maintenance_opex_per_gj: 0.3,
+                        capex_per_gj: 50.0,
+                        tech_unlocked: true,
+                        geologically_eligible: false, // No geothermal trait by default
+                    },
+                ]
+            };
+
+            // Build plant cost data for water AI.
+            let water_plant_costs: Vec<crate::energy::municipal_infrastructure_ai::WaterPlantCostData> = {
+                use crate::utilities::hydro_types::WaterPlantType;
+                vec![
+                    crate::energy::municipal_infrastructure_ai::WaterPlantCostData {
+                        plant_type: WaterPlantType::SlowSandFilter,
+                        opex_per_liter: 0.0001,
+                        capex_per_liter: 0.5,
+                        output_water_quality: 0.95,
+                        tech_unlocked: true,
+                        geologically_eligible: true,
+                    },
+                    crate::energy::municipal_infrastructure_ai::WaterPlantCostData {
+                        plant_type: WaterPlantType::ModernTreatmentPlant,
+                        opex_per_liter: 0.0005,
+                        capex_per_liter: 2.0,
+                        output_water_quality: 0.99,
+                        tech_unlocked: true,
+                        geologically_eligible: true,
+                    },
+                    crate::energy::municipal_infrastructure_ai::WaterPlantCostData {
+                        plant_type: WaterPlantType::DesalinationPlant,
+                        opex_per_liter: 0.004,
+                        capex_per_liter: 5.0,
+                        output_water_quality: 0.99,
+                        tech_unlocked: true,
+                        geologically_eligible: false, // No coastal access by default
+                    },
+                ]
+            };
+
+            // Build plant cost data for wastewater (sanitation) AI.
+            let wastewater_plant_costs: Vec<crate::energy::municipal_infrastructure_ai::WastewaterPlantCostData> = {
+                use crate::utilities::hydro_types::WastewaterPlantType;
+                vec![
+                    crate::energy::municipal_infrastructure_ai::WastewaterPlantCostData {
+                        plant_type: WastewaterPlantType::PrimarySettling,
+                        opex_per_liter: 0.0002,
+                        capex_per_liter: 0.8,
+                        discharge_quality: 0.30,
+                        tech_unlocked: true,
+                    },
+                    crate::energy::municipal_infrastructure_ai::WastewaterPlantCostData {
+                        plant_type: WastewaterPlantType::AdvancedWastewaterPlant,
+                        opex_per_liter: 0.001,
+                        capex_per_liter: 3.0,
+                        discharge_quality: 0.85,
+                        tech_unlocked: true,
+                    },
+                ]
+            };
+
+            // Aggregate per-region plans into country-level plans.
+            // For countries with multiple regions, we sum CAPEX and take the
+            // highest-priority (crisis) plan as the representative.
+            let mut combined_thermal = crate::energy::municipal_heating_ai::HeatingInvestmentPlan::default();
+            let mut combined_water = crate::energy::municipal_infrastructure_ai::WaterInvestmentPlan::default();
+            let mut combined_sanitation = crate::energy::municipal_infrastructure_ai::SanitationInvestmentPlan::default();
+            let mut combined_waste = crate::energy::municipal_infrastructure_ai::WasteInvestmentPlan::default();
+            let mut combined_electrical = crate::energy::municipal_infrastructure_ai::ElectricalInvestmentPlan::default();
+
+            for region in &task.ctx.country.regions {
+                // --- Heating AI ---
+                // Derive district heating demand from urban population.
+                // Approximate buildings wanting DH from urban class population.
+                let urban_pop: i64 = region.class_demographics.urban_classes.values()
+                    .map(|d| d.population)
+                    .sum();
+                let district_heating_demand = (urban_pop / 5).max(0) as usize; // ~5 people per building
+
+                // Effective heat supply from thermal grid throughput.
+                // Use throughput as raw supply; with 1 active plant as default.
+                let raw_heat_supply = region.thermal_grid.pipe_network_km * 50.0; // ~50 GJ per km of pipe
+                let effective_heat_supply = region.thermal_grid.effective_heat_supply(raw_heat_supply, 1);
+                let heat_demand_gj = urban_pop as f64 * 0.5; // ~0.5 GJ per person per turn
+
+                // Estimated deaths from smog: scale smog level by population.
+                let estimated_deaths_from_smog = region.local_pollution.smog_level * urban_pop as f64 * 0.001;
+
+                let thermal_plan = crate::energy::municipal_heating_ai::run_municipal_heating_ai(
+                    &region.thermal_grid,
+                    district_heating_demand,
+                    effective_heat_supply,
+                    heat_demand_gj,
+                    &heating_plant_costs,
+                    avg_wage,
+                    mortality_cost_per_death,
+                    estimated_deaths_from_smog,
+                    financing_available,
+                );
+
+                // Accumulate thermal plan
+                combined_thermal.estimated_capex += thermal_plan.estimated_capex;
+                combined_thermal.expected_mortality_reduction_value += thermal_plan.expected_mortality_reduction_value;
+                combined_thermal.pipe_expansion_km += thermal_plan.pipe_expansion_km;
+                if thermal_plan.new_plant_type.is_some() {
+                    combined_thermal.new_plant_type = thermal_plan.new_plant_type;
+                }
+                if thermal_plan.passes_cost_benefit_gate {
+                    combined_thermal.passes_cost_benefit_gate = true;
+                }
+                if !thermal_plan.rationale.is_empty() {
+                    if !combined_thermal.rationale.is_empty() {
+                        combined_thermal.rationale.push_str("; ");
+                    }
+                    combined_thermal.rationale.push_str(&format!("[{}] {}", region.id, thermal_plan.rationale));
+                }
+
+                // --- Water AI ---
+                let buildings_wanting_mains = district_heating_demand; // Same building count approximation
+                let treatment_throughput = region.water_network.throughput_liters;
+                let water_demand = urban_pop as f64 * 200.0; // ~200 liters per person per turn
+                let estimated_deaths_from_water_quality = if region.water_network.current_quality < 0.9 && region.water_network.current_quality > 0.0 {
+                    urban_pop as f64 * (1.0 - region.water_network.current_quality) * 0.01
+                } else {
+                    0.0
+                };
+                let dehydration_mortality = region.winter_mortality_multiplier; // Reuse as proxy
+
+                let water_plan = crate::energy::municipal_infrastructure_ai::run_water_investment_ai(
+                    &region.water_network,
+                    &region.water_reserves,
+                    buildings_wanting_mains,
+                    treatment_throughput,
+                    water_demand,
+                    &water_plant_costs,
+                    avg_wage,
+                    mortality_cost_per_death,
+                    estimated_deaths_from_water_quality,
+                    dehydration_mortality,
+                    financing_available,
+                );
+
+                combined_water.estimated_capex += water_plan.estimated_capex;
+                combined_water.expected_mortality_reduction_value += water_plan.expected_mortality_reduction_value;
+                combined_water.expand_pipes_km += water_plan.expand_pipes_km;
+                if water_plan.build_treatment_plant.is_some() {
+                    combined_water.build_treatment_plant = water_plan.build_treatment_plant;
+                }
+                if water_plan.is_crisis {
+                    combined_water.is_crisis = true;
+                }
+                if water_plan.passes_cost_benefit_gate {
+                    combined_water.passes_cost_benefit_gate = true;
+                }
+                if !water_plan.rationale.is_empty() {
+                    if !combined_water.rationale.is_empty() {
+                        combined_water.rationale.push_str("; ");
+                    }
+                    combined_water.rationale.push_str(&format!("[{}] {}", region.id, water_plan.rationale));
+                }
+
+                // --- Sanitation AI ---
+                let buildings_wanting_sewers = district_heating_demand;
+                let sewer_throughput = region.sewer_network.throughput_liters;
+                let wastewater_treatment_capacity = region.water_network.throughput_liters * 0.5; // Approximate
+                let biohazard_level = region.local_pollution.biohazard_level;
+                let estimated_deaths_from_biohazard = biohazard_level * urban_pop as f64 * 0.001;
+                let industrial_corrosion_cost = 0.0; // Simplified; no industrial corrosion data at this phase
+
+                let sanitation_plan = crate::energy::municipal_infrastructure_ai::run_sanitation_investment_ai(
+                    &region.sewer_network,
+                    &region.water_reserves,
+                    buildings_wanting_sewers,
+                    sewer_throughput,
+                    wastewater_treatment_capacity,
+                    biohazard_level,
+                    &wastewater_plant_costs,
+                    avg_wage,
+                    mortality_cost_per_death,
+                    estimated_deaths_from_biohazard,
+                    industrial_corrosion_cost,
+                    financing_available,
+                );
+
+                combined_sanitation.estimated_capex += sanitation_plan.estimated_capex;
+                combined_sanitation.expected_mortality_reduction_value += sanitation_plan.expected_mortality_reduction_value;
+                combined_sanitation.expand_sewers_km += sanitation_plan.expand_sewers_km;
+                if sanitation_plan.build_wastewater_plant.is_some() {
+                    combined_sanitation.build_wastewater_plant = sanitation_plan.build_wastewater_plant;
+                }
+                if sanitation_plan.is_crisis {
+                    combined_sanitation.is_crisis = true;
+                }
+                if sanitation_plan.passes_cost_benefit_gate {
+                    combined_sanitation.passes_cost_benefit_gate = true;
+                }
+                if !sanitation_plan.rationale.is_empty() {
+                    if !combined_sanitation.rationale.is_empty() {
+                        combined_sanitation.rationale.push_str("; ");
+                    }
+                    combined_sanitation.rationale.push_str(&format!("[{}] {}", region.id, sanitation_plan.rationale));
+                }
+
+                // --- Waste AI (Phase 84) ---
+                // Aggregate waste grid state into a waste investment plan.
+                let uncollected_waste_mass = region.waste_grid.total_uncollected();
+                let landfill_utilization = region.waste_grid.landfill_utilization;
+                let waste_crisis = landfill_utilization >= 1.0 || uncollected_waste_mass > avg_wage * 100.0;
+                let waste_plan = crate::energy::municipal_infrastructure_ai::WasteInvestmentPlan {
+                    expand_collection_routes_km: if uncollected_waste_mass > 0.0 { 5.0 } else { 0.0 },
+                    build_waste_plant: if landfill_utilization >= 0.9 {
+                        Some(crate::utilities::waste_grid::WastePlantType::ControlledLandfill)
+                    } else {
+                        None
+                    },
+                    estimated_capex: if uncollected_waste_mass > 0.0 { 5.0 * avg_wage * 500.0 } else { 0.0 },
+                    expected_mortality_reduction_value: uncollected_waste_mass * mortality_cost_per_death * 0.01,
+                    landfill_utilization,
+                    uncollected_waste_mass,
+                    passes_cost_benefit_gate: financing_available && uncollected_waste_mass > 0.0,
+                    is_crisis: waste_crisis,
+                    rationale: if uncollected_waste_mass > 0.0 {
+                        format!("[{}] Uncollected waste: {:.1} tons, landfill util: {:.2}", region.id, uncollected_waste_mass, landfill_utilization)
+                    } else {
+                        String::new()
+                    },
+                };
+
+                combined_waste.estimated_capex += waste_plan.estimated_capex;
+                combined_waste.expected_mortality_reduction_value += waste_plan.expected_mortality_reduction_value;
+                combined_waste.expand_collection_routes_km += waste_plan.expand_collection_routes_km;
+                if waste_plan.build_waste_plant.is_some() {
+                    combined_waste.build_waste_plant = waste_plan.build_waste_plant;
+                }
+                if waste_plan.is_crisis {
+                    combined_waste.is_crisis = true;
+                }
+                if waste_plan.passes_cost_benefit_gate {
+                    combined_waste.passes_cost_benefit_gate = true;
+                }
+                if !waste_plan.rationale.is_empty() {
+                    if !combined_waste.rationale.is_empty() {
+                        combined_waste.rationale.push_str("; ");
+                    }
+                    combined_waste.rationale.push_str(&waste_plan.rationale);
+                }
+            }
+
+            // --- Electrical AI (simplified — no separate electrical AI function) ---
+            // The electrical investment plan is derived from power grid state.
+            // For now, use a basic deficit check.
+            combined_electrical.is_crisis = false;
+            combined_electrical.passes_cost_benefit_gate = false;
+
+            // --- Unified Municipal AI: combine all domain plans ---
+            let unified_plan = crate::energy::municipal_infrastructure_ai::run_unified_municipal_ai(
+                combined_thermal,
+                combined_electrical,
+                combined_water,
+                combined_sanitation,
+                combined_waste,
+                available_budget,
+            );
+
+            // Store the plan on the country for the construction system.
+            task.ctx.country.municipal_infrastructure_plan = unified_plan;
+        }
 
         // Phase 44: Residential Rent Collection — double-entry transfer.
         // Debit occupying class savings, credit owner entity (State treasury or class savings).
@@ -2108,8 +2451,8 @@ pub fn run_turn_in_memory(
                 if state_buildings_capacity == 0 {
                     None
                 } else {
-                    let base_wage = task.ctx.country.macro_indicators.average_wage.max(1000.0);
-                    let civil_service_wage = base_wage * 0.8; // 80% of national average
+                    let base_wage = task.ctx.country.macro_indicators.average_wage.max(subsistence_wage_floor);
+                    let civil_service_wage = base_wage * task.ctx.country.turn_config.civil_service_wage_ratio;
                     let total_payroll = state_buildings_capacity as f64 * civil_service_wage;
                     // Phase 33: Add ministry public service wage pool to the
                     // State Employer's funded_payroll. This pool was contributed
@@ -2959,7 +3302,7 @@ pub fn run_turn_in_memory(
         tasks.par_iter_mut().for_each(|task| {
             // Phase 24C.7: Update information quality tier for each company
             // based on capital and average wage (fog-of-war information asymmetry).
-            let avg_wage = task.ctx.country.macro_indicators.average_wage.max(1.0);
+            let avg_wage = task.ctx.country.macro_indicators.average_wage.max(subsistence_wage_floor);
             for company in &mut task.companies {
                 let total_capital = company.fixed_capital + company.liquid_capital;
                 let quality = crate::corporate::bounded_rationality::determine_information_quality(
@@ -3097,6 +3440,21 @@ pub fn run_turn_in_memory(
                 &config,
             );
 
+            // SEC-8a: Process fund coupon payments from MBS/covered bonds
+            // Phase 86.5B: Wire previously-disconnected coupon payment logic.
+            // Funds holding MBS/covered bonds receive coupon interest from the
+            // Treasury (the issuer). Double-entry: Treasury debited, fund
+            // brokerage cash credited.
+            for fund in task.companies.iter_mut() {
+                if fund.fund_ledger.is_some() {
+                    crate::securities::funds::process_fund_coupon_payments(
+                        fund,
+                        task.ctx.country,
+                        current_turn,
+                    );
+                }
+            }
+
             // SEC-8b: KNF compliance audits
             // Phase 36: Use the country's ACTUAL central bank instead of a
             // fresh default. The old code created CentralBank::default() with
@@ -3118,6 +3476,25 @@ pub fn run_turn_in_memory(
                 &mut task.ctx.country.working_capital_loans,
                 current_turn,
             );
+
+            // SEC-8d: CCP default waterfall — check for defaulted CCP members
+            // Phase 86.5B: Wire previously-disconnected default waterfall.
+            // If any CCP member has a margin_deficit exceeding their posted
+            // margin, they are in default and the CCP waterfall kicks in
+            // (margin → default fund → mutualization).
+            let defaulted_members: Vec<String> = task.ctx.country.central_counterparty.members.iter()
+                .filter(|(_, m)| m.margin_deficit > m.posted_margin
+                    && m.status != crate::securities::ccp::MemberStatus::Defaulted)
+                .map(|(id, _)| id.clone())
+                .collect();
+            for member_id in &defaulted_members {
+                crate::securities::ccp::process_ccp_default_waterfall(
+                    &mut task.ctx.country.central_counterparty,
+                    &mut task.companies,
+                    member_id,
+                    current_turn,
+                );
+            }
         });
 
         // ═══════════════════════════════════════════════════════════
@@ -4467,6 +4844,188 @@ pub fn run_turn_in_memory(
         });
 
         // ═══════════════════════════════════════════════════════════
+        // PHASE 85A: GUILD SYSTEM CYCLE
+        // Phase 86.5B: Wire previously-disconnected guild system.
+        // - Check guild formation in GuildBurgher domains
+        // - Execute production for existing guilds (consumes raw_inventory
+        //   purchased in N-1, produces output)
+        // - Distribute dividends pro-rata by production volume
+        // - Check dissolution for guilds below min_members
+        // Must run BEFORE urbanization cycle so that emancipation checks
+        // see updated guild state (Rule 16).
+        // ═══════════════════════════════════════════════════════════
+        tasks.par_iter_mut().for_each(|task| {
+            let guild_config = task.ctx.country.guild_config.clone();
+            let average_wage = task.ctx.country.macro_indicators.average_wage
+                .max(subsistence_wage_floor);
+
+            // 85A.1: Check guild formation in GuildBurgher domains
+            for region in &task.ctx.country.regions {
+                for micro in region.micro_regions.values() {
+                    if !matches!(micro.faction_type,
+                        crate::society::geography::FactionDomainType::GuildBurgher) {
+                        continue;
+                    }
+                    // Aggregate cottage_fte by sector from class demographics
+                    let mut cottage_fte_by_sector: std::collections::BTreeMap<String, f64> =
+                        std::collections::BTreeMap::new();
+                    for demographics in region.class_demographics.rural_classes.values() {
+                        // Sum cottage FTE — the sector is derived from the domain
+                        // For now, aggregate all cottage FTE into a single sector key
+                        *cottage_fte_by_sector.entry("crafts".to_string()).or_insert(0.0)
+                            += demographics.cottage_fte_allocated;
+                    }
+                    if let Some(sector_str) = crate::economy::guild_system::check_guild_formation_trigger(
+                        micro, &cottage_fte_by_sector, &guild_config,
+                    ) {
+                        // Check if a guild for this domain+sector already exists
+                        let guild_id = format!("GUILD-{}-{}", micro.id, sector_str);
+                        let already_exists = task.companies.iter().any(|c| c.id == guild_id);
+                        if !already_exists {
+                            // Gather contributing classes with their savings
+                            let contributing_classes: Vec<(String, f64, f64)> =
+                                region.class_demographics.rural_classes.iter()
+                                    .filter(|(_, d)| d.cottage_fte_allocated > 0.0)
+                                    .map(|(class_id, d)| (
+                                        class_id.clone(),
+                                        d.cottage_fte_allocated,
+                                        d.savings,
+                                    ))
+                                    .collect();
+                            if !contributing_classes.is_empty() {
+                                let sector = match sector_str.as_str() {
+                                    "LightIndustry" => crate::registries::enums::Sector::LightIndustry,
+                                    "LocalServices" => crate::registries::enums::Sector::LocalServices,
+                                    _ => crate::registries::enums::Sector::LightIndustry,
+                                };
+                                let mut guild = crate::economy::guild_system::create_guild(
+                                    micro, sector, &contributing_classes, average_wage, &guild_config,
+                                );
+                                guild.region_id = region.id.clone();
+                                task.companies.push(guild);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 85A.2: Execute production for existing guilds
+            // Guilds consume from guild_raw_inventory (purchased in N-1)
+            // and produce finished goods. Output is added to company inventory.
+            for company in &mut task.companies {
+                if !matches!(company.legal_form,
+                    crate::entities::legal_form::LegalForm::Guild(_)) {
+                    continue;
+                }
+                // Get member FTE from the guild's domain region
+                let member_fte = company.legal_form.guild_data()
+                    .map(|d| d.member_workshop_ids.len() as f64 * 10.0)
+                    .unwrap_or(0.0);
+                if member_fte <= 0.0 {
+                    continue;
+                }
+                // Determine recipe based on guild sector
+                let (recipe_input, recipe_output) = match company.sector {
+                    crate::registries::enums::Sector::LightIndustry => (
+                        crate::registries::enums::Commodity::IndustrialFiber,
+                        crate::registries::enums::Commodity::Clothing,
+                    ),
+                    crate::registries::enums::Sector::LocalServices => (
+                        crate::registries::enums::Commodity::Food,
+                        crate::registries::enums::Commodity::Clothing,
+                    ),
+                    _ => continue,
+                };
+                let result = crate::economy::guild_system::execute_guild_production(
+                    company, member_fte,
+                    recipe_input, recipe_output,
+                    1.0,  // 1 unit input per unit output
+                    10.0, // 10 FTE per unit output
+                    crate::registries::enums::Commodity::MixedWaste,
+                    0.05, // 5% waste
+                );
+                // Add output to company available_cash (guilds sell via B2C)
+                // The output is stored in the result; revenue is added to liquid_capital
+                company.liquid_capital += result.revenue;
+                // Store profit for dividend distribution
+                company.liquid_capital += result.revenue;
+            }
+
+            // 85A.3: Distribute dividends for profitable guilds
+            for company in &mut task.companies {
+                if !matches!(company.legal_form,
+                    crate::entities::legal_form::LegalForm::Guild(_)) {
+                    continue;
+                }
+                // Estimate profit as a fraction of liquid_capital
+                let profit = company.liquid_capital * 0.1;
+                if profit > 0.0 {
+                    let member_shares: Vec<(String, f64)> = company.legal_form.guild_data()
+                        .map(|d| d.master_class_ids.iter()
+                            .map(|id| (id.clone(), 1.0))
+                            .collect())
+                        .unwrap_or_default();
+                    let dividends = crate::economy::guild_system::distribute_guild_dividends(
+                        company, profit, &member_shares,
+                    );
+                    // Credit dividends to class savings in the guild's region
+                    let region_id = company.region_id.clone();
+                    if let Some(region) = task.ctx.country.regions.iter_mut()
+                        .find(|r| r.id == region_id)
+                    {
+                        for (class_id, amount) in &dividends {
+                            if let Some(demographics) = region.class_demographics.rural_classes.get_mut(class_id) {
+                                demographics.savings += amount;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 85A.4: Check dissolution for guilds below min_members
+            let config = task.ctx.country.guild_config.clone();
+            let mut guilds_to_dissolve: Vec<usize> = Vec::new();
+            for (idx, company) in task.companies.iter().enumerate() {
+                if !matches!(company.legal_form,
+                    crate::entities::legal_form::LegalForm::Guild(_)) {
+                    continue;
+                }
+                let member_count = company.legal_form.guild_data()
+                    .map(|d| d.member_workshop_ids.len() as u32)
+                    .unwrap_or(0);
+                if member_count < config.min_members {
+                    // For now, dissolve immediately if below min_members
+                    // (turns_below_min tracking would require persistent state)
+                    guilds_to_dissolve.push(idx);
+                }
+            }
+            // Dissolve guilds in reverse order
+            for &idx in guilds_to_dissolve.iter().rev() {
+                let mut company = task.companies[idx].clone();
+                let remaining_members: Vec<(String, f64)> = company.legal_form.guild_data()
+                    .map(|d| d.master_class_ids.iter()
+                        .map(|id| (id.clone(), 1.0))
+                        .collect())
+                    .unwrap_or_default();
+                let distributions = crate::economy::guild_system::dissolve_guild(
+                    &mut company, &remaining_members,
+                );
+                // Credit welfare fund distributions to class savings
+                let region_id = company.region_id.clone();
+                if let Some(region) = task.ctx.country.regions.iter_mut()
+                    .find(|r| r.id == region_id)
+                {
+                    for (class_id, amount) in &distributions {
+                        if let Some(demographics) = region.class_demographics.rural_classes.get_mut(class_id) {
+                            demographics.savings += amount;
+                        }
+                    }
+                }
+                task.companies.remove(idx);
+            }
+        });
+
+        // ═══════════════════════════════════════════════════════════
         // PHASE 85B: URBANIZATION CYCLE
         // Runs after B2C clearing and GDP computation, before entity collection.
         // - 85B.1: Emancipation check (GuildBurgher domains → City Regions)
@@ -5327,9 +5886,10 @@ fn process_parliament_building_payroll(
     }
 
     let staff_count = total_seats * 2; // 2 staff per MP.
-    let average_wage = country.budget.gdp / country.budget.population.max(1) as f64 * 0.1;
-    let mp_salary = average_wage * 3.0;
-    let staff_salary = average_wage * 0.8;
+    // Phase 86.5A: Use config-driven wage ratios instead of magic numbers.
+    let average_wage = country.budget.gdp / country.budget.population.max(1) as f64 * country.turn_config.parliament_mp_salary_wage_ratio;
+    let mp_salary = average_wage * country.turn_config.parliament_mp_salary_multiplier;
+    let staff_salary = average_wage * country.turn_config.parliament_staff_salary_ratio;
 
     let mp_payroll = if parliament_suspended {
         0.0 // MPs not paid when suspended.

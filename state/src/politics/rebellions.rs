@@ -200,6 +200,9 @@ pub fn spawn_rebel_proto_state(
         military_fronts: Vec::new(), // No fronts initially
         military_stockpile: rustc_hash::FxHashMap::default(),
         military_config: crate::military::config::MilitaryCombatConfig::default(),
+        pow_camp: crate::military::pows::PowCamp::default(),
+        morale_config: crate::military::morale::MoraleConfig::default(),
+        guild_config: crate::economy::guild_system::GuildConfig::default(),
         war_economy: crate::military::war_economy::WarEconomyState::default(),
         at_war_with: Vec::new(),
         pending_defense_orders: Vec::new(),
@@ -286,6 +289,11 @@ pub fn spawn_rebel_proto_state(
         geopolitical_doctrine: crate::international::ai_doctrines::GeopoliticalDoctrine::default(),
         power_grid_state: crate::energy::PowerGridState::default(),
         ppa_registry: crate::energy::types::PpaRegistry::default(),
+        turn_config: crate::engine::turn_config::TurnConfig::default(),
+        market_clearing_config: crate::economy::market::clearing_config::MarketClearingConfig::default(),
+        labor_config: crate::economy::labor::labor_config::LaborConfig::default(),
+        geography_config: crate::society::geography_config::GeographyConfig::default(),
+        municipal_infrastructure_plan: crate::energy::municipal_infrastructure_ai::MunicipalInfrastructurePlan::default(),
     };
     
     // Set rebel government type based on rebellion type

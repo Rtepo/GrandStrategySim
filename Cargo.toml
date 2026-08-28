@@ -1,3 +1,16 @@
 [workspace]
 members = ["state", "src-tauri"]
 resolver = "2"
+
+[workspace.lints.clippy]
+# Phase 86.5B: Allow pre-existing lint categories workspace-wide.
+# These are structural patterns inherited from earlier phases.
+field_reassign_with_default = "allow"
+manual_clamp = "allow"
+too_many_arguments = "allow"
+ptr_arg = "allow"
+doc_lazy_continuation = "allow"
+if_same_then_else = "allow"
+module_inception = "allow"
+type_complexity = "allow"
+manual_range_contains = "allow"

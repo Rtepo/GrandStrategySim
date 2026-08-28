@@ -1,8 +1,11 @@
 [package]
 name = "sim-engine-app"
-version = "0.5.3"
+version = "0.6.0"
 edition = "2021"
 description = "Tauri desktop application for the Grand Strategy simulation engine."
+
+[lints]
+workspace = true
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }

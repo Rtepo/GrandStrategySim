@@ -244,7 +244,7 @@ pub fn execute_emancipation(
         population: domain_population,
         gdp: 0.0,
         gdp_pc: 0.0,
-        climate: parent_region.climate.clone(),
+        climate: parent_region.climate,
         soil_profile,
         arable_land_max,
         arable_land_used: 0,
@@ -272,7 +272,7 @@ pub fn execute_emancipation(
         capacity_utilization: std::collections::BTreeMap::new(),
         capacity_prices: std::collections::BTreeMap::new(),
         land_use_inventory: crate::society::geography::LandUseInventory::default(),
-        climate_profile: parent_region.climate_profile.clone(),
+        climate_profile: parent_region.climate_profile,
         micro_regions: std::collections::BTreeMap::new(),
         treasury: crate::state::treasury::Treasury::default(),
         microregion_budgets: std::collections::HashMap::new(),
@@ -675,7 +675,7 @@ pub fn process_urbanization_cycle(
     }
 
     // Execute emancipations (in reverse region index order to preserve indices).
-    emancipation_candidates.sort_by(|a, b| b.0.cmp(&a.0));
+    emancipation_candidates.sort_by_key(|&(idx, _)| std::cmp::Reverse(idx));
     for (region_idx, domain_id) in emancipation_candidates {
         if let Some(result) = execute_emancipation(
             country,

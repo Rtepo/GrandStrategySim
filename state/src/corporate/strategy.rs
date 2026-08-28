@@ -681,7 +681,7 @@ impl Company {
         let start = self.financial_history.len().saturating_sub(3);
         for record in self.financial_history.iter().skip(start) {
             if let Some(Value::Object(map)) = Some(record) {
-                if let Some(Value::Number(n)) = map.get("zysk_netto") {
+                if let Some(Value::Number(n)) = map.get("net_profit") {
                     total += n.as_f64().unwrap_or(0.0);
                 }
             }

@@ -223,7 +223,7 @@ mod tests {
         // Add 5 records with profits: 100, 200, 300, 400, 500
         for profit in [100.0, 200.0, 300.0, 400.0, 500.0] {
             let mut map = Map::new();
-            map.insert("zysk_netto".to_string(), Value::from(profit));
+            map.insert("net_profit".to_string(), Value::from(profit));
             company.financial_history.push(Value::Object(map));
         }
         // 3-turn average of last 3: (300+400+500)/3 = 400
@@ -245,7 +245,7 @@ mod tests {
         let mut company = Company::default();
         for profit in [100.0, 200.0] {
             let mut map = Map::new();
-            map.insert("zysk_netto".to_string(), Value::from(profit));
+            map.insert("net_profit".to_string(), Value::from(profit));
             company.financial_history.push(Value::Object(map));
         }
         // Window=10 but only 2 entries: (100+200)/2 = 150

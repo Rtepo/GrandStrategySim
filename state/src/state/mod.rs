@@ -280,6 +280,15 @@ pub struct Country {
     /// Phase 3: All combat and supply parameters. No magic numbers in logic.
     #[serde(default)]
     pub military_config: crate::military::config::MilitaryCombatConfig,
+    /// Phase 86.5B: POW camp for prisoners of war.
+    #[serde(default)]
+    pub pow_camp: crate::military::pows::PowCamp,
+    /// Phase 86.5B: Morale configuration for military morale system.
+    #[serde(default)]
+    pub morale_config: crate::military::morale::MoraleConfig,
+    /// Phase 86.5B: Guild system configuration (no magic numbers).
+    #[serde(default)]
+    pub guild_config: crate::economy::guild_system::GuildConfig,
     /// Phase 69: War economy state — production decrees, conscription, war bonds.
     /// No serde default — breaks saves per Rule 10.
     pub war_economy: crate::military::war_economy::WarEconomyState,
@@ -585,6 +594,23 @@ pub struct Country {
     /// Phase 81 Wave 2: PPA registry — all active and expired PPAs.
     #[serde(default)]
     pub ppa_registry: crate::energy::types::PpaRegistry,
+    /// Phase 86.5A: Turn-level economic configuration (no magic numbers).
+    #[serde(default)]
+    pub turn_config: crate::engine::turn_config::TurnConfig,
+    /// Phase 86.5A: Market clearing configuration (no magic numbers).
+    #[serde(default)]
+    pub market_clearing_config: crate::economy::market::clearing_config::MarketClearingConfig,
+    /// Phase 86.5A: Labor market configuration (no magic numbers).
+    #[serde(default)]
+    pub labor_config: crate::economy::labor::labor_config::LaborConfig,
+    /// Phase 86.5A: Geography and demographics configuration (no magic numbers).
+    #[serde(default)]
+    pub geography_config: crate::society::geography_config::GeographyConfig,
+    /// Phase 82/83: Municipal AI investment plan — produced by the municipal
+    /// heating and infrastructure AI decision trees each turn. Stored so the
+    /// construction system can execute the funded plans in subsequent phases.
+    #[serde(default)]
+    pub municipal_infrastructure_plan: crate::energy::municipal_infrastructure_ai::MunicipalInfrastructurePlan,
 }
 
 impl Country {
@@ -610,6 +636,9 @@ impl Country {
             military_fronts: Vec::new(),
             military_stockpile: rustc_hash::FxHashMap::default(),
             military_config: crate::military::config::MilitaryCombatConfig::default(),
+            pow_camp: crate::military::pows::PowCamp::default(),
+            morale_config: crate::military::morale::MoraleConfig::default(),
+            guild_config: crate::economy::guild_system::GuildConfig::default(),
             war_economy: crate::military::war_economy::WarEconomyState::default(),
             at_war_with: Vec::new(),
             pending_defense_orders: Vec::new(),
@@ -697,6 +726,11 @@ impl Country {
             geopolitical_doctrine: crate::international::ai_doctrines::GeopoliticalDoctrine::default(),
             power_grid_state: crate::energy::PowerGridState::default(),
             ppa_registry: crate::energy::types::PpaRegistry::default(),
+            turn_config: crate::engine::turn_config::TurnConfig::default(),
+            market_clearing_config: crate::economy::market::clearing_config::MarketClearingConfig::default(),
+            labor_config: crate::economy::labor::labor_config::LaborConfig::default(),
+            geography_config: crate::society::geography_config::GeographyConfig::default(),
+            municipal_infrastructure_plan: crate::energy::municipal_infrastructure_ai::MunicipalInfrastructurePlan::default(),
         }
     }
 
@@ -965,6 +999,9 @@ impl CountryBuilder {
             military_fronts: Vec::new(),
             military_stockpile: rustc_hash::FxHashMap::default(),
             military_config: crate::military::config::MilitaryCombatConfig::default(),
+            pow_camp: crate::military::pows::PowCamp::default(),
+            morale_config: crate::military::morale::MoraleConfig::default(),
+            guild_config: crate::economy::guild_system::GuildConfig::default(),
             war_economy: crate::military::war_economy::WarEconomyState::default(),
             at_war_with: Vec::new(),
             pending_defense_orders: Vec::new(),
@@ -1052,6 +1089,11 @@ impl CountryBuilder {
             geopolitical_doctrine: crate::international::ai_doctrines::GeopoliticalDoctrine::default(),
             power_grid_state: crate::energy::PowerGridState::default(),
             ppa_registry: crate::energy::types::PpaRegistry::default(),
+            turn_config: crate::engine::turn_config::TurnConfig::default(),
+            market_clearing_config: crate::economy::market::clearing_config::MarketClearingConfig::default(),
+            labor_config: crate::economy::labor::labor_config::LaborConfig::default(),
+            geography_config: crate::society::geography_config::GeographyConfig::default(),
+            municipal_infrastructure_plan: crate::energy::municipal_infrastructure_ai::MunicipalInfrastructurePlan::default(),
         }
     }
 }

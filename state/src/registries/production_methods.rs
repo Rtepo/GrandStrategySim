@@ -1479,8 +1479,8 @@ pub fn retail_production_methods() -> HashMap<String, BuildingMethods> {
     registry.insert("wholesale".to_string(), hurtownia);
 
     // -- retail_shop (Retail Store) --
-    let mut sklep = BuildingMethods::default();
-    sklep.insert(MethodSlot::Production, "Basic".to_string(),
+    let mut retail_shop = BuildingMethods::default();
+    retail_shop.insert(MethodSlot::Production, "Basic".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -1493,7 +1493,7 @@ pub fn retail_production_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    registry.insert("retail_shop".to_string(), sklep);
+    registry.insert("retail_shop".to_string(), retail_shop);
 
     // -- supermarket --
     let mut supermarket = BuildingMethods::default();
@@ -1513,8 +1513,8 @@ pub fn retail_production_methods() -> HashMap<String, BuildingMethods> {
     registry.insert("supermarket".to_string(), supermarket);
 
     // -- department_store (Department Store) --
-    let mut dom_towarowy = BuildingMethods::default();
-    dom_towarowy.insert(MethodSlot::Production, "Basic".to_string(),
+    let mut department_store = BuildingMethods::default();
+    department_store.insert(MethodSlot::Production, "Basic".to_string(),
         ProductionMethod {
             year: 1900,
             required_tech: None,
@@ -1527,11 +1527,11 @@ pub fn retail_production_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    registry.insert("department_store".to_string(), dom_towarowy);
+    registry.insert("department_store".to_string(), department_store);
 
     // -- shopping_mall (Shopping Center) --
-    let mut centrum = BuildingMethods::default();
-    centrum.insert(MethodSlot::Production, "Basic".to_string(),
+    let mut shopping_mall = BuildingMethods::default();
+    shopping_mall.insert(MethodSlot::Production, "Basic".to_string(),
         ProductionMethod {
             year: 1970,
             required_tech: None,
@@ -1544,7 +1544,7 @@ pub fn retail_production_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    registry.insert("shopping_mall".to_string(), centrum);
+    registry.insert("shopping_mall".to_string(), shopping_mall);
 
     registry
 }
@@ -1656,8 +1656,8 @@ pub fn healthcare_production_methods() -> HashMap<String, BuildingMethods> {
     let mut registry: HashMap<String, BuildingMethods> = HashMap::new();
 
     // -- clinic (Clinic) --
-    let mut przychodnia = BuildingMethods::default();
-    przychodnia.insert(MethodSlot::Production, "Basic".to_string(),
+    let mut clinic = BuildingMethods::default();
+    clinic.insert(MethodSlot::Production, "Basic".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -1670,11 +1670,11 @@ pub fn healthcare_production_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    registry.insert("clinic".to_string(), przychodnia);
+    registry.insert("clinic".to_string(), clinic);
 
     // -- hospital (Hospital) --
-    let mut szpital = BuildingMethods::default();
-    szpital.insert(MethodSlot::Production, "Basic".to_string(),
+    let mut hospital = BuildingMethods::default();
+    hospital.insert(MethodSlot::Production, "Basic".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -1690,7 +1690,7 @@ pub fn healthcare_production_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    szpital.insert(MethodSlot::Automation, "Advanced".to_string(),
+    hospital.insert(MethodSlot::Automation, "Advanced".to_string(),
         ProductionMethod {
             year: 1950,
             required_tech: None,
@@ -1706,11 +1706,11 @@ pub fn healthcare_production_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    registry.insert("hospital".to_string(), szpital);
+    registry.insert("hospital".to_string(), hospital);
 
-    // -- hospital Badawczy (Research Hospital) --
-    let mut szpital_badawczy = BuildingMethods::default();
-    szpital_badawczy.insert(MethodSlot::Production, "Basic".to_string(),
+    // -- research_hospital (Research Hospital) --
+    let mut research_hospital = BuildingMethods::default();
+    research_hospital.insert(MethodSlot::Production, "Basic".to_string(),
         ProductionMethod {
             year: 1950,
             required_tech: None,
@@ -1727,7 +1727,7 @@ pub fn healthcare_production_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    registry.insert("research_hospital".to_string(), szpital_badawczy);
+    registry.insert("research_hospital".to_string(), research_hospital);
 
     registry
 }

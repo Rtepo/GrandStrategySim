@@ -156,7 +156,7 @@ impl Ideology {
                 education_model: "Free Public", school_system: "8-grade", emancipation: "Full Emancipation",
             },
             Ideology::Maoism => IdeologyPreferences {
-                religion: "State Atheism", citizenship: "Asymilacja 10 lat", electoral_system: "None",
+                religion: "State Atheism", citizenship: "10-Year Assimilation", electoral_system: "None",
                 trade_doctrine: "Autarky", labor_law: "Worker Protection", health_service: "Public",
                 sanitation: "Restrictive", union_law: "State", strike_law: "Banned",
                 education_model: "Free Public", school_system: "8-grade", emancipation: "Full Emancipation",

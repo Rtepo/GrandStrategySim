@@ -1,7 +1,7 @@
 //! Corporate entities — companies and individual buildings.
 //!
 //! This module defines the typed in-memory representation of the dynamic
-//! production actors: [`Company`] (a collection of buildings and plants) and
+//! production actors: [`Company`] (a collection of buildings) and
 //! [`Building`] (a single production site). Both structs preserve the Polish
 //! JSON keys used by the Python engine and carry an `#[serde(flatten)]`
 //! `extra: Map<String, Value>` catch-all for lossless round-trips.
@@ -158,32 +158,6 @@ impl TaxExempt for Company {
     fn exemption_reason(&self) -> Option<String> {
         Some("Sovereign entity - self-taxation prohibited".to_string())
     }
-}
-
-/// A single production plant (`plant`) inside a [`Company`].
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-pub struct Plant {
-    /// Number of buildings in this plant (was: ilosc_budynkow).
-    #[serde(default)]
-    pub building_count: u32,
-    /// Year the plant was built (was: rok_budowy).
-    #[serde(default)]
-    pub year_built: u32,
-    /// Production method name (was: metoda_produkcji).
-    #[serde(default)]
-    pub method_name: String,
-    /// Technological wear and tear (was: zuzycie_technologiczne).
-    #[serde(default)]
-    pub wear: f64,
-    /// Installed power / capacity (was: moc_zainstalowana).
-    #[serde(default)]
-    pub installed_power: f64,
-    /// Worker capacity of this plant (was: pojemnosc_pracownikow).
-    #[serde(default)]
-    pub worker_capacity: u32,
-    /// Any additional plant fields.
-    #[serde(flatten, default)]
-    pub extra: Map<String, Value>,
 }
 
 /// Aggregate ownership distribution for a company (`"akcjonariat"`).
@@ -424,9 +398,6 @@ pub struct Company {
     /// Building IDs owned by this company (was: budynki).
     #[serde(default)]
     pub building_ids: Vec<String>,
-    /// Plants (`plants`) of the company .
-    #[serde(default)]
-    pub plants: Vec<Plant>,
     /// Aggregate scale factor (was: scale_factor).
     #[serde(default)]
     pub scale_factor: u32,
@@ -745,7 +716,6 @@ impl Company {
             safety_level: 0.5,
             union_id: None,
             building_ids: Vec::new(),
-            plants: Vec::new(),
             scale_factor: 1,
             worker_capacity,
             is_national_champion: false,
@@ -834,7 +804,7 @@ impl Company {
             .iter()
             .filter_map(|r| {
                 if let Value::Object(map) = r {
-                    map.get("zysk_netto")?.as_f64()
+                    map.get("net_profit")?.as_f64()
                 } else {
                     None
                 }

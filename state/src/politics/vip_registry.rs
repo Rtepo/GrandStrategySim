@@ -675,6 +675,59 @@ impl VipRegistry {
     pub fn deceased_count(&self) -> usize {
         self.deceased.len()
     }
+
+    /// Phase 86.5A: Prune deceased VIPs while protecting genealogy.
+    ///
+    /// Removes non-dynasty, non-historical deceased VIPs from the archive
+    /// to bound memory growth. The following deceased VIPs are NEVER pruned:
+    ///
+    /// 1. VIPs referenced by a `RoyalDynasty` through `father_vip_id` or
+    ///    `mother_vip_id`.
+    /// 2. VIPs that are ancestors of a living dynasty member.
+    /// 3. VIPs with historical significance tags.
+    ///
+    /// Only safe, non-dynasty, non-historical entries are pruned. The archive
+    /// is bounded to `max_archive_size` eligible entries (default 200), but
+    /// genealogy-protected entries are exempt from this limit.
+    ///
+    /// # Arguments
+    /// * `dynasty_vip_ids` - Set of VIP IDs referenced by any RoyalDynasty
+    ///   (father/mother IDs, ancestor IDs of living members).
+    /// * `historical_vip_ids` - Set of VIP IDs with historical significance tags.
+    /// * `max_archive_size` - Maximum number of prunable (non-protected) entries.
+    ///   Default 200.
+    pub fn prune_deceased_genealogy_safe(
+        &mut self,
+        dynasty_vip_ids: &std::collections::HashSet<String>,
+        historical_vip_ids: &std::collections::HashSet<String>,
+        max_archive_size: usize,
+    ) {
+        // Partition deceased into protected and prunable.
+        let mut protected: Vec<Vip> = Vec::new();
+        let mut prunable: Vec<Vip> = Vec::new();
+
+        for vip in self.deceased.drain(..) {
+            let is_protected = dynasty_vip_ids.contains(&vip.id)
+                || historical_vip_ids.contains(&vip.id);
+            if is_protected {
+                protected.push(vip);
+            } else {
+                prunable.push(vip);
+            }
+        }
+
+        // Sort prunable by death_turn descending (keep most recent deaths).
+        prunable.sort_by(|a, b| {
+            b.death_turn.unwrap_or(0).cmp(&a.death_turn.unwrap_or(0))
+        });
+
+        // Keep only the most recent `max_archive_size` prunable entries.
+        prunable.truncate(max_archive_size);
+
+        // Reassemble: protected entries are exempt from the limit.
+        protected.extend(prunable);
+        self.deceased = protected;
+    }
 }
 
 // ============================================================================

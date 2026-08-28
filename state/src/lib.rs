@@ -55,6 +55,9 @@
 //! `cargo doc` portal is always complete and internally consistent.
 #![deny(missing_docs)]
 #![warn(rustdoc::broken_intra_doc_links)]
+// Phase 86.5B: Pre-existing clippy lint categories are allowed via
+// [workspace.lints.clippy] in the root Cargo.toml.
+#![allow(deprecated)]
 
 pub mod agriculture;
 pub mod corporate;

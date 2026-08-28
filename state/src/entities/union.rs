@@ -8,8 +8,14 @@ use crate::io::entity_store::{Entity, EntityStoreError};
 use crate::registries::enums::Sector;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
+
+/// Default dissolution threshold: a union with fewer than 1 member company
+/// is dissolved (i.e., zero members triggers dissolution).
+fn default_dissolution_threshold() -> usize {
+    1
+}
 
 /// Scope of a union's representation.
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
@@ -79,6 +85,26 @@ pub struct Union {
     /// When None, no union boss is tracked in the VIP registry.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub leader_vip_id: Option<String>,
+    /// Per-member (company ID) cumulative historical dues contribution ledger.
+    ///
+    /// Each entry maps a member company ID to the total dues that company has
+    /// paid into the union over its lifetime. This is the authoritative source
+    /// for pro-rata treasury distribution on dissolution (Rule 7: strict
+    /// individual accountability — no averaging or communization of ledgers).
+    #[serde(default)]
+    pub dues_history: HashMap<String, f64>,
+    /// Minimum number of member companies required for the union to remain
+    /// active. When `company_ids.len()` falls below this threshold, the union
+    /// is dissolved and its liquid treasury is distributed pro-rata to members.
+    /// Defaults to 1 (a union with zero members is dissolved).
+    #[serde(default = "default_dissolution_threshold")]
+    pub dissolution_threshold: usize,
+    /// Transient flag: set to `true` when the union has been dissolved and its
+    /// treasury fully distributed. Used by `process_unions` to `retain` only
+    /// active unions after the dissolution pass completes. Not serialized
+    /// (always `false` on load from disk).
+    #[serde(skip)]
+    pub dissolved: bool,
     /// Any additional union fields.
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,

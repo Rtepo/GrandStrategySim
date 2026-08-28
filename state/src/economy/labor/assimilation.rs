@@ -71,14 +71,14 @@ pub fn process_assimilation_turn(
     let mut result = AssimilationTurnResult::default();
     let reg = culture_registry();
     let dominant_culture = country.macro_indicators.culture.clone();
-    let prawo_obywatelskie = country.politics.civil_rights_law.clone();
+    let civil_law = country.politics.civil_rights_law.clone();
 
-    if prawo_obywatelskie == "Segregacja" || dominant_culture.is_empty() {
+    if civil_law == "Segregation" || dominant_culture.is_empty() {
         return result;
     }
 
     let dominant_def = reg.from_display_name(&dominant_culture);
-    let base_rate: f64 = if prawo_obywatelskie == "5-Year Assimilation" { 0.08 } else { 0.03 };
+    let base_rate: f64 = if civil_law == "5-Year Assimilation" { 0.08 } else { 0.03 };
 
     // Phase 18A: Legal status gate — Illegals cannot assimilate.
     // Compute the fraction of the total population that is legally eligible
@@ -613,7 +613,7 @@ mod tests {
         country.macro_indicators.culture = "Illyria".into();
         country.macro_indicators.demographics.ethnic_composition.insert("Illyria".into(), 0.7);
         country.macro_indicators.demographics.ethnic_composition.insert("Weneda".into(), 0.3);
-        country.politics.civil_rights_law = "Segregacja".into();
+        country.politics.civil_rights_law = "Segregation".into();
 
         let buildings: Vec<Building> = vec![];
         let edu_consumption: BTreeMap<String, f64> = BTreeMap::from([("r1".into(), 100.0)]);

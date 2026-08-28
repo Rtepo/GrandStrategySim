@@ -816,6 +816,9 @@ fn generate_unions(
             last_strike_turn: None,
             on_strike: false,
             leader_vip_id: None,
+            dues_history: std::collections::HashMap::new(),
+            dissolution_threshold: 1,
+            dissolved: false,
             extra: Map::new(),
         };
 
@@ -1031,7 +1034,6 @@ fn generate_region_companies(
             safety_level: 0.5,
             union_id: None,
             building_ids: Vec::new(),
-            plants: Vec::new(),
             scale_factor,
             worker_capacity: actual_capacity,
             is_national_champion,
@@ -2238,7 +2240,6 @@ fn create_seed_company_with_explicit_method(
         safety_level: 0.5,
         union_id: None,
         building_ids: Vec::new(),
-        plants: Vec::new(),
         scale_factor,
         worker_capacity: actual_capacity,
         is_national_champion: false,
@@ -2662,7 +2663,6 @@ fn create_seed_company(
         safety_level: 0.5,
         union_id: None,
         building_ids: Vec::new(),
-        plants: Vec::new(),
         scale_factor,
         worker_capacity: actual_capacity,
         is_national_champion: false,
@@ -3462,7 +3462,6 @@ fn create_strategic_reserve_agency(
         safety_level: 0.5,
         union_id: None,
         building_ids: Vec::new(), // Will be set by caller
-        plants: Vec::new(),
         scale_factor: 1,
         worker_capacity: 0,
         is_national_champion: false,
@@ -3782,7 +3781,6 @@ fn generate_retail_stores(
             safety_level: 0.5,
             union_id: None,
             building_ids: vec![building_id.clone()],
-            plants: Vec::new(),
             scale_factor: 1,
             worker_capacity: base_capacity,
             is_national_champion: false,
@@ -4162,7 +4160,6 @@ fn generate_tourism_entities(
                 safety_level: 0.5,
                 union_id: None,
                 building_ids: vec![building_id],
-                plants: Vec::new(),
                 scale_factor: 1,
                 worker_capacity: rng.gen_range(20..100),
                 is_national_champion: false,
@@ -4677,7 +4674,6 @@ fn create_charity_company(
         safety_level: 1.0, // Charities don't have industrial accidents
         union_id: None,
         building_ids: Vec::new(),
-        plants: Vec::new(),
         scale_factor: 1,
         worker_capacity,
         is_national_champion: false,
@@ -4910,7 +4906,6 @@ pub fn generate_investment_funds(
             safety_level: 1.0,
             union_id: None,
             building_ids: Vec::new(),
-            plants: Vec::new(),
             scale_factor: 1,
             worker_capacity: 10, // Small staff
             is_national_champion: false,

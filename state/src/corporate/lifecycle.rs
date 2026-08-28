@@ -98,7 +98,7 @@ impl CompanyLifecycle {
                 .take(3)
                 .all(|record| {
                     record
-                        .get("zysk_netto")
+                        .get("net_profit")
                         .and_then(|v| v.as_f64())
                         .is_some_and(|profit| profit < 0.0)
                 });
@@ -130,6 +130,9 @@ impl CompanyLifecycle {
             }
 
             // 2. Liquidate buildings owned by this company
+            // Phase 86.5A: Collect building IDs to remove after iteration
+            // to avoid mutating the Vec while iterating.
+            let mut buildings_to_remove: Vec<String> = Vec::new();
             for building in buildings.iter_mut() {
                 if building.owner_id == company_id {
                     // Heritage buildings are protected from demolition
@@ -147,11 +150,15 @@ impl CompanyLifecycle {
                         std::collections::HashMap::new(),
                         &crate::state::BankruptcyPolicy::with_defaults(),
                     );
+                    // Phase 86.5A: Mark for removal instead of leaving a zombie.
                     building.owner_id.clear();
                     building.current_employment = 0;
                     building.worker_capacity = 0;
+                    buildings_to_remove.push(building.id.clone());
                 }
             }
+            // Phase 86.5A: Actually remove dead buildings from the collection.
+            buildings.retain(|b| !buildings_to_remove.contains(&b.id));
 
             // 3. Remove frozen company cash from justice state
             if let Some(ref mut justice_state) = country.politics.justice_state {
@@ -310,9 +317,8 @@ mod tests {
         CompanyLifecycle::liquidate_bankrupt_companies(&mut companies, &mut buildings, &mut country, 2024);
 
         assert!(companies.is_empty());
-        assert_eq!(buildings[0].owner_id, "");
-        assert_eq!(buildings[0].current_employment, 0);
-        assert_eq!(buildings[0].worker_capacity, 0);
+        // Phase 86.5A: Building is now fully removed, not left as a zombie.
+        assert!(buildings.is_empty());
     }
 
     #[test]

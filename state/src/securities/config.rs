@@ -40,8 +40,9 @@ pub struct SecuritiesMarketConfig {
     pub commodity_spot_retail_premium: f64,
 
     // ── KNF ──
-    /// KNF penalty multiplier for Tier 1 shortfall (fine = severity * assets * this).
-    #[serde(default)]
+    /// Defaults to 1.0 (neutral enforcement) to prevent a missing-data hazard
+    /// where securities regulation becomes toothless with 0.0 penalty multiplier.
+    #[serde(default = "default_knf_penalty_multiplier")]
     pub knf_penalty_multiplier: f64,
     /// KNF minimum Tier 1 capital ratio (e.g., 0.08 for 8%).
     #[serde(default)]
@@ -125,6 +126,13 @@ fn default_commodity_spot_retail_premium() -> f64 {
     0.05 // 5% above B2B VWAP — configurable, not hardcoded in logic
 }
 
+/// Default KNF penalty multiplier.
+/// Defaults to 1.0 (neutral enforcement) to prevent a missing-data hazard
+/// where securities regulation becomes toothless with 0.0 penalty multiplier.
+fn default_knf_penalty_multiplier() -> f64 {
+    1.0
+}
+
 /// Manual Default implementation to ensure Phase 56 config fields use
 /// their serde default functions rather than 0.0.
 impl Default for SecuritiesMarketConfig {
@@ -141,7 +149,7 @@ impl Default for SecuritiesMarketConfig {
             // ── Phase 56: Commodity Spot ──
             commodity_spot_retail_premium: default_commodity_spot_retail_premium(),
             // ── KNF ──
-            knf_penalty_multiplier: 0.0,
+            knf_penalty_multiplier: default_knf_penalty_multiplier(),
             knf_min_tier1_ratio: 0.0,
             otc_fine_rate: 0.0,
             // ── CCP ──

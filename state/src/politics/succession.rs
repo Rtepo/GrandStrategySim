@@ -537,9 +537,8 @@ fn recalculate_succession_order(
         })
         .collect();
 
-    // Sort by age descending (eldest first). Using sort_unstable_by since
-    // we need descending order (sort_by_key only works for ascending).
-    children.sort_unstable_by(|a, b| b.1.cmp(&a.1));
+    // Sort by age descending (eldest first) using Reverse for descending key.
+    children.sort_unstable_by_key(|&(_, age)| std::cmp::Reverse(age));
 
     // Assign succession orders.
     let mut order = 1u32;

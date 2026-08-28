@@ -27,22 +27,9 @@ fn bool_from_value(value: Option<&Value>, default: bool) -> bool {
     value.and_then(|v| v.as_bool()).unwrap_or(default)
 }
 
-/// Reads a nested `f64` from `extra[outer][inner]`.
-fn get_nested_f64(extra: &Map<String, Value>, outer: &str, inner: &str) -> Option<f64> {
-    extra.get(outer).and_then(|v| v.get(inner)).and_then(|v| v.as_f64())
-}
-
-/// Writes `extra[outer][inner] = value`, creating the outer object if needed.
-fn set_nested_f64(extra: &mut Map<String, Value>, outer: &str, inner: &str, value: f64) {
-    let inner_map = extra.entry(outer.to_string()).or_insert_with(|| Value::Object(Map::new()));
-    if let Value::Object(map) = inner_map {
-        map.insert(inner.to_string(), Value::from(value));
-    }
-}
-
 /// Returns the fertility multiplier implied by the emancipation law.
-fn fertility_multiplier(prawo_emancypacji: &str) -> f64 {
-    match prawo_emancypacji {
+fn fertility_multiplier(emancipation_law: &str) -> f64 {
+    match emancipation_law {
         "Traditionalism" => 1.25,
         "Property Rights" => 1.10,
         "Limited Suffrage" => 0.90,
@@ -52,8 +39,8 @@ fn fertility_multiplier(prawo_emancypacji: &str) -> f64 {
 }
 
 /// Returns the emancipation-driven participation modifier for each tier.
-fn emancipation_modifiers(prawo_emancypacji: &str) -> (f64, f64, f64) {
-    match prawo_emancypacji {
+fn emancipation_modifiers(emancipation_law: &str) -> (f64, f64, f64) {
+    match emancipation_law {
         "Traditionalism" => (0.55, 0.65, 0.85),
         "Property Rights" => (0.70, 0.80, 0.90),
         "Limited Suffrage" => (0.85, 0.95, 1.0),
@@ -63,8 +50,8 @@ fn emancipation_modifiers(prawo_emancypacji: &str) -> (f64, f64, f64) {
 }
 
 /// Returns the minimum-wage coefficient implied by labor law.
-fn wsk_min(prawo_pracy: &str) -> f64 {
-    match prawo_pracy {
+fn wsk_min(labor_law: &str) -> f64 {
+    match labor_law {
         "Rigid Minimum Wage" => 0.70,
         "Worker Protection" => 0.45,
         _ => 0.0,
@@ -111,48 +98,48 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
     let budget = &mut country.budget;
     let macro_indicators = &mut country.macro_indicators;
 
-    // Health read and update.
-    let baza_medyczna = get_nested_f64(&macro_indicators.extra, "statystyki_zdrowotne", "baza_infrastruktury_medycznej").unwrap_or(10.0);
-    let jakosc_sluzby = get_nested_f64(&macro_indicators.extra, "statystyki_zdrowotne", "jakosc_sluzby_zdrowia").unwrap_or(50.0);
-    let zgony_w_pracy = get_nested_f64(&macro_indicators.extra, "statystyki_zdrowotne", "zgony_w_pracy").unwrap_or(0.0);
+    // Health read and update — Phase 86.5A: Use typed fields, not extra.
+    let medical_infrastructure_base = macro_indicators.health_statistics.hospital_coverage;
+    let healthcare_quality = macro_indicators.health_statistics.service_quality;
+    let work_deaths = 0.0; // Tracked via mortality_rate
 
-    let life_expectancy = (60.0 + baza_medyczna * 0.20 + (jakosc_sluzby / 100.0) * 15.0).min(95.0);
-    let healthy_life_expectancy = (50.0 + baza_medyczna * 0.15 + (jakosc_sluzby / 100.0) * 10.0).min(85.0);
+    let life_expectancy = (60.0 + medical_infrastructure_base * 0.20 + (healthcare_quality / 100.0) * 15.0).min(95.0);
+    let healthy_life_expectancy = (50.0 + medical_infrastructure_base * 0.15 + (healthcare_quality / 100.0) * 10.0).min(85.0);
 
-    set_nested_f64(&mut macro_indicators.extra, "statystyki_zdrowotne", "oczekiwana_dlugosc_zycia", life_expectancy);
-    set_nested_f64(&mut macro_indicators.extra, "statystyki_zdrowotne", "dlugosc_zycia_w_zdrowiu", healthy_life_expectancy);
+    macro_indicators.health_statistics.average_lifespan = life_expectancy;
+    macro_indicators.health_statistics.mortality_rate = work_deaths;
 
     // Policy and crime read.
-    let polityka = macro_indicators.extra.get("polityka").cloned().unwrap_or_else(|| Value::Object(Map::new()));
-    let przestepczosc = macro_indicators.extra.get("przestepczosc").cloned().unwrap_or_else(|| Value::Object(Map::new()));
+    let policy = macro_indicators.extra.get("policy").cloned().unwrap_or_else(|| Value::Object(Map::new()));
+    let crime_rate = macro_indicators.extra.get("crime_rate").cloned().unwrap_or_else(|| Value::Object(Map::new()));
 
-    let prawo_emancypacji = string_from_value(polityka.get("prawo_emancypacji"), "Traditionalism");
-    let prawo_obywatelskie = string_from_value(polityka.get("prawo_obywatelskie"), "5-Year Assimilation");
-    let prawo_pracy = string_from_value(polityka.get("prawo_pracy"), "Wolny Rynek");
-    let agencja_aktywna = bool_from_value(polityka.get("agencja_pracy_aktywna"), false);
-    let _tarcza_energetyczna = bool_from_value(polityka.get("tarcza_energetyczna"), false);
+    let emancipation_law = string_from_value(policy.get("emancipation_law"), "Traditionalism");
+    let civil_law = string_from_value(policy.get("civil_law"), "5-Year Assimilation");
+    let labor_law = string_from_value(policy.get("labor_law"), "Free Market");
+    let job_agency_active = bool_from_value(policy.get("job_agency_active"), false);
+    let _energy_shield = bool_from_value(policy.get("energy_shield"), false);
 
-    let zbrodnie = f64_from_value(przestepczosc.get("zbrodnie"), 0.0);
-    let indeks_bezpieczenstwa = f64_from_value(przestepczosc.get("indeks_bezpieczenstwa"), 80.0);
+    let crimes = f64_from_value(crime_rate.get("crimes"), 0.0);
+    let safety_index = f64_from_value(crime_rate.get("safety_index"), 80.0);
 
     let (new_avg, new_population) = {
         let demographics = &mut macro_indicators.demographics;
         let labor_market = &mut macro_indicators.labor_market;
 
         // Fertility, mortality, migration.
-        let mnoznik_dzietnosci = fertility_multiplier(&prawo_emancypacji);
-        let birth_rate_index = (demographics.birth_rate / 100.0) * mnoznik_dzietnosci;
+        let fertility_multiplier_val = fertility_multiplier(&emancipation_law);
+        let birth_rate_index = (demographics.birth_rate / 100.0) * fertility_multiplier_val;
         let base_death_rate = demographics.death_rate / 100.0;
-        let zgony_kryminalne = (zbrodnie / 100.0) * 0.002;
-        let reduced_death_rate = (base_death_rate - baza_medyczna * 0.00005 - (jakosc_sluzby / 100.0) * 0.003 + zgony_kryminalne).max(0.003);
+        let criminal_deaths = (crimes / 100.0) * 0.002;
+        let reduced_death_rate = (base_death_rate - medical_infrastructure_base * 0.00005 - (healthcare_quality / 100.0) * 0.003 + criminal_deaths).max(0.003);
 
         // Phase 8: Apply winter mortality multiplier (computed from regions before closure)
         let winter_death_rate = reduced_death_rate * winter_mortality;
 
-        let mut migracja_wsk = demographics.net_migration;
-        if indeks_bezpieczenstwa < 40.0 {
-            let ucieczka_strachu = ((40.0 - indeks_bezpieczenstwa) / 100.0) * 0.015;
-            migracja_wsk -= ucieczka_strachu;
+        let mut migration_rate = demographics.net_migration;
+        if safety_index < 40.0 {
+            let fear_flight = ((40.0 - safety_index) / 100.0) * 0.015;
+            migration_rate -= fear_flight;
         }
 
         // Phase 74: Convert annual rates to compound per-turn rates.
@@ -160,25 +147,25 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
         // Using the annual rate directly per turn caused 24× drift.
         let per_turn_birth_rate = annual_to_per_turn_rate(birth_rate_index);
         let per_turn_death_rate = annual_to_per_turn_rate(winter_death_rate);
-        let per_turn_migration_rate = annual_to_per_turn_rate(migracja_wsk.abs()) * migracja_wsk.signum();
+        let per_turn_migration_rate = annual_to_per_turn_rate(migration_rate.abs()) * migration_rate.signum();
 
         let births = population * per_turn_birth_rate;
         let natural_deaths = population * per_turn_death_rate;
         let migrants = population * per_turn_migration_rate;
-        let population_change = births - natural_deaths - zgony_w_pracy + migrants;
+        let population_change = births - natural_deaths - work_deaths + migrants;
         let new_population = (population + population_change).max(1.0).floor() as u64;
 
         demographics.last_births = births;
-        demographics.last_deaths = natural_deaths + zgony_w_pracy;
+        demographics.last_deaths = natural_deaths + work_deaths;
         demographics.last_migration = migrants;
         demographics.population_size = new_population as f64;
 
         // Gender update.
-        let pop_mezczyzni = (population * demographics.gender.male) - (zgony_w_pracy * 0.90) + (births * 0.505);
-        let pop_kobiety = (population * demographics.gender.female) - (zgony_w_pracy * 0.10) + (births * 0.495);
-        let suma_pop_nowa = (pop_mezczyzni + pop_kobiety).max(1.0);
-        demographics.gender.male = pop_mezczyzni / suma_pop_nowa;
-        demographics.gender.female = pop_kobiety / suma_pop_nowa;
+        let male_population = (population * demographics.gender.male) - (work_deaths * 0.90) + (births * 0.505);
+        let female_population = (population * demographics.gender.female) - (work_deaths * 0.10) + (births * 0.495);
+        let new_total_population = (male_population + female_population).max(1.0);
+        demographics.gender.male = male_population / new_total_population;
+        demographics.gender.female = female_population / new_total_population;
 
         // Immigrant cohorts.
         if migrants > 0.0 {
@@ -191,25 +178,25 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
             });
         }
 
-        let mut wspolczynnik_zgonow_i_emigracji = 1.0 - reduced_death_rate;
+        let mut death_emigration_factor = 1.0 - reduced_death_rate;
         if migrants < 0.0 {
-            wspolczynnik_zgonow_i_emigracji -= migrants.abs() / population;
+            death_emigration_factor -= migrants.abs() / population;
         }
-        wspolczynnik_zgonow_i_emigracji = wspolczynnik_zgonow_i_emigracji.clamp(0.0, 1.0);
+        death_emigration_factor = death_emigration_factor.clamp(0.0, 1.0);
 
-        let mut aktywnych_imigrantow = 0.0;
-        let mut remizy_imigrantow = 0.0;
+        let mut active_immigrants = 0.0;
+        let mut immigrant_remittances = 0.0;
 
         for k in &mut demographics.immigrant_cohorts {
-            k.count *= wspolczynnik_zgonow_i_emigracji;
+            k.count *= death_emigration_factor;
 
-            let rate = if prawo_obywatelskie == "Segregacja" {
+            let rate = if civil_law == "Segregation" {
                 let mut r = 0.50;
                 if k.seniority > 10 {
                     r = (0.50 - ((k.seniority - 10) as f64 * 0.01)).max(0.40);
                 }
                 r
-            } else if prawo_obywatelskie == "Asymilacja 10 lat" {
+            } else if civil_law == "10-Year Assimilation" {
                 let mut r = 0.40;
                 if k.seniority > 10 {
                     r = (0.40 - ((k.seniority - 10) as f64 * 0.08)).max(0.0);
@@ -224,23 +211,23 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
             };
 
             if rate > 0.0 {
-                remizy_imigrantow += k.count * rate;
-                aktywnych_imigrantow += k.count;
+                immigrant_remittances += k.count * rate;
+                active_immigrants += k.count;
             }
 
             k.seniority += 1;
         }
 
-        let max_seniority = if prawo_obywatelskie == "Segregacja" {
+        let max_seniority = if civil_law == "Segregation" {
             u32::MAX
-        } else if prawo_obywatelskie == "Asymilacja 10 lat" {
+        } else if civil_law == "10-Year Assimilation" {
             20
         } else {
             15
         };
         demographics.immigrant_cohorts.retain(|k| k.count > 10.0 && k.seniority <= max_seniority);
-        demographics.unassimilated_immigrants = aktywnych_imigrantow;
-        demographics.effective_immigrant_remittances = remizy_imigrantow;
+        demographics.unassimilated_immigrants = active_immigrants;
+        demographics.effective_immigrant_remittances = immigrant_remittances;
 
         // Age groups.
         let dzieci = demographics.age_groups.children;
@@ -262,8 +249,8 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
         let zgony_reszta = (reduced_death_rate - zgony_starsi).max(0.0);
 
         let nowe_dzieci = (dzieci - dzieci_dorastajace + birth_rate_index).max(0.01);
-        let zgony_w_pracy_ulamek = zgony_w_pracy / population.max(1.0);
-        let nowi_dorosli = (dorosli + dzieci_dorastajace - dorosli_starzejacy_sie - zgony_reszta - zgony_w_pracy_ulamek + migracja_wsk).max(0.01);
+        let work_deaths_fraction = work_deaths / population.max(1.0);
+        let nowi_dorosli = (dorosli + dzieci_dorastajace - dorosli_starzejacy_sie - zgony_reszta - work_deaths_fraction + migration_rate).max(0.01);
         let nowi_starsi = (starsi + dorosli_starzejacy_sie - zgony_starsi).max(0.01);
 
         let suma = nowe_dzieci + nowi_dorosli + nowi_starsi;
@@ -281,8 +268,8 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
         // Labor supply and wages.
         let sila_robocza = (population * labor_market.labor_force_participation / 100.0).max(1.0);
         let wyzsze = demographics.education.higher_share();
-        let podstawowe = demographics.education.podstawowe;
-        let analfabeci = demographics.education.brak;
+        let podstawowe = demographics.education.basic;
+        let analfabeci = demographics.education.none;
 
         // Python workforce.py uses wyzsze for experts, podstawowe for the
         // sredni tier, and brak (no education) for the szeregowi tier.
@@ -290,7 +277,7 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
         let sredni_share = podstawowe;
         let szeregowi_share = analfabeci;
 
-        let (mod_eksperci, mod_sredni, mod_szeregowi) = emancipation_modifiers(&prawo_emancypacji);
+        let (mod_eksperci, mod_sredni, mod_szeregowi) = emancipation_modifiers(&emancipation_law);
 
         let eksperci_dostepni = sila_robocza * ekspert_share * mod_eksperci;
         let sredni_dostepni = sila_robocza * sredni_share * mod_sredni;
@@ -306,7 +293,7 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
         // Phase 25 fix: when there is no statutory minimum wage (wsk_min = 0),
         // the base wage is the previous average wage (market-clearing reference).
         // The statutory minimum only applies when explicitly set by labor law.
-        let statutory_multiplier = wsk_min(&prawo_pracy);
+        let statutory_multiplier = wsk_min(&labor_law);
         let base_wage = if statutory_multiplier > 0.0 {
             prev_avg * statutory_multiplier
         } else {
@@ -316,10 +303,10 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
         // Unemployment structure.
         let bezrobotni = (sila_robocza - labor_market.employed_total).max(0.0);
         let mut stopa_bezrobocia_surowa = (bezrobotni / sila_robocza) * 100.0;
-        if agencja_aktywna {
+        if job_agency_active {
             stopa_bezrobocia_surowa = (stopa_bezrobocia_surowa - 2.0).max(0.0);
         }
-        let frykcyjne_bazowe = if agencja_aktywna { 1.5 } else { 3.0 };
+        let frykcyjne_bazowe = if job_agency_active { 1.5 } else { 3.0 };
         let stopa_bezrobocia = stopa_bezrobocia_surowa.max(frykcyjne_bazowe);
         let pozostalo = (stopa_bezrobocia - frykcyjne_bazowe).max(0.0);
 
@@ -371,7 +358,7 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
         // are mutually consistent at the end of the turn.
         let bezrobotni_aktualni = (sila_robocza - total_employed).max(0.0);
         let mut stopa_bezrobocia_aktualna = (bezrobotni_aktualni / sila_robocza) * 100.0;
-        if agencja_aktywna {
+        if job_agency_active {
             stopa_bezrobocia_aktualna = (stopa_bezrobocia_aktualna - 2.0).max(0.0);
         }
         let stopa_bezrobocia_aktualna = stopa_bezrobocia_aktualna.max(frykcyjne_bazowe);

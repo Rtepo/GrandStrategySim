@@ -8,6 +8,13 @@ use crate::registries::enums::Commodity;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+/// Default wage multiplier for crop labor phases.
+/// Defaults to 1.0 (neutral) to prevent the Phantom Harvest bug where missing
+/// data zeroes agricultural wages.
+fn default_wage_multiplier() -> f64 {
+    1.0
+}
+
 /// Default seed commodity.
 fn default_seed_commodity() -> Commodity {
     Commodity::Seeds
@@ -128,12 +135,14 @@ pub struct CropDefinition {
     #[serde(default = "default_seed_quantity_per_hectare")]
     pub seed_quantity_per_hectare: f64,
 
-    /// Wage multiplier during Sowing phase (data-driven)
-    #[serde(default)]
+    /// Defaults to 1.0 (neutral) to prevent the Phantom Harvest bug where
+    /// missing data zeroes agricultural wages.
+    #[serde(default = "default_wage_multiplier")]
     pub sowing_wage_multiplier: f64,
 
-    /// Wage multiplier during Harvesting phase (data-driven)
-    #[serde(default)]
+    /// Defaults to 1.0 (neutral) to prevent the Phantom Harvest bug where
+    /// missing data zeroes agricultural wages.
+    #[serde(default = "default_wage_multiplier")]
     pub harvesting_wage_multiplier: f64,
 }
 

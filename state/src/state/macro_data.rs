@@ -106,25 +106,25 @@ impl Default for Gender {
 /// Education distribution of the adult population.
 ///
 /// # Rules
-/// * The `srednie` and `wyzsze` fields are maps of specialization → share
+/// * The `secondary` and `higher` fields are maps of specialization → share
 ///   (e.g. `"Techniczne": 0.105`).
-/// * `podstawowe` and `brak` are scalar shares.
-/// * The Python `workforce.py` uses `wyzsze` for experts, `podstawowe` for the
-///   `sredni` tier, and `brak` for the `szeregowi` tier.
+/// * `basic` and `none` are scalar shares.
+/// * The Python `workforce.py` uses `higher` for experts, `basic` for the
+///   `sredni` tier, and `none` for the `szeregowi` tier.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct Education {
     /// No formal education.
     #[serde(default)]
-    pub brak: f64,
+    pub none: f64,
     /// Basic education.
     #[serde(default)]
-    pub podstawowe: f64,
+    pub basic: f64,
     /// Secondary education specializations.
     #[serde(default)]
-    pub srednie: BTreeMap<String, f64>,
+    pub secondary: BTreeMap<String, f64>,
     /// Higher education specializations.
     #[serde(default)]
-    pub wyzsze: BTreeMap<String, f64>,
+    pub higher: BTreeMap<String, f64>,
     /// Any additional education categories.
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -133,12 +133,12 @@ pub struct Education {
 impl Education {
     /// Total share with higher education.
     pub fn higher_share(&self) -> f64 {
-        self.wyzsze.values().sum::<f64>()
+        self.higher.values().sum::<f64>()
     }
 
     /// Total share with secondary education.
     pub fn secondary_share(&self) -> f64 {
-        self.srednie.values().sum::<f64>()
+        self.secondary.values().sum::<f64>()
     }
 }
 
@@ -923,13 +923,13 @@ mod tests {
         "inflation": 6.2, "gini": 0.41, "social_unrest": 22.5,
         "wealth_bracket": "high", "productivity": 1.8, "currency": "ILI",
         "energy_mix": {"coal": 0.0, "natural_gas": 0.0, "uranium": 0.0, "renewables": 1.0},
-        "polityka": {"regime": "presidential_republic", "years_until_election": 5},
+        "policy": {"regime": "presidential_republic", "years_until_election": 5},
         "labor_market": {"unemployment_rate": 7.3},
         "health_statistics": {"service_quality": 55.0},
         "education_statistics": {"infrastructure_base": 59.5},
         "average_wage": 660.6, "culture": "Illyria", "cultural_group": "germanic",
         "religion": "Protestantism", "demographics": {"birth_rate": 18.2},
-        "przestepczosc": {"korupcja": 20.0}
+        "crime_rate": {"korupcja": 20.0}
     }"#;
 
     #[test]
@@ -951,7 +951,7 @@ mod tests {
     fn complex_subtrees_land_in_extra() {
         let m: MacroData = serde_json::from_str(FIXTURE).unwrap();
         // statystyki_zdrowotne and statystyki_edukacyjne are now explicit fields, not in extra
-        for key in ["polityka", "przestepczosc"] {
+        for key in ["policy", "crime_rate"] {
             assert!(m.extra.contains_key(key), "missing {key}");
         }
         // Verify that health and education statistics are now explicit fields

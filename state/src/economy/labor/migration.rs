@@ -96,8 +96,8 @@ pub fn calculate_migration_pressure(
     // Unrest: security index < 40 → high unrest
     let security_index = get_nested_f64(
         &country.macro_indicators.extra,
-        "przestepczosc",
-        "indeks_bezpieczenstwa",
+        "crime_rate",
+        "safety_index",
     )
     .unwrap_or(80.0);
     let unrest = ((40.0 - security_index) / 40.0).max(0.0).min(1.0);
@@ -359,8 +359,8 @@ pub fn collect_migration_flows(
 fn determine_migration_reason(country: &Country, _pressure: f64) -> MigrationReason {
     let security_index = get_nested_f64(
         &country.macro_indicators.extra,
-        "przestepczosc",
-        "indeks_bezpieczenstwa",
+        "crime_rate",
+        "safety_index",
     )
     .unwrap_or(80.0);
 
@@ -614,8 +614,8 @@ mod tests {
             .macro_indicators
             .extra
             .insert(
-                "przestepczosc".to_string(),
-                serde_json::json!({"indeks_bezpieczenstwa": 10.0}),
+                "crime_rate".to_string(),
+                serde_json::json!({"safety_index": 10.0}),
             );
         let buildings = vec![];
         let pressure = calculate_migration_pressure(&country, &buildings, 0);
@@ -670,8 +670,8 @@ mod tests {
             .macro_indicators
             .extra
             .insert(
-                "przestepczosc".to_string(),
-                serde_json::json!({"indeks_bezpieczenstwa": 10.0}),
+                "crime_rate".to_string(),
+                serde_json::json!({"safety_index": 10.0}),
             );
         // Phase 36: Add a region with class demographics so bottom-up
         // reconciliation preserves the population instead of resetting to 0.
@@ -687,8 +687,8 @@ mod tests {
             .macro_indicators
             .extra
             .insert(
-                "przestepczosc".to_string(),
-                serde_json::json!({"indeks_bezpieczenstwa": 90.0}),
+                "crime_rate".to_string(),
+                serde_json::json!({"safety_index": 90.0}),
             );
 
         let buildings_a: Vec<Building> = vec![];

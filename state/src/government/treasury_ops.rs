@@ -608,7 +608,7 @@ pub fn calculate_black_ops_budget(country: &Country, registries: &Registries) ->
         let crime = country
             .macro_indicators
             .extra
-            .get("przestepczosc")
+            .get("crime_rate")
             .and_then(Value::as_object);
 
         let shadow = crime
@@ -646,7 +646,7 @@ fn is_democratic(country: &Country, registries: &Registries) -> bool {
     let regime = country
         .macro_indicators
         .extra
-        .get("polityka")
+        .get("policy")
         .and_then(Value::as_object)
         .and_then(|m| m.get("system"))
         .and_then(Value::as_str);

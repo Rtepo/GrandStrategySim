@@ -1485,15 +1485,14 @@ pub fn counter_cyclical_response(
     }
 
     // Recovery: restore reserve requirement when unemployment drops below 5%.
-    if unemployment_rate < 5.0 && prev_unemployment >= 5.0 {
-        if country.central_bank.reserve_requirement_ratio < 0.15 {
-            country.central_bank.reserve_requirement_ratio =
-                (country.central_bank.reserve_requirement_ratio + 0.01).min(0.15);
-            messages.push(format!(
-                "[COUNTER-CYCLICAL] Recovery: reserve requirement restored to {:.0}%",
-                country.central_bank.reserve_requirement_ratio * 100.0
-            ));
-        }
+    if unemployment_rate < 5.0 && prev_unemployment >= 5.0
+        && country.central_bank.reserve_requirement_ratio < 0.15 {
+        country.central_bank.reserve_requirement_ratio =
+            (country.central_bank.reserve_requirement_ratio + 0.01).min(0.15);
+        messages.push(format!(
+            "[COUNTER-CYCLICAL] Recovery: reserve requirement restored to {:.0}%",
+            country.central_bank.reserve_requirement_ratio * 100.0
+        ));
     }
 
     messages

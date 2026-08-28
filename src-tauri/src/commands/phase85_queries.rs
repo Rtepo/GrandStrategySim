@@ -1,5 +1,5 @@
 use crate::state::AppState;
-use sim_engine::ui::snapshot::{CitiesSnapshot, FactionalDomainsSnapshot, GuildsSnapshot};
+use sim_engine::ui::snapshot::{CitiesSnapshot, FactionalDomainsSnapshot, GuildsSnapshot, MunicipalAiSnapshot};
 
 /// Phase 85: Get the factional domains snapshot for the FactionalDomainsPage.
 /// Role-gated (Rule 11): foreign observers see only public data.
@@ -92,6 +92,33 @@ pub async fn get_cities_snapshot(
                 country,
                 false,
             );
+            Ok(snapshot)
+        } else {
+            Err("No country found".to_string())
+        }
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+/// Phase 86.5B: Get the municipal AI investment plan snapshot.
+/// Shows the AI's infrastructure investment decisions for the current turn.
+#[tauri::command]
+pub async fn get_municipal_ai_snapshot(
+    state: tauri::State<'_, AppState>,
+) -> Result<MunicipalAiSnapshot, String> {
+    let state_clone = state.inner().clone();
+    tokio::task::spawn_blocking(move || {
+        let engine_guard = state_clone.engine.blocking_read();
+        let engine_state = engine_guard
+            .as_ref()
+            .ok_or("No game loaded")?;
+
+        let game = &engine_state.game_state;
+        let player_country = game.countries.values().next();
+
+        if let Some(country) = player_country {
+            let snapshot = sim_engine::ui::snapshot::build_municipal_ai_snapshot(country);
             Ok(snapshot)
         } else {
             Err("No country found".to_string())

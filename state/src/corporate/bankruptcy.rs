@@ -319,7 +319,7 @@ impl Syndic {
             // Waterfall Step 1: Pay actual unpaid tax liabilities from financial history
             let tax_owed = company.financial_history
                 .iter().next_back()
-                .and_then(|record| record.get("podatki").and_then(|v| v.as_f64()))
+                .and_then(|record| record.get("taxes").and_then(|v| v.as_f64()))
                 .unwrap_or(0.0);
             let tax_payment = tax_owed.min(remaining_cash);
             if tax_payment > 0.0 {

@@ -1582,7 +1582,7 @@ mod tests {
         "vat": {
             "services": {"rate": 0.15, "consumption_share": 0.45},
             "industry": {"rate": 0.23, "consumption_share": 0.35},
-            "rolnictwo": {"rate": 0.05, "consumption_share": 0.2}
+            "agriculture": {"rate": 0.05, "consumption_share": 0.2}
         },
         "public_debt": {"current_debt": 9428548348.65, "interest_rate": 0.077}
     }"#;

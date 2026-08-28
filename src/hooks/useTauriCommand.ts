@@ -33,6 +33,7 @@ import type {
   CourtBacklogResponse,
   ArbitrationCasesResponse,
   MinistryLandReportDTO,
+  MunicipalAiSnapshot,
 } from "../types/api";
 
 export async function getGameStatus(): Promise<GameStatus> {
@@ -179,6 +180,10 @@ export async function getKnfFindings(country: string): Promise<KnfFindingRow[]> 
 
 export async function getCapitalGainsSummary(country: string): Promise<CapitalGainsTaxSummary> {
   return invoke<CapitalGainsTaxSummary>("get_capital_gains_summary", { country });
+}
+
+export async function getMunicipalAiSnapshot(): Promise<MunicipalAiSnapshot> {
+  return invoke<MunicipalAiSnapshot>("get_municipal_ai_snapshot");
 }
 
 export interface SectorOption {

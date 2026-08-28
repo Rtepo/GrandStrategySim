@@ -154,16 +154,16 @@ fn calculate_nominal_power(
     let total_population = country.budget.population as f64;
 
     // No education
-    if let Some(group_shares) = class_group_mapping.education_mapping.get("brak") {
-        let no_edu_pop = total_population * education.brak;
+    if let Some(group_shares) = class_group_mapping.education_mapping.get("none") {
+        let no_edu_pop = total_population * education.none;
         for (group_name, share) in group_shares {
             *nominal_power.entry(group_name.clone()).or_insert(0.0) += no_edu_pop * share;
         }
     }
 
     // Basic education
-    if let Some(group_shares) = class_group_mapping.education_mapping.get("podstawowe") {
-        let basic_edu_pop = total_population * education.podstawowe;
+    if let Some(group_shares) = class_group_mapping.education_mapping.get("basic") {
+        let basic_edu_pop = total_population * education.basic;
         for (group_name, share) in group_shares {
             *nominal_power.entry(group_name.clone()).or_insert(0.0) += basic_edu_pop * share;
         }
@@ -171,9 +171,9 @@ fn calculate_nominal_power(
 
     // Secondary education
     let _secondary_edu_pop = total_population * education.secondary_share();
-    for share in education.srednie.values() {
+    for share in education.secondary.values() {
         let edu_pop = total_population * share;
-        if let Some(group_shares) = class_group_mapping.education_mapping.get("srednie") {
+        if let Some(group_shares) = class_group_mapping.education_mapping.get("secondary") {
             for (group_name, group_share) in group_shares {
                 *nominal_power.entry(group_name.clone()).or_insert(0.0) += edu_pop * group_share;
             }
@@ -182,7 +182,7 @@ fn calculate_nominal_power(
 
     // Higher education
     let higher_edu_pop = total_population * education.higher_share();
-    if let Some(group_shares) = class_group_mapping.education_mapping.get("wyzsze") {
+    if let Some(group_shares) = class_group_mapping.education_mapping.get("higher") {
         for (group_name, share) in group_shares {
             *nominal_power.entry(group_name.clone()).or_insert(0.0) += higher_edu_pop * share;
         }
@@ -414,7 +414,7 @@ pub fn calculate_interest_groups_power_legacy(country: &Country) -> HashMap<Stri
     let makro = &country.macro_indicators;
     let politics = &country.politics;
 
-    let pkb = budget.gdp.max(1.0);
+    let gdp = budget.gdp.max(1.0);
     let population = budget.population.max(1) as f64;
     let sectors = &budget.sectors;
     let allocations = &budget.allocations;
@@ -424,35 +424,35 @@ pub fn calculate_interest_groups_power_legacy(country: &Country) -> HashMap<Stri
     let stock_confidence = budget.stock_market.confidence;
     let gini = makro.gini;
 
-    let analfabetyzm = education.brak;
-    let wyzsze_total = education.wyzsze.values().sum::<f64>();
+    let illiteracy_rate = education.none;
+    let higher_education_total = education.higher.values().sum::<f64>();
 
-    let przemysl_ciezki = sector_share(sectors, &Sector::HeavyIndustry);
-    let przemysl_lekki = sector_share(sectors, &Sector::LightIndustry);
-    let przemysl = przemysl_ciezki + przemysl_lekki;
-    let rolnictwo = sector_share(sectors, &Sector::Agriculture);
-    let uslugi_lok = sector_share(sectors, &Sector::LocalServices);
-    let uslugi_eks = sector_share(sectors, &Sector::ExportServices);
-    let uslugi_med = sector_share(sectors, &Sector::PublicServices);
+    let heavy_industry_share = sector_share(sectors, &Sector::HeavyIndustry);
+    let light_industry_share = sector_share(sectors, &Sector::LightIndustry);
+    let industry_total = heavy_industry_share + light_industry_share;
+    let agriculture_share = sector_share(sectors, &Sector::Agriculture);
+    let local_services_share = sector_share(sectors, &Sector::LocalServices);
+    let export_services_share = sector_share(sectors, &Sector::ExportServices);
+    let public_services_share = sector_share(sectors, &Sector::PublicServices);
 
-    let mut zwiazki_sila = (przemysl * 100.0) * (1.0 - (unemployment / 100.0)) * (1.0 + analfabetyzm);
+    let mut trade_union_strength = (industry_total * 100.0) * (1.0 - (unemployment / 100.0)) * (1.0 + illiteracy_rate);
 
     let kapital_scaled = if private_capital > 1.0 {
         private_capital.log10()
     } else {
         1.0
     };
-    let mut kapitalisci_sila = (kapital_scaled * 2.0) + (stock_confidence * 0.2) + (uslugi_eks * 50.0);
-    let mut drobna_burzuazja_sila = (uslugi_lok * 150.0) + (kapital_scaled * 1.5);
-    let mut agrykolanie_sila = (rolnictwo * 150.0) * (1.0 + (analfabetyzm * 3.0));
+    let mut capitalist_strength = (kapital_scaled * 2.0) + (stock_confidence * 0.2) + (export_services_share * 50.0);
+    let mut petty_bourgeois_strength = (local_services_share * 150.0) + (kapital_scaled * 1.5);
+    let mut agrarian_strength = (agriculture_share * 150.0) * (1.0 + (illiteracy_rate * 3.0));
 
-    let budzet_edukacji = allocation_share(allocations, "Edukacja i Propaganda");
-    let mut inteligencja_sila = ((uslugi_eks * 50.0) + (budzet_edukacji * 50.0)) * (1.0 + (wyzsze_total * 6.0));
+    let education_budget = allocation_share(allocations, "Education and Propaganda");
+    let mut intelligentsia_strength = ((export_services_share * 50.0) + (education_budget * 50.0)) * (1.0 + (higher_education_total * 6.0));
 
-    let wojsko_wydatki = allocation_share(allocations, "Armed Forces");
-    let wojsko_sila = wojsko_wydatki * 300.0;
+    let military_expenditure = allocation_share(allocations, "Armed Forces");
+    let military_strength = military_expenditure * 300.0;
 
-    let mnoznik_prawa = match politics.religious_law.as_str() {
+    let religious_law_multiplier = match politics.religious_law.as_str() {
         "Secularism" => 0.1,
         "State" => 1.5,
         _ => 1.0,
@@ -467,15 +467,15 @@ pub fn calculate_interest_groups_power_legacy(country: &Country) -> HashMap<Stri
     let authority_multiplier = if max_authority > 0.0 {
         0.1 + max_authority * 1.4 // maps 0.0→0.1, 1.0→1.5
     } else {
-        mnoznik_prawa
+        religious_law_multiplier
     };
-    let mut kler_sila = 10.0 * (1.0 + (analfabetyzm * 2.0)) * authority_multiplier;
+    let mut clergy_strength = 10.0 * (1.0 + (illiteracy_rate * 2.0)) * authority_multiplier;
     if politics.government_form == crate::politics::system::GovernmentForm::Theocracy {
-        kler_sila *= 3.0;
+        clergy_strength *= 3.0;
     }
 
-    let mut studenci_sila = (wyzsze_total * 200.0) + (budzet_edukacji * 150.0) * (1.0 - analfabetyzm);
-    let mut arystokracja_sila = (kapital_scaled * 3.0) + (gini * 200.0);
+    let mut student_strength = (higher_education_total * 200.0) + (education_budget * 150.0) * (1.0 - illiteracy_rate);
+    let mut aristocracy_strength = (kapital_scaled * 3.0) + (gini * 200.0);
     if matches!(
         politics.government_form,
         crate::politics::system::GovernmentForm::MilitaryDictatorship
@@ -485,83 +485,83 @@ pub fn calculate_interest_groups_power_legacy(country: &Country) -> HashMap<Stri
             | crate::politics::system::GovernmentForm::DualistMonarchy
             | crate::politics::system::GovernmentForm::ElectiveMonarchy
     ) {
-        arystokracja_sila *= 2.5;
+        aristocracy_strength *= 2.5;
     }
 
-    let budzet_nominalny = budget.nominal_budget.max(pkb * 0.2);
-    let mut biurokraci_sila = (budzet_nominalny / pkb) * 200.0;
+    let nominal_budget = budget.nominal_budget.max(gdp * 0.2);
+    let mut bureaucrat_strength = (nominal_budget / gdp) * 200.0;
     if matches!(
         politics.government_form,
         crate::politics::system::GovernmentForm::OnePartyState
             | crate::politics::system::GovernmentForm::MilitaryDictatorship
             | crate::politics::system::GovernmentForm::Theocracy
     ) {
-        biurokraci_sila *= 1.5;
+        bureaucrat_strength *= 1.5;
     }
 
-    let wyzsze_tech = education.wyzsze.get("Techniczne").unwrap_or(&0.0);
-    let wyzsze_med = education.wyzsze.get("Medyczne").unwrap_or(&0.0);
-    let specjalisci_sila = (wyzsze_tech + wyzsze_med) * 300.0 + (uslugi_eks + uslugi_med) * 150.0;
+    let higher_tech = education.higher.get("Techniczne").unwrap_or(&0.0);
+    let higher_med = education.higher.get("Medyczne").unwrap_or(&0.0);
+    let specialist_strength = (higher_tech + higher_med) * 300.0 + (export_services_share + public_services_share) * 150.0;
 
-    let rzemieslnicy_sila = (przemysl_lekki + uslugi_lok + rolnictwo)
+    let artisan_strength = (light_industry_share + local_services_share + agriculture_share)
         * 100.0
         * (1.0 - (private_capital.max(10.0).log10() * 0.05));
 
-    let policja_budzet = allocation_share(allocations, "Public Security");
-    let mut kliki_power = 5.0;
+    let police_budget = allocation_share(allocations, "Public Security");
+    let mut clique_power = 5.0;
     if matches!(
         politics.government_form,
         crate::politics::system::GovernmentForm::OnePartyState
             | crate::politics::system::GovernmentForm::AbsoluteMonarchy
             | crate::politics::system::GovernmentForm::Theocracy
     ) {
-        kliki_power = (wojsko_wydatki + policja_budzet) * 800.0 + (pkb / population * 10.0);
+        clique_power = (military_expenditure + police_budget) * 800.0 + (gdp / population * 10.0);
     } else if matches!(
         politics.government_form,
         crate::politics::system::GovernmentForm::MilitaryDictatorship
             | crate::politics::system::GovernmentForm::DualistMonarchy
             | crate::politics::system::GovernmentForm::ElectiveMonarchy
     ) {
-        kliki_power = (wojsko_wydatki + policja_budzet) * 400.0;
+        clique_power = (military_expenditure + police_budget) * 400.0;
     }
 
     match politics.emancipation_law.as_str() {
         "Traditionalism" => {
-            kler_sila *= 1.25;
-            agrykolanie_sila *= 1.15;
-            inteligencja_sila *= 0.85;
+            clergy_strength *= 1.25;
+            agrarian_strength *= 1.15;
+            intelligentsia_strength *= 0.85;
         }
         "Property Rights" => {
-            kapitalisci_sila *= 1.10;
-            drobna_burzuazja_sila *= 1.10;
+            capitalist_strength *= 1.10;
+            petty_bourgeois_strength *= 1.10;
         }
         "Limited Suffrage" => {
-            inteligencja_sila *= 1.15;
-            zwiazki_sila *= 1.10;
+            intelligentsia_strength *= 1.15;
+            trade_union_strength *= 1.10;
         }
         "Full Emancipation" => {
-            inteligencja_sila *= 1.30;
-            zwiazki_sila *= 1.25;
-            studenci_sila *= 1.20;
-            kler_sila *= 0.80;
+            intelligentsia_strength *= 1.30;
+            trade_union_strength *= 1.25;
+            student_strength *= 1.20;
+            clergy_strength *= 0.80;
         }
         _ => {}
     }
 
     let raw = [
-        ("Trade Unions", zwiazki_sila.max(1.0)),
-        ("Capitalists", kapitalisci_sila.max(1.0)),
-        ("Petty Bourgeoisie", drobna_burzuazja_sila.max(1.0)),
-        ("Agrarians", agrykolanie_sila.max(1.0)),
-        ("Intelligentsia", inteligencja_sila.max(1.0)),
-        ("Armed Forces", wojsko_sila.max(1.0)),
-        ("Clergy", kler_sila.max(1.0)),
-        ("Students", studenci_sila.max(1.0)),
-        ("Aristocracy", arystokracja_sila.max(1.0)),
-        ("Bureaucrats", biurokraci_sila.max(1.0)),
-        ("Specialists", specjalisci_sila.max(1.0)),
-        ("Artisans", rzemieslnicy_sila.max(1.0)),
-        ("Internal Cliques", kliki_power.max(1.0)),
+        ("Trade Unions", trade_union_strength.max(1.0)),
+        ("Capitalists", capitalist_strength.max(1.0)),
+        ("Petty Bourgeoisie", petty_bourgeois_strength.max(1.0)),
+        ("Agrarians", agrarian_strength.max(1.0)),
+        ("Intelligentsia", intelligentsia_strength.max(1.0)),
+        ("Armed Forces", military_strength.max(1.0)),
+        ("Clergy", clergy_strength.max(1.0)),
+        ("Students", student_strength.max(1.0)),
+        ("Aristocracy", aristocracy_strength.max(1.0)),
+        ("Bureaucrats", bureaucrat_strength.max(1.0)),
+        ("Specialists", specialist_strength.max(1.0)),
+        ("Artisans", artisan_strength.max(1.0)),
+        ("Internal Cliques", clique_power.max(1.0)),
     ];
 
     let total: f64 = raw.iter().map(|(_, v)| v).sum();
@@ -577,7 +577,7 @@ fn sector_share(sectors: &HashMap<Sector, SectorShare>, sector: &Sector) -> f64 
 fn allocation_share(allocations: &BudgetAllocations, name: &str) -> f64 {
     match name {
         "Industry" => allocations.industry,
-        "Edukacja i Propaganda" => allocations.education_propaganda,
+        "Education and Propaganda" => allocations.education_propaganda,
         "Healthcare" => allocations.healthcare,
         "Infrastruktura i Transport" => allocations.infrastructure_transport,
         "Programy Socjalne" => allocations.social_programs,
@@ -608,7 +608,7 @@ pub fn allocation_share_from_ministries(
 
     let target_competency = match name {
         "Industry" => vec![GovernmentCompetency::HeavyIndustry, GovernmentCompetency::LightIndustry],
-        "Edukacja i Propaganda" => vec![GovernmentCompetency::Education],
+        "Education and Propaganda" => vec![GovernmentCompetency::Education],
         "Healthcare" => vec![GovernmentCompetency::Healthcare],
         "Infrastruktura i Transport" => vec![GovernmentCompetency::Infrastructure, GovernmentCompetency::Transport],
         "Programy Socjalne" => vec![GovernmentCompetency::SocialWelfare],
