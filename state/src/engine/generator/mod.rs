@@ -189,6 +189,15 @@ pub fn generate_world(
         regions.extend(country_regions);
     }
 
+    // Phase 87+: Generate the global Planet with geological veins.
+    // Map all world regions to (id, lat, lon) tuples for vein placement.
+    // coord_x → lon, coord_y → lat (already in approximate geographic units).
+    let planet_regions: Vec<(String, f64, f64)> = regions
+        .values()
+        .map(|r| (r.id.clone(), r.coord_y, r.coord_x))
+        .collect();
+    state.planet = crate::society::planet::generate_planet(&planet_regions, &mut rng);
+
     let diplomacy = generate_diplomacy(&selected);
 
     // Phase 68: Spawn the World Forum — neutral, all countries as members, Unanimity voting.

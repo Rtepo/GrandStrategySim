@@ -1,5 +1,5 @@
 use crate::state::AppState;
-use sim_engine::ui::snapshot::{CitiesSnapshot, FactionalDomainsSnapshot, GuildsSnapshot, MunicipalAiSnapshot};
+use sim_engine::ui::snapshot::{CitiesSnapshot, FactionalDomainsSnapshot, GuildsSnapshot, MunicipalAiSnapshot, OrganizationsSnapshot, OrganizationDetail};
 
 /// Phase 85: Get the factional domains snapshot for the FactionalDomainsPage.
 /// Role-gated (Rule 11): foreign observers see only public data.
@@ -123,6 +123,92 @@ pub async fn get_municipal_ai_snapshot(
         } else {
             Err("No country found".to_string())
         }
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+/// Phase 87+: Get the consolidated organizations snapshot.
+/// Aggregates Guilds, Trade Unions, and Political Movements.
+#[tauri::command]
+pub async fn get_organizations_snapshot(
+    state: tauri::State<'_, AppState>,
+) -> Result<OrganizationsSnapshot, String> {
+    let state_clone = state.inner().clone();
+    tokio::task::spawn_blocking(move || {
+        let engine_guard = state_clone.engine.blocking_read();
+        let engine_state = engine_guard
+            .as_ref()
+            .ok_or("No game loaded")?;
+
+        let game = &engine_state.game_state;
+
+        // Collect all companies and unions from all countries
+        let mut all_companies: Vec<sim_engine::entities::Company> = Vec::new();
+        let mut all_unions: Vec<sim_engine::entities::union::Union> = Vec::new();
+        let mut player_country: Option<&sim_engine::state::Country> = None;
+        for country in game.countries.values() {
+            if player_country.is_none() {
+                player_country = Some(country);
+            }
+            if let Some(entities) = engine_state.turn_context.entities.get(&country.name) {
+                all_companies.extend(entities.companies.clone());
+                all_unions.extend(entities.unions.clone());
+            }
+        }
+
+        let country = player_country.ok_or("No country found")?;
+        let snapshot = sim_engine::ui::snapshot::build_organizations_snapshot(
+            country,
+            &all_companies,
+            &all_unions,
+            false,
+        );
+        Ok(snapshot)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+/// Phase 87+: Get organization detail by category and ID.
+#[tauri::command]
+pub async fn get_organization_detail(
+    state: tauri::State<'_, AppState>,
+    category: String,
+    id: String,
+) -> Result<OrganizationDetail, String> {
+    let state_clone = state.inner().clone();
+    tokio::task::spawn_blocking(move || {
+        let engine_guard = state_clone.engine.blocking_read();
+        let engine_state = engine_guard
+            .as_ref()
+            .ok_or("No game loaded")?;
+
+        let game = &engine_state.game_state;
+
+        let mut all_companies: Vec<sim_engine::entities::Company> = Vec::new();
+        let mut all_unions: Vec<sim_engine::entities::union::Union> = Vec::new();
+        let mut player_country: Option<&sim_engine::state::Country> = None;
+        for country in game.countries.values() {
+            if player_country.is_none() {
+                player_country = Some(country);
+            }
+            if let Some(entities) = engine_state.turn_context.entities.get(&country.name) {
+                all_companies.extend(entities.companies.clone());
+                all_unions.extend(entities.unions.clone());
+            }
+        }
+
+        let country = player_country.ok_or("No country found")?;
+        let detail = sim_engine::ui::snapshot::build_organization_detail(
+            country,
+            &all_companies,
+            &all_unions,
+            &category,
+            &id,
+            false,
+        ).ok_or("Organization not found")?;
+        Ok(detail)
     })
     .await
     .map_err(|e| e.to_string())?

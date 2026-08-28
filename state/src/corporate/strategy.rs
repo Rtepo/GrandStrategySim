@@ -734,10 +734,12 @@ fn is_distressed(ctx: &CorporateDecisionCtx) -> bool {
     // include raw-material shortage and payroll-coverage threshold. Uses a
     // 3-turn moving average of net profit instead of single-turn value to
     // prevent 1-turn panic firings.
+    // Phase 87+: Uses operational_cash() (actual payroll cash source) instead
+    // of liquid_capital (capital reserve reduced by seed-inventory deductions).
     let avg_profit = ctx.company.moving_avg_net_profit(3);
     let payroll = ctx.company.offered_wage_per_fte * ctx.company.fulfilled_fte as f64;
     ctx.company.company_capital < 0.0
-        || (avg_profit < 0.0 && ctx.company.liquid_capital < payroll * 2.0)
+        || (avg_profit < 0.0 && ctx.company.operational_cash() < payroll * 2.0)
         || ctx.avg_fulfillment_ratio < 0.1
 }
 
@@ -762,11 +764,17 @@ fn evaluate_furlough(ctx: &CorporateDecisionCtx) -> Option<CorporateAction> {
 
     // Determine the nature of the distress:
     // - Raw-material shortage: fulfillment_ratio < 0.1 (can't produce)
+    //   Phase 87+: Turn 1 grace period — skip material-shortage furlough if
+    //   the company has never completed a production cycle (no financial history).
+    //   The company has seeded inventory and a Working Capital Loan — it should
+    //   be allowed to survive its first off-season.
     // - Cash-flow distress: can't cover 2 turns of payroll
+    //   Phase 87+: Uses operational_cash() (actual payroll cash source).
     let wage_per_fte = ctx.company.offered_wage_per_fte.max(1.0);
     let total_payroll = ctx.company.fulfilled_fte as f64 * wage_per_fte;
-    let cash_shortage = ctx.company.liquid_capital < total_payroll * 2.0;
-    let material_shortage = ctx.avg_fulfillment_ratio < 0.1;
+    let cash_shortage = ctx.company.operational_cash() < total_payroll * 2.0;
+    let material_shortage = ctx.avg_fulfillment_ratio < 0.1
+        && !ctx.company.financial_history.is_empty(); // Turn 1 grace period
 
     if !cash_shortage && !material_shortage {
         return None;
@@ -781,7 +789,7 @@ fn evaluate_furlough(ctx: &CorporateDecisionCtx) -> Option<CorporateAction> {
         ((ctx.company.fulfilled_fte as f64) * shortage_fraction).ceil() as u32
     } else {
         // Cash shortage: furlough enough to bring payroll within budget
-        let affordable_fte = (ctx.company.liquid_capital / wage_per_fte).floor() as u32;
+        let affordable_fte = (ctx.company.operational_cash() / wage_per_fte).floor() as u32;
         ctx.company.fulfilled_fte.saturating_sub(affordable_fte)
     };
 

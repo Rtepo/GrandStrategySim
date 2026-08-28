@@ -780,6 +780,16 @@ impl Company {
         self.brokerage_account.as_ref().map(|b| b.cash).unwrap_or(0.0)
     }
 
+    /// Phase 87+: Operational cash available for payroll and short-term obligations.
+    /// This is the actual cash source used by the labor market for wage payment
+    /// (brokerage_account.cash when present, otherwise available_cash).
+    /// Distress and furlough checks MUST use this, not `liquid_capital` (which
+    /// is a capital reserve reduced by seed-inventory deductions).
+    pub fn operational_cash(&self) -> f64 {
+        self.available_cash.max(0.0)
+            + self.brokerage_account.as_ref().map(|b| b.cash.max(0.0)).unwrap_or(0.0)
+    }
+
     /// AI & Stability Audit (Pillar 4A): Moving average of net profit over
     /// the last `window` entries in `financial_history`.
     ///

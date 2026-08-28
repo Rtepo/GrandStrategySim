@@ -268,7 +268,7 @@ pub fn crop_registry() -> &'static HashMap<String, CropDefinition> {
             name: "Rice".to_string(),
             category: CropCategory::Cereal,
             land_type: LandType::Arable,
-            compatible_climates: vec![ClimateProfile::Tropical, ClimateProfile::Coastal],
+            compatible_climates: vec![ClimateProfile::Tropical, ClimateProfile::Coastal, ClimateProfile::SubTropical],
             sowing_schedule: TurnRange { start_turn: 1, end_turn: 2 },
             harvest_schedule: TurnRange { start_turn: 6, end_turn: 8 },
             labor_demand: LaborDemandProfile {
@@ -296,7 +296,7 @@ pub fn crop_registry() -> &'static HashMap<String, CropDefinition> {
             name: "Sugarcane".to_string(),
             category: CropCategory::Industrial,
             land_type: LandType::Plantation,
-            compatible_climates: vec![ClimateProfile::Tropical, ClimateProfile::Coastal],
+            compatible_climates: vec![ClimateProfile::Tropical, ClimateProfile::Coastal, ClimateProfile::SubTropical],
             sowing_schedule: TurnRange { start_turn: 1, end_turn: 2 },
             harvest_schedule: TurnRange { start_turn: 8, end_turn: 14 },  // Long harvest
             labor_demand: LaborDemandProfile {
@@ -403,6 +403,70 @@ pub fn crop_registry() -> &'static HashMap<String, CropDefinition> {
             seed_quantity_per_hectare: 0.08,
             sowing_wage_multiplier: 1.3,
             harvesting_wage_multiplier: 2.5,
+        });
+
+        // Phase 87+: Citrus — Luxury plantation crop for subtropical climates.
+        // Oranges, lemons, limes — Mediterranean/subtropical signature crop.
+        crops.insert("citrus".to_string(), CropDefinition {
+            id: "citrus".to_string(),
+            name: "Citrus".to_string(),
+            category: CropCategory::Industrial,
+            land_type: LandType::Plantation,
+            compatible_climates: vec![
+                ClimateProfile::SubTropical,
+                ClimateProfile::Tropical,
+                ClimateProfile::Coastal,
+            ],
+            sowing_schedule: TurnRange { start_turn: 1, end_turn: 2 },
+            harvest_schedule: TurnRange { start_turn: 1, end_turn: 6 },  // Long harvest window
+            labor_demand: LaborDemandProfile {
+                sowing_fte_per_hectare: 0.0,  // Plantation skips sowing
+                growing_fte_per_hectare: 0.03,  // Pruning, irrigation
+                harvesting_fte_per_hectare: 0.20,  // Hand-picking
+            },
+            yields: {
+                let mut map = HashMap::new();
+                map.insert(Commodity::Luxury, 4.0);  // Fresh fruit
+                map.insert(Commodity::Fodder, 1.0);  // Citrus pulp for feed
+                map
+            },
+            seed_cost_per_hectare: 0.0,
+            seed_commodity: Commodity::Seeds,
+            seed_quantity_per_hectare: 0.0,
+            sowing_wage_multiplier: 1.0,
+            harvesting_wage_multiplier: 2.5,
+        });
+
+        // Phase 87+: Olives — Luxury plantation crop for subtropical/Mediterranean.
+        // Olive oil was a major trade commodity in the ancient and medieval world.
+        crops.insert("olives".to_string(), CropDefinition {
+            id: "olives".to_string(),
+            name: "Olives".to_string(),
+            category: CropCategory::Industrial,
+            land_type: LandType::Plantation,
+            compatible_climates: vec![
+                ClimateProfile::SubTropical,
+                ClimateProfile::Temperate,
+                ClimateProfile::Coastal,
+            ],
+            sowing_schedule: TurnRange { start_turn: 1, end_turn: 2 },
+            harvest_schedule: TurnRange { start_turn: 3, end_turn: 6 },  // Autumn harvest
+            labor_demand: LaborDemandProfile {
+                sowing_fte_per_hectare: 0.0,  // Plantation skips sowing
+                growing_fte_per_hectare: 0.02,  // Pruning, minimal maintenance
+                harvesting_fte_per_hectare: 0.18,  // Hand-harvesting
+            },
+            yields: {
+                let mut map = HashMap::new();
+                map.insert(Commodity::Luxury, 2.5);  // Olive oil
+                map.insert(Commodity::Fodder, 0.5);  // Olive cake (press residue)
+                map
+            },
+            seed_cost_per_hectare: 0.0,
+            seed_commodity: Commodity::Seeds,
+            seed_quantity_per_hectare: 0.0,
+            sowing_wage_multiplier: 1.0,
+            harvesting_wage_multiplier: 3.0,
         });
 
         crops

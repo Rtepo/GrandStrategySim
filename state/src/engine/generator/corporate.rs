@@ -595,31 +595,36 @@ pub fn generate_corporate_entities(
         country.politics.vip_registry = Some(VipRegistry::new());
     }
 
-    // Determine the threshold for "major" companies: top 30% by capacity.
-    let mut capacities: Vec<u32> = all_companies.iter().map(|c| c.worker_capacity).collect();
-    capacities.sort_unstable_by(|a, b| b.cmp(a));
-    let major_threshold_idx = (capacities.len() / 3).max(1);
-    let major_threshold = capacities.get(major_threshold_idx.saturating_sub(1)).copied().unwrap_or(0);
-
+    // Phase 87+: Assign CEOs to ALL non-state companies (not just top 30%).
+    // Previously, only "major" companies (top 30% by worker_capacity) got CEOs,
+    // leaving 70% of companies with ceo_vip_id: None — rendering as "CEO —" in
+    // the UI. Now every non-state company gets a CEO VIP.
     for company in all_companies.iter_mut() {
-        // Only assign CEOs to major (non-state) companies.
-        if company.worker_capacity < major_threshold || company.state_share >= 1.0 {
+        // Skip state-owned companies (they have government-appointed directors, not CEOs).
+        if company.state_share >= 1.0 {
             continue;
         }
         let ceo_name = crate::politics::names::generate_full_vip(&cultural_group, rng);
         let (traits, main_trait) = assign_core_traits(rng);
         let ideology = ceo_ideology_from_traits(&traits, &main_trait, rng);
+        // Small companies (worker_capacity < 5): younger age, lower influence
+        // (small-business owner profile vs corporate executive).
+        let (age, base_influence) = if company.worker_capacity < 5 {
+            (25 + rng.gen_range(0..20), 5 + rng.gen_range(0..10))
+        } else {
+            (35 + rng.gen_range(0..30), 20 + rng.gen_range(0..30))
+        };
         let ceo_vip = Vip {
             full_name: ceo_name.full_name.clone(),
             gender: ceo_name.gender,
-            age: 35 + rng.gen_range(0..30),
+            age,
             health: crate::politics::vip_registry::VipHealth { physical_health: 1.0, mental_health: 1.0 },
             traits,
             main_trait,
             ideology,
             nationality: country.name.clone(),
             roles: vec![VipRoleExtended::Ceo],
-            base_influence: 20 + rng.gen_range(0..30),
+            base_influence,
             ..Default::default()
         };
         let ceo_id = country
@@ -753,6 +758,141 @@ pub fn generate_corporate_entities(
     }
     for (sector_name, companies) in by_sector {
         let _ = company_store.save_sector(&country.name, &sector_name, None, &companies);
+    }
+
+    // Phase 87+: Working Capital Loan for agriculture companies.
+    // Replaces the free "Genesis Payroll Grant" with a legitimate double-entry
+    // loan from the State Bank. Agriculture has the longest gap between spawning
+    // and first revenue (harvest cycle), so it needs 6 turns of payroll coverage.
+    // The loan is recorded as a liability on the company's balance sheet and an
+    // asset on the bank's balance sheet (Rule 1: strict double-entry).
+    issue_agriculture_working_capital_loans(
+        data_dir,
+        country,
+        &mut all_companies,
+        &code,
+        start_year,
+    )?;
+
+    Ok(())
+}
+
+/// Phase 87+: Issue Working Capital Loans from the State Bank to agriculture
+/// companies during world generation.
+///
+/// This replaces the free "Genesis Payroll Grant" with a legitimate double-entry
+/// loan. Agriculture companies need 6 turns of payroll coverage to survive until
+/// their first harvest (which may be 3-6 turns away depending on season).
+///
+/// # Double-Entry Flow
+/// - Company: `available_cash += principal` (asset), `liabilities += principal` (liability)
+/// - State Bank: `balance_sheet.loans_issued.push(loan)` (asset),
+///   `balance_sheet.reserves_at_central_bank -= principal` (asset decreases)
+///
+/// # Arguments
+/// * `data_dir` - Data directory for loading/saving the State Bank
+/// * `country` - Country (for XIBOR and central bank reference)
+/// * `all_companies` - All generated companies (agriculture ones get loans)
+/// * `code` - 3-letter country code prefix (for State Bank ID)
+/// * `start_year` - Start year (for loan issuance turn)
+fn issue_agriculture_working_capital_loans(
+    data_dir: &Path,
+    country: &Country,
+    all_companies: &mut [Company],
+    code: &str,
+    _start_year: u32,
+) -> Result<(), Box<dyn Error>> {
+    use crate::io::entity_store::{DiskEntityStore, EntityStore};
+    use crate::state::banking::{Loan, LoanStatus, InterestType, LoanType};
+
+    let state_bank_id = format!("BANK-{}-001", code);
+
+    // Load the State Bank from disk to update its balance sheet.
+    let bank_store = DiskEntityStore::<Company>::new(data_dir);
+    let banking_sector_name = serde_json::to_value(Sector::Banking)
+        .ok()
+        .and_then(|v| v.as_str().map(|s| s.to_string()))
+        .unwrap_or_else(|| "Banking".to_string());
+
+    let mut bank_companies = bank_store
+        .load_sector(&country.name, &banking_sector_name, None)
+        .unwrap_or_default();
+
+    let state_bank_idx = bank_companies.iter().position(|b| b.id == state_bank_id);
+    let state_bank = match state_bank_idx {
+        Some(idx) => &mut bank_companies[idx],
+        None => return Ok(()), // No state bank — skip loans (non-fatal)
+    };
+
+    let xibor = country.central_bank.interest_rates.reference_rate;
+    let bank_margin = state_bank.loan_margin.unwrap_or(0.02);
+    let risk_premium = 0.01; // 100 bps risk premium for startup agriculture
+    let interest_rate = xibor + bank_margin + risk_premium;
+
+    let mut total_loaned = 0.0;
+
+    for company in all_companies.iter_mut() {
+        if company.sector != Sector::Agriculture {
+            continue;
+        }
+        if company.state_share >= 1.0 {
+            continue; // State-owned agriculture doesn't need loans
+        }
+
+        // Compute loan principal: 6 turns of payroll for the initial workforce.
+        let initial_fte = company.fulfilled_fte as f64;
+        let initial_wage = company.offered_wage_per_fte.max(50.0);
+        let principal = initial_fte * initial_wage * 6.0;
+
+        if principal <= 0.0 {
+            continue;
+        }
+
+        // Double-entry: Company receives cash (asset) and records liability.
+        company.available_cash += principal;
+        company.liabilities += principal;
+        company.primary_bank_id = Some(state_bank_id.clone());
+        company.outstanding_loan_bank_id = Some(state_bank_id.clone());
+
+        // Create the Loan record.
+        let loan_id = format!("WCL-{}-{}", code, company.id);
+        let loan = Loan {
+            id: loan_id.clone(),
+            borrower_id: company.id.clone(),
+            principal,
+            outstanding_balance: principal,
+            interest_rate,
+            term_turns: 24, // 2-year repayment
+            turns_remaining: 24,
+            collateral_value: Some(company.fixed_capital * 0.8),
+            loan_type: LoanType::WorkingCapital,
+            last_payment_turn: 0,
+            status: LoanStatus::Current,
+            interest_type: InterestType::Fixed,
+            duration_risk_premium: risk_premium,
+            base_xibor: xibor,
+            bank_margin,
+            ..Default::default()
+        };
+
+        // Store loan reference in company's extra map.
+        company.extra.insert(
+            "genesis_loan_id".to_string(),
+            serde_json::Value::String(loan_id.clone()),
+        );
+
+        // Double-entry: Bank's loan asset increases, reserve asset decreases.
+        if let Some(ref mut bs) = state_bank.balance_sheet {
+            bs.loans_issued.push(loan);
+            bs.reserves_at_central_bank = (bs.reserves_at_central_bank - principal).max(0.0);
+        }
+
+        total_loaned += principal;
+    }
+
+    // Save the updated State Bank back to disk.
+    if total_loaned > 0.0 {
+        let _ = bank_store.save_sector(&country.name, &banking_sector_name, None, &bank_companies);
     }
 
     Ok(())
@@ -1102,7 +1242,7 @@ fn generate_region_companies(
 
         // Phase 20C: Seed fixed-asset cohort and one turn of inventory
         let fixed_assets = seed_fixed_assets(sector, start_year, rng);
-        let (inventory, seed_cost) = seed_inventory(&method, base_capacity);
+        let (inventory, seed_cost) = seed_inventory(&method, base_capacity, sector);
         let inventory_capacity = (base_capacity as f64 * 10.0).max(100.0);
 
         // Phase 27: Deduct seed inventory cost from company's liquid capital
@@ -2299,7 +2439,7 @@ fn create_seed_company_with_explicit_method(
     let building_id = idgen.next_building();
 
     let fixed_assets = seed_fixed_assets(sector, start_year, rng);
-    let (inventory, seed_cost) = seed_inventory(method, base_capacity);
+    let (inventory, seed_cost) = seed_inventory(method, base_capacity, sector);
     let inventory_capacity = (base_capacity as f64 * 10.0).max(100.0);
 
     // Phase 27: Deduct seed inventory cost from company's liquid capital.
@@ -2387,6 +2527,9 @@ fn create_seed_energy_company(
 /// Returns `true` if `region.resources` contains the key with
 /// `geological_reserves > 0`.
 fn has_geological_resource(region: &Region, resource_key: &str) -> bool {
+    // Phase 87+: Check both the legacy region.resources map and the new
+    // Planet vein system. The vein system is the authoritative source going
+    // forward, but region.resources remains as a compatibility layer.
     if let Some(Value::Object(map)) = region.resources.get(resource_key) {
         if let Some(Value::Number(n)) = map.get("geological_reserves") {
             if let Some(reserves) = n.as_f64() {
@@ -2397,14 +2540,26 @@ fn has_geological_resource(region: &Region, resource_key: &str) -> bool {
     false
 }
 
+/// Phase 87+: Check if a region has a geological resource via the Planet vein system.
+/// This is the authoritative source for geological resources going forward.
+#[allow(dead_code)]
+fn has_geological_resource_vein(
+    planet: &crate::society::planet::Planet,
+    region_id: &str,
+    commodity: crate::registries::enums::Commodity,
+) -> bool {
+    planet.has_geological_resource(region_id, commodity)
+}
+
 /// AI & Stability Audit (Pillar 1B): Check if a region has forest tracts
 /// suitable for biomass feedstock. Uses the LandUseInventory Forests category
-/// area — a region with > 1000 hectares of forest can support biomass plants.
+/// area — Phase 87+: lowered threshold from 1000 to 500 hectares to allow
+/// more regions to support biomass power plants.
 fn has_forest_tract(region: &Region) -> bool {
     if let Some(forest_data) = region.land_use_inventory.get_category(
         crate::society::geography::LandCategory::Forests,
     ) {
-        return forest_data.area_hectares > 1000.0;
+        return forest_data.area_hectares > 500.0;
     }
     false
 }
@@ -2747,7 +2902,7 @@ fn create_seed_company(
     let building_id = idgen.next_building();
 
     let fixed_assets = seed_fixed_assets(sector, start_year, rng);
-    let (inventory, seed_cost) = seed_inventory(&method, base_capacity);
+    let (inventory, seed_cost) = seed_inventory(&method, base_capacity, sector);
     let inventory_capacity = (base_capacity as f64 * 10.0).max(100.0);
 
     // Phase 27: Deduct seed inventory cost from company's liquid capital.
@@ -2875,16 +3030,27 @@ fn seed_fixed_assets(
 /// start provides organic food supply and B2B trade establishes within 2 turns.
 /// Oversupplying raw materials at start distorts early market prices.
 const SEED_INVENTORY_TURNS: f64 = 2.0;
+const AGRICULTURE_SEED_INVENTORY_TURNS: f64 = 4.0;
 
 fn seed_inventory(
     method: &ActiveProductionMethod,
     building_capacity: u32,
+    sector: Sector,
 ) -> (BTreeMap<Commodity, f64>, f64) {
     let production_scale = building_capacity as f64 / 1000.0;
     let mut inventory = BTreeMap::new();
     let mut total_cost = 0.0;
 
-    // Stabilization Sprint: Seed SEED_INVENTORY_TURNS turns of inputs (was 1x).
+    // Phase 87+: Agriculture gets 4 turns of seed inventory (vs 2 for other
+    // sectors) because the harvest cycle is 3-6 turns away. This is a physical
+    // commodity buffer, not a cash flow — the seed cost is already deducted
+    // from liquid_capital and credited to the treasury (double-entry).
+    let seed_turns = match sector {
+        Sector::Agriculture => AGRICULTURE_SEED_INVENTORY_TURNS,
+        _ => SEED_INVENTORY_TURNS,
+    };
+
+    // Stabilization Sprint: Seed seed_turns turns of inputs (was 1x).
     // Without this buffer, companies exhaust inventory by Turn 2 and cannot
     // produce, causing the Tabula Rasa crash.
     for (&commodity, &qty_per_1k) in &method.inputs {
@@ -2897,7 +3063,7 @@ fn seed_inventory(
         if commodity.is_local_utility() {
             continue;
         }
-        let seed_qty = qty_per_1k * production_scale * SEED_INVENTORY_TURNS;
+        let seed_qty = qty_per_1k * production_scale * seed_turns;
         if seed_qty > 0.0 {
             let unit_cost = estimated_base_price(commodity);
             total_cost += seed_qty * unit_cost;
@@ -3128,6 +3294,11 @@ fn build_crop_batches(
             ("soybeans", 13),
             ("potatoes", 13),
         ],
+        CP::SubTropical => &[
+            ("rice", 13),
+            ("corn", 13),
+            ("soybeans", 13),
+        ],
         CP::Temperate | CP::Continental => &[
             ("wheat", 13),
             ("corn", 13),
@@ -3150,6 +3321,12 @@ fn build_crop_batches(
             ("coffee", 1),
             ("cattle", 1),
             ("orchard", 1),
+        ],
+        CP::SubTropical => &[
+            ("sugarcane", 1),
+            ("citrus", 1),
+            ("olives", 1),
+            ("cattle", 1),
         ],
         CP::Temperate | CP::Continental | CP::Mountainous => &[
             ("cattle", 1),

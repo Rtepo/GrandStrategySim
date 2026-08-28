@@ -14,7 +14,7 @@
 use crate::economy::b2b_config::B2bOrderConfig;
 use crate::economy::fixed_assets::draft_animal_maintenance_needed;
 use crate::economy::generative_goods_config::GenerativeGoodsConfig;
-use crate::economy::market_history::{get_reference_price, MarketHistory};
+use crate::economy::market_history::{get_reference_price, moving_average_vwap, MarketHistory};
 use crate::economy::order_book::{Ask, Bid, OrderBook, Trade};
 use crate::economy::production::ProductionResult;
 use crate::economy::transfer_settler::{credit_company_by_id, debit_company_by_id};
@@ -403,26 +403,42 @@ pub fn submit_company_b2b_orders(
             let unit_cost = calculate_unit_cost(building, &ref_prices, 0.0);
 
             for (&commodity, &qty_per_1k) in &method.outputs {
-                // AI & Stability Audit (Pillar 2): Sell from accumulated inventory
-                // + current production, clamped by a hard logistical throughput
-                // limit to prevent market flooding and FreightCapacity overwhelm.
+                // Phase 87+ Recovery: Bounded Rationality Sales Algorithm.
+                // Replaces the hardcoded MAX_THROUGHPUT_MULTIPLIER clamp with
+                // a price-signal and cash-flow-distress-driven sell fraction.
                 //
-                // The old logic only offered `qty_per_1k * production_scale`
-                // (current-turn production capacity), ignoring warehouse
-                // inventory. Harvest yields sitting in warehouses never reached
-                // the market.
+                // Rational actors sell more when:
+                //   - Prices are high (VWAP > moving average → price_signal > 0)
+                //   - Cash is short (payroll coverage low → distress_signal > 0)
+                // And sell less when prices are low and cash is ample.
                 //
-                // The throughput clamp (MAX_THROUGHPUT_MULTIPLIER × per-turn
-                // production) ensures a building can only ship out what its
-                // workforce can physically load/dispatch per turn. A farm with
-                // 1000 tons in inventory but 50 tons/turn production can only
-                // sell 150 tons/turn, preventing instant price crashes.
-                const MAX_THROUGHPUT_MULTIPLIER: f64 = 3.0;
+                // sell_fraction = 0.5 (base) + price_signal * 0.3 + distress_signal * 0.2
+                // clamped to [0.2, 1.0] — never floods nor starves the market.
                 let production_qty = qty_per_1k * production_scale;
                 let inventory_qty = building.inventory.get(&commodity).copied().unwrap_or(0.0);
-                let max_sell_per_turn = production_qty * MAX_THROUGHPUT_MULTIPLIER;
-                let total_available = inventory_qty + production_qty;
-                let sell_qty = total_available.min(max_sell_per_turn).max(0.0);
+                let total_available = (inventory_qty + production_qty).max(0.0);
+                if total_available <= 0.0 {
+                    continue;
+                }
+
+                // Price signal: VWAP vs moving average VWAP (-0.5 to +0.5)
+                let vwap = market_history.vwap_per_commodity.get(&commodity).copied();
+                let ma_vwap = moving_average_vwap(market_history, &commodity);
+                let price_signal = match (vwap, ma_vwap) {
+                    (Some(v), Some(ma)) if ma > 0.0 => (v / ma - 1.0).clamp(-0.5, 0.5),
+                    _ => 0.0, // No history — neutral
+                };
+
+                // Cash-flow distress: payroll coverage ratio (0.0 = broke, 1.0 = covered)
+                let total_payroll = company.fulfilled_fte as f64 * company.offered_wage_per_fte;
+                let op_cash = company.available_cash.max(0.0)
+                    + company.brokerage_account.as_ref().map(|b| b.cash.max(0.0)).unwrap_or(0.0);
+                let payroll_coverage = if total_payroll > 0.0 { op_cash / total_payroll } else { 99.0 };
+                let distress_signal = (1.0 - payroll_coverage.clamp(0.0, 2.0) / 2.0).clamp(0.0, 1.0);
+
+                // Sell fraction: base 0.5 + price 0.3 + distress 0.2, clamped [0.2, 1.0]
+                let sell_fraction = (0.5 + price_signal * 0.3 + distress_signal * 0.2).clamp(0.2, 1.0);
+                let sell_qty = total_available * sell_fraction;
                 if sell_qty <= 0.0 {
                     continue;
                 }

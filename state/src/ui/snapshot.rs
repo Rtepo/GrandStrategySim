@@ -399,6 +399,9 @@ pub struct FinanceSnapshot {
     pub debt_held_by_central_bank: f64,
     pub debt_held_by_funds: f64,
     pub debt_held_by_citizens: f64,
+    /// Phase 87+: Foreign-held sovereign debt. Computed from the authoritative
+    /// debt_market.outstanding_securities holders with SecurityHolderType::ForeignEntity.
+    pub debt_held_by_foreign: f64,
     // Central Bank
     pub m0: f64,
     pub m3: f64,
@@ -745,6 +748,126 @@ pub struct GuildsSnapshot {
     pub guilds: Vec<GuildRow>,
 }
 
+// ============================================================================
+// Phase 87+: Organizations — consolidated view for Guilds, Unions, Movements
+// ============================================================================
+
+/// Phase 87+: Organization category for the consolidated Organizations page.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+#[serde(rename_all = "snake_case")]
+pub enum OrganizationCategory {
+    #[default]
+    Guild,
+    TradeUnion,
+    PoliticalMovement,
+    ChamberOfCommerce,
+}
+
+/// Phase 87+: A single organization row in the consolidated list.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct OrganizationRow {
+    pub id: String,
+    pub name: String,
+    pub category: OrganizationCategory,
+    pub sector: String,
+    pub region_id: String,
+    pub member_count: usize,
+    /// Funds (classified for foreign observers — stripped in build function).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub funds: Option<f64>,
+    pub activity_summary: String,
+}
+
+/// Phase 87+: Organizations snapshot for the consolidated OrganizationsPage.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct OrganizationsSnapshot {
+    pub organizations: Vec<OrganizationRow>,
+}
+
+/// Phase 87+: Guild-specific detail data.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct GuildDetailData {
+    pub sector: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub welfare_fund: Option<f64>,
+    pub welfare_contribution_rate: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dividend_per_member: Option<f64>,
+    pub quality_standard: f64,
+    pub has_charter: bool,
+    pub jurisdiction_domain_id: String,
+    pub member_workshop_ids: Vec<String>,
+    pub master_class_ids: Vec<String>,
+    pub guild_raw_inventory: Vec<(String, f64)>,
+}
+
+/// Phase 87+: Union-specific detail data.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct UnionDetailData {
+    pub sector: String,
+    pub scale_level: String,
+    pub budget: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strike_fund: Option<f64>,
+    pub political_power: f64,
+    pub militancy: f64,
+    pub wage_demand: f64,
+    pub safety_demand: f64,
+    pub on_strike: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub leader_vip_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub leader_name: Option<String>,
+    pub member_company_ids: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_strike_turn: Option<u32>,
+}
+
+/// Phase 87+: Political movement-specific detail data.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct MovementDetailData {
+    pub movement_type: String,
+    pub initiating_class: String,
+    pub start_turn: u32,
+    pub expected_duration: u32,
+    pub intensity: f64,
+    pub participant_count: i64,
+    pub union_backed: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub backing_union_id: Option<String>,
+    pub strike_fund_per_participant: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub target_company_ids: Option<Vec<String>>,
+    pub status: String,
+    pub demands: Vec<String>,
+}
+
+/// Phase 87+: Organization detail — category-specific detail page data.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct OrganizationDetail {
+    pub id: String,
+    pub name: String,
+    pub category: OrganizationCategory,
+    pub region_id: String,
+    pub member_count: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub funds: Option<f64>,
+    pub activity_summary: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub guild_detail: Option<GuildDetailData>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub union_detail: Option<UnionDetailData>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub movement_detail: Option<MovementDetailData>,
+}
+
 /// Phase 85: Build a factional domains snapshot for a country.
 /// Role-gated (Rule 11): strips classified data for foreign observers.
 pub fn build_factional_domains_snapshot(
@@ -867,6 +990,182 @@ pub fn build_guilds_snapshot(
     }
 
     GuildsSnapshot { guilds }
+}
+
+/// Phase 87+: Build a consolidated organizations snapshot for a country.
+/// Aggregates Guilds, Trade Unions, and Political Movements into a single list.
+/// Role-gated (Rule 11): strips financial data for foreign observers.
+pub fn build_organizations_snapshot(
+    country: &crate::state::Country,
+    companies: &[crate::entities::Company],
+    unions: &[crate::entities::union::Union],
+    is_classified: bool,
+) -> OrganizationsSnapshot {
+    let mut organizations = Vec::new();
+
+    // Guilds
+    for company in companies {
+        if let crate::entities::LegalForm::Guild(data) = &company.legal_form {
+            organizations.push(OrganizationRow {
+                id: company.id.clone(),
+                name: company.name.clone(),
+                category: OrganizationCategory::Guild,
+                sector: data.guild_sector.clone(),
+                region_id: company.region_id.clone(),
+                member_count: data.member_workshop_ids.len(),
+                funds: if is_classified { None } else { Some(data.welfare_fund) },
+                activity_summary: format!(
+                    "Guild with {} workshops, quality {:.2}",
+                    data.member_workshop_ids.len(),
+                    data.quality_standard
+                ),
+            });
+        }
+    }
+
+    // Trade Unions
+    for union in unions {
+        organizations.push(OrganizationRow {
+            id: union.id.clone(),
+            name: union.name.clone(),
+            category: OrganizationCategory::TradeUnion,
+            sector: format!("{:?}", union.sector),
+            region_id: union.region_id.clone(),
+            member_count: union.company_ids.len(),
+            funds: if is_classified { None } else { Some(union.budget) },
+            activity_summary: if union.on_strike {
+                "ON STRIKE".to_string()
+            } else {
+                format!("{} member companies", union.company_ids.len())
+            },
+        });
+    }
+
+    // Political Movements
+    for movement in &country.politics.mass_movements {
+        organizations.push(OrganizationRow {
+            id: movement.id.clone(),
+            name: format!("{:?} in {}", movement.movement_type, movement.region_id),
+            category: OrganizationCategory::PoliticalMovement,
+            sector: movement.initiating_class.clone(),
+            region_id: movement.region_id.clone(),
+            member_count: movement.participant_count as usize,
+            funds: if is_classified { None } else { Some(movement.strike_fund_per_participant * movement.participant_count as f64) },
+            activity_summary: format!(
+                "Intensity {:.2}, {} participants, {:?}",
+                movement.intensity, movement.participant_count, movement.status
+            ),
+        });
+    }
+
+    OrganizationsSnapshot { organizations }
+}
+
+/// Phase 87+: Build an organization detail snapshot.
+/// Category-specific data is populated based on the organization type.
+/// Role-gated (Rule 11): strips classified data for foreign observers.
+pub fn build_organization_detail(
+    country: &crate::state::Country,
+    companies: &[crate::entities::Company],
+    unions: &[crate::entities::union::Union],
+    category: &str,
+    id: &str,
+    is_classified: bool,
+) -> Option<OrganizationDetail> {
+    match category {
+        "guild" => {
+            let company = companies.iter().find(|c| c.id == id)?;
+            let data = match &company.legal_form {
+                crate::entities::LegalForm::Guild(d) => d,
+                _ => return None,
+            };
+            Some(OrganizationDetail {
+                id: company.id.clone(),
+                name: company.name.clone(),
+                category: OrganizationCategory::Guild,
+                region_id: company.region_id.clone(),
+                member_count: data.member_workshop_ids.len(),
+                funds: if is_classified { None } else { Some(data.welfare_fund) },
+                activity_summary: format!("Craft Guild — {} sector", data.guild_sector),
+                guild_detail: Some(GuildDetailData {
+                    sector: data.guild_sector.clone(),
+                    welfare_fund: if is_classified { None } else { Some(data.welfare_fund) },
+                    welfare_contribution_rate: data.welfare_contribution_rate,
+                    dividend_per_member: None,
+                    quality_standard: data.quality_standard,
+                    has_charter: data.has_charter,
+                    jurisdiction_domain_id: data.jurisdiction_domain_id.clone(),
+                    member_workshop_ids: data.member_workshop_ids.clone(),
+                    master_class_ids: data.master_class_ids.clone(),
+                    guild_raw_inventory: data.guild_raw_inventory.iter()
+                        .map(|(c, q)| (format!("{:?}", c), *q))
+                        .collect(),
+                }),
+                ..Default::default()
+            })
+        }
+        "trade_union" => {
+            let union = unions.iter().find(|u| u.id == id)?;
+            let leader_name = union.leader_vip_id.as_ref().and_then(|lid| {
+                country.politics.vip_registry.as_ref()
+                    .and_then(|r| r.get(lid))
+                    .map(|v| v.full_name.clone())
+            });
+            Some(OrganizationDetail {
+                id: union.id.clone(),
+                name: union.name.clone(),
+                category: OrganizationCategory::TradeUnion,
+                region_id: union.region_id.clone(),
+                member_count: union.company_ids.len(),
+                funds: if is_classified { None } else { Some(union.budget) },
+                activity_summary: if union.on_strike { "ON STRIKE".to_string() } else { "Active".to_string() },
+                union_detail: Some(UnionDetailData {
+                    sector: format!("{:?}", union.sector),
+                    scale_level: format!("{:?}", union.scale_level),
+                    budget: union.budget,
+                    strike_fund: if is_classified { None } else { Some(union.strike_fund) },
+                    political_power: union.political_power,
+                    militancy: union.militancy,
+                    wage_demand: union.wage_demand,
+                    safety_demand: union.safety_demand,
+                    on_strike: union.on_strike,
+                    leader_vip_id: union.leader_vip_id.clone(),
+                    leader_name,
+                    member_company_ids: union.company_ids.iter().cloned().collect(),
+                    last_strike_turn: union.last_strike_turn,
+                }),
+                ..Default::default()
+            })
+        }
+        "political_movement" => {
+            let movement = country.politics.mass_movements.iter().find(|m| m.id == id)?;
+            Some(OrganizationDetail {
+                id: movement.id.clone(),
+                name: format!("{:?} in {}", movement.movement_type, movement.region_id),
+                category: OrganizationCategory::PoliticalMovement,
+                region_id: movement.region_id.clone(),
+                member_count: movement.participant_count as usize,
+                funds: if is_classified { None } else { Some(movement.strike_fund_per_participant * movement.participant_count as f64) },
+                activity_summary: format!("Status: {:?}", movement.status),
+                movement_detail: Some(MovementDetailData {
+                    movement_type: format!("{:?}", movement.movement_type),
+                    initiating_class: movement.initiating_class.clone(),
+                    start_turn: movement.start_turn,
+                    expected_duration: movement.expected_duration,
+                    intensity: movement.intensity,
+                    participant_count: movement.participant_count,
+                    union_backed: movement.union_backed,
+                    backing_union_id: movement.union_id.clone(),
+                    strike_fund_per_participant: movement.strike_fund_per_participant,
+                    target_company_ids: if is_classified { None } else { Some(movement.target_companies.clone()) },
+                    status: format!("{:?}", movement.status),
+                    demands: movement.demands.clone(),
+                }),
+                ..Default::default()
+            })
+        }
+        _ => None,
+    }
 }
 
 /// Phase 85B: A single City Region row in the Cities snapshot.
@@ -1462,6 +1761,27 @@ pub struct CompanyDetail {
     pub wage_arrears: f64,
     pub building_count: usize,
     pub available_cash: f64,
+    /// Phase 87+: Financial summary (last turn, quarter, year).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub financial_summary: Option<CompanyFinancialSummary>,
+}
+
+/// Phase 87+: A single financial record (income, expenses, net profit).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CompanyFinancialRecord {
+    pub income: f64,
+    pub expenses: f64,
+    pub net_profit: f64,
+}
+
+/// Phase 87+: Financial summary aggregating last turn, quarter (3 turns), and year (24 turns).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CompanyFinancialSummary {
+    pub last_turn: CompanyFinancialRecord,
+    pub last_quarter: CompanyFinancialRecord,
+    pub last_year: CompanyFinancialRecord,
 }
 
 // ============================================================================
@@ -2002,6 +2322,29 @@ pub struct RegionDetail {
     /// Phase 84: Recycling snapshot (role-gated — municipal/government only).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub recycling: Option<RecyclingSnapshot>,
+    /// Phase 87+: Climate profile (public — geographic information).
+    pub climate_profile: String,
+    /// Phase 87+: Arable land max (public — geographic information).
+    pub arable_land_max: i64,
+    /// Phase 87+: Arable land used (public — geographic information).
+    pub arable_land_used: i64,
+    /// Phase 87+: Geological deposits (role-gated — undiscovered deposits
+    /// filtered out for foreign observers per Directive 11).
+    pub geological_deposits: Vec<GeologicalDepositRow>,
+}
+
+/// Phase 87+: Geological deposit row for the Land Resources tab.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct GeologicalDepositRow {
+    pub commodity: String,
+    pub formation_name: String,
+    pub estimated_reserves: f64,
+    pub current_reserves: f64,
+    pub extraction_rate: f64,
+    pub utilization_rate: f64,
+    pub active_mine_count: u32,
+    pub discovered: bool,
 }
 
 /// Summary of an unfunded mandate for the region drill-down.
@@ -2885,6 +3228,50 @@ fn count_companies(companies: &[Company], view: &ViewQuery) -> usize {
 }
 
 /// Build a full company detail for the company with `view.company_detail_id`.
+/// Phase 87+: Compute a financial summary from the company's financial history.
+/// Aggregates last turn, last quarter (3 turns), and last year (24 turns).
+fn compute_financial_summary(history: &[serde_json::Value]) -> CompanyFinancialSummary {
+    let parse_record = |v: &serde_json::Value| -> CompanyFinancialRecord {
+        let income = v.get("income").and_then(|i| i.as_f64()).unwrap_or(0.0);
+        let expenses = v.get("expenses").and_then(|e| e.as_f64()).unwrap_or(0.0);
+        CompanyFinancialRecord {
+            income,
+            expenses,
+            net_profit: income - expenses,
+        }
+    };
+
+    let aggregate = |records: &[&serde_json::Value]| -> CompanyFinancialRecord {
+        if records.is_empty() {
+            return CompanyFinancialRecord::default();
+        }
+        let (income, expenses) = records.iter().fold((0.0, 0.0), |(acc_i, acc_e), v| {
+            let r = parse_record(v);
+            (acc_i + r.income, acc_e + r.expenses)
+        });
+        let n = records.len() as f64;
+        CompanyFinancialRecord {
+            income: income / n,
+            expenses: expenses / n,
+            net_profit: (income - expenses) / n,
+        }
+    };
+
+    let last_turn = history.last().map(parse_record).unwrap_or_default();
+
+    let quarter_records: Vec<&serde_json::Value> = history.iter().rev().take(3).collect();
+    let last_quarter = aggregate(&quarter_records);
+
+    let year_records: Vec<&serde_json::Value> = history.iter().rev().take(24).collect();
+    let last_year = aggregate(&year_records);
+
+    CompanyFinancialSummary {
+        last_turn,
+        last_quarter,
+        last_year,
+    }
+}
+
 fn build_company_detail(country: &Country, companies: &[Company], view: &ViewQuery) -> Option<CompanyDetail> {
     let target_id = view.company_detail_id.as_ref()?;
     let c = companies.iter().find(|c| c.id == *target_id)?;
@@ -2902,6 +3289,13 @@ fn build_company_detail(country: &Country, companies: &[Company], view: &ViewQue
         }
     } else {
         (None, None)
+    };
+
+    // Phase 87+: Compute financial summary from financial_history.
+    let financial_summary = if c.financial_history.is_empty() {
+        None
+    } else {
+        Some(compute_financial_summary(&c.financial_history))
     };
 
     Some(CompanyDetail {
@@ -2927,6 +3321,7 @@ fn build_company_detail(country: &Country, companies: &[Company], view: &ViewQue
         wage_arrears: c.wage_arrears,
         building_count: c.building_ids.len(),
         available_cash: c.available_cash,
+        financial_summary,
     })
 }
 
@@ -3141,7 +3536,64 @@ fn build_region_detail(country: &Country, view: &ViewQuery) -> Option<RegionDeta
         }),
         // Phase 84: Recycling snapshot (role-gated by caller).
         recycling: None, // Populated by caller from buildings query
+        // Phase 87+: Climate profile (public — geographic information).
+        climate_profile: format!("{:?}", region.climate_profile),
+        // Phase 87+: Arable land (public — geographic information).
+        arable_land_max: region.arable_land_max,
+        arable_land_used: region.arable_land_used,
+        // Phase 87+: Geological deposits from region resources.
+        // Role-gated by caller — undiscovered deposits filtered for foreign observers.
+        geological_deposits: build_geological_deposit_rows(region),
     })
+}
+
+/// Phase 87+: Build geological deposit rows from a region's resources map.
+/// Extracts geological reserves information for the Resources tab.
+fn build_geological_deposit_rows(region: &crate::society::geography::Region) -> Vec<GeologicalDepositRow> {
+    let mut rows = Vec::new();
+    for (resource_key, value) in &region.resources {
+        if let serde_json::Value::Object(map) = value {
+            let reserves = map.get("geological_reserves")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(0.0);
+            if reserves <= 0.0 {
+                continue;
+            }
+            let current = map.get("current_reserves")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(reserves);
+            let extraction_rate = map.get("extraction_rate")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(0.0);
+            let utilization = if reserves > 0.0 {
+                ((reserves - current) / reserves).min(1.0)
+            } else {
+                0.0
+            };
+            let formation_name = map.get("formation_name")
+                .and_then(|v| v.as_str())
+                .unwrap_or("Unknown")
+                .to_string();
+            let active_mines = map.get("active_mine_count")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(0) as u32;
+            let discovered = map.get("discovered")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(true);
+
+            rows.push(GeologicalDepositRow {
+                commodity: resource_key.clone(),
+                formation_name,
+                estimated_reserves: reserves,
+                current_reserves: current,
+                extraction_rate,
+                utilization_rate: utilization,
+                active_mine_count: active_mines,
+                discovered,
+            });
+        }
+    }
+    rows
 }
 
 /// Phase 53: Build megaregion drill-down detail on-demand for the selected megaregion.
@@ -3333,42 +3785,81 @@ fn build_finance_snapshot(country: &Country, companies: &[Company]) -> FinanceSn
     let mut total_bank_loans = 0.0_f64;
     let mut total_consumer_debt = 0.0_f64;
     let mut dspw_bank_count = 0_u32;
-    // Phase 37: Debt holder breakdown
-    let mut debt_held_by_banks = 0.0_f64;
-    let mut debt_held_by_funds = 0.0_f64;
     for c in companies {
         if c.bank_type.is_some() {
             if let Some(ref bs) = c.balance_sheet {
                 total_bank_reserves += bs.reserves_at_central_bank;
                 total_bank_deposits += bs.deposits;
                 total_bank_loans += bs.loans_issued.iter().map(|l| l.outstanding_balance).sum::<f64>();
-                // Phase 37: Bank sovereign securities holdings
-                debt_held_by_banks += bs.securities;
             }
             total_consumer_debt += c.consumer_loans.iter().map(|l| l.outstanding_principal).sum::<f64>();
             if c.is_dspw {
                 dspw_bank_count += 1;
             }
         }
-        // Phase 37: Investment fund bond holdings
-        if let Some(ref ledger) = c.fund_ledger {
-            debt_held_by_funds += ledger.bond_holdings.iter().map(|h| h.face_value).sum::<f64>();
-        }
     }
 
-    // Public debt — Phase 42: Include retail bonds held by citizens in the total.
-    let debt_market_total = country.debt_market.total_outstanding_debt;
-    let retail_bonds_total: f64 = country.debt_market.retail_bonds.iter()
-        .map(|b| b.face_value)
-        .sum::<f64>();
-    let total_public_debt = debt_market_total + retail_bonds_total;
+    // Phase 87+: Public debt — use the authoritative debt_market as the single
+    // source of truth. The previous code double-counted retail bonds by adding
+    // retail_bonds_total to debt_market_total (which already includes retail).
+    // Holder breakdown is now computed from debt_market.outstanding_securities
+    // holders, not stale entity-level aggregates.
+    let total_public_debt = country.debt_market.total_outstanding_debt;
     let weighted_avg_interest_rate = country.debt_market.weighted_avg_interest_rate;
 
-    // Phase 37: Central bank bond holdings and citizen retail bonds
-    let debt_held_by_central_bank = cb.omo_bond_holdings;
-    let debt_held_by_citizens = country.debt_market.retail_bonds.iter()
-        .map(|b| b.face_value)
-        .sum::<f64>();
+    // Phase 87+: Compute holder breakdown from the authoritative security holder ledger.
+    use crate::economy::finance::debt_market::SecurityHolderType;
+    let mut debt_held_by_banks = 0.0_f64;
+    let mut debt_held_by_central_bank = 0.0_f64;
+    let mut debt_held_by_funds = 0.0_f64;
+    let mut debt_held_by_citizens = 0.0_f64;
+    let mut debt_held_by_foreign = 0.0_f64;
+    for security in &country.debt_market.outstanding_securities {
+        if security.is_matured {
+            continue;
+        }
+        for holder in &security.holders {
+            match holder.holder_type {
+                SecurityHolderType::CommercialBank
+                | SecurityHolderType::UniversalBank
+                | SecurityHolderType::InvestmentBank
+                | SecurityHolderType::PrimaryDealer => {
+                    debt_held_by_banks += holder.quantity;
+                }
+                SecurityHolderType::CentralBank => {
+                    debt_held_by_central_bank += holder.quantity;
+                }
+                SecurityHolderType::OpenEndFund
+                | SecurityHolderType::ClosedEndFund
+                | SecurityHolderType::HedgeFund => {
+                    debt_held_by_funds += holder.quantity;
+                }
+                SecurityHolderType::RetailSavingsBond => {
+                    debt_held_by_citizens += holder.quantity;
+                }
+                SecurityHolderType::ForeignEntity => {
+                    debt_held_by_foreign += holder.quantity;
+                }
+            }
+        }
+    }
+    // Add retail savings bonds (separate non-tradable instrument, not in outstanding_securities).
+    // total_outstanding_debt = wholesale (outstanding_securities) + retail (retail_bonds).
+    // The holder iteration above counts citizen-held wholesale securities;
+    // this adds the retail savings bond principal + arrears.
+    let retail_total: f64 = country.debt_market.retail_bonds.iter()
+        .map(|b| b.face_value + b.arrears)
+        .sum();
+    debt_held_by_citizens += retail_total;
+
+    // Phase 87+: Debug invariant — holder sum must equal total debt.
+    let holder_sum = debt_held_by_banks + debt_held_by_central_bank
+        + debt_held_by_funds + debt_held_by_citizens + debt_held_by_foreign;
+    debug_assert!(
+        (holder_sum - total_public_debt).abs() < 1.0,
+        "Debt holder sum {} != total_public_debt {}",
+        holder_sum, total_public_debt
+    );
 
     // Shadow economy
     let shadow_gdp = macro_data.gdp_breakdown.shadow_gdp;
@@ -3448,6 +3939,7 @@ fn build_finance_snapshot(country: &Country, companies: &[Company]) -> FinanceSn
         debt_held_by_central_bank,
         debt_held_by_funds,
         debt_held_by_citizens,
+        debt_held_by_foreign,
         m0,
         m3,
         cb_reference_rate: cb.interest_rates.reference_rate,

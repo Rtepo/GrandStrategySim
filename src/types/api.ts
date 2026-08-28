@@ -305,7 +305,11 @@ ceo_name: string | null,
 /**
  * Phase 54: Resolved CEO ideology from the VIP registry.
  */
-ceo_ideology: string | null, union_id: string | null, fulfilled_fte: number, fte_demand: number, average_wage: number, seasonal_state: string, furloughed_workers_count: number, wage_arrears: number, building_count: number, available_cash: number, };
+ceo_ideology: string | null, union_id: string | null, fulfilled_fte: number, fte_demand: number, average_wage: number, seasonal_state: string, furloughed_workers_count: number, wage_arrears: number, building_count: number, available_cash: number, 
+/**
+ * Phase 87+: Financial summary (last turn, quarter, year).
+ */
+financial_summary: CompanyFinancialSummary | null, };
 
 /**
  * Filter for the Company explorer list.
@@ -323,6 +327,16 @@ sector_filter: string,
  * Phase 54: If non-empty, only include companies in this region (region ID).
  */
 region_filter: string, };
+
+/**
+ * Phase 87+: A single financial record (income, expenses, net profit).
+ */
+export type CompanyFinancialRecord = { income: number, expenses: number, net_profit: number, };
+
+/**
+ * Phase 87+: Financial summary aggregating last turn, quarter (3 turns), and year (24 turns).
+ */
+export type CompanyFinancialSummary = { last_turn: CompanyFinancialRecord, last_quarter: CompanyFinancialRecord, last_year: CompanyFinancialRecord, };
 
 /**
  * Response for paginated company queries.
@@ -602,7 +616,12 @@ export type FactionalDomainsSnapshot = { domains: Array<FactionalDomainRow>, cot
  * consumer debt, and shadow economy. Reuses existing snapshot data rather
  * than creating disconnected accounting.
  */
-export type FinanceSnapshot = { treasury_reserves: number, gdp: number, ministry_total_allocated: number, ministry_total_spent: number, ministry_total_cash: number, pit_revenue: number, cit_revenue: number, vat_revenue: number, wealth_tax_revenue: number, capital_gains_revenue: number, customs_revenue: number, state_property_revenue: number, pit_rate: number, cit_rate: number, vat_rate: number, wealth_tax_rate: number, capital_gains_rate: number, total_public_debt: number, debt_service: number, weighted_avg_interest_rate: number, debt_held_by_banks: number, debt_held_by_central_bank: number, debt_held_by_funds: number, debt_held_by_citizens: number, m0: number, m3: number, cb_reference_rate: number, cb_lombard_rate: number, cb_discount_rate: number, cb_rediscount_rate: number, cb_deposit_rate: number, cb_fx_reserves_total: number, cb_gold_reserves: number, cb_reserve_requirement_ratio: number, cb_omo_holdings: number, cb_liquidity_injected: number, cb_last_omo_turn: number, cb_last_omo_amount: number, total_bank_reserves: number, total_bank_deposits: number, total_bank_loans: number, total_consumer_debt: number, dspw_bank_count: number, shadow_gdp: number, pit_evaded: number, fx_basket: Array<FxBasketEntry>, 
+export type FinanceSnapshot = { treasury_reserves: number, gdp: number, ministry_total_allocated: number, ministry_total_spent: number, ministry_total_cash: number, pit_revenue: number, cit_revenue: number, vat_revenue: number, wealth_tax_revenue: number, capital_gains_revenue: number, customs_revenue: number, state_property_revenue: number, pit_rate: number, cit_rate: number, vat_rate: number, wealth_tax_rate: number, capital_gains_rate: number, total_public_debt: number, debt_service: number, weighted_avg_interest_rate: number, debt_held_by_banks: number, debt_held_by_central_bank: number, debt_held_by_funds: number, debt_held_by_citizens: number, 
+/**
+ * Phase 87+: Foreign-held sovereign debt. Computed from the authoritative
+ * debt_market.outstanding_securities holders with SecurityHolderType::ForeignEntity.
+ */
+debt_held_by_foreign: number, m0: number, m3: number, cb_reference_rate: number, cb_lombard_rate: number, cb_discount_rate: number, cb_rediscount_rate: number, cb_deposit_rate: number, cb_fx_reserves_total: number, cb_gold_reserves: number, cb_reserve_requirement_ratio: number, cb_omo_holdings: number, cb_liquidity_injected: number, cb_last_omo_turn: number, cb_last_omo_amount: number, total_bank_reserves: number, total_bank_deposits: number, total_bank_loans: number, total_consumer_debt: number, dspw_bank_count: number, shadow_gdp: number, pit_evaded: number, fx_basket: Array<FxBasketEntry>, 
 /**
  * Phase 54: Ministry expenditure breakdown for the Finance tab.
  */
@@ -650,6 +669,11 @@ plant_type: string,
 fraction: number, };
 
 /**
+ * Phase 87+: Geological deposit row for the Land Resources tab.
+ */
+export type GeologicalDepositRow = { commodity: string, formation_name: string, estimated_reserves: number, current_reserves: number, extraction_rate: number, utilization_rate: number, active_mine_count: number, discovered: boolean, };
+
+/**
  * Phase 55: Governance detail for a company (board, succession, financial metrics).
  */
 export type GovernanceDetail = { company_id: string, company_name: string, is_listed: boolean, shares_count: bigint, share_price: number, market_cap: number, eps: number, pe_ratio: number, dividend_yield: number, open_price: number, close_price: number, board_members: Array<BoardMemberRow>, has_board: boolean, board_independence: number, is_family_business: boolean, successor_generation: number, heir_count: number, succession_crisis: boolean, heirs: Array<BoardMemberRow>, };
@@ -670,6 +694,11 @@ government_form: string,
  * Phase 54: Royal dynasty snapshot (only populated for monarchies).
  */
 royal_dynasty: RoyalDynastySnapshot | null, };
+
+/**
+ * Phase 87+: Guild-specific detail data.
+ */
+export type GuildDetailData = { sector: string, welfare_fund: number | null, welfare_contribution_rate: number, dividend_per_member: number | null, quality_standard: number, has_charter: boolean, jurisdiction_domain_id: string, member_workshop_ids: Array<string>, master_class_ids: Array<string>, guild_raw_inventory: Array<[string, number]>, };
 
 /**
  * Phase 85: Guild row for the GuildsPage.
@@ -954,6 +983,11 @@ strikes_active: boolean,
 desertions_active: boolean, };
 
 /**
+ * Phase 87+: Political movement-specific detail data.
+ */
+export type MovementDetailData = { movement_type: string, initiating_class: string, start_turn: number, expected_duration: number, intensity: number, participant_count: bigint, union_backed: boolean, backing_union_id: string | null, strike_fund_per_participant: number, target_company_ids: Array<string> | null, status: string, demands: Array<string>, };
+
+/**
  * Phase 86.5B: Municipal AI snapshot for a country.
  */
 export type MunicipalAiSnapshot = { 
@@ -1006,6 +1040,30 @@ is_crisis: boolean, };
  * OHS / casualty summary.
  */
 export type OhsSummary = { total_deceased: bigint, total_disabled: bigint, total_unable_to_work_fte: number, ohs_accidents_on_projects: number, };
+
+/**
+ * Phase 87+: Organization category for the consolidated Organizations page.
+ */
+export type OrganizationCategory = "guild" | "trade_union" | "political_movement" | "chamber_of_commerce";
+
+/**
+ * Phase 87+: Organization detail — category-specific detail page data.
+ */
+export type OrganizationDetail = { id: string, name: string, category: OrganizationCategory, region_id: string, member_count: number, funds: number | null, activity_summary: string, guild_detail: GuildDetailData | null, union_detail: UnionDetailData | null, movement_detail: MovementDetailData | null, };
+
+/**
+ * Phase 87+: A single organization row in the consolidated list.
+ */
+export type OrganizationRow = { id: string, name: string, category: OrganizationCategory, sector: string, region_id: string, member_count: number, 
+/**
+ * Funds (classified for foreign observers — stripped in build function).
+ */
+funds: number | null, activity_summary: string, };
+
+/**
+ * Phase 87+: Organizations snapshot for the consolidated OrganizationsPage.
+ */
+export type OrganizationsSnapshot = { organizations: Array<OrganizationRow>, };
 
 /**
  * Pagination request for a scrollable list view.
@@ -1211,7 +1269,24 @@ waste_pollution: WastePollutionSnapshot | null,
 /**
  * Phase 84: Recycling snapshot (role-gated — municipal/government only).
  */
-recycling: RecyclingSnapshot | null, };
+recycling: RecyclingSnapshot | null, 
+/**
+ * Phase 87+: Climate profile (public — geographic information).
+ */
+climate_profile: string, 
+/**
+ * Phase 87+: Arable land max (public — geographic information).
+ */
+arable_land_max: bigint, 
+/**
+ * Phase 87+: Arable land used (public — geographic information).
+ */
+arable_land_used: bigint, 
+/**
+ * Phase 87+: Geological deposits (role-gated — undiscovered deposits
+ * filtered out for foreign observers per Directive 11).
+ */
+geological_deposits: Array<GeologicalDepositRow>, };
 
 /**
  * Phase 81: Regional energy information.
@@ -1572,6 +1647,11 @@ export type TreasurySummary = { gdp: number, population: bigint, liquid_reserves
  * Response for the advance_turn command.
  */
 export type TurnResult = { turn: number, year: number, status: string, };
+
+/**
+ * Phase 87+: Union-specific detail data.
+ */
+export type UnionDetailData = { sector: string, scale_level: string, budget: number, strike_fund: number | null, political_power: number, militancy: number, wage_demand: number, safety_demand: number, on_strike: boolean, leader_vip_id: string | null, leader_name: string | null, member_company_ids: Array<string>, last_strike_turn: number | null, };
 
 /**
  * View parameters passed from the TUI `App` to the snapshot builder.

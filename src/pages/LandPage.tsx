@@ -7,6 +7,8 @@ import {
   getCourtBacklog,
   getArbitrationCases,
   getMinistryLandReport,
+  getRegions,
+  getRegionDetail,
 } from "../hooks/useTauriCommand";
 import {
   Card, CardHeader, CardTitle, CardContent, Badge,
@@ -19,9 +21,10 @@ import type {
   CourtBacklogRow,
   ArbitrationCaseRow,
   MinistryLandReportDTO,
+  RegionDetail,
 } from "../types/api";
 
-type Tab = "cadastre" | "zoning" | "courts";
+type Tab = "cadastre" | "zoning" | "courts" | "climate" | "resources";
 
 export function LandPage() {
   const { selectedCountry } = useGameStore();
@@ -34,15 +37,19 @@ export function LandPage() {
       <h2 className="text-xl font-bold text-foreground">Land & Cadastre — {selectedCountry}</h2>
 
       {/* Tab navigation */}
-      <div className="flex gap-2 border-b border-border">
+      <div className="flex gap-2 border-b border-border flex-wrap">
         <TabButton active={tab === "cadastre"} onClick={() => setTab("cadastre")}>Cadastre</TabButton>
         <TabButton active={tab === "zoning"} onClick={() => setTab("zoning")}>Zoning Plans</TabButton>
         <TabButton active={tab === "courts"} onClick={() => setTab("courts")}>Courts & Arbitration</TabButton>
+        <TabButton active={tab === "climate"} onClick={() => setTab("climate")}>Climate</TabButton>
+        <TabButton active={tab === "resources"} onClick={() => setTab("resources")}>Resources</TabButton>
       </div>
 
       {tab === "cadastre" && <CadastreTab country={selectedCountry} />}
       {tab === "zoning" && <ZoningTab country={selectedCountry} />}
       {tab === "courts" && <CourtsTab country={selectedCountry} />}
+      {tab === "climate" && <ClimateTab country={selectedCountry} />}
+      {tab === "resources" && <ResourcesTab country={selectedCountry} />}
     </div>
   );
 }
@@ -499,5 +506,147 @@ function strengthColor(strength: number): string {
   if (strength > 0.7) return "text-green-500";
   if (strength > 0.4) return "text-yellow-500";
   return "text-red-500";
+}
+
+// ============================================================================
+// PHASE 87+: CLIMATE TAB
+// ============================================================================
+
+function ClimateTab({ country }: { country: string }) {
+  const { data: regions, isLoading } = useQuery({
+    queryKey: ['regions-climate', country],
+    queryFn: () => getRegions(country),
+  });
+
+  if (isLoading) return <div className="text-muted-foreground">Loading regions...</div>;
+  if (!regions || regions.length === 0) return <div className="text-muted-foreground">No regions found.</div>;
+
+  // Fetch details for all regions to get climate data
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Climate profiles and arable land usage across all regions.
+      </p>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b text-left text-muted-foreground">
+              <th className="py-2 px-3">Region</th>
+              <th className="py-2 px-3">Climate</th>
+              <th className="py-2 px-3">Arable Max</th>
+              <th className="py-2 px-3">Arable Used</th>
+              <th className="py-2 px-3">Utilization</th>
+            </tr>
+          </thead>
+          <tbody>
+            {regions.map((r) => (
+              <ClimateRegionRow key={r.id} country={country} regionId={r.id} regionName={r.display_name || r.id} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function ClimateRegionRow({ country, regionId, regionName }: { country: string; regionId: string; regionName: string }) {
+  const { data: detail } = useQuery({
+    queryKey: ['region-detail-climate', country, regionId],
+    queryFn: () => getRegionDetail(country, regionId),
+  });
+
+  const arableMax = detail?.arable_land_max !== undefined ? Number(detail.arable_land_max) : 0;
+  const arableUsed = detail?.arable_land_used !== undefined ? Number(detail.arable_land_used) : 0;
+  const utilization = arableMax > 0 ? (arableUsed / arableMax) * 100 : 0;
+
+  return (
+    <tr className="border-b">
+      <td className="py-2 px-3 font-medium text-foreground">{regionName}</td>
+      <td className="py-2 px-3 text-muted-foreground">{detail?.climate_profile ?? '—'}</td>
+      <td className="py-2 px-3 text-muted-foreground">{num(arableMax)}</td>
+      <td className="py-2 px-3 text-muted-foreground">{num(arableUsed)}</td>
+      <td className="py-2 px-3 text-muted-foreground">{utilization.toFixed(1)}%</td>
+    </tr>
+  );
+}
+
+// ============================================================================
+// PHASE 87+: RESOURCES TAB
+// ============================================================================
+
+function ResourcesTab({ country }: { country: string }) {
+  const { data: regions, isLoading } = useQuery({
+    queryKey: ['regions-resources', country],
+    queryFn: () => getRegions(country),
+  });
+
+  if (isLoading) return <div className="text-muted-foreground">Loading regions...</div>;
+  if (!regions || regions.length === 0) return <div className="text-muted-foreground">No regions found.</div>;
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Geological deposits and resource extraction across all regions.
+        Undiscovered deposits are hidden from foreign observers (Fog of War).
+      </p>
+      <div className="space-y-3">
+        {regions.map((r) => (
+          <ResourcesRegionCard key={r.id} country={country} regionId={r.id} regionName={r.display_name || r.id} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ResourcesRegionCard({ country, regionId, regionName }: { country: string; regionId: string; regionName: string }) {
+  const { data: detail } = useQuery({
+    queryKey: ['region-detail-resources', country, regionId],
+    queryFn: () => getRegionDetail(country, regionId),
+  });
+
+  const deposits = detail?.geological_deposits ?? [];
+  if (deposits.length === 0) return null;
+
+  return (
+    <Card>
+      <CardHeader><CardTitle className="text-sm">{regionName}</CardTitle></CardHeader>
+      <CardContent>
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="text-muted-foreground border-b">
+              <th className="text-left py-1 px-2">Commodity</th>
+              <th className="text-left py-1 px-2">Formation</th>
+              <th className="text-right py-1 px-2">Est. Reserves</th>
+              <th className="text-right py-1 px-2">Current</th>
+              <th className="text-right py-1 px-2">Extraction</th>
+              <th className="text-right py-1 px-2">Utilization</th>
+              <th className="text-right py-1 px-2">Mines</th>
+              <th className="text-center py-1 px-2">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {deposits.map((d, i) => (
+              <tr key={i} className="border-b">
+                <td className="py-1 px-2 font-medium">{d.commodity}</td>
+                <td className="py-1 px-2 text-muted-foreground">{d.formation_name}</td>
+                <td className="text-right py-1 px-2">{fmt(d.estimated_reserves)}</td>
+                <td className="text-right py-1 px-2">{fmt(d.current_reserves)}</td>
+                <td className="text-right py-1 px-2">{fmt(d.extraction_rate)}</td>
+                <td className="text-right py-1 px-2">{(d.utilization_rate * 100).toFixed(1)}%</td>
+                <td className="text-right py-1 px-2">{d.active_mine_count}</td>
+                <td className="text-center py-1 px-2">
+                  {d.discovered ? (
+                    <Badge variant="default">Discovered</Badge>
+                  ) : (
+                    <Badge variant="secondary">Undiscovered</Badge>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </CardContent>
+    </Card>
+  );
 }
 

@@ -836,6 +836,11 @@ pub struct GameState {
     pub org_config: crate::international::organizations::OrgConfig,
     /// Phase 68: Sanction configuration (vote thresholds, durations).
     pub sanction_config: crate::international::sanctions::SanctionConfig,
+    /// Phase 87+: Global planet with geological veins and lat/lon grid.
+    /// Authoritative source of geological resources for mining and power-plant
+    /// generation. Replaces the per-country `geological_formations` system.
+    #[serde(default)]
+    pub planet: crate::society::planet::Planet,
     /// Not-yet-typed global systems, preserved losslessly.
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -872,6 +877,7 @@ impl GameState {
             active_sanctions: crate::international::sanctions::SanctionRegistry::default(),
             org_config: crate::international::organizations::OrgConfig::default(),
             sanction_config: crate::international::sanctions::SanctionConfig::default(),
+            planet: crate::society::planet::Planet::default(),
             extra: Map::new(),
         }
     }

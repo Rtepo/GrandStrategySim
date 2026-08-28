@@ -8,6 +8,7 @@ pub mod culture_registry;
 pub mod religious_authority;
 pub mod geography;
 pub mod geography_config;
+pub mod planet;
 pub mod tourism;
 pub mod housing;
 pub mod charities;

@@ -68,6 +68,7 @@ export function FinancePage() {
               <Row label="Held by CB" value={fmt(finance.debt_held_by_central_bank)} />
               <Row label="Held by Funds" value={fmt(finance.debt_held_by_funds)} />
               <Row label="Held by Citizens" value={fmt(finance.debt_held_by_citizens)} />
+              <Row label="Held by Foreign" value={fmt(finance.debt_held_by_foreign)} />
             </div>
           </CardContent>
         </Card>

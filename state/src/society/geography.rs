@@ -63,23 +63,28 @@ pub enum ClimateProfile {
 
 
     Arctic,  // Permafrost, extreme cold, limited activity
+
+
+    SubTropical,  // Hot summers, mild winters (Mediterranean/subtropical)
 }
 
-/// Phase 47: Pick a varied climate profile for non-capital regions.
+/// Phase 47/87+: Pick a varied climate profile for non-capital regions.
 /// Weighted toward temperate/continental (most common globally),
-/// with smaller chances for mountainous, coastal, tropical, desert, arctic.
+/// with smaller chances for mountainous, coastal, tropical, subtropical, desert, arctic.
 fn pick_climate_profile(rng: &mut impl rand::Rng) -> ClimateProfile {
     let roll: f64 = rng.gen();
-    if roll < 0.30 {
+    if roll < 0.25 {
         ClimateProfile::Temperate
-    } else if roll < 0.55 {
+    } else if roll < 0.50 {
         ClimateProfile::Continental
-    } else if roll < 0.70 {
+    } else if roll < 0.62 {
         ClimateProfile::Mountainous
-    } else if roll < 0.82 {
+    } else if roll < 0.74 {
         ClimateProfile::Coastal
-    } else if roll < 0.92 {
+    } else if roll < 0.84 {
         ClimateProfile::Tropical
+    } else if roll < 0.92 {
+        ClimateProfile::SubTropical
     } else if roll < 0.97 {
         ClimateProfile::Desert
     } else {
@@ -1471,11 +1476,11 @@ pub struct Megaregion {
     pub governance: Option<crate::politics::local_government::MegaregionGovernance>,
 }
 
-fn seed_geological_deposits(zasoby: &mut Map<String, Value>, gdp: f64, _rng: &mut impl Rng) {
+fn seed_geological_deposits(resources: &mut Map<String, Value>, gdp: f64, _rng: &mut impl Rng) {
     let goods = ["coal", "lignite", "oil", "natural_gas", "peat", "uranium", "iron", "copper", "zinc", "bauxite", "gold", "silver", "diamonds", "stone", "sand", "salt", "limestone"];
     for good in goods {
         let multiplier = geological_multiplier(good);
-        zasoby.insert(
+        resources.insert(
             good.to_string(),
             serde_json::json!({
                 "geological_reserves": int(gdp * multiplier * 1000.0),
@@ -1548,11 +1553,14 @@ pub fn reseed_resources_from_formations(
         let mut new_resources = Map::new();
 
         // Preserve freshwater and forest data (these are not geological).
-        if let Some(water) = region.resources.get("woda_slodka") {
-            new_resources.insert("woda_slodka".to_string(), water.clone());
+        // Phase 87+: Fixed Polish keys to English (Directive 12).
+        if let Some(water) = region.resources.get("freshwater")
+            .or_else(|| region.resources.get("woda_slodka")) {
+            new_resources.insert("freshwater".to_string(), water.clone());
         }
-        if let Some(forest) = region.resources.get("lasy") {
-            new_resources.insert("lasy".to_string(), forest.clone());
+        if let Some(forest) = region.resources.get("forests")
+            .or_else(|| region.resources.get("lasy")) {
+            new_resources.insert("forests".to_string(), forest.clone());
         }
 
         // Common resources (stone, sand, limestone) — 50% chance per region.
@@ -1672,8 +1680,9 @@ pub fn generate_regional_topology(country: &str, population: i64, gdp: f64, star
         let base_mines = (region_pop / 100_000) + 5;
         let mine_limits = climate.mine_limits(base_mines, &mut rng);
         let mut resources = Map::new();
-        resources.insert("lasy".to_string(), serde_json::json!({"wyeksploatowanie": rng.gen_range(0.1..0.3)}));
-        resources.insert("woda_slodka".to_string(), serde_json::json!({"dostepnosc": rng.gen_range(0.5..1.0)}));
+        // Phase 87+: Fixed Polish keys to English (Directive 12).
+        resources.insert("forests".to_string(), serde_json::json!({"exploitation": rng.gen_range(0.1..0.3)}));
+        resources.insert("freshwater".to_string(), serde_json::json!({"availability": rng.gen_range(0.5..1.0)}));
         seed_geological_deposits(&mut resources, region_gdp, &mut rng);
 
         // Phase 47: Assign development_level per region.
@@ -2213,10 +2222,10 @@ pub fn generate_geological_formations(
         let formation_id = format!("Formation-{i}");
         let formation_name = match formation_type {
             FormationType::MountainRange => format!("Mountains {i}"),
-            FormationType::SedimentaryBasin => format!("Basen {i}"),
+            FormationType::SedimentaryBasin => format!("Basin {i}"),
             FormationType::RiftValley => format!("Rift {i}"),
-            FormationType::VolcanicArc => format!("Wulkan {i}"),
-            FormationType::ContinentalShelf => format!("Szelf {i}"),
+            FormationType::VolcanicArc => format!("Volcanic {i}"),
+            FormationType::ContinentalShelf => format!("Shelf {i}"),
         };
 
         // Select random regions to overlap (2-5 regions per formation)

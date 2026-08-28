@@ -1021,6 +1021,16 @@ fn pick_soil_distribution(
             ("Class_V".to_string(), 0.30),
             ("Class_VI".to_string(), 0.45),
         ],
+        // Phase 87+: SubTropical — good agricultural land, similar to Temperate
+        // but with slightly more Class I/II (longer growing season).
+        ClimateProfile::SubTropical => vec![
+            ("Class_I".to_string(), 0.18),
+            ("Class_II".to_string(), 0.27),
+            ("Class_III".to_string(), 0.28),
+            ("Class_IV".to_string(), 0.17),
+            ("Class_V".to_string(), 0.07),
+            ("Class_VI".to_string(), 0.03),
+        ],
     };
 
     // Small random perturbation

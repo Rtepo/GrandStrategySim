@@ -138,6 +138,11 @@ fn event_probability(climate: ClimateProfile, season: Season) -> f64 {
         // Arctic: blizzards and extreme cold
         (ClimateProfile::Arctic, Season::Winter) => 0.18,
         (ClimateProfile::Arctic, _) => 0.10,
+        // Phase 87+: SubTropical — Mediterranean climate, mild weather but
+        // summer droughts and autumn storms are the main risks.
+        (ClimateProfile::SubTropical, Season::Summer) => 0.13,
+        (ClimateProfile::SubTropical, Season::Autumn) => 0.11,
+        (ClimateProfile::SubTropical, _) => 0.06,
     }
 }
 

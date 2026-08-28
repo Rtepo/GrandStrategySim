@@ -89,6 +89,8 @@ fn main() {
             commands::phase85_queries::get_guilds_snapshot,
             commands::phase85_queries::get_cities_snapshot,
             commands::phase85_queries::get_municipal_ai_snapshot,
+            commands::phase85_queries::get_organizations_snapshot,
+            commands::phase85_queries::get_organization_detail,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
