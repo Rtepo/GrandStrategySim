@@ -1607,6 +1607,69 @@ pub fn reseed_resources_from_formations(
     }
 }
 
+/// Phase 88: Reseed region resources from the Planet's geological vein system.
+///
+/// This replaces `reseed_resources_from_formations` and connects the new
+/// `GeologicalVein` system to the region resource map used by the UI snapshot.
+///
+/// # Critical Key Mapping
+/// The HashMap key for each resource entry is the `vein.id` (or `composite_id`
+/// if merged) — NOT the generic commodity string. This ensures the frontend
+/// snapshot's active mine counter can match `building.deposit_id` to the
+/// deposit in `region.resources`.
+///
+/// # Arguments
+/// * `regions` - All regions (mutated to update `resources`)
+/// * `planet` - The Planet with geological veins
+pub fn reseed_resources_from_planet(
+    regions: &mut HashMap<String, Region>,
+    planet: &crate::society::planet::Planet,
+) {
+    for region in regions.values_mut() {
+        let region_id = &region.id;
+
+        // Preserve non-geological resources (freshwater, forests) from
+        // existing region.resources. We rebuild the geological portion
+        // from the Planet vein system.
+        let mut new_resources = Map::new();
+
+        // Preserve freshwater and forest data (these are not geological).
+        if let Some(water) = region.resources.get("freshwater") {
+            new_resources.insert("freshwater".to_string(), water.clone());
+        }
+        if let Some(forest) = region.resources.get("forests") {
+            new_resources.insert("forests".to_string(), forest.clone());
+        }
+
+        // Phase 88: Write geological resources from Planet veins.
+        // KEY = vein.id (or composite_id), NOT commodity string.
+        // This ensures building.deposit_id matches the resource key.
+        for vein in planet.veins_for_region(region_id) {
+            let resource_key = vein.composite_id.clone().unwrap_or_else(|| vein.id.clone());
+            let commodity_str = format!("{:?}", vein.commodity);
+
+            new_resources.insert(
+                resource_key,
+                serde_json::json!({
+                    "commodity": commodity_str,
+                    "formation_name": vein.name,
+                    "geological_reserves": vein.current_reserves as i64,
+                    "reserves": 0,
+                    "annual_extraction": 0,
+                    "efficiency": vein.quality,
+                    "domestic_consumption": 0,
+                    "extraction_cost": vein.extraction_cost,
+                    "depth": vein.depth,
+                    "discovered": vein.discovered
+                }),
+            );
+        }
+
+        // Replace the region's resources with the new set.
+        region.resources = new_resources;
+    }
+}
+
 /// Serde helper: returns true if the f64 is zero (for `skip_serializing_if`).
 fn is_zero_f64(v: &f64) -> bool {
     *v == 0.0

@@ -3125,7 +3125,7 @@ fn build_bank_page(_country: &Country, companies: &[Company], view: &ViewQuery) 
         .filter_map(|c| {
             let bs = c.balance_sheet.as_ref()?;
             let loans: f64 = bs.loans_issued.iter().map(|l| l.outstanding_balance).sum();
-            let ldr = if bs.deposits > 0.0 { loans / bs.deposits * 100.0 } else { 0.0 };
+            let ldr = if bs.deposits > 0.0 { loans / bs.deposits } else { 0.0 };
             Some(BankRow {
                 name: c.name.clone(),
                 bank_type: format!("{:?}", c.bank_type.as_ref()?),
@@ -3232,12 +3232,19 @@ fn count_companies(companies: &[Company], view: &ViewQuery) -> usize {
 /// Aggregates last turn, last quarter (3 turns), and last year (24 turns).
 fn compute_financial_summary(history: &[serde_json::Value]) -> CompanyFinancialSummary {
     let parse_record = |v: &serde_json::Value| -> CompanyFinancialRecord {
-        let income = v.get("income").and_then(|i| i.as_f64()).unwrap_or(0.0);
-        let expenses = v.get("expenses").and_then(|e| e.as_f64()).unwrap_or(0.0);
+        // Phase 88: Fixed field mapping. The actual financial history records
+        // (pushed at manager.rs:788-799) use "revenue", "operating_costs",
+        // "interest", "taxes", and "net_profit" — NOT "income"/"expenses".
+        let income = v.get("revenue").and_then(|i| i.as_f64()).unwrap_or(0.0);
+        let operating = v.get("operating_costs").and_then(|e| e.as_f64()).unwrap_or(0.0);
+        let interest = v.get("interest").and_then(|e| e.as_f64()).unwrap_or(0.0);
+        let taxes = v.get("taxes").and_then(|e| e.as_f64()).unwrap_or(0.0);
+        let expenses = operating + interest + taxes;
+        let net_profit = v.get("net_profit").and_then(|n| n.as_f64()).unwrap_or(income - expenses);
         CompanyFinancialRecord {
             income,
             expenses,
-            net_profit: income - expenses,
+            net_profit,
         }
     };
 
@@ -3547,12 +3554,23 @@ fn build_region_detail(country: &Country, view: &ViewQuery) -> Option<RegionDeta
     })
 }
 
-/// Phase 87+: Build geological deposit rows from a region's resources map.
+/// Phase 87+/88: Build geological deposit rows from a region's resources map.
 /// Extracts geological reserves information for the Resources tab.
+///
+/// Phase 88: Resource keys are now vein IDs (not commodity strings), so the
+/// commodity must be read from the value object's "commodity" field.
+/// Non-geological resources (freshwater, forests) are skipped because they
+/// don't have a "commodity" field.
 fn build_geological_deposit_rows(region: &crate::society::geography::Region) -> Vec<GeologicalDepositRow> {
     let mut rows = Vec::new();
-    for (resource_key, value) in &region.resources {
+    for (_resource_key, value) in &region.resources {
         if let serde_json::Value::Object(map) = value {
+            // Phase 88: Skip non-geological resources (no "commodity" field).
+            let commodity = match map.get("commodity")
+                .and_then(|v| v.as_str()) {
+                Some(c) => c.to_string(),
+                None => continue, // freshwater, forests, etc.
+            };
             let reserves = map.get("geological_reserves")
                 .and_then(|v| v.as_f64())
                 .unwrap_or(0.0);
@@ -3582,7 +3600,7 @@ fn build_geological_deposit_rows(region: &crate::society::geography::Region) -> 
                 .unwrap_or(true);
 
             rows.push(GeologicalDepositRow {
-                commodity: resource_key.clone(),
+                commodity,
                 formation_name,
                 estimated_reserves: reserves,
                 current_reserves: current,

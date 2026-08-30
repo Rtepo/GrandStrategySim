@@ -87,6 +87,27 @@ impl RarityTier {
     }
 }
 
+/// Phase 88: Generate a deterministic human-readable name for a geological vein.
+/// Uses the commodity name and a geographic descriptor derived from the vein
+/// ID counter (ensuring deterministic names across reloads).
+fn generate_vein_name(commodity: Commodity, id_counter: usize) -> String {
+    let commodity_str = format!("{:?}", commodity);
+    // Deterministic geographic descriptor based on ID counter.
+    // This produces stable names like "Northern Iron Range", "Southern Coal Basin".
+    let descriptors = [
+        ("Northern", "Range"),
+        ("Southern", "Basin"),
+        ("Eastern", "Belt"),
+        ("Western", "District"),
+        ("Central", "Formation"),
+        ("Highland", "Deposit"),
+        ("Lowland", "Field"),
+        ("Coastal", "Zone"),
+    ];
+    let (direction, suffix) = descriptors[id_counter % descriptors.len()];
+    format!("{} {} {}", direction, commodity_str, suffix)
+}
+
 /// A geological vein — a coherent deposit of a single commodity spanning
 /// one or more regions. Veins are the authoritative source of geological
 /// resources for mining and power-plant generation.
@@ -97,6 +118,8 @@ pub struct GeologicalVein {
     /// If this vein was merged with others, the composite ID referencing all parents.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub composite_id: Option<String>,
+    /// Phase 88: Human-readable name for UI display (e.g., "Silesian Coal Basin").
+    pub name: String,
     /// The commodity this vein contains.
     pub commodity: Commodity,
     /// Rarity tier controlling scarcity.
@@ -193,11 +216,13 @@ impl Planet {
                     .collect();
 
                 let vein_id = format!("VEIN-{:04}", vein_id_counter);
+                let vein_name = generate_vein_name(commodity, vein_id_counter);
                 vein_id_counter += 1;
 
                 self.veins.push(GeologicalVein {
                     id: vein_id,
                     composite_id: None,
+                    name: vein_name,
                     commodity,
                     rarity_tier: tier,
                     total_reserves,

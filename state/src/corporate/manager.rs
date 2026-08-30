@@ -758,6 +758,7 @@ pub fn process_company(
             net_profit,
             behavior_modifiers,
             avg_fulfillment_ratio,
+            current_turn,
         };
         company.legal_form.decide(&ctx)
     };
@@ -779,7 +780,7 @@ pub fn process_company(
     // Evaluate past actions and update penalty weights.
     company.action_ledger.evaluate_and_update(current_turn, net_profit);
 
-    apply_action(company, action, market_signal, country, year, total_profit, net_profit);
+    apply_action(company, action, market_signal, country, year, total_profit, net_profit, current_turn);
 
     // 8. Recalculate equity after the action.
     company.company_capital = company.fixed_capital + company.liquid_capital - company.liabilities;
@@ -833,6 +834,7 @@ fn apply_action(
     year: u32,
     gross_profit: f64,
     net_profit: f64,
+    current_turn: u32,
 ) {
     match action {
         CorporateAction::Expand { investment, new_workers, finance } => {
@@ -991,6 +993,7 @@ fn apply_action(
                 net_profit,
                 behavior_modifiers,
                 avg_fulfillment_ratio: 1.0, // IPO path: not used for furlough decisions
+                current_turn,
             };
             if let Some(new_form) = try_apply_ipo(&*company, &company.legal_form, shares_to_float, reserve_price, &ctx) {
                 let _ = ctx;

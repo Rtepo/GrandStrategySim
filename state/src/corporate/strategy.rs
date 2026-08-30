@@ -46,6 +46,8 @@ pub struct CorporateDecisionCtx<'a> {
     /// (0.0 = no inputs available, 1.0 = full inputs). Used by the corporate AI
     /// to distinguish temporary raw-material distress from structural bankruptcy.
     pub avg_fulfillment_ratio: f64,
+    /// Phase 88: Current global turn (for agricultural grace hardcap computation).
+    pub current_turn: u32,
 }
 
 /// Actions a company can choose.
@@ -743,6 +745,46 @@ fn is_distressed(ctx: &CorporateDecisionCtx) -> bool {
         || ctx.avg_fulfillment_ratio < 0.1
 }
 
+/// Phase 88: Determines whether a company is within its material-shortage
+/// grace period, during which material-shortage furloughs are suppressed.
+///
+/// For AGRICULTURE companies: The grace remains active until the company
+/// records its first non-zero revenue in `financial_history` (meaning it
+/// successfully sold its first harvest), OR a hardcap of 24 turns (1 year)
+/// passes since `founded_turn`. This prevents premature furloughs when crops
+/// are still growing and no harvest has been sold yet. The revenue-based check
+/// is robust against multi-batch scenarios — even if a side-batch harvests
+/// early, the grace only expires when actual revenue is recorded.
+///
+/// For NON-AGRICULTURE companies: The grace is the original Turn 1 check —
+/// active only while `financial_history` is empty (no completed production cycle).
+fn is_within_material_shortage_grace(company: &Company, current_turn: u32) -> bool {
+    if company.sector == Sector::Agriculture {
+        // Hardcap: 24 turns (1 year) since founding.
+        // After this, the company must sink or swim on its own.
+        if current_turn.saturating_sub(company.founded_turn) >= 24 {
+            return false;
+        }
+        // Check if the company has recorded its first non-zero revenue.
+        // financial_history records use "revenue" key = total_profit + overhead.
+        // When no production occurs, total_profit = 0 and overhead = 0,
+        // so revenue = 0. First non-zero revenue means first successful sale.
+        let has_nonzero_revenue = company.financial_history.iter().any(|record| {
+            record.get("revenue")
+                .and_then(|v| v.as_f64())
+                .map(|r| r > 0.0)
+                .unwrap_or(false)
+        });
+        if has_nonzero_revenue {
+            return false; // First harvest sold — grace expires
+        }
+        // Still waiting for first harvest sale — grace active
+        return true;
+    }
+    // Non-agriculture: Turn 1 grace (no financial history yet)
+    company.financial_history.is_empty()
+}
+
 /// Emergency Stabilization: Evaluate whether a distressed company should
 /// furlough workers instead of firing them. Furlough is preferred when:
 /// - The company is NOT structurally bankrupt (company_capital >= 0.0)
@@ -764,17 +806,18 @@ fn evaluate_furlough(ctx: &CorporateDecisionCtx) -> Option<CorporateAction> {
 
     // Determine the nature of the distress:
     // - Raw-material shortage: fulfillment_ratio < 0.1 (can't produce)
-    //   Phase 87+: Turn 1 grace period — skip material-shortage furlough if
-    //   the company has never completed a production cycle (no financial history).
-    //   The company has seeded inventory and a Working Capital Loan — it should
-    //   be allowed to survive its first off-season.
+    //   Phase 88: Grace period is now revenue-and-hardcap-aware. For agriculture
+    //   companies, grace remains active until the first non-zero revenue is
+    //   recorded (first harvest sold) OR 24 turns (1 year) since founding.
+    //   This prevents premature furloughs when crops are still growing.
+    //   For non-agriculture: Turn 1 grace (no financial history yet).
     // - Cash-flow distress: can't cover 2 turns of payroll
     //   Phase 87+: Uses operational_cash() (actual payroll cash source).
     let wage_per_fte = ctx.company.offered_wage_per_fte.max(1.0);
     let total_payroll = ctx.company.fulfilled_fte as f64 * wage_per_fte;
     let cash_shortage = ctx.company.operational_cash() < total_payroll * 2.0;
     let material_shortage = ctx.avg_fulfillment_ratio < 0.1
-        && !ctx.company.financial_history.is_empty(); // Turn 1 grace period
+        && !is_within_material_shortage_grace(ctx.company, ctx.current_turn);
 
     if !cash_shortage && !material_shortage {
         return None;

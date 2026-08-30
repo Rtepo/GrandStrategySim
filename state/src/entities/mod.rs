@@ -389,6 +389,10 @@ pub struct Company {
     /// Financial history (was: historia_finansowa).
     #[serde(default)]
     pub financial_history: Vec<Value>,
+    /// Phase 88: Turn when this company was founded (for agricultural grace
+    /// hardcap and lifecycle tracking). World-gen companies are born at turn 0.
+    #[serde(default)]
+    pub founded_turn: u32,
     /// Safety level (was: poziom_bhp).
     #[serde(default)]
     pub safety_level: f64,
@@ -713,6 +717,7 @@ impl Company {
             shareholders: ShareholderRegister::default(),
             price_history: Vec::new(),
             financial_history: Vec::new(),
+            founded_turn: 0,
             safety_level: 0.5,
             union_id: None,
             building_ids: Vec::new(),

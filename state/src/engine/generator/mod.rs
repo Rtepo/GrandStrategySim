@@ -198,6 +198,17 @@ pub fn generate_world(
         .collect();
     state.planet = crate::society::planet::generate_planet(&planet_regions, &mut rng);
 
+    // Phase 88: Reseed region resources from the Planet's geological vein
+    // system. This replaces the deprecated reseed_resources_from_formations
+    // call inside generate_country. The Planet didn't exist when generate_country
+    // ran, so we reseed now with the authoritative vein data.
+    // CRITICAL: Resource keys are vein IDs (not commodity strings) so that
+    // building.deposit_id matches the resource key for the mine counter.
+    crate::society::geography::reseed_resources_from_planet(
+        &mut regions,
+        &state.planet,
+    );
+
     let diplomacy = generate_diplomacy(&selected);
 
     // Phase 68: Spawn the World Forum — neutral, all countries as members, Unanimity voting.
@@ -211,7 +222,7 @@ pub fn generate_world(
     state.extra.insert("year".to_string(), Value::from(options.start_year as u32));
 
     for country in state.countries.values_mut() {
-        generate_corporate_entities(data_dir, country, &regions, _registries, options.start_year as u32, &mut rng)?;
+        generate_corporate_entities(data_dir, country, &mut regions, &state.planet, _registries, options.start_year as u32, &mut rng)?;
     }
 
     // Bugfix Sprint (5B): Initialize power grids AFTER corporate entities are
@@ -1583,7 +1594,10 @@ fn build_bank_companies(
             _ => 0.0,
         };
         let tier_1_capital = treasury.gdp * 0.05 * size_factor / num_banks as f64;
-        let reserves = total_deposits * central_bank.reserve_requirement_ratio;
+        // Phase 88: Scale reserves to at least 2% of GDP (scaled by bank size)
+        // to ensure healthy initial liquidity for Working Capital Loans.
+        let reserves = (total_deposits * central_bank.reserve_requirement_ratio)
+            .max(treasury.gdp * 0.02 * size_factor / num_banks as f64);
 
         let balance_sheet = BankBalanceSheet {
             reserves_at_central_bank: reserves,

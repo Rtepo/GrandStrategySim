@@ -21,7 +21,8 @@ use crate::io::entity_store::{DiskEntityStore, EntityStore};
 use crate::registries::enums::{Commodity, Sector};
 use crate::registries::production_methods::ProductionMethod;
 use crate::registries::Registries;
-use crate::society::geography::{ClimateProfile, GeologicalFormation, Region};
+use crate::society::geography::{ClimateProfile, Region};
+use crate::society::planet::Planet;
 use crate::state::{Country, Season};
 use rand::seq::SliceRandom;
 use rand::Rng;
@@ -114,18 +115,24 @@ fn seasonal_profile_for_sector(
 pub fn generate_corporate_entities(
     data_dir: &Path,
     country: &mut Country,
-    regions: &HashMap<String, Region>,
+    regions: &mut HashMap<String, Region>,
+    planet: &Planet,
     registries: &Registries,
     start_year: u32,
     rng: &mut impl Rng,
 ) -> Result<(), Box<dyn Error>> {
-    let country_regions: Vec<&Region> = regions
+    // Phase 88: Collect region IDs and clones upfront to avoid borrow conflicts
+    // when we later need to mutably borrow `regions` for arable_land_used updates.
+    let country_region_data: Vec<(String, Region)> = regions
         .values()
         .filter(|r| r.owner_country == country.name)
+        .cloned()
+        .map(|r| (r.id.clone(), r))
         .collect();
-    if country_regions.is_empty() {
+    if country_region_data.is_empty() {
         return Ok(());
     }
+    let country_regions: Vec<&Region> = country_region_data.iter().map(|(_, r)| r).collect();
 
     let code = country.name[..3.min(country.name.len())].to_uppercase();
     let mut idgen = IdGen::new(&code);
@@ -164,7 +171,7 @@ pub fn generate_corporate_entities(
     // Phase 20A: Seed minimum viable supply chain Ă˘â‚¬â€ť guarantee at least one
     // building per critical sector per region, regardless of budget shares.
     let seed_entities = seed_minimum_viable_supply_chain(
-        country, &country_regions, start_year, registries, &mut idgen, rng,
+        country, &country_regions, planet, start_year, registries, &mut idgen, rng,
     );
     // Phase 46: Consume seed_entities via into_iter() to avoid redundant clones.
     // Build seed_by_sector in the same loop, then move companies/buildings into
@@ -454,6 +461,7 @@ pub fn generate_corporate_entities(
         &mut country.cadastre,
         &region_climates,
         registries,
+        regions,
     );
 
     // Emergency Stabilization: The 12-month Strategic Reserve Agency food
@@ -777,23 +785,33 @@ pub fn generate_corporate_entities(
     Ok(())
 }
 
-/// Phase 87+: Issue Working Capital Loans from the State Bank to agriculture
-/// companies during world generation.
+/// Phase 87+/88: Issue Working Capital Loans to agriculture companies during
+/// world generation, distributed across all available commercial/universal banks.
 ///
 /// This replaces the free "Genesis Payroll Grant" with a legitimate double-entry
 /// loan. Agriculture companies need 6 turns of payroll coverage to survive until
 /// their first harvest (which may be 3-6 turns away depending on season).
 ///
+/// Phase 88 corrections:
+/// - Loans are distributed across ALL commercial/universal banks, not just the
+///   State Bank. This prevents a single bank from becoming insolvent.
+/// - Double-entry accounting corrected: banks CREATE DEPOSITS (liability) when
+///   issuing loans, they do NOT lend out reserves. Reducing reserves destroys
+///   high-powered money (M0), violating Rule 1. The correct fractional-reserve
+///   model expands the balance sheet symmetrically: Asset (loan) + Liability
+///   (deposit) increase by the same amount. Reserves are untouched.
+///
 /// # Double-Entry Flow
 /// - Company: `available_cash += principal` (asset), `liabilities += principal` (liability)
-/// - State Bank: `balance_sheet.loans_issued.push(loan)` (asset),
-///   `balance_sheet.reserves_at_central_bank -= principal` (asset decreases)
+/// - Bank: `balance_sheet.loans_issued.push(loan)` (asset increases),
+///   `balance_sheet.deposits += principal` (liability increases)
+///   Reserves (M0) are NOT touched.
 ///
 /// # Arguments
-/// * `data_dir` - Data directory for loading/saving the State Bank
+/// * `data_dir` - Data directory for loading/saving banks
 /// * `country` - Country (for XIBOR and central bank reference)
 /// * `all_companies` - All generated companies (agriculture ones get loans)
-/// * `code` - 3-letter country code prefix (for State Bank ID)
+/// * `code` - 3-letter country code prefix (for bank IDs)
 /// * `start_year` - Start year (for loan issuance turn)
 fn issue_agriculture_working_capital_loans(
     data_dir: &Path,
@@ -803,11 +821,9 @@ fn issue_agriculture_working_capital_loans(
     _start_year: u32,
 ) -> Result<(), Box<dyn Error>> {
     use crate::io::entity_store::{DiskEntityStore, EntityStore};
-    use crate::state::banking::{Loan, LoanStatus, InterestType, LoanType};
+    use crate::state::banking::{Loan, LoanStatus, InterestType, LoanType, BankType};
 
-    let state_bank_id = format!("BANK-{}-001", code);
-
-    // Load the State Bank from disk to update its balance sheet.
+    // Load ALL bank companies from disk.
     let bank_store = DiskEntityStore::<Company>::new(data_dir);
     let banking_sector_name = serde_json::to_value(Sector::Banking)
         .ok()
@@ -818,17 +834,24 @@ fn issue_agriculture_working_capital_loans(
         .load_sector(&country.name, &banking_sector_name, None)
         .unwrap_or_default();
 
-    let state_bank_idx = bank_companies.iter().position(|b| b.id == state_bank_id);
-    let state_bank = match state_bank_idx {
-        Some(idx) => &mut bank_companies[idx],
-        None => return Ok(()), // No state bank — skip loans (non-fatal)
-    };
+    // Phase 88: Filter to Commercial and Universal banks that can issue
+    // working capital loans. Investment banks don't take retail deposits.
+    let eligible_bank_indices: Vec<usize> = bank_companies
+        .iter()
+        .enumerate()
+        .filter(|(_, b)| {
+            b.bank_type == Some(BankType::Commercial) || b.bank_type == Some(BankType::Universal)
+        })
+        .map(|(i, _)| i)
+        .collect();
+
+    if eligible_bank_indices.is_empty() {
+        return Ok(()); // No eligible banks — skip loans (non-fatal)
+    }
 
     let xibor = country.central_bank.interest_rates.reference_rate;
-    let bank_margin = state_bank.loan_margin.unwrap_or(0.02);
     let risk_premium = 0.01; // 100 bps risk premium for startup agriculture
-    let interest_rate = xibor + bank_margin + risk_premium;
-
+    let mut rng = rand::thread_rng();
     let mut total_loaned = 0.0;
 
     for company in all_companies.iter_mut() {
@@ -848,11 +871,18 @@ fn issue_agriculture_working_capital_loans(
             continue;
         }
 
+        // Phase 88: Randomly assign this company to one of the eligible banks.
+        let bank_idx = eligible_bank_indices[rng.gen_range(0..eligible_bank_indices.len())];
+        let chosen_bank = &mut bank_companies[bank_idx];
+        let chosen_bank_id = chosen_bank.id.clone();
+        let bank_margin = chosen_bank.loan_margin.unwrap_or(0.02);
+        let interest_rate = xibor + bank_margin + risk_premium;
+
         // Double-entry: Company receives cash (asset) and records liability.
         company.available_cash += principal;
         company.liabilities += principal;
-        company.primary_bank_id = Some(state_bank_id.clone());
-        company.outstanding_loan_bank_id = Some(state_bank_id.clone());
+        company.primary_bank_id = Some(chosen_bank_id.clone());
+        company.outstanding_loan_bank_id = Some(chosen_bank_id.clone());
 
         // Create the Loan record.
         let loan_id = format!("WCL-{}-{}", code, company.id);
@@ -881,16 +911,20 @@ fn issue_agriculture_working_capital_loans(
             serde_json::Value::String(loan_id.clone()),
         );
 
-        // Double-entry: Bank's loan asset increases, reserve asset decreases.
-        if let Some(ref mut bs) = state_bank.balance_sheet {
+        // Phase 88 CORRECTED Double-entry: Bank's loan asset increases AND
+        // deposits (liability) increase. This is fractional-reserve banking:
+        // banks create money by crediting the borrower's deposit account.
+        // Reserves (M0) are NOT touched — reducing them would destroy
+        // high-powered money, violating Rule 1.
+        if let Some(ref mut bs) = chosen_bank.balance_sheet {
             bs.loans_issued.push(loan);
-            bs.reserves_at_central_bank = (bs.reserves_at_central_bank - principal).max(0.0);
+            bs.deposits += principal;
         }
 
         total_loaned += principal;
     }
 
-    // Save the updated State Bank back to disk.
+    // Save ALL banks back to disk (multiple banks may have been modified).
     if total_loaned > 0.0 {
         let _ = bank_store.save_sector(&country.name, &banking_sector_name, None, &bank_companies);
     }
@@ -1171,6 +1205,7 @@ fn generate_region_companies(
             shareholders: BTreeMap::new(),
             price_history: Vec::new(),
             financial_history: Vec::new(),
+            founded_turn: 0,
             safety_level: 0.5,
             union_id: None,
             building_ids: Vec::new(),
@@ -1919,6 +1954,7 @@ fn default_building_name(sector: Sector) -> String {
 fn seed_minimum_viable_supply_chain(
     country: &Country,
     country_regions: &[&Region],
+    planet: &Planet,
     start_year: u32,
     registries: &Registries,
     idgen: &mut IdGen,
@@ -1960,6 +1996,7 @@ fn seed_minimum_viable_supply_chain(
                 let mining_entities = seed_geology_based_mines(
                     country,
                     region,
+                    planet,
                     start_year,
                     registries,
                     idgen,
@@ -1972,6 +2009,7 @@ fn seed_minimum_viable_supply_chain(
                 let processing_entities = seed_processing_plants_for_region(
                     country,
                     region,
+                    planet,
                     start_year,
                     registries,
                     idgen,
@@ -2016,15 +2054,17 @@ fn seed_minimum_viable_supply_chain(
     result
 }
 
-/// Phase 27: Spawn geology-based mining companies for a region.
+/// Phase 27/88: Spawn geology-based mining companies for a region.
 ///
-/// Queries the country's `geological_formations` for deposits overlapping
-/// this region. For each deposit commodity, finds the best available mining
-/// method that outputs that commodity and spawns a small mining company.
-/// If no deposits exist for a region, spawns one fallback coal mine.
+/// Phase 88: Now queries the Planet's `GeologicalVein` system instead of the
+/// deprecated `GeologicalFormation` system. For each vein overlapping this
+/// region, finds the best available mining method that outputs the vein's
+/// commodity and spawns a small mining company bound to the vein ID.
+/// If no veins exist for a region, spawns one fallback coal mine.
 fn seed_geology_based_mines(
-    country: &Country,
+    _country: &Country,
     region: &Region,
+    planet: &Planet,
     start_year: u32,
     registries: &Registries,
     idgen: &mut IdGen,
@@ -2032,23 +2072,12 @@ fn seed_geology_based_mines(
 ) -> Vec<(Company, Building)> {
     let mut result = Vec::new();
 
-    // Phase 43: Collect ALL deposits overlapping this region (not just one per
-    // commodity). The previous code used a BTreeMap<Commodity, String> which
-    // deduplicated by commodity via or_insert_with, so only the FIRST deposit
-    // for each commodity got a mining company. Now we keep all deposits and
-    // create one mining company per deposit, capped at 5 per region.
-    let mut all_deposits: Vec<(Commodity, String)> = Vec::new();
-    for formation in &country.geological_formations {
-        if !formation.overlapping_regions.contains(&region.id) {
-            continue;
-        }
-        for (key, deposit) in &formation.resource_deposits {
-            all_deposits.push((deposit.commodity, format!("{}/{}", formation.id, key)));
-        }
-    }
+    // Phase 88: Collect ALL veins overlapping this region from the Planet.
+    // Each vein becomes a potential mining company, capped at 5 per region.
+    let region_veins = planet.veins_for_region(&region.id);
 
-    if all_deposits.is_empty() {
-        // No deposits in this region — spawn one fallback coal mine so the
+    if region_veins.is_empty() {
+        // No veins in this region — spawn one fallback coal mine so the
         // sector isn't completely absent. This mine will have low output.
         let (company, mut building) = create_seed_company_with_method_name(
             Sector::Mining,
@@ -2060,20 +2089,17 @@ fn seed_geology_based_mines(
             rng,
             "Manual Mining",
         );
-        // Try to link to any HardCoal deposit in the country (not region-specific).
+        // Try to link to any HardCoal vein on the planet (not region-specific).
         // If none, the building operates without a deposit link (lower output).
-        building.deposit_id = find_any_deposit_for_commodity(
-            &country.geological_formations,
-            &Commodity::HardCoal,
-        );
+        building.deposit_id = find_any_vein_for_commodity(planet, &Commodity::HardCoal);
         result.push((company, building));
         return result;
     }
 
-    // Phase 43: Cap at 5 mining companies per region to avoid entity explosion.
+    // Phase 43/88: Cap at 5 mining companies per region to avoid entity explosion.
     let max_mines = 5;
-    for (commodity, deposit_id) in all_deposits.iter().take(max_mines) {
-        let method_name = mining_method_name_for_commodity(*commodity);
+    for vein in region_veins.iter().take(max_mines) {
+        let method_name = mining_method_name_for_commodity(vein.commodity);
         let min_workers = 150u32; // Small mines — keep entity count manageable.
 
         let (company, mut building) = create_seed_company_with_method_name(
@@ -2086,7 +2112,10 @@ fn seed_geology_based_mines(
             rng,
             method_name,
         );
-        building.deposit_id = Some(deposit_id.clone());
+        // Phase 88: Bind to the vein ID (or composite_id if merged).
+        building.deposit_id = Some(
+            vein.composite_id.clone().unwrap_or_else(|| vein.id.clone())
+        );
         result.push((company, building));
     }
 
@@ -2105,8 +2134,9 @@ fn seed_geology_based_mines(
 /// * Caps at 3 processing plants per region to avoid entity explosion.
 /// * Gracefully skips mined commodities with no processing methods.
 fn seed_processing_plants_for_region(
-    country: &Country,
+    _country: &Country,
     region: &Region,
+    planet: &Planet,
     start_year: u32,
     registries: &Registries,
     idgen: &mut IdGen,
@@ -2114,15 +2144,10 @@ fn seed_processing_plants_for_region(
 ) -> Vec<(Company, Building)> {
     let mut result = Vec::new();
 
-    // Collect mined commodities for this region.
+    // Phase 88: Collect mined commodities for this region from Planet veins.
     let mut mined_commodities: std::collections::BTreeSet<Commodity> = std::collections::BTreeSet::new();
-    for formation in &country.geological_formations {
-        if !formation.overlapping_regions.contains(&region.id) {
-            continue;
-        }
-        for deposit in formation.resource_deposits.values() {
-            mined_commodities.insert(deposit.commodity);
-        }
+    for vein in planet.veins_for_region(&region.id) {
+        mined_commodities.insert(vein.commodity);
     }
 
     if mined_commodities.is_empty() {
@@ -2237,16 +2262,15 @@ fn mining_method_name_for_commodity(commodity: Commodity) -> &'static str {
     }
 }
 
-/// Phase 27: Find any deposit in the country for a given commodity (not region-specific).
-fn find_any_deposit_for_commodity(
-    formations: &[GeologicalFormation],
+/// Phase 88: Find any vein on the planet for a given commodity (not region-specific).
+/// Returns the vein's ID (or composite_id if merged) for deposit binding.
+fn find_any_vein_for_commodity(
+    planet: &Planet,
     commodity: &Commodity,
 ) -> Option<String> {
-    for formation in formations {
-        for (key, deposit) in &formation.resource_deposits {
-            if deposit.commodity == *commodity {
-                return Some(format!("{}/{}", formation.id, key));
-            }
+    for vein in &planet.veins {
+        if vein.commodity == *commodity {
+            return Some(vein.composite_id.clone().unwrap_or_else(|| vein.id.clone()));
         }
     }
     None
@@ -2377,6 +2401,7 @@ fn create_seed_company_with_explicit_method(
         shareholders: BTreeMap::new(),
         price_history: Vec::new(),
         financial_history: Vec::new(),
+        founded_turn: 0,
         safety_level: 0.5,
         union_id: None,
         building_ids: Vec::new(),
@@ -2815,6 +2840,7 @@ fn create_seed_company(
         shareholders: BTreeMap::new(),
         price_history: Vec::new(),
         financial_history: Vec::new(),
+        founded_turn: 0,
         safety_level: 0.5,
         union_id: None,
         building_ids: Vec::new(),
@@ -3170,6 +3196,7 @@ fn initialize_agricultural_profiles(
     cadastre: &mut crate::society::cadastre::Cadastre,
     region_climates: &HashMap<String, ClimateProfile>,
     registries: &Registries,
+    regions: &mut HashMap<String, Region>,
 ) {
     use crate::entities::AgriculturalProfile;
     use crate::society::cadastre::{ParcelOwnerType, ZoningDesignation, parcel_id_to_index};
@@ -3256,6 +3283,14 @@ fn initialize_agricultural_profiles(
             batches,
             owned_parcel_ids: assigned_parcel_indices,
         });
+
+        // Phase 88: Update the region's arable_land_used to reflect the
+        // allocated hectares. This fixes the Ghost Cadastre bug where
+        // Arable Used was always 0 despite hundreds of agriculture companies.
+        let total_used = (total_arable_hectares + total_plantation_hectares) as i64;
+        if let Some(region) = regions.get_mut(&company.region_id) {
+            region.arable_land_used += total_used;
+        }
     }
 }
 
@@ -3636,6 +3671,7 @@ fn create_strategic_reserve_agency(
         shareholders: BTreeMap::new(),
         price_history: Vec::new(),
         financial_history: Vec::new(),
+        founded_turn: 0,
         safety_level: 0.5,
         union_id: None,
         building_ids: Vec::new(), // Will be set by caller
@@ -3955,6 +3991,7 @@ fn generate_retail_stores(
             shareholders: BTreeMap::new(),
             price_history: Vec::new(),
             financial_history: Vec::new(),
+            founded_turn: 0,
             safety_level: 0.5,
             union_id: None,
             building_ids: vec![building_id.clone()],
@@ -4334,6 +4371,7 @@ fn generate_tourism_entities(
                 shareholders: BTreeMap::new(),
                 price_history: Vec::new(),
                 financial_history: Vec::new(),
+                founded_turn: 0,
                 safety_level: 0.5,
                 union_id: None,
                 building_ids: vec![building_id],
@@ -4848,6 +4886,7 @@ fn create_charity_company(
         shareholders: BTreeMap::new(),
         price_history: Vec::new(),
         financial_history: Vec::new(),
+        founded_turn: 0,
         safety_level: 1.0, // Charities don't have industrial accidents
         union_id: None,
         building_ids: Vec::new(),
@@ -5080,6 +5119,7 @@ pub fn generate_investment_funds(
             shareholders: BTreeMap::new(),
             price_history: Vec::new(),
             financial_history: Vec::new(),
+            founded_turn: 0,
             safety_level: 1.0,
             union_id: None,
             building_ids: Vec::new(),
