@@ -198,6 +198,18 @@ pub fn generate_world(
         .collect();
     state.planet = crate::society::planet::generate_planet(&planet_regions, &mut rng);
 
+    // Phase 90: Ensure each populated region has diverse base industrial veins.
+    // The global generate_veins places too few veins for regional coverage,
+    // resulting in Limestone monoculture. This guarantees each populated
+    // region has at least one vein for each AbundantIndustrial and Ubiquitous
+    // commodity (Iron, HardCoal, BrownCoal, Stone, Sand, Limestone, Peat, Gravel).
+    let populated_region_coords: Vec<(String, f64, f64)> = regions
+        .values()
+        .filter(|r| r.population > 0)
+        .map(|r| (r.id.clone(), r.coord_y, r.coord_x))
+        .collect();
+    state.planet.ensure_base_industrial_veins_per_region(&populated_region_coords, &mut rng);
+
     // Phase 89: Auto-discover base industrial veins in populated regions.
     // Base industrial commodities (iron, coal, copper, stone, etc.) are
     // surface-visible deposits that any settled civilization knows about.
@@ -1577,15 +1589,28 @@ fn build_bank_companies(
             } else {
                 BankingBankType::Commercial
             }
-        } else if rng.gen::<f64>() > 0.5 {
-            BankingBankType::Commercial
         } else {
-            BankingBankType::Investment
+            // Phase 90: Weighted distribution — 40% Commercial, 30% Cooperative,
+            // 20% Investment, 10% Universal. Cooperative banks handle
+            // agricultural and small-business working capital loans.
+            let roll = rng.gen::<f64>();
+            if roll < 0.40 {
+                BankingBankType::Commercial
+            } else if roll < 0.70 {
+                BankingBankType::Cooperative
+            } else if roll < 0.90 {
+                BankingBankType::Investment
+            } else {
+                BankingBankType::Universal
+            }
         };
 
         let bank_id = format!("BANK-{}-{:03}", prefix, bank_idx);
         let bank_name = if is_first {
             format!("State Bank of {name}")
+        } else if bank_type == BankingBankType::Cooperative {
+            // Phase 90: Cooperative banks get a distinct naming pattern.
+            format!("Cooperative Bank of {name} {bank_idx}")
         } else {
             // Phase 51: Use cultural surnames for regional bank names.
             let bank_surnames = [
@@ -1600,7 +1625,7 @@ fn build_bank_companies(
         // Smaller balance sheets for regional banks
         let size_factor = if is_first { 1.0 } else { 0.3 + rng.gen::<f64>() * 0.4 };
         let total_deposits = match bank_type {
-            BankingBankType::Commercial | BankingBankType::Universal => {
+            BankingBankType::Commercial | BankingBankType::Universal | BankingBankType::Cooperative => {
                 treasury.citizen_savings * 0.5 * size_factor / num_banks as f64
             }
             _ => 0.0,

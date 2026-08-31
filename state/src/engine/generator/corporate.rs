@@ -804,6 +804,21 @@ pub fn generate_corporate_entities(
         start_year,
     )?;
 
+    // Phase 90: Re-save companies AFTER Working Capital Loans so the
+    // loan-modified available_cash and liabilities persist to disk.
+    // Previously, companies were saved at line 789 BEFORE the loan was issued,
+    // and only banks were re-saved by the loan function. This caused companies
+    // to load from disk with pre-loan cash (near zero after seed inventory
+    // deduction), triggering immediate furlough panic on Turn 0.
+    let mut by_sector_post_loan: HashMap<String, Vec<Company>> = HashMap::new();
+    for c in &all_companies {
+        let sname = sector_json_name(c.sector);
+        by_sector_post_loan.entry(sname).or_default().push(c.clone());
+    }
+    for (sector_name, companies) in by_sector_post_loan {
+        let _ = company_store.save_sector(&country.name, &sector_name, None, &companies);
+    }
+
     Ok(())
 }
 
@@ -863,13 +878,16 @@ fn issue_working_capital_loans(
         .load_sector(&country.name, &banking_sector_name, None)
         .unwrap_or_default();
 
-    // Phase 88: Filter to Commercial and Universal banks that can issue
-    // working capital loans. Investment banks don't take retail deposits.
+    // Phase 88/90: Filter to Commercial, Universal, and Cooperative banks
+    // that can issue working capital loans. Investment banks don't take
+    // retail deposits and are not eligible for local working capital lending.
     let eligible_bank_indices: Vec<usize> = bank_companies
         .iter()
         .enumerate()
         .filter(|(_, b)| {
-            b.bank_type == Some(BankType::Commercial) || b.bank_type == Some(BankType::Universal)
+            b.bank_type == Some(BankType::Commercial)
+                || b.bank_type == Some(BankType::Universal)
+                || b.bank_type == Some(BankType::Cooperative)
         })
         .map(|(i, _)| i)
         .collect();
@@ -905,10 +923,17 @@ fn issue_working_capital_loans(
             continue; // State-owned companies don't need loans
         }
 
-        // Compute loan principal: 6 turns of payroll for the initial workforce.
+        // Compute loan principal: 6 turns of payroll for the initial workforce
+        // PLUS the seed inventory cost (Phase 90). The seed inventory was
+        // already deducted from company cash during generation; the loan must
+        // cover both the inventory purchase and the payroll runway so the
+        // company starts with healthy available_cash after the loan is applied.
         let initial_fte = company.fulfilled_fte as f64;
         let initial_wage = company.offered_wage_per_fte.max(50.0);
-        let principal = initial_fte * initial_wage * 6.0;
+        let seed_cost = company.extra.get("seed_inventory_cost")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0);
+        let principal = initial_fte * initial_wage * 6.0 + seed_cost;
 
         if principal <= 0.0 {
             continue;
@@ -2146,8 +2171,10 @@ fn seed_geology_based_mines(
         return result;
     }
 
-    // Phase 43/88: Cap at 5 mining companies per region to avoid entity explosion.
-    let max_mines = 5;
+    // Phase 43/88/90: Cap at 8 mining companies per region to avoid entity
+    // explosion while covering the diverse base industrial veins guaranteed
+    // by ensure_base_industrial_veins_per_region.
+    let max_mines = 8;
     for vein in region_veins.iter().take(max_mines) {
         let method_name = mining_method_name_for_commodity(vein.commodity);
         let min_workers = 150u32; // Small mines — keep entity count manageable.
@@ -2507,8 +2534,13 @@ fn create_seed_company_with_explicit_method(
     let initial_fte = (actual_capacity as f64 * 0.6).round().max(2.0); // Phase 43: min 2.0 FTE floor
     company.fulfilled_fte = initial_fte as u32;
     company.prev_fulfilled_fte = initial_fte as u32;
-    // Phase 89: Loan-eligible sectors get Working Capital Loans instead of free grant.
-    if !is_working_capital_loan_eligible(sector) {
+    // Phase 90: Loan-eligible sectors start with company_liquid as cash
+    // (matching generate_region_companies). The Working Capital Loan issued
+    // later in generate_corporate_entities will add the principal on top.
+    // Non-eligible sectors keep the free 3-turn payroll grant.
+    if is_working_capital_loan_eligible(sector) {
+        company.available_cash = company_liquid;
+    } else {
         let payroll_grant = initial_fte * initial_wage * 3.0;
         company.available_cash += payroll_grant;
     }
@@ -2975,8 +3007,13 @@ fn create_seed_company(
     let initial_fte = (actual_capacity as f64 * 0.6).round().max(2.0); // Phase 43: min 2.0 FTE floor
     company.fulfilled_fte = initial_fte as u32;
     company.prev_fulfilled_fte = initial_fte as u32;
-    // Phase 89: Loan-eligible sectors get Working Capital Loans instead of free grant.
-    if !is_working_capital_loan_eligible(sector) {
+    // Phase 90: Loan-eligible sectors start with company_liquid as cash
+    // (matching generate_region_companies). The Working Capital Loan issued
+    // later in generate_corporate_entities will add the principal on top.
+    // Non-eligible sectors keep the free 3-turn payroll grant.
+    if is_working_capital_loan_eligible(sector) {
+        company.available_cash = company_liquid;
+    } else {
         let payroll_grant = initial_fte * initial_wage * 3.0;
         company.available_cash += payroll_grant;
     }

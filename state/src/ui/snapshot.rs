@@ -255,6 +255,18 @@ pub struct TelemetryDeltas {
     pub wage_tot: Option<f64>,
     /// Average wage YoY delta (percent).
     pub wage_yoy: Option<f64>,
+    /// Phase 90: Peasant population ToT delta (percent).
+    pub peasant_population_tot: Option<f64>,
+    /// Phase 90: Peasant population YoY delta (percent).
+    pub peasant_population_yoy: Option<f64>,
+    /// Phase 90: Furloughed workers ToT delta (percent).
+    pub furloughed_tot: Option<f64>,
+    /// Phase 90: Furloughed workers YoY delta (percent).
+    pub furloughed_yoy: Option<f64>,
+    /// Phase 90: GDP per capita ToT delta (percent).
+    pub gdp_per_capita_tot: Option<f64>,
+    /// Phase 90: GDP per capita YoY delta (percent).
+    pub gdp_per_capita_yoy: Option<f64>,
 }
 
 /// The flat, UI-ready projection of a single country at a point in time.
@@ -1781,6 +1793,9 @@ pub struct CompanyFinancialRecord {
     pub income: f64,
     pub expenses: f64,
     pub net_profit: f64,
+    /// Phase 90: Wage expense (paid + accrued arrears) for transparency.
+    /// This is a subset of `expenses`, not an additional deduction.
+    pub wage_expense: f64,
 }
 
 /// Phase 87+: Financial summary aggregating last turn, quarter (3 turns), and year (24 turns).
@@ -2899,13 +2914,22 @@ pub fn build_country_snapshot(
     let mut treasury = treasury;
     treasury.savings = total_savings;
 
-    // Phase 24F: Compute ToT/YoY deltas from telemetry history.
+    // Phase 24F/90: Compute ToT/YoY deltas from telemetry history.
     let population_f64 = country.budget.population as f64;
+    let furloughed_total = macro_data.labor_market.furloughed_total;
+    let gdp_per_capita = if population_f64 > 0.0 {
+        macro_data.gdp_breakdown.official_gdp / population_f64
+    } else {
+        0.0
+    };
     let deltas = compute_deltas(
         &macro_data.telemetry_history,
         macro_data,
         corruption_index,
         population_f64,
+        peasant_population,
+        furloughed_total,
+        gdp_per_capita,
     );
 
     // Phase 26: Aggregate companies by sector for the Sector Overview table.
@@ -3275,12 +3299,14 @@ fn compute_financial_summary(history: &[serde_json::Value]) -> CompanyFinancialS
         let operating = v.get("operating_costs").and_then(|e| e.as_f64()).unwrap_or(0.0);
         let interest = v.get("interest").and_then(|e| e.as_f64()).unwrap_or(0.0);
         let taxes = v.get("taxes").and_then(|e| e.as_f64()).unwrap_or(0.0);
+        let wage_expense = v.get("wage_expense").and_then(|w| w.as_f64()).unwrap_or(0.0);
         let expenses = operating + interest + taxes;
         let net_profit = v.get("net_profit").and_then(|n| n.as_f64()).unwrap_or(income - expenses);
         CompanyFinancialRecord {
             income,
             expenses,
             net_profit,
+            wage_expense,
         }
     };
 
@@ -3288,15 +3314,16 @@ fn compute_financial_summary(history: &[serde_json::Value]) -> CompanyFinancialS
         if records.is_empty() {
             return CompanyFinancialRecord::default();
         }
-        let (income, expenses) = records.iter().fold((0.0, 0.0), |(acc_i, acc_e), v| {
+        let (income, expenses, wage_expense) = records.iter().fold((0.0, 0.0, 0.0), |(acc_i, acc_e, acc_w), v| {
             let r = parse_record(v);
-            (acc_i + r.income, acc_e + r.expenses)
+            (acc_i + r.income, acc_e + r.expenses, acc_w + r.wage_expense)
         });
         let n = records.len() as f64;
         CompanyFinancialRecord {
             income: income / n,
             expenses: expenses / n,
             net_profit: (income - expenses) / n,
+            wage_expense: wage_expense / n,
         }
     };
 
@@ -4417,6 +4444,9 @@ fn compute_deltas(
     md: &crate::state::MacroData,
     corruption_index: f64,
     population: f64,
+    peasant_population: f64,
+    furloughed_total: f64,
+    gdp_per_capita: f64,
 ) -> TelemetryDeltas {
     let g = &md.gdp_breakdown;
     let inf = &md.inflation_indices;
@@ -4443,6 +4473,13 @@ fn compute_deltas(
         population_yoy: history.yoy_pct(population, |s| s.population as f64),
         wage_tot: history.tot_pct(md.average_wage, |s| s.average_wage),
         wage_yoy: history.yoy_pct(md.average_wage, |s| s.average_wage),
+        // Phase 90: Peasant population, furloughed, and GDP/capita deltas.
+        peasant_population_tot: history.tot_pct(peasant_population, |s| s.peasant_population),
+        peasant_population_yoy: history.yoy_pct(peasant_population, |s| s.peasant_population),
+        furloughed_tot: history.tot_pct(furloughed_total, |s| s.furloughed_total),
+        furloughed_yoy: history.yoy_pct(furloughed_total, |s| s.furloughed_total),
+        gdp_per_capita_tot: history.tot_pct(gdp_per_capita, |s| s.gdp_per_capita),
+        gdp_per_capita_yoy: history.yoy_pct(gdp_per_capita, |s| s.gdp_per_capita),
     }
 }
 

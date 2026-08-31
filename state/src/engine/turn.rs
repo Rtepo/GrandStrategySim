@@ -5168,6 +5168,19 @@ pub fn run_turn_in_memory(
     // Runs after all GDP/inflation/money_supply updates are finalized.
     for country in state.countries.values_mut() {
         let md = &country.macro_indicators;
+        // Phase 90: Compute peasant population (FreePeasant + Serf) for telemetry.
+        let mut peasant_pop: f64 = 0.0;
+        for region in &country.regions {
+            if let Some(fp) = region.class_demographics.rural_classes.get("FreePeasant") {
+                peasant_pop += fp.population as f64;
+            }
+            if let Some(serf) = region.class_demographics.rural_classes.get("Serf") {
+                peasant_pop += serf.population as f64;
+            }
+        }
+        let furloughed = md.labor_market.furloughed_total;
+        let pop = country.budget.population as f64;
+        let gdp_pc = if pop > 0.0 { md.gdp_breakdown.official_gdp / pop } else { 0.0 };
         let sample = crate::state::macro_data::TelemetrySample {
             turn,
             year,
@@ -5190,6 +5203,9 @@ pub fn run_turn_in_memory(
             unable_to_work_fte: 0.0,  // filled below
             population: country.budget.population,
             liquid_reserves: country.budget.liquid_reserves,
+            peasant_population: peasant_pop,
+            furloughed_total: furloughed,
+            gdp_per_capita: gdp_pc,
         };
         country.macro_indicators.telemetry_history.push(sample);
     }

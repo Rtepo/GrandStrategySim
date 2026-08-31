@@ -786,14 +786,22 @@ pub fn process_company(
     company.company_capital = company.fixed_capital + company.liquid_capital - company.liabilities;
 
     // 9. Financial history ring buffer.
+    // Phase 90: Accrual accounting — record full wage obligation as expense.
+    // Wages are paid in the labor market phase (labor_market.rs), not here.
+    // The full payroll obligation (fulfilled_fte * offered_wage_per_fte) is
+    // recorded as wage_expense, and operating_costs includes it. This ensures
+    // companies with wage arrears show non-zero expenses and negative net profit.
+    let wage_expense = (company.fulfilled_fte as f64) * company.offered_wage_per_fte;
     let record = Value::Object(
         [
             ("year".to_string(), Value::from(year)),
             ("revenue".to_string(), Value::from(total_profit + overhead)),
-            ("operating_costs".to_string(), Value::from(overhead)),
+            ("operating_costs".to_string(), Value::from(overhead + wage_expense)),
+            ("wage_expense".to_string(), Value::from(wage_expense)),
+            ("wage_arrears".to_string(), Value::from(company.wage_arrears)),
             ("interest".to_string(), Value::from(interest)),
             ("taxes".to_string(), Value::from(tax)),
-            ("net_profit".to_string(), Value::from(net_profit)),
+            ("net_profit".to_string(), Value::from(net_profit - wage_expense)),
         ]
         .into_iter()
         .collect(),

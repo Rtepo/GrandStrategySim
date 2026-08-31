@@ -331,7 +331,12 @@ region_filter: string, };
 /**
  * Phase 87+: A single financial record (income, expenses, net profit).
  */
-export type CompanyFinancialRecord = { income: number, expenses: number, net_profit: number, };
+export type CompanyFinancialRecord = { income: number, expenses: number, net_profit: number, 
+/**
+ * Phase 90: Wage expense (paid + accrued arrears) for transparency.
+ * This is a subset of `expenses`, not an additional deduction.
+ */
+wage_expense: number, };
 
 /**
  * Phase 87+: Financial summary aggregating last turn, quarter (3 turns), and year (24 turns).
@@ -1594,7 +1599,31 @@ wage_tot: number | null,
 /**
  * Average wage YoY delta (percent).
  */
-wage_yoy: number | null, };
+wage_yoy: number | null, 
+/**
+ * Phase 90: Peasant population ToT delta (percent).
+ */
+peasant_population_tot: number | null, 
+/**
+ * Phase 90: Peasant population YoY delta (percent).
+ */
+peasant_population_yoy: number | null, 
+/**
+ * Phase 90: Furloughed workers ToT delta (percent).
+ */
+furloughed_tot: number | null, 
+/**
+ * Phase 90: Furloughed workers YoY delta (percent).
+ */
+furloughed_yoy: number | null, 
+/**
+ * Phase 90: GDP per capita ToT delta (percent).
+ */
+gdp_per_capita_tot: number | null, 
+/**
+ * Phase 90: GDP per capita YoY delta (percent).
+ */
+gdp_per_capita_yoy: number | null, };
 
 /**
  * Tender summary for the Construction tab.

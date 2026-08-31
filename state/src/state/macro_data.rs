@@ -493,6 +493,12 @@ pub struct TelemetrySample {
     /// Treasury liquid reserves.
     #[serde(default)]
     pub liquid_reserves: f64,
+    /// Phase 90: Peasant population (FreePeasant + Serf) for ToT/YoY delta.
+    pub peasant_population: f64,
+    /// Phase 90: Total furloughed workers for ToT/YoY delta.
+    pub furloughed_total: f64,
+    /// Phase 90: GDP per capita for ToT/YoY delta.
+    pub gdp_per_capita: f64,
 }
 
 /// Phase 24F: Rolling buffer of telemetry samples for ToT/YoY delta computation.

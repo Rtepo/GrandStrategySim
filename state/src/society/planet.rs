@@ -302,6 +302,75 @@ impl Planet {
         }
     }
 
+    /// Phase 90: Ensure each populated region has at least one vein for each
+    /// AbundantIndustrial and Ubiquitous commodity. This fixes the Limestone
+    /// monoculture by guaranteeing diverse base industrial deposits.
+    ///
+    /// This is NOT magic spawning — it represents the geological reality that
+    /// any settled region has surface-visible deposits of common industrial
+    /// minerals (Iron, Coal, Stone, Sand, Limestone, etc.). Rare and UltraRare
+    /// veins remain hidden and are not affected by this method.
+    ///
+    /// # Arguments
+    /// * `populated_regions` - Slice of (region_id, lat, lon) tuples for
+    ///   regions with population > 0.
+    /// * `rng` - Random number generator for deterministic generation.
+    pub fn ensure_base_industrial_veins_per_region<R: Rng>(
+        &mut self,
+        populated_regions: &[(String, f64, f64)],
+        rng: &mut R,
+    ) {
+        let base_commodities: &[(Commodity, RarityTier)] = &[
+            (Commodity::Iron, RarityTier::AbundantIndustrial),
+            (Commodity::HardCoal, RarityTier::AbundantIndustrial),
+            (Commodity::BrownCoal, RarityTier::AbundantIndustrial),
+            (Commodity::Stone, RarityTier::AbundantIndustrial),
+            (Commodity::Sand, RarityTier::AbundantIndustrial),
+            (Commodity::Limestone, RarityTier::Ubiquitous),
+            (Commodity::Peat, RarityTier::Ubiquitous),
+            (Commodity::Gravel, RarityTier::Ubiquitous),
+        ];
+
+        for (region_id, lat, lon) in populated_regions {
+            for &(commodity, tier) in base_commodities {
+                // Check if this region already has a vein for this commodity.
+                let already_has = self.veins.iter().any(|v| {
+                    v.commodity == commodity
+                        && v.overlapping_regions.iter().any(|r| r == region_id)
+                });
+                if already_has {
+                    continue;
+                }
+
+                // Generate a vein centered on this region.
+                let (min_reserves, max_reserves) = tier.reserve_range();
+                let total_reserves = rng.gen_range(min_reserves..max_reserves);
+                let quality = rng.gen_range(0.3..1.0);
+                let depth = rng.gen_range(50.0..2000.0);
+                let extraction_cost = 1.0 + (depth / 1000.0) + (1.0 - quality) * 0.5;
+
+                let vein_id = format!("VEIN-{:04}", self.veins.len() + 1);
+                let vein_name = generate_vein_name(commodity, self.veins.len() + 1);
+
+                self.veins.push(GeologicalVein {
+                    id: vein_id,
+                    composite_id: None,
+                    name: vein_name,
+                    commodity,
+                    rarity_tier: tier,
+                    total_reserves,
+                    current_reserves: total_reserves,
+                    cells: vec![(*lat, *lon)],
+                    overlapping_regions: vec![region_id.clone()],
+                    extraction_cost,
+                    quality,
+                    depth,
+                    discovered: false, // Will be set by discover_base_industrial_veins
+                });
+            }
+        }
+    }
+
     /// Get all veins overlapping a given region.
     pub fn veins_for_region(&self, region_id: &str) -> Vec<&GeologicalVein> {
         self.veins

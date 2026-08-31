@@ -31,11 +31,11 @@ export function MacroPage() {
         <>
           <div className="grid grid-cols-4 gap-3">
             <StatCard label="GDP" value={fmt(macro.gdp)} delta={macro.deltas.gdp_tot} />
-            <StatCard label="GDP/Capita" value={fmt(macro.gdp_per_capita)} />
+            <StatCard label="GDP/Capita" value={fmt(macro.gdp_per_capita)} delta={macro.deltas.gdp_per_capita_tot} />
             <StatCard label="Population" value={num(macro.population)} delta={macro.deltas.population_tot} />
             <StatCard label="Unemployment" value={`${macro.unemployment_rate.toFixed(2)}%`} delta={macro.deltas.unemployment_tot} />
-            <StatCard label="Furloughed" value={num(Math.round(macro.furloughed_total))} />
-            <StatCard label="Peasants" value={`${num(Math.round(macro.peasant_population))} (${macro.peasant_pct.toFixed(1)}%)`} />
+            <StatCard label="Furloughed" value={num(Math.round(macro.furloughed_total))} delta={macro.deltas.furloughed_tot} />
+            <StatCard label="Peasants" value={`${num(Math.round(macro.peasant_population))} (${macro.peasant_pct.toFixed(1)}%)`} delta={macro.deltas.peasant_population_tot} />
             <StatCard label="Avg Wage" value={fmt(macro.average_wage)} delta={macro.deltas.wage_tot} />
             <StatCard label="CPI" value={macro.cpi.toFixed(2)} delta={macro.deltas.cpi_tot} />
             <StatCard label="PPI" value={macro.ppi.toFixed(2)} delta={macro.deltas.ppi_tot} />
