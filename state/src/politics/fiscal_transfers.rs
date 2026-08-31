@@ -8,31 +8,35 @@ use crate::state::Country;
 use std::collections::BTreeMap;
 
 /// Collect local taxes in all regions with closed-loop macroeconomic integrity
-/// 
+///
 /// # CRITICAL: Closed-Loop Taxation
 /// Taxes are NOT spawned from nowhere. They are explicitly deducted from the
 /// savings of the classes that own the land in ClassLandDistribution.
 /// Serfs (RuralClass::Serf) do not pay taxes as they have no cash economy.
-/// 
+///
 /// # Arguments
 /// * `country` - Mutable reference to the country
-/// 
+///
+/// # Returns
+/// Total property tax collected across all regions (for national tax reporting).
+///
 /// # Rules
 /// * Property tax is calculated based on land ownership by class
 /// * Taxes are deducted from class savings in RegionalClassDemographics
 /// * If a class cannot afford the tax, savings go negative (debt) and EconomicStatus drops
 /// * Serfs are exempt from taxation
-pub fn process_regional_taxes(country: &mut Country) {
+pub fn process_regional_taxes(country: &mut Country) -> f64 {
+    let mut total_property_tax: f64 = 0.0;
     for region in &mut country.regions {
         // Calculate property tax based on land ownership
         let (property_tax, tax_by_class) = calculate_property_tax(region);
-        
+
         // Calculate local service fees (simplified - could be expanded)
         let local_fees = calculate_local_fees(region);
-        
+
         // Deduct taxes from class savings (closed-loop)
         deduct_taxes_from_classes(region, &tax_by_class);
-        
+
         // Update regional budget
         if let Some(governance) = region.governance.as_mut() {
             let total_revenue = property_tax + local_fees;
@@ -43,7 +47,9 @@ pub fn process_regional_taxes(country: &mut Country) {
             // This is double-entry consistent: taxes were debited from class savings above.
             governance.budget.liquid_reserves += total_revenue;
         }
+        total_property_tax += property_tax;
     }
+    total_property_tax
 }
 
 /// Calculate property tax and tax burden by class

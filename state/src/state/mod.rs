@@ -550,6 +550,13 @@ pub struct Country {
     /// and read by process_tax_collection_turn for REPORTING ONLY (no second treasury credit).
     #[serde(default)]
     pub accumulated_vat: f64,
+    /// Phase 89: Accumulated PIT from labor clearing (withholding at source).
+    /// Reset to 0.0 at the start of each turn, accumulated during labor clearing,
+    /// and read by process_tax_collection_turn for REPORTING ONLY.
+    /// PIT is physically credited to liquid_reserves during labor clearing;
+    /// this field is for diagnostic/reporting symmetry with accumulated_vat.
+    #[serde(default)]
+    pub accumulated_pit: f64,
     /// Phase 58: Topological land cadastre (slotmap-backed ParcelChunks).
     /// Replaces the old aggregate LandRegistry. Source of truth for all land
     /// ownership, zoning, valuation, and legal certainty.
@@ -712,6 +719,7 @@ impl Country {
             regional_overflow_fees: std::collections::BTreeMap::new(),
             last_tax_result: None,
             accumulated_vat: 0.0,
+            accumulated_pit: 0.0,
             cadastre: crate::society::cadastre::Cadastre::default(),
             cadastre_config: crate::society::cadastre::CadastreConfig::default(),
             land_price_history: crate::society::cadastre::LandPriceHistoryRegistry::default(),
@@ -1081,6 +1089,7 @@ impl CountryBuilder {
             regional_overflow_fees: std::collections::BTreeMap::new(),
             last_tax_result: None,
             accumulated_vat: 0.0,
+            accumulated_pit: 0.0,
             cadastre: crate::society::cadastre::Cadastre::default(),
             cadastre_config: crate::society::cadastre::CadastreConfig::default(),
             land_price_history: crate::society::cadastre::LandPriceHistoryRegistry::default(),

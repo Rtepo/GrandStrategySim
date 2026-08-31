@@ -616,7 +616,7 @@ export type FactionalDomainsSnapshot = { domains: Array<FactionalDomainRow>, cot
  * consumer debt, and shadow economy. Reuses existing snapshot data rather
  * than creating disconnected accounting.
  */
-export type FinanceSnapshot = { treasury_reserves: number, gdp: number, ministry_total_allocated: number, ministry_total_spent: number, ministry_total_cash: number, pit_revenue: number, cit_revenue: number, vat_revenue: number, wealth_tax_revenue: number, capital_gains_revenue: number, customs_revenue: number, state_property_revenue: number, pit_rate: number, cit_rate: number, vat_rate: number, wealth_tax_rate: number, capital_gains_rate: number, total_public_debt: number, debt_service: number, weighted_avg_interest_rate: number, debt_held_by_banks: number, debt_held_by_central_bank: number, debt_held_by_funds: number, debt_held_by_citizens: number, 
+export type FinanceSnapshot = { treasury_reserves: number, gdp: number, ministry_total_allocated: number, ministry_total_spent: number, ministry_total_cash: number, pit_revenue: number, cit_revenue: number, vat_revenue: number, wealth_tax_revenue: number, capital_gains_revenue: number, customs_revenue: number, state_property_revenue: number, property_tax_revenue: number, pit_rate: number, cit_rate: number, vat_rate: number, wealth_tax_rate: number, capital_gains_rate: number, total_public_debt: number, debt_service: number, weighted_avg_interest_rate: number, debt_held_by_banks: number, debt_held_by_central_bank: number, debt_held_by_funds: number, debt_held_by_citizens: number, 
 /**
  * Phase 87+: Foreign-held sovereign debt. Computed from the authoritative
  * debt_market.outstanding_securities holders with SecurityHolderType::ForeignEntity.
@@ -796,7 +796,17 @@ export type LaborSummary = { unemployment_rate: number, employed_total: number, 
  * Distinct from unemployed — furloughed workers are retained by companies
  * and excluded from active labor clearing.
  */
-furloughed_total: number, };
+furloughed_total: number, 
+/**
+ * Phase 89: Peasant population (FreePeasant + Serf classes) across all regions.
+ * These are subsistence farmers operating outside the corporate structure
+ * on Smallholder parcels — NOT corporate agricultural wage laborers.
+ */
+peasant_population: number, 
+/**
+ * Phase 89: Peasant share of total national population (percentage).
+ */
+peasant_pct: number, };
 
 /**
  * Phase 84: Landfill snapshot for UI display.
@@ -864,7 +874,17 @@ export type MacroIndicatorsResponse = { gdp: number, gdp_per_capita: number, pop
  * Distinct from unemployed — furloughed workers are retained by companies
  * and excluded from active labor clearing.
  */
-furloughed_total: number, };
+furloughed_total: number, 
+/**
+ * Phase 89: Peasant population (FreePeasant + Serf classes) across all regions.
+ * These are subsistence farmers operating outside the corporate structure
+ * on Smallholder parcels — NOT corporate agricultural wage laborers.
+ */
+peasant_population: number, 
+/**
+ * Phase 89: Peasant share of total national population (percentage).
+ */
+peasant_pct: number, };
 
 /**
  * Summary of an unfunded mandate for the region drill-down.

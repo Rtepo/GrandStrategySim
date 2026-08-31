@@ -43,6 +43,7 @@ export function FinancePage() {
             <Row label="Capital Gains" value={fmt(finance.capital_gains_revenue)} />
             <Row label="Customs" value={fmt(finance.customs_revenue)} />
             <Row label="State Property" value={fmt(finance.state_property_revenue)} />
+            <Row label="Property Tax" value={fmt(finance.property_tax_revenue)} />
           </CardContent>
         </Card>
 

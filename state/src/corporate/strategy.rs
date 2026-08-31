@@ -756,33 +756,55 @@ fn is_distressed(ctx: &CorporateDecisionCtx) -> bool {
 /// is robust against multi-batch scenarios — even if a side-batch harvests
 /// early, the grace only expires when actual revenue is recorded.
 ///
-/// For NON-AGRICULTURE companies: The grace is the original Turn 1 check —
-/// active only while `financial_history` is empty (no completed production cycle).
+/// Phase 89: Extended to heavy CAPEX industrial sectors (Mining, HeavyIndustry,
+/// LightIndustry, Energy, Construction). These sectors have long ramp-up periods
+/// before their first sale clears through B2B/B2C. They receive a 12-turn
+/// hardcap (half the agriculture 24-turn hardcap, since industrial sales cycles
+/// are shorter than agricultural harvest cycles). The same revenue-based check
+/// applies — grace expires when first non-zero revenue is recorded.
+///
+/// For other sectors: The grace is the original Turn 1 check — active only
+/// while `financial_history` is empty (no completed production cycle).
 fn is_within_material_shortage_grace(company: &Company, current_turn: u32) -> bool {
-    if company.sector == Sector::Agriculture {
-        // Hardcap: 24 turns (1 year) since founding.
-        // After this, the company must sink or swim on its own.
-        if current_turn.saturating_sub(company.founded_turn) >= 24 {
-            return false;
+    match company.sector {
+        Sector::Agriculture => {
+            // Hardcap: 24 turns (1 year) since founding.
+            if current_turn.saturating_sub(company.founded_turn) >= 24 {
+                return false;
+            }
+            // Check if the company has recorded its first non-zero revenue.
+            let has_nonzero_revenue = company.financial_history.iter().any(|record| {
+                record.get("revenue")
+                    .and_then(|v| v.as_f64())
+                    .map(|r| r > 0.0)
+                    .unwrap_or(false)
+            });
+            if has_nonzero_revenue {
+                return false; // First harvest sold — grace expires
+            }
+            true // Still waiting for first harvest sale — grace active
         }
-        // Check if the company has recorded its first non-zero revenue.
-        // financial_history records use "revenue" key = total_profit + overhead.
-        // When no production occurs, total_profit = 0 and overhead = 0,
-        // so revenue = 0. First non-zero revenue means first successful sale.
-        let has_nonzero_revenue = company.financial_history.iter().any(|record| {
-            record.get("revenue")
-                .and_then(|v| v.as_f64())
-                .map(|r| r > 0.0)
-                .unwrap_or(false)
-        });
-        if has_nonzero_revenue {
-            return false; // First harvest sold — grace expires
+        Sector::Mining | Sector::HeavyIndustry | Sector::LightIndustry
+        | Sector::Energy | Sector::Construction => {
+            // Phase 89: 12-turn hardcap for industrial sectors.
+            if current_turn.saturating_sub(company.founded_turn) >= 12 {
+                return false;
+            }
+            // Same revenue-based check as agriculture.
+            let has_nonzero_revenue = company.financial_history.iter().any(|record| {
+                record.get("revenue")
+                    .and_then(|v| v.as_f64())
+                    .map(|r| r > 0.0)
+                    .unwrap_or(false)
+            });
+            if has_nonzero_revenue {
+                return false; // First sale cleared — grace expires
+            }
+            true // Still waiting for first sale — grace active
         }
-        // Still waiting for first harvest sale — grace active
-        return true;
+        // Other sectors: Turn 1 grace (no financial history yet)
+        _ => company.financial_history.is_empty(),
     }
-    // Non-agriculture: Turn 1 grace (no financial history yet)
-    company.financial_history.is_empty()
 }
 
 /// Emergency Stabilization: Evaluate whether a distressed company should

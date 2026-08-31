@@ -198,6 +198,17 @@ pub fn generate_world(
         .collect();
     state.planet = crate::society::planet::generate_planet(&planet_regions, &mut rng);
 
+    // Phase 89: Auto-discover base industrial veins in populated regions.
+    // Base industrial commodities (iron, coal, copper, stone, etc.) are
+    // surface-visible deposits that any settled civilization knows about.
+    // Rare/precious veins (gold, silver, uranium) remain hidden for exploration.
+    let populated_region_ids: std::collections::HashSet<String> = regions
+        .values()
+        .filter(|r| r.population > 0)
+        .map(|r| r.id.clone())
+        .collect();
+    state.planet.discover_base_industrial_veins(&populated_region_ids);
+
     // Phase 88: Reseed region resources from the Planet's geological vein
     // system. This replaces the deprecated reseed_resources_from_formations
     // call inside generate_country. The Planet didn't exist when generate_country
@@ -422,6 +433,7 @@ fn generate_country(
         regional_overflow_fees: std::collections::BTreeMap::new(),
         last_tax_result: None,
         accumulated_vat: 0.0,
+        accumulated_pit: 0.0,
         cadastre: crate::society::cadastre::Cadastre::default(),
         cadastre_config: crate::society::cadastre::CadastreConfig::default(),
         land_price_history: crate::society::cadastre::LandPriceHistoryRegistry::default(),

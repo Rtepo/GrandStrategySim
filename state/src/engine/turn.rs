@@ -2432,6 +2432,12 @@ pub fn run_turn_in_memory(
             task.commute_coverage = coverage;
         });
 
+        // Phase 89: Reset accumulated_pit before labor clearing (W1).
+        // PIT is accumulated during labor clearing and read by tax collection (Phase 7).
+        tasks.par_iter_mut().for_each(|task| {
+            task.ctx.country.accumulated_pit = 0.0;
+        });
+
         // W1: Wage payment (labor market resolution) with PIT withholding (Fix 1.22)
         // Phase 18B: Compute garnishment rates from community service cohorts
         // Phase 23C: Inject commuter FTE based on PassengerTransport coverage.
@@ -2746,6 +2752,8 @@ pub fn run_turn_in_memory(
             if let Some(ref labor_alloc) = task.labor_allocation {
                 if labor_alloc.pit_withheld > 0.0 {
                     task.ctx.country.budget.liquid_reserves += labor_alloc.pit_withheld;
+                    // Phase 89: Accumulate PIT for reporting symmetry with VAT.
+                    task.ctx.country.accumulated_pit += labor_alloc.pit_withheld;
                 }
                 // Phase 18B: Route community service garnishments to Treasury
                 if labor_alloc.garnishments_withheld > 0.0 {
@@ -3618,7 +3626,11 @@ pub fn run_turn_in_memory(
             tax_result_stored.actual_pit_collected = withheld_pit;
             tax_result_stored.total_revenue = total_actual_collected + withheld_pit;
             task.ctx.country.last_tax_result = Some(tax_result_stored);
-            process_regional_taxes(task.ctx.country);
+            let total_property_tax = process_regional_taxes(task.ctx.country);
+            // Phase 89: Store aggregated property tax in last_tax_result for Finance UI.
+            if let Some(ref mut tax_result) = task.ctx.country.last_tax_result {
+                tax_result.property_tax_collected = total_property_tax;
+            }
             let transfer_config = crate::politics::system::FiscalTransferConfig::default();
             process_fiscal_transfers(task.ctx.country, &transfer_config);
             check_commissary_administration(task.ctx.country);

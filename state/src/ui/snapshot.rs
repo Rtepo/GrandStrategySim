@@ -206,6 +206,12 @@ pub struct LaborSummary {
     /// Distinct from unemployed — furloughed workers are retained by companies
     /// and excluded from active labor clearing.
     pub furloughed_total: f64,
+    /// Phase 89: Peasant population (FreePeasant + Serf classes) across all regions.
+    /// These are subsistence farmers operating outside the corporate structure
+    /// on Smallholder parcels — NOT corporate agricultural wage laborers.
+    pub peasant_population: f64,
+    /// Phase 89: Peasant share of total national population (percentage).
+    pub peasant_pct: f64,
 }
 
 /// ToT (Turn-over-Turn) and YoY (Year-over-Year) percentage deltas
@@ -384,6 +390,8 @@ pub struct FinanceSnapshot {
     // Phase 39: Customs and state property revenue
     pub customs_revenue: f64,
     pub state_property_revenue: f64,
+    // Phase 89: Property tax revenue (aggregated from regional governments)
+    pub property_tax_revenue: f64,
     // Phase 38: Tax rates for display in the Finance tab
     pub pit_rate: f64,
     pub cit_rate: f64,
@@ -2559,6 +2567,12 @@ pub struct MacroIndicatorsResponse {
     /// Distinct from unemployed — furloughed workers are retained by companies
     /// and excluded from active labor clearing.
     pub furloughed_total: f64,
+    /// Phase 89: Peasant population (FreePeasant + Serf classes) across all regions.
+    /// These are subsistence farmers operating outside the corporate structure
+    /// on Smallholder parcels — NOT corporate agricultural wage laborers.
+    pub peasant_population: f64,
+    /// Phase 89: Peasant share of total national population (percentage).
+    pub peasant_pct: f64,
 }
 
 /// Response for the get_banking_aggregates command.
@@ -2814,6 +2828,26 @@ pub fn build_country_snapshot(
         ohs_accidents_on_projects,
     };
 
+    // Phase 89: Peasant population — FreePeasant + Serf class populations
+    // across all regions. These are subsistence farmers operating outside
+    // the corporate structure on Smallholder parcels. Explicitly excludes
+    // LandlessLaborer (rural wage laborers) and Aristocracy (landowning elite).
+    let mut peasant_population: f64 = 0.0;
+    for region in &country.regions {
+        if let Some(free_peasant) = region.class_demographics.rural_classes.get("FreePeasant") {
+            peasant_population += free_peasant.population as f64;
+        }
+        if let Some(serf) = region.class_demographics.rural_classes.get("Serf") {
+            peasant_population += serf.population as f64;
+        }
+    }
+    let total_pop = country.budget.population as f64;
+    let peasant_pct = if total_pop > 0.0 {
+        peasant_population / total_pop * 100.0
+    } else {
+        0.0
+    };
+
     // Labor market
     let labor = LaborSummary {
         unemployment_rate: macro_data.labor_market.unemployment_rate,
@@ -2822,6 +2856,8 @@ pub fn build_country_snapshot(
         workforce: macro_data.labor_market.employed_total + macro_data.labor_market.unemployed,
         average_wage: macro_data.average_wage,
         furloughed_total: macro_data.labor_market.furloughed_total,
+        peasant_population,
+        peasant_pct,
     };
 
     // Corruption index
@@ -2951,7 +2987,7 @@ pub fn build_country_snapshot(
         companies_page: build_company_page(country, companies, view),
         company_total_count: count_companies(companies, view),
         company_detail: build_company_detail(country, companies, view),
-        region_detail: build_region_detail(country, view),
+        region_detail: build_region_detail(country, buildings, view),
         megaregion_detail: build_megaregion_detail(country, view),
         advisory_council: build_advisory_council_snapshot(country),
         royal_dynasty: build_royal_dynasty_snapshot(country),
@@ -3333,7 +3369,7 @@ fn build_company_detail(country: &Country, companies: &[Company], view: &ViewQue
 }
 
 /// Build region drill-down detail on-demand for the selected region.
-fn build_region_detail(country: &Country, view: &ViewQuery) -> Option<RegionDetail> {
+fn build_region_detail(country: &Country, buildings: &[crate::entities::Building], view: &ViewQuery) -> Option<RegionDetail> {
     let region_id = view.region_drilldown_id.as_ref()?;
     let region = country.regions.iter().find(|r| r.id == *region_id)?;
 
@@ -3550,20 +3586,28 @@ fn build_region_detail(country: &Country, view: &ViewQuery) -> Option<RegionDeta
         arable_land_used: region.arable_land_used,
         // Phase 87+: Geological deposits from region resources.
         // Role-gated by caller — undiscovered deposits filtered for foreign observers.
-        geological_deposits: build_geological_deposit_rows(region),
+        geological_deposits: build_geological_deposit_rows(region, buildings),
     })
 }
 
-/// Phase 87+/88: Build geological deposit rows from a region's resources map.
+/// Phase 87+/88/89: Build geological deposit rows from a region's resources map.
 /// Extracts geological reserves information for the Resources tab.
 ///
 /// Phase 88: Resource keys are now vein IDs (not commodity strings), so the
 /// commodity must be read from the value object's "commodity" field.
 /// Non-geological resources (freshwater, forests) are skipped because they
 /// don't have a "commodity" field.
-fn build_geological_deposit_rows(region: &crate::society::geography::Region) -> Vec<GeologicalDepositRow> {
+///
+/// Phase 89: `active_mine_count` is now computed by counting buildings in this
+/// region whose `deposit_id` matches the resource key (vein ID or composite ID).
+/// This is the authoritative count — the old approach read a field from the
+/// resource JSON that was never written, always returning 0.
+fn build_geological_deposit_rows(
+    region: &crate::society::geography::Region,
+    buildings: &[crate::entities::Building],
+) -> Vec<GeologicalDepositRow> {
     let mut rows = Vec::new();
-    for (_resource_key, value) in &region.resources {
+    for (resource_key, value) in &region.resources {
         if let serde_json::Value::Object(map) = value {
             // Phase 88: Skip non-geological resources (no "commodity" field).
             let commodity = match map.get("commodity")
@@ -3592,9 +3636,13 @@ fn build_geological_deposit_rows(region: &crate::society::geography::Region) -> 
                 .and_then(|v| v.as_str())
                 .unwrap_or("Unknown")
                 .to_string();
-            let active_mines = map.get("active_mine_count")
-                .and_then(|v| v.as_u64())
-                .unwrap_or(0) as u32;
+            // Phase 89: Count active mines by matching building.deposit_id to
+            // the resource key (vein ID or composite ID). This is the
+            // authoritative count — buildings with deposit_id == resource_key
+            // are mines extracting from this vein.
+            let active_mines = buildings.iter()
+                .filter(|b| b.region_id == region.id && b.deposit_id.as_deref() == Some(resource_key))
+                .count() as u32;
             let discovered = map.get("discovered")
                 .and_then(|v| v.as_bool())
                 .unwrap_or(true);
@@ -3898,6 +3946,8 @@ fn build_finance_snapshot(country: &Country, companies: &[Company]) -> FinanceSn
     // Phase 39: Customs and state property revenue
     let customs_revenue = last_tax.map(|t| t.customs_revenue).unwrap_or(0.0);
     let state_property_revenue = last_tax.map(|t| t.state_property_revenue).unwrap_or(0.0);
+    // Phase 89: Property tax revenue aggregated from regional governments.
+    let property_tax_revenue = last_tax.map(|t| t.property_tax_collected).unwrap_or(0.0);
 
     // Phase 38: Read tax rates for display.
     let pit_rate = country.tax_rates.income_tax.rate;
@@ -3945,6 +3995,7 @@ fn build_finance_snapshot(country: &Country, companies: &[Company]) -> FinanceSn
         capital_gains_revenue,
         customs_revenue,
         state_property_revenue,
+        property_tax_revenue,
         pit_rate,
         cit_rate,
         vat_rate,

@@ -273,6 +273,35 @@ impl Planet {
         }
     }
 
+    /// Phase 89: Mark base industrial veins in populated regions as discovered.
+    ///
+    /// Base industrial commodities (AbundantIndustrial + Ubiquitous + Uncommon tiers)
+    /// are auto-discovered during world generation because they are surface-visible
+    /// deposits that any settled civilization would know about. Rare and UltraRare
+    /// veins (gold, silver, uranium, etc.) remain hidden — they require geological
+    /// survey and represent exploration gameplay.
+    ///
+    /// Only veins overlapping at least one populated region are discovered.
+    /// Unpopulated regions (e.g., polar, desert) keep their veins hidden.
+    ///
+    /// # Arguments
+    /// * `populated_region_ids` - Set of region IDs with population > 0.
+    pub fn discover_base_industrial_veins(&mut self, populated_region_ids: &std::collections::HashSet<String>) {
+        for vein in &mut self.veins {
+            // Rare and UltraRare veins stay hidden — they require geological survey.
+            if vein.rarity_tier == RarityTier::UltraRare || vein.rarity_tier == RarityTier::Rare {
+                continue;
+            }
+            // AbundantIndustrial, Ubiquitous, and Uncommon tiers are base industrial.
+            // Only discover if the vein overlaps at least one populated region.
+            let overlaps_populated = vein.overlapping_regions.iter()
+                .any(|r| populated_region_ids.contains(r));
+            if overlaps_populated {
+                vein.discovered = true;
+            }
+        }
+    }
+
     /// Get all veins overlapping a given region.
     pub fn veins_for_region(&self, region_id: &str) -> Vec<&GeologicalVein> {
         self.veins

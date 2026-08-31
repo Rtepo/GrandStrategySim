@@ -68,6 +68,8 @@ pub async fn get_macro_indicators(
             ppi: md.inflation_indices.ppi_index,
             deltas: md.deltas.clone(),
             furloughed_total: md.labor.furloughed_total,
+            peasant_population: md.labor.peasant_population,
+            peasant_pct: md.labor.peasant_pct,
         })
     })
     .await

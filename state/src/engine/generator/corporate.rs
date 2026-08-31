@@ -64,6 +64,27 @@ fn ceo_ideology_from_traits(traits: &[String], main_trait: &str, rng: &mut impl 
     }
 }
 
+/// Phase 89: Check if a sector is eligible for Working Capital Loans.
+///
+/// Heavy CAPEX and physical production sectors receive 6-turn Working Capital
+/// Loans during world generation instead of the free 3-turn Genesis Payroll
+/// Grant. This ensures double-entry consistency (Rule 1) — the loan is a
+/// legitimate bank liability, not money created from thin air.
+///
+/// Eligible sectors: Agriculture, Mining, HeavyIndustry, LightIndustry,
+/// Energy, Construction.
+fn is_working_capital_loan_eligible(sector: Sector) -> bool {
+    matches!(
+        sector,
+        Sector::Agriculture
+            | Sector::Mining
+            | Sector::HeavyIndustry
+            | Sector::LightIndustry
+            | Sector::Energy
+            | Sector::Construction
+    )
+}
+
 /// Phase 47: Determine the seasonal profile for a company based on its sector
 /// and the region's climate profile. Returns None for non-seasonal sectors.
 ///
@@ -768,13 +789,14 @@ pub fn generate_corporate_entities(
         let _ = company_store.save_sector(&country.name, &sector_name, None, &companies);
     }
 
-    // Phase 87+: Working Capital Loan for agriculture companies.
-    // Replaces the free "Genesis Payroll Grant" with a legitimate double-entry
-    // loan from the State Bank. Agriculture has the longest gap between spawning
-    // and first revenue (harvest cycle), so it needs 6 turns of payroll coverage.
+    // Phase 87+/88/89: Working Capital Loans for heavy CAPEX and physical
+    // production sectors. Replaces the free "Genesis Payroll Grant" with a
+    // legitimate double-entry loan. All heavy CAPEX sectors (Agriculture,
+    // Mining, HeavyIndustry, LightIndustry, Energy, Construction) need 6 turns
+    // of payroll coverage to survive until their first revenue clears.
     // The loan is recorded as a liability on the company's balance sheet and an
     // asset on the bank's balance sheet (Rule 1: strict double-entry).
-    issue_agriculture_working_capital_loans(
+    issue_working_capital_loans(
         data_dir,
         country,
         &mut all_companies,
@@ -785,12 +807,13 @@ pub fn generate_corporate_entities(
     Ok(())
 }
 
-/// Phase 87+/88: Issue Working Capital Loans to agriculture companies during
-/// world generation, distributed across all available commercial/universal banks.
+/// Phase 87+/88/89: Issue Working Capital Loans to heavy CAPEX and physical
+/// production sectors during world generation, distributed across all available
+/// commercial/universal banks.
 ///
 /// This replaces the free "Genesis Payroll Grant" with a legitimate double-entry
-/// loan. Agriculture companies need 6 turns of payroll coverage to survive until
-/// their first harvest (which may be 3-6 turns away depending on season).
+/// loan. Eligible sectors need 6 turns of payroll coverage to survive until
+/// their first revenue clears (harvest, mineral sales, industrial output sales).
 ///
 /// Phase 88 corrections:
 /// - Loans are distributed across ALL commercial/universal banks, not just the
@@ -801,6 +824,12 @@ pub fn generate_corporate_entities(
 ///   model expands the balance sheet symmetrically: Asset (loan) + Liability
 ///   (deposit) increase by the same amount. Reserves are untouched.
 ///
+/// Phase 89 generalization:
+/// - Extended from Agriculture-only to all heavy CAPEX / physical production
+///   sectors: Agriculture, Mining, HeavyIndustry, LightIndustry, Energy,
+///   Construction.
+/// - Per-sector risk premiums reflecting capital intensity and cash cycle length.
+///
 /// # Double-Entry Flow
 /// - Company: `available_cash += principal` (asset), `liabilities += principal` (liability)
 /// - Bank: `balance_sheet.loans_issued.push(loan)` (asset increases),
@@ -810,10 +839,10 @@ pub fn generate_corporate_entities(
 /// # Arguments
 /// * `data_dir` - Data directory for loading/saving banks
 /// * `country` - Country (for XIBOR and central bank reference)
-/// * `all_companies` - All generated companies (agriculture ones get loans)
+/// * `all_companies` - All generated companies (eligible sectors get loans)
 /// * `code` - 3-letter country code prefix (for bank IDs)
 /// * `start_year` - Start year (for loan issuance turn)
-fn issue_agriculture_working_capital_loans(
+fn issue_working_capital_loans(
     data_dir: &Path,
     country: &Country,
     all_companies: &mut [Company],
@@ -850,16 +879,30 @@ fn issue_agriculture_working_capital_loans(
     }
 
     let xibor = country.central_bank.interest_rates.reference_rate;
-    let risk_premium = 0.01; // 100 bps risk premium for startup agriculture
     let mut rng = rand::thread_rng();
     let mut total_loaned = 0.0;
 
     for company in all_companies.iter_mut() {
-        if company.sector != Sector::Agriculture {
-            continue;
-        }
+        // Phase 89: Determine per-sector risk premium.
+        // Sectors not in this map are not eligible for Working Capital Loans.
+        let risk_premium = match company.sector {
+            // 100 bps — longest cash cycle (harvest delay), but established sector
+            Sector::Agriculture => 0.01,
+            // 150 bps — high CAPEX, long ramp-up
+            Sector::Mining => 0.015,
+            // 150 bps — high CAPEX, long production chains
+            Sector::HeavyIndustry => 0.015,
+            // 100 bps — faster turnover than heavy industry
+            Sector::LightIndustry => 0.01,
+            // 200 bps — highest CAPEX, longest ramp-up
+            Sector::Energy => 0.02,
+            // 100 bps — project-based, tranche-funded but needs startup cash
+            Sector::Construction => 0.01,
+            // Not eligible for Working Capital Loans
+            _ => continue,
+        };
         if company.state_share >= 1.0 {
-            continue; // State-owned agriculture doesn't need loans
+            continue; // State-owned companies don't need loans
         }
 
         // Compute loan principal: 6 turns of payroll for the initial workforce.
@@ -1261,9 +1304,16 @@ fn generate_region_companies(
         let initial_fte = (actual_capacity as f64 * 0.6).round().max(2.0); // Phase 43: min 2.0 FTE floor
         company.fulfilled_fte = initial_fte as u32;
         company.prev_fulfilled_fte = initial_fte as u32;
-        // Genesis Payroll Grant: 3 turns of wages for the initial workforce.
-        let payroll_grant = initial_fte * initial_wage * 3.0;
-        company.available_cash = company_liquid + payroll_grant;
+        // Phase 89: Loan-eligible sectors receive Working Capital Loans (6 turns
+        // of payroll) instead of the free 3-turn grant. The loan is issued after
+        // all companies are generated, so here we only set the initial cash to
+        // company_liquid. Non-eligible sectors keep the free 3-turn grant.
+        if is_working_capital_loan_eligible(sector) {
+            company.available_cash = company_liquid;
+        } else {
+            let payroll_grant = initial_fte * initial_wage * 3.0;
+            company.available_cash = company_liquid + payroll_grant;
+        }
 
         let (building_name, method) = if diversified_methods.is_empty() {
             // Fallback to best_registry_method if no diversified methods available.
@@ -2457,8 +2507,11 @@ fn create_seed_company_with_explicit_method(
     let initial_fte = (actual_capacity as f64 * 0.6).round().max(2.0); // Phase 43: min 2.0 FTE floor
     company.fulfilled_fte = initial_fte as u32;
     company.prev_fulfilled_fte = initial_fte as u32;
-    let payroll_grant = initial_fte * initial_wage * 3.0;
-    company.available_cash += payroll_grant;
+    // Phase 89: Loan-eligible sectors get Working Capital Loans instead of free grant.
+    if !is_working_capital_loan_eligible(sector) {
+        let payroll_grant = initial_fte * initial_wage * 3.0;
+        company.available_cash += payroll_grant;
+    }
 
     let current_employment = (initial_fte / scale_factor as f64) as u32;
     let building_id = idgen.next_building();
@@ -2922,8 +2975,11 @@ fn create_seed_company(
     let initial_fte = (actual_capacity as f64 * 0.6).round().max(2.0); // Phase 43: min 2.0 FTE floor
     company.fulfilled_fte = initial_fte as u32;
     company.prev_fulfilled_fte = initial_fte as u32;
-    let payroll_grant = initial_fte * initial_wage * 3.0;
-    company.available_cash += payroll_grant;
+    // Phase 89: Loan-eligible sectors get Working Capital Loans instead of free grant.
+    if !is_working_capital_loan_eligible(sector) {
+        let payroll_grant = initial_fte * initial_wage * 3.0;
+        company.available_cash += payroll_grant;
+    }
     let current_employment = (initial_fte / scale_factor as f64) as u32;
     let building_id = idgen.next_building();
 

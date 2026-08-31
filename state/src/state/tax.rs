@@ -1219,6 +1219,10 @@ pub struct TaxCollectionResult {
     pub liabilities: Vec<TaxLiability>,
     /// Phase 42: Actual PIT collected (post-clamp to citizen_savings).
     pub actual_pit_collected: f64,
+    /// Phase 89: Total property tax collected from regional governments.
+    /// Aggregated from process_regional_taxes and stored for Finance UI display.
+    #[serde(default)]
+    pub property_tax_collected: f64,
 }
 
 /// Phase 42: Per-company tax liability computed by the read-only tax module.

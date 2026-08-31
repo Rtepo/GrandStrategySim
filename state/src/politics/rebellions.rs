@@ -275,6 +275,7 @@ pub fn spawn_rebel_proto_state(
         regional_overflow_fees: std::collections::BTreeMap::new(),
         last_tax_result: None,
         accumulated_vat: 0.0,
+        accumulated_pit: 0.0,
         cadastre: crate::society::cadastre::Cadastre::default(),
         cadastre_config: crate::society::cadastre::CadastreConfig::default(),
         land_price_history: crate::society::cadastre::LandPriceHistoryRegistry::default(),
