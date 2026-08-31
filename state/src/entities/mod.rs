@@ -166,7 +166,7 @@ pub type ShareholderRegister = BTreeMap<String, u64>;
 /// Aggregate production/employment statistics for a regional cluster or national champion.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct AggregatedStats {
-    /// Total employment across all aggregated units (was: zatrudnienie).
+    /// Total employment across all aggregated units.
     #[serde(default)]
     pub total_employment: u32,
     /// Total production by commodity (was: produkcja).
@@ -477,6 +477,18 @@ pub struct Company {
     /// wage rigidity — wages cannot drop more than 3% per turn.
     #[serde(default)]
     pub prev_offered_wage_per_fte: f64,
+    /// Phase 92: Transient — actual wages paid this turn (set by labor market,
+    /// read by process_company). Reset to 0.0 at the start of each labor market
+    /// clearing. This ensures the financial record reflects the actual wage
+    /// flow, not a recomputed estimate that may be zero if the company was
+    /// furloughed after the labor market phase.
+    #[serde(skip)]
+    pub wages_paid_this_turn: f64,
+    /// Phase 92: Transient — wages accrued as arrears this turn (set by labor
+    /// market, read by process_company). Together with `wages_paid_this_turn`,
+    /// this gives the true wage expense for the financial history.
+    #[serde(skip)]
+    pub arrears_accrued_this_turn: f64,
     /// Phase 40: Accumulated unpaid wages owed to workers (wage arrears).
     /// When a company cannot afford full payroll, the FTE retention floor
     /// keeps workers employed but unpaid wages accrue here as a liability.
@@ -741,6 +753,8 @@ impl Company {
             offered_wage_per_fte: 0.0,
             prev_offered_wage_per_fte: 0.0,
             wage_arrears: 0.0,
+            wages_paid_this_turn: 0.0,
+            arrears_accrued_this_turn: 0.0,
             severance_arrears: 0.0,
             furlough_turns_accumulated: 0,
             productivity_penalty: 0.0,

@@ -13,7 +13,7 @@ use crate::registries::enums::Sector;
 pub use crate::economy::CountryTurnCtx;
 
 /// Recalculates each sector's `"gdp_share"` (GDP share) from its physical
-/// employment count (`"zatrudnienie"`).
+/// employment count (`"employment"`).
 ///
 /// This is a Rust port of the Python helper `_calculate_gdp_shares_from_employment`
 /// in `economy/indicators/core.py`.
@@ -23,7 +23,7 @@ pub use crate::economy::CountryTurnCtx;
 ///   updated in place.
 ///
 /// # Rules
-/// * Employment is read from each sector's `extra["zatrudnienie"]` as an integer.
+/// * Employment is read from each sector's `extra["employment"]` as an integer.
 /// * If the total employment is positive, each sector's `gdp_share` becomes
 ///   `employment / total_employment`.
 /// * If total employment is zero, all sectors receive an equal share
@@ -36,12 +36,12 @@ pub use crate::economy::CountryTurnCtx;
 ///     total_employment = 0
 ///     for sec_dict in sektory.values():
 ///         if isinstance(sec_dict, dict):
-///             total_employment += sec_dict.get('zatrudnienie', 0)
+///             total_employment += sec_dict.get('employment', 0)
 ///
 ///     if total_employment > 0:
 ///         for sec_dict in sektory.values():
 ///             if isinstance(sec_dict, dict):
-///                 employment = sec_dict.get('zatrudnienie', 0)
+///                 employment = sec_dict.get('employment', 0)
 ///                 sec_dict['gdp_share'] = employment / total_employment
 ///     else:
 ///         sector_count = len([s for s in sektory.values() if isinstance(s, dict)])
@@ -64,7 +64,7 @@ pub fn update_gdp_shares_from_employment(ctx: &mut CountryTurnCtx<'_>) {
         }
         for (sector, (emp, capacity)) in employment {
             if let Some(share) = sectors.get_mut(&sector) {
-                share.extra.insert("zatrudnienie".to_string(), Value::from(emp));
+                share.extra.insert("employment".to_string(), Value::from(emp));
                 let pmi = if capacity > 0 {
                     (100.0 * (emp as f64 / capacity as f64)).min(100.0)
                 } else {
@@ -75,6 +75,10 @@ pub fn update_gdp_shares_from_employment(ctx: &mut CountryTurnCtx<'_>) {
         }
     }
 
+    // Phase 92: Fix pre-existing bug — the write key and read key were
+    // mismatched (Polish vs English), causing total_employment to always be 0
+    // and falling back to equal GDP shares. Now both use the English canonical
+    // key "employment" (Rule 12 compliance).
     let total_employment: i64 = sectors
         .values()
         .map(|share| {
@@ -273,7 +277,7 @@ mod tests {
     use crate::state::{Country, Treasury};
     use serde_json::Map;
 
-    /// Builds a `Treasury` with two sectors carrying explicit `zatrudnienie`.
+    /// Builds a `Treasury` with two sectors carrying explicit `employment`.
     fn treasury_with_employment() -> Treasury {
         let treasury: Treasury = serde_json::from_str(
             r#"{

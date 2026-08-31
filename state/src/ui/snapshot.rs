@@ -1694,6 +1694,10 @@ pub struct VipDossierRow {
     pub ideology: String,
     /// Phase 54: Company name if this VIP is a CEO (for tooltip display).
     pub company_name: Option<String>,
+    /// Phase 92: Gender for visual indicators.
+    pub gender: String,
+    /// Phase 92: Portrait seed for deterministic avatar generation.
+    pub portrait_seed: String,
 }
 
 /// A full VIP dossier for the detail view.
@@ -2476,6 +2480,10 @@ pub struct DynastyMemberRow {
     pub children_vip_ids: Vec<String>,
     pub is_dead: bool,
     pub death_cause: Option<String>,
+    /// Phase 92: Gender for visual indicators.
+    pub gender: String,
+    /// Phase 92: Portrait seed for deterministic avatar generation.
+    pub portrait_seed: String,
 }
 
 /// Phase 86: A royal marriage event row for UI display.
@@ -3102,6 +3110,8 @@ fn build_vip_page(country: &Country, companies: &[Company], view: &ViewQuery) ->
                 main_trait: v.main_trait.clone(),
                 ideology: v.ideology.clone(),
                 company_name,
+                gender: v.gender.clone(),
+                portrait_seed: v.portrait_seed.clone(),
             }
         })
         .collect()
@@ -3808,6 +3818,9 @@ fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapsho
                 children_vip_ids: m.children_vip_ids.clone(),
                 is_dead: vip.map(|v| v.is_dead).unwrap_or(false),
                 death_cause: m.death_cause.as_ref().map(|c| format!("{:?}", c)),
+                // Phase 92: Gender and portrait seed for visual indicators.
+                gender: vip.map(|v| v.gender.clone()).unwrap_or_default(),
+                portrait_seed: vip.map(|v| v.portrait_seed.clone()).unwrap_or_default(),
             }
         })
         .collect();

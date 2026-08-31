@@ -200,7 +200,7 @@ pub struct ProductionMethodChoice {
 /// * Only `gdp_share` is guaranteed present across all sectors; other fields
 ///   are optional because service/state sectors (e.g. `transport_i_logistyka`,
 ///   `public_services`) omit them. Runtime fields (`pmi`, `placa`,
-///   `zatrudnienie`, ...) are preserved through `extra`.
+///   `employment`, ...) are preserved through `extra`.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct SectorShare {
     /// Share of GDP in `[0.0, 1.0]`.
@@ -214,7 +214,7 @@ pub struct SectorShare {
     /// some service sectors.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub active_method: Option<ProductionMethodChoice>,
-    /// Runtime-computed fields (`pmi`, `placa`, `oferta`, `zatrudnienie`,
+    /// Runtime-computed fields (`pmi`, `placa`, `oferta`, `employment`,
     /// `srednia_placa`, `wykorzystanie_mocy`, ...).
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,

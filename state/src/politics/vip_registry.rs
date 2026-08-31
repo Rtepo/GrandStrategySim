@@ -373,6 +373,12 @@ pub struct Vip {
     /// Phase 66: Diplomatic posting (if this VIP is posted abroad).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub diplomatic_post: Option<DiplomaticPost>,
+    /// Phase 92: Portrait seed for deterministic avatar generation.
+    /// Computed as `format!("{}-{}-{}", cultural_group, gender, full_name)`.
+    /// Incorporates gender so any future avatar generator produces gender-
+    /// appropriate visuals. Empty string for old saves (frontend fallback).
+    #[serde(default)]
+    pub portrait_seed: String,
 }
 
 fn default_health() -> f64 {
@@ -530,6 +536,12 @@ impl VipRegistry {
     pub fn register_new(&mut self, mut vip: Vip) -> String {
         if vip.id.is_empty() {
             vip.id = self.next_vip_id();
+        }
+        // Phase 92: Auto-populate portrait_seed if not set. Uses nationality
+        // (cultural group proxy), gender, and full name for a deterministic,
+        // gender-aware visual seed.
+        if vip.portrait_seed.is_empty() {
+            vip.portrait_seed = format!("{}-{}-{}", vip.nationality, vip.gender, vip.full_name);
         }
         let id = vip.id.clone();
         let name = vip.full_name.clone();
@@ -875,6 +887,7 @@ mod tests {
             death_cause: None,
             acting_replacement_id: None,
             diplomatic_post: None,
+            portrait_seed: String::new(),
         }
     }
 

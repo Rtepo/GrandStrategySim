@@ -318,12 +318,31 @@ impl Planet {
     pub fn ensure_base_industrial_veins_per_region<R: Rng>(
         &mut self,
         populated_regions: &[(String, f64, f64)],
-        rng: &mut R,
+        _rng: &mut R,
     ) {
-        let base_commodities: &[(Commodity, RarityTier)] = &[
-            (Commodity::Iron, RarityTier::AbundantIndustrial),
-            (Commodity::HardCoal, RarityTier::AbundantIndustrial),
-            (Commodity::BrownCoal, RarityTier::AbundantIndustrial),
+        // Phase 92: Geographic vein diversity — not every region gets every
+        // commodity. Split into ubiquitous (construction materials, ~80%
+        // presence) and industrial (Iron/Coal, ~35% presence). Use a
+        // deterministic hash of (region_id, commodity) to decide presence,
+        // ensuring reproducibility and geographic diversity.
+        //
+        // This creates distinct regional resource profiles: some regions are
+        // mining hubs (Iron + Coal), others have only construction materials,
+        // and some are resource-poor. The market transports resources via
+        // freight, creating trade flows.
+
+        /// Deterministic hash for (region_id, commodity) → u64.
+        fn region_commodity_hash(region_id: &str, commodity: Commodity) -> u64 {
+            use std::collections::hash_map::DefaultHasher;
+            use std::hash::{Hash, Hasher};
+            let mut hasher = DefaultHasher::new();
+            region_id.hash(&mut hasher);
+            commodity.hash(&mut hasher);
+            hasher.finish()
+        }
+
+        // Ubiquitous commodities: present in ~80% of regions.
+        let ubiquitous: &[(Commodity, RarityTier)] = &[
             (Commodity::Stone, RarityTier::AbundantIndustrial),
             (Commodity::Sand, RarityTier::AbundantIndustrial),
             (Commodity::Limestone, RarityTier::Ubiquitous),
@@ -331,9 +350,16 @@ impl Planet {
             (Commodity::Gravel, RarityTier::Ubiquitous),
         ];
 
+        // Industrial commodities: present in ~35% of regions each.
+        let industrial: &[(Commodity, RarityTier)] = &[
+            (Commodity::Iron, RarityTier::AbundantIndustrial),
+            (Commodity::HardCoal, RarityTier::AbundantIndustrial),
+            (Commodity::BrownCoal, RarityTier::AbundantIndustrial),
+        ];
+
         for (region_id, lat, lon) in populated_regions {
-            for &(commodity, tier) in base_commodities {
-                // Check if this region already has a vein for this commodity.
+            // Process ubiquitous commodities (80% presence threshold).
+            for &(commodity, tier) in ubiquitous {
                 let already_has = self.veins.iter().any(|v| {
                     v.commodity == commodity
                         && v.overlapping_regions.iter().any(|r| r == region_id)
@@ -342,11 +368,19 @@ impl Planet {
                     continue;
                 }
 
-                // Generate a vein centered on this region.
+                // Deterministic presence check: hash % 100 < 80 → present
+                let h = region_commodity_hash(region_id, commodity);
+                if h % 100 >= 80 {
+                    continue; // This region doesn't have this commodity
+                }
+
+                // Scale reserves/quality/depth by region-specific hash factor.
                 let (min_reserves, max_reserves) = tier.reserve_range();
-                let total_reserves = rng.gen_range(min_reserves..max_reserves);
-                let quality = rng.gen_range(0.3..1.0);
-                let depth = rng.gen_range(50.0..2000.0);
+                let reserve_factor = 0.5 + (h % 100) as f64 / 100.0 * 0.5; // 0.5–1.0
+                let reserve_range = max_reserves - min_reserves;
+                let total_reserves = min_reserves + reserve_range * reserve_factor;
+                let quality = 0.3 + (h / 100 % 100) as f64 / 100.0 * 0.7; // 0.3–1.0
+                let depth = 50.0 + (h / 10000 % 100) as f64 / 100.0 * 1950.0; // 50–2000
                 let extraction_cost = 1.0 + (depth / 1000.0) + (1.0 - quality) * 0.5;
 
                 let vein_id = format!("VEIN-{:04}", self.veins.len() + 1);
@@ -365,7 +399,51 @@ impl Planet {
                     extraction_cost,
                     quality,
                     depth,
-                    discovered: false, // Will be set by discover_base_industrial_veins
+                    discovered: false,
+                });
+            }
+
+            // Process industrial commodities (35% presence threshold).
+            for &(commodity, tier) in industrial {
+                let already_has = self.veins.iter().any(|v| {
+                    v.commodity == commodity
+                        && v.overlapping_regions.iter().any(|r| r == region_id)
+                });
+                if already_has {
+                    continue;
+                }
+
+                // Deterministic presence check: hash % 100 < 35 → present
+                let h = region_commodity_hash(region_id, commodity);
+                if h % 100 >= 35 {
+                    continue; // This region doesn't have this industrial commodity
+                }
+
+                let (min_reserves, max_reserves) = tier.reserve_range();
+                let reserve_factor = 0.5 + (h % 100) as f64 / 100.0 * 0.5;
+                let reserve_range = max_reserves - min_reserves;
+                let total_reserves = min_reserves + reserve_range * reserve_factor;
+                let quality = 0.3 + (h / 100 % 100) as f64 / 100.0 * 0.7;
+                let depth = 50.0 + (h / 10000 % 100) as f64 / 100.0 * 1950.0;
+                let extraction_cost = 1.0 + (depth / 1000.0) + (1.0 - quality) * 0.5;
+
+                let vein_id = format!("VEIN-{:04}", self.veins.len() + 1);
+                let vein_name = generate_vein_name(commodity, self.veins.len() + 1);
+
+                self.veins.push(GeologicalVein {
+                    id: vein_id,
+                    composite_id: None,
+                    name: vein_name,
+                    commodity,
+                    rarity_tier: tier,
+                    total_reserves,
+                    current_reserves: total_reserves,
+                    cells: vec![(*lat, *lon)],
+                    overlapping_regions: vec![region_id.clone()],
+                    extraction_cost,
+                    quality,
+                    depth,
+                    discovered: false,
                 });
             }
         }

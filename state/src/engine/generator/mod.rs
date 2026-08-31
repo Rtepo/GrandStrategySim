@@ -1267,6 +1267,100 @@ fn sector_share(gdp_share: f64, vulnerability: f64, _tech_limit: usize) -> Secto
     }
 }
 
+/// Phase 92: Labor intensity ratio — maps a sector's GDP share to its
+/// employment share for a given era.
+///
+/// Values >1.0 mean the sector is labor-intensive (employs more workers per
+/// unit of GDP than the average). Values <1.0 mean the sector is capital-
+/// intensive (employs fewer workers per unit of GDP).
+///
+/// In 1900, agriculture was highly labor-intensive (2.5×) because pre-
+/// mechanization farming required many workers per unit of output. Heavy
+/// industry was capital-intensive (0.6×) because factories used expensive
+/// machinery that replaced labor. By 1975, agricultural mechanization reduced
+/// its labor intensity to ~1.0×, while services became slightly less labor-
+/// intensive due to automation.
+fn labor_intensity_ratio(sector: Sector, start_year: StartYear) -> f64 {
+    match start_year {
+        StartYear::Y1900 => match sector {
+            Sector::Agriculture => 2.5,
+            Sector::Mining => 0.8,
+            Sector::HeavyIndustry => 0.6,
+            Sector::LightIndustry => 1.0,
+            Sector::LocalServices => 1.2,
+            Sector::ExportServices => 1.0,
+            Sector::Construction => 1.5,
+            Sector::Energy => 0.5,
+            Sector::PublicServices => 1.3,
+            Sector::MedicalServices => 1.4,
+            Sector::EducationalServices => 1.5,
+            Sector::TransportLogistics => 1.1,
+            Sector::Hospitality => 1.3,
+            Sector::MediaAndEntertainment => 1.2,
+            Sector::MaintenanceWorkshops => 1.3,
+            Sector::ArmamentsIndustry => 0.8,
+            _ => 1.0,
+        },
+        StartYear::Y1925 => match sector {
+            Sector::Agriculture => 2.0,
+            Sector::Mining => 0.8,
+            Sector::HeavyIndustry => 0.7,
+            Sector::LightIndustry => 1.0,
+            Sector::LocalServices => 1.1,
+            Sector::ExportServices => 1.0,
+            Sector::Construction => 1.4,
+            Sector::Energy => 0.6,
+            Sector::PublicServices => 1.2,
+            Sector::MedicalServices => 1.3,
+            Sector::EducationalServices => 1.4,
+            Sector::TransportLogistics => 1.1,
+            Sector::Hospitality => 1.2,
+            Sector::MediaAndEntertainment => 1.1,
+            Sector::MaintenanceWorkshops => 1.2,
+            Sector::ArmamentsIndustry => 0.8,
+            _ => 1.0,
+        },
+        StartYear::Y1950 => match sector {
+            Sector::Agriculture => 1.5,
+            Sector::Mining => 0.8,
+            Sector::HeavyIndustry => 0.8,
+            Sector::LightIndustry => 1.0,
+            Sector::LocalServices => 1.0,
+            Sector::ExportServices => 1.0,
+            Sector::Construction => 1.3,
+            Sector::Energy => 0.6,
+            Sector::PublicServices => 1.1,
+            Sector::MedicalServices => 1.2,
+            Sector::EducationalServices => 1.3,
+            Sector::TransportLogistics => 1.0,
+            Sector::Hospitality => 1.1,
+            Sector::MediaAndEntertainment => 1.0,
+            Sector::MaintenanceWorkshops => 1.1,
+            Sector::ArmamentsIndustry => 0.9,
+            _ => 1.0,
+        },
+        StartYear::Y1975 => match sector {
+            Sector::Agriculture => 1.0,
+            Sector::Mining => 0.9,
+            Sector::HeavyIndustry => 0.9,
+            Sector::LightIndustry => 1.0,
+            Sector::LocalServices => 0.9,
+            Sector::ExportServices => 1.0,
+            Sector::Construction => 1.2,
+            Sector::Energy => 0.7,
+            Sector::PublicServices => 1.1,
+            Sector::MedicalServices => 1.1,
+            Sector::EducationalServices => 1.2,
+            Sector::TransportLogistics => 1.0,
+            Sector::Hospitality => 1.1,
+            Sector::MediaAndEntertainment => 1.0,
+            Sector::MaintenanceWorkshops => 1.1,
+            Sector::ArmamentsIndustry => 0.9,
+            _ => 1.0,
+        },
+    }
+}
+
 fn build_macro_data(
     name: &str,
     cultural: &CulturalBackground,
@@ -1276,7 +1370,7 @@ fn build_macro_data(
     average_wage: f64,
     energy_mix: EnergyMix,
     activity_rate: f64,
-    _start_year: StartYear,
+    start_year: StartYear,
     treasury: &mut Treasury,
     rng: &mut impl Rng,
 ) -> MacroData {
@@ -1285,13 +1379,26 @@ fn build_macro_data(
     let employed_total = (workforce * (1.0 - unemployment_rate / 100.0)).max(0.0);
     let unemployed = (workforce - employed_total).max(0.0);
 
-    // Seed sector employment/extra so `update_gdp_shares_from_employment` has
-    // a deterministic fallback before the first corporate sector is generated.
-    let total_gdp_share: f64 = treasury.sectors.values().map(|s| s.gdp_share).sum();
-    if total_gdp_share > 0.0 {
-        for share in treasury.sectors.values_mut() {
-            let share_emp = (employed_total * (share.gdp_share / total_gdp_share)) as i64;
-            share.extra.insert("zatrudnienie".to_string(), Value::from(share_emp));
+    // Phase 92: Labor-intensity-weighted employment distribution.
+    // GDP share ≠ employment share. In 1900, agriculture had ~40-60% of
+    // employment but only ~15-30% of GDP (low labor productivity). Heavy
+    // industry had ~10-15% of employment but ~20-30% of GDP (high capital
+    // intensity). Using GDP share directly understates agricultural employment
+    // and overstates industrial employment.
+    //
+    // The labor_intensity_ratio maps GDP share → employment share. Values >1.0
+    // mean the sector employs more workers per unit of GDP than average (labor-
+    // intensive). Values <1.0 mean the sector is capital-intensive.
+    let total_weighted: f64 = treasury
+        .sectors
+        .iter()
+        .map(|(sector, s)| s.gdp_share * labor_intensity_ratio(*sector, start_year))
+        .sum();
+    if total_weighted > 0.0 {
+        for (sector, share) in treasury.sectors.iter_mut() {
+            let weight = share.gdp_share * labor_intensity_ratio(*sector, start_year);
+            let share_emp = (employed_total * (weight / total_weighted)) as i64;
+            share.extra.insert("employment".to_string(), Value::from(share_emp));
             share.extra.insert("pmi".to_string(), Value::from(50.0));
         }
     }
@@ -1638,19 +1745,29 @@ fn build_bank_companies(
         let reserves = (total_deposits * central_bank.reserve_requirement_ratio)
             .max(treasury.gdp * 0.02 * size_factor / num_banks as f64);
 
-        // Phase 91: Size Tier 1 capital to survive Working Capital Loan
+        // Phase 91/92: Size Tier 1 capital to survive Working Capital Loan
         // issuance. After loans are issued, total_assets = reserves + deposits
         // + loans_issued. The old formula (gdp * 0.05) was too small — loans
         // expanded assets without expanding equity, causing KNF to liquidate
         // every bank on Turn 0.
         // New approach: Tier 1 must cover (deposits + reserves + estimated_loan_exposure)
         // at 1.5x the KNF minimum ratio (12% if minimum is 8%).
-        // Estimated loan exposure per bank ≈ 15% of GDP / num_banks (working
-        // capital loans typically total ~15% of GDP for seed companies).
+        // Phase 92: The old estimate (15% of GDP) was off by ~22× because it
+        // didn't account for the actual company sizes. With historically
+        // realistic SMEs (50-500 workers) and a 4-turn payroll runway, total
+        // loan exposure is approximately:
+        //   avg_company_fte * avg_wage * 4 turns * num_companies
+        // We estimate this from the workforce and average wage:
+        //   total_payroll ≈ employed_total * avg_wage (one turn)
+        //   total_loan_exposure ≈ total_payroll * 4 turns * 0.5 (only ~50% of
+        //   companies are eligible for loans — heavy CAPEX + services)
         // The safety net in issue_working_capital_loans tops up if this
         // estimate is still insufficient.
         const TARGET_TIER_1_RATIO: f64 = 0.12; // 1.5x the 8% KNF minimum
-        let estimated_loan_exposure = treasury.gdp * 0.15 * size_factor / num_banks as f64;
+        let avg_wage = treasury.gdp / (treasury.population as f64).max(1.0) * 800.0;
+        let workforce = treasury.population as f64 * 0.65; // ~65% activity rate
+        let estimated_total_loan_exposure = workforce * avg_wage * 4.0 * 0.5;
+        let estimated_loan_exposure = estimated_total_loan_exposure * size_factor / num_banks as f64;
         let estimated_total_assets = total_deposits + reserves + estimated_loan_exposure;
         let tier_1_from_ratio = estimated_total_assets * TARGET_TIER_1_RATIO;
         let tier_1_from_gdp = treasury.gdp * 0.05 * size_factor / num_banks as f64;

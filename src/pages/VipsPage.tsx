@@ -99,6 +99,8 @@ export function VipsPage() {
                       >
                         <TableCell className="font-medium">
                           {vip.full_name} {vip.is_dead && <span className="text-red-400">†</span>}
+                          {vip.gender === "F" && <span className="ml-1 text-pink-500" title="Female">♀</span>}
+                          {vip.gender === "M" && <span className="ml-1 text-blue-500" title="Male">♂</span>}
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground" title={vip.company_name ?? undefined}>
                           {vip.roles}

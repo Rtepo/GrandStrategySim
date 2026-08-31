@@ -153,7 +153,7 @@ fn seasonal_profile_for_sector(
 /// * State-owned public-service buildings are generated separately and assigned to
 ///   `owner_id = "State"`.
 /// * `country.budget.private_capital` is updated to the sum of non-state company capital.
-/// * Sector `zatrudnienie` / `pmi` extras are recalculated from the generated buildings.
+/// * Sector `employment` / `pmi` extras are recalculated from the generated buildings.
 pub fn generate_corporate_entities(
     data_dir: &Path,
     country: &mut Country,
@@ -233,7 +233,7 @@ pub fn generate_corporate_entities(
         let sector_name = sector_json_name(sector);
         let target_emp = share
             .extra
-            .get("zatrudnienie")
+            .get("employment")
             .and_then(Value::as_i64)
             .unwrap_or(0)
             .max(0);
@@ -810,6 +810,50 @@ pub fn generate_corporate_entities(
         let _ = company_store.save_sector(&country.name, &sector_name, None, &companies);
     }
 
+    // Phase 92: Labor Pool Balance — ensure total corporate FTE demand does not
+    // exceed the available workforce. Without this, hyper-bidding on Turn 1
+    // causes companies with loan cash to outbid everyone, win all workers, and
+    // then collapse on Turn 2 when their cash is gone.
+    //
+    // The fix: after ALL companies are generated (budget-share + seed + retail +
+    // tourism + charity), compute the total available workforce from all
+    // regions' class demographics. If total corporate FTE demand exceeds 95% of
+    // the available workforce, scale ALL companies' FTE fields proportionally.
+    // This preserves the power-law size distribution while ensuring 5% natural
+    // unemployment at genesis.
+    {
+        let total_available_workforce: f64 = country_regions
+            .iter()
+            .flat_map(|r| {
+                r.class_demographics
+                    .rural_classes
+                    .values()
+                    .chain(r.class_demographics.urban_classes.values())
+            })
+            .map(|d| d.available_fte)
+            .sum();
+        let total_corporate_fte_demand: u64 = all_companies
+            .iter()
+            .map(|c| c.target_fte_demand as u64)
+            .sum();
+        if total_available_workforce > 0.0 && total_corporate_fte_demand > 0 {
+            let max_demand = total_available_workforce * 0.95;
+            if total_corporate_fte_demand as f64 > max_demand {
+                let scale = max_demand / total_corporate_fte_demand as f64;
+                for company in all_companies.iter_mut() {
+                    let new_target = (company.target_fte_demand as f64 * scale).round() as u32;
+                    let new_physical = (company.physical_fte_demand as f64 * scale).round() as u32;
+                    let new_fulfilled = (company.fulfilled_fte as f64 * scale).round() as u32;
+                    let new_prev = (company.prev_fulfilled_fte as f64 * scale).round() as u32;
+                    company.target_fte_demand = new_target.max(1);
+                    company.physical_fte_demand = new_physical.max(1);
+                    company.fulfilled_fte = new_fulfilled;
+                    company.prev_fulfilled_fte = new_prev;
+                }
+            }
+        }
+    }
+
     // Phase 87+/88/89: Working Capital Loans for heavy CAPEX and physical
     // production sectors. Replaces the free "Genesis Payroll Grant" with a
     // legitimate double-entry loan. All heavy CAPEX sectors (Agriculture,
@@ -921,6 +965,21 @@ fn issue_working_capital_loans(
     let mut rng = rand::thread_rng();
     let mut total_loaned = 0.0;
 
+    // Phase 92: Per-bank lending cap — 10× Tier 1 capital. This is a standard
+    // prudential leverage limit. Without it, a single bank could issue
+    // unlimited loans, violating KNF requirements even with the Tier 1 safety
+    // net. Track cumulative lending per bank index.
+    let mut bank_total_lent: Vec<f64> = vec![0.0; bank_companies.len()];
+    let bank_tier1: Vec<f64> = bank_companies
+        .iter()
+        .map(|b| {
+            b.balance_sheet
+                .as_ref()
+                .map(|bs| bs.tier_1_capital)
+                .unwrap_or(0.0)
+        })
+        .collect();
+
     for company in all_companies.iter_mut() {
         // Phase 89/91: Determine per-sector risk premium.
         // Sectors not in this map are not eligible for Working Capital Loans.
@@ -965,14 +1024,15 @@ fn issue_working_capital_loans(
             continue; // State-owned companies don't need loans
         }
 
-        // Phase 90/91: Compute loan principal covering ALL first-turn obligations.
-        // The old formula (payroll * 6 + seed_cost) was insufficient because it
-        // ignored debt service (amortization + interest) and operating overhead.
-        // Companies furloughed on Turn 1 because the runway was effectively 4-5
-        // turns, not 6.
+        // Phase 90/91/92: Compute loan principal covering ALL first-turn obligations.
+        // Phase 92: Reduced payroll runway from 6 to 4 turns. A startup company
+        // begins generating revenue immediately, so 4 turns of payroll is
+        // sufficient runway. The previous 6-turn runway produced principals that
+        // were ~50% larger than necessary, contributing to the 40B fiat
+        // hallucination against ~18B GDP.
         //
         // New formula:
-        //   payroll_principal = initial_fte * initial_wage * 6 turns
+        //   payroll_principal = initial_fte * initial_wage * 4 turns
         //   seed_cost = deducted seed inventory cost
         //   debt_service_reserve = 3 turns of (interest + 1/24 principal)
         //   overhead_reserve = 3 turns of 5% of payroll (proxy for overhead)
@@ -987,7 +1047,7 @@ fn issue_working_capital_loans(
         // happened yet. Use a conservative estimate (margin = 2%, premium from sector).
         let estimated_bank_margin = 0.02;
         let estimated_annual_rate = xibor + estimated_bank_margin + risk_premium;
-        let payroll_principal = initial_fte * initial_wage * 6.0;
+        let payroll_principal = initial_fte * initial_wage * 4.0;
         // First estimate principal without debt service reserve to compute
         // the debt service itself (avoid circular dependency).
         let base_principal = payroll_principal + seed_cost;
@@ -1002,8 +1062,19 @@ fn issue_working_capital_loans(
             continue;
         }
 
-        // Phase 88: Randomly assign this company to one of the eligible banks.
-        let bank_idx = eligible_bank_indices[rng.gen_range(0..eligible_bank_indices.len())];
+        // Phase 88/92: Randomly assign this company to an eligible bank that
+        // hasn't hit its lending cap (10× Tier 1). Filter out capped banks.
+        let available_bank_indices: Vec<usize> = eligible_bank_indices
+            .iter()
+            .copied()
+            .filter(|&i| bank_tier1[i] > 0.0 && bank_total_lent[i] < bank_tier1[i] * 10.0)
+            .collect();
+        if available_bank_indices.is_empty() {
+            // All banks have hit their lending cap — skip this company.
+            continue;
+        }
+        let bank_idx = available_bank_indices[rng.gen_range(0..available_bank_indices.len())];
+        bank_total_lent[bank_idx] += principal;
         let chosen_bank = &mut bank_companies[bank_idx];
         let chosen_bank_id = chosen_bank.id.clone();
         let bank_margin = chosen_bank.loan_margin.unwrap_or(0.02);
@@ -1197,6 +1268,99 @@ fn generate_unions(
     Ok(())
 }
 
+/// Phase 92: Historically realistic target workers per company by sector and era.
+///
+/// In 1900, the vast majority of firms were small workshops and family farms
+/// (10-500 workers). Only a handful of massive industrial trusts (Krupp, US
+/// Steel) had >25,000 workers. The previous flat 1500-worker heuristic produced
+/// absurd monopolies. These targets produce a realistic SME-dominated economy
+/// with a few national champions.
+///
+/// Values represent the AVERAGE company size in each sector. The power-law
+/// distribution in `generate_region_companies` produces variation around this
+/// average — some companies will be smaller, some larger.
+fn target_workers_per_company(sector: Sector, start_year: u32) -> f64 {
+    match start_year {
+        1900 => match sector {
+            Sector::Agriculture => 150.0,       // Small family farms
+            Sector::Mining => 800.0,            // Medium mines
+            Sector::HeavyIndustry => 2500.0,    // Large plants (Krupp-scale)
+            Sector::LightIndustry => 300.0,     // Workshops/small factories
+            Sector::LocalServices => 50.0,      // Small shops/taverns
+            Sector::ExportServices => 150.0,    // Medium trading firms
+            Sector::Construction => 150.0,      // Medium construction firms
+            Sector::Energy => 250.0,            // Medium power plants
+            Sector::PublicServices => 100.0,    // Medium state offices
+            Sector::MedicalServices => 80.0,    // Small clinics/hospitals
+            Sector::EducationalServices => 60.0, // Small schools
+            Sector::TransportLogistics => 200.0, // Medium transport firms
+            Sector::Hospitality => 60.0,        // Small hotels/taverns
+            Sector::MediaAndEntertainment => 50.0, // Small publishers
+            Sector::MaintenanceWorkshops => 40.0,  // Small workshops
+            Sector::ArmamentsIndustry => 1000.0,   // Large arsenals
+            _ => 200.0,
+        },
+        1925 => match sector {
+            Sector::Agriculture => 200.0,
+            Sector::Mining => 1000.0,
+            Sector::HeavyIndustry => 3000.0,
+            Sector::LightIndustry => 400.0,
+            Sector::LocalServices => 60.0,
+            Sector::ExportServices => 200.0,
+            Sector::Construction => 200.0,
+            Sector::Energy => 350.0,
+            Sector::PublicServices => 120.0,
+            Sector::MedicalServices => 100.0,
+            Sector::EducationalServices => 80.0,
+            Sector::TransportLogistics => 250.0,
+            Sector::Hospitality => 80.0,
+            Sector::MediaAndEntertainment => 70.0,
+            Sector::MaintenanceWorkshops => 50.0,
+            Sector::ArmamentsIndustry => 1500.0,
+            _ => 250.0,
+        },
+        1950 => match sector {
+            Sector::Agriculture => 300.0,
+            Sector::Mining => 1200.0,
+            Sector::HeavyIndustry => 4000.0,
+            Sector::LightIndustry => 600.0,
+            Sector::LocalServices => 80.0,
+            Sector::ExportServices => 300.0,
+            Sector::Construction => 300.0,
+            Sector::Energy => 500.0,
+            Sector::PublicServices => 150.0,
+            Sector::MedicalServices => 150.0,
+            Sector::EducationalServices => 100.0,
+            Sector::TransportLogistics => 350.0,
+            Sector::Hospitality => 100.0,
+            Sector::MediaAndEntertainment => 100.0,
+            Sector::MaintenanceWorkshops => 70.0,
+            Sector::ArmamentsIndustry => 2000.0,
+            _ => 350.0,
+        },
+        _ => match sector {
+            // 1975+
+            Sector::Agriculture => 500.0,
+            Sector::Mining => 1500.0,
+            Sector::HeavyIndustry => 5000.0,
+            Sector::LightIndustry => 800.0,
+            Sector::LocalServices => 100.0,
+            Sector::ExportServices => 400.0,
+            Sector::Construction => 400.0,
+            Sector::Energy => 700.0,
+            Sector::PublicServices => 200.0,
+            Sector::MedicalServices => 200.0,
+            Sector::EducationalServices => 150.0,
+            Sector::TransportLogistics => 500.0,
+            Sector::Hospitality => 150.0,
+            Sector::MediaAndEntertainment => 150.0,
+            Sector::MaintenanceWorkshops => 100.0,
+            Sector::ArmamentsIndustry => 3000.0,
+            _ => 500.0,
+        },
+    }
+}
+
 /// Generate a competitive, power-law distributed set of companies for one
 /// sector in one region.
 ///
@@ -1227,15 +1391,21 @@ fn generate_region_companies(
         return Vec::new();
     }
 
-    // Determine how many firms can realistically operate in this market.
-    // Small regions still get at least three competitors; huge markets cap at 20.
-    // Phase 44: For Agriculture, scale company count by arable land.
+    // Phase 92: Historically realistic company size distribution.
+    // Instead of a flat 1500-workers-per-company heuristic that produces
+    // absurd 90K-worker monopolies, use sector-and-era-specific target sizes.
+    // This produces many small farms/workshops and a few large industrial
+    // plants, matching historical reality.
+    let target_size = target_workers_per_company(sector, start_year);
     let company_count = if sector == Sector::Agriculture {
         // Agriculture: scale by arable land. More arable land = more farms.
         let arable_scale = (region.arable_land_max as f64 / 10_000.0).max(1.0);
-        (region_emp / 1500.0 * arable_scale).round().max(3.0).min(20.0) as usize
+        (region_emp / target_size * arable_scale)
+            .round()
+            .max(3.0)
+            .min(200.0) as usize
     } else {
-        (region_emp / 1500.0).round().max(3.0).min(20.0) as usize
+        (region_emp / target_size).round().max(3.0).min(200.0) as usize
     };
 
     // Phase 44: Compute diversified methods for this sector (one call per region).
@@ -1412,6 +1582,8 @@ fn generate_region_companies(
             offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0),
             prev_offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0).max(50.0),
             wage_arrears: 0.0,
+            wages_paid_this_turn: 0.0,
+            arrears_accrued_this_turn: 0.0,
             severance_arrears: 0.0,
             furlough_turns_accumulated: 0,
             productivity_penalty: 0.0,
@@ -2617,6 +2789,8 @@ fn create_seed_company_with_explicit_method(
         offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0),
         prev_offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0).max(50.0),
         wage_arrears: 0.0,
+            wages_paid_this_turn: 0.0,
+            arrears_accrued_this_turn: 0.0,
         severance_arrears: 0.0,
         furlough_turns_accumulated: 0,
         productivity_penalty: 0.0,
@@ -3064,6 +3238,8 @@ fn create_seed_company(
         offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0),
         prev_offered_wage_per_fte: (company_liquid * 0.6 / (actual_capacity as f64).max(1.0)).max(1.0).max(50.0),
         wage_arrears: 0.0,
+            wages_paid_this_turn: 0.0,
+            arrears_accrued_this_turn: 0.0,
         severance_arrears: 0.0,
         furlough_turns_accumulated: 0,
         productivity_penalty: 0.0,
@@ -3903,6 +4079,8 @@ fn create_strategic_reserve_agency(
         offered_wage_per_fte: 0.0,
         prev_offered_wage_per_fte: 0.0,
         wage_arrears: 0.0,
+            wages_paid_this_turn: 0.0,
+            arrears_accrued_this_turn: 0.0,
         severance_arrears: 0.0,
         furlough_turns_accumulated: 0,
         productivity_penalty: 0.0,
@@ -4224,6 +4402,8 @@ fn generate_retail_stores(
             offered_wage_per_fte: (company_liquid * 0.6 / (base_capacity as f64).max(1.0)).max(1.0),
             prev_offered_wage_per_fte: (company_liquid * 0.6 / (base_capacity as f64).max(1.0)).max(1.0).max(50.0),
             wage_arrears: 0.0,
+            wages_paid_this_turn: 0.0,
+            arrears_accrued_this_turn: 0.0,
             severance_arrears: 0.0,
             furlough_turns_accumulated: 0,
             productivity_penalty: 0.0,
@@ -4603,6 +4783,8 @@ fn generate_tourism_entities(
                 offered_wage_per_fte: base_wage * 0.5,
                 prev_offered_wage_per_fte: (base_wage * 0.5).max(50.0),
                 wage_arrears: 0.0,
+            wages_paid_this_turn: 0.0,
+            arrears_accrued_this_turn: 0.0,
                 severance_arrears: 0.0,
                 furlough_turns_accumulated: 0,
                 productivity_penalty: 0.0,
@@ -5121,6 +5303,8 @@ fn create_charity_company(
         offered_wage_per_fte: subsistence_wage,
         prev_offered_wage_per_fte: subsistence_wage.max(50.0),
         wage_arrears: 0.0,
+            wages_paid_this_turn: 0.0,
+            arrears_accrued_this_turn: 0.0,
         severance_arrears: 0.0,
         furlough_turns_accumulated: 0,
         productivity_penalty: 0.0,
@@ -5355,6 +5539,8 @@ pub fn generate_investment_funds(
             offered_wage_per_fte: 5000.0,
             prev_offered_wage_per_fte: 5000.0,
             wage_arrears: 0.0,
+            wages_paid_this_turn: 0.0,
+            arrears_accrued_this_turn: 0.0,
             severance_arrears: 0.0,
             furlough_turns_accumulated: 0,
             productivity_penalty: 0.0,

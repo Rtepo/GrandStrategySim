@@ -173,6 +173,16 @@ pub fn resolve_regional_labor_market(
         commuter_fte: 0.0,
     };
 
+    // Phase 92: Reset transient wage tracking fields for all companies in this
+    // region. These fields are set during payroll processing and read by
+    // process_company to compute the true wage expense (including arrears).
+    for company in companies.iter_mut() {
+        if company.region_id == region.id {
+            company.wages_paid_this_turn = 0.0;
+            company.arrears_accrued_this_turn = 0.0;
+        }
+    }
+
     // Phase 1: Extract and Validate Bids
 
     // 1. Filter companies by region_id
@@ -450,6 +460,9 @@ pub fn resolve_regional_labor_market(
             } else {
                 company.available_cash -= wage_payment;
             }
+            // Phase 92: Track transient wage flow for financial history.
+            company.wages_paid_this_turn = wage_payment;
+            company.arrears_accrued_this_turn = 0.0;
             wage_payment
         } else {
             // Company cannot afford full payroll — pay what's available,
@@ -464,6 +477,9 @@ pub fn resolve_regional_labor_market(
                 }
             }
             company.wage_arrears += arrears_this_turn;
+            // Phase 92: Track transient wage flow for financial history.
+            company.wages_paid_this_turn = payable;
+            company.arrears_accrued_this_turn = arrears_this_turn;
             payable
         };
 

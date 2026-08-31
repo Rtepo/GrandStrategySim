@@ -493,7 +493,15 @@ export type DynastyMemberRow = { vip_id: string, name: string, relation: string,
 /**
  * Phase 86: Genealogy links.
  */
-father_vip_id: string | null, mother_vip_id: string | null, spouse_vip_id: string | null, children_vip_ids: Array<string>, is_dead: boolean, death_cause: string | null, };
+father_vip_id: string | null, mother_vip_id: string | null, spouse_vip_id: string | null, children_vip_ids: Array<string>, is_dead: boolean, death_cause: string | null, 
+/**
+ * Phase 92: Gender for visual indicators.
+ */
+gender: string, 
+/**
+ * Phase 92: Portrait seed for deterministic avatar generation.
+ */
+portrait_seed: string, };
 
 /**
  * State of Emergency snapshot.
@@ -1762,7 +1770,15 @@ export type VipDossierRow = { id: string, full_name: string, roles: string, age:
 /**
  * Phase 54: Company name if this VIP is a CEO (for tooltip display).
  */
-company_name: string | null, };
+company_name: string | null, 
+/**
+ * Phase 92: Gender for visual indicators.
+ */
+gender: string, 
+/**
+ * Phase 92: Portrait seed for deterministic avatar generation.
+ */
+portrait_seed: string, };
 
 /**
  * Filter for the VIP explorer list.

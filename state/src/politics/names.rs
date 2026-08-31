@@ -379,6 +379,45 @@ pub fn generate_key_vip(
     vip
 }
 
+/// Phase 92: Generate a full VIP name with a SPECIFIC gender.
+///
+/// Unlike `generate_full_vip` which randomly selects gender (70% male), this
+/// function always uses the specified gender. Used for royal consorts and
+/// spouses where the gender is determined by the monarch's gender (opposite).
+pub fn generate_full_vip_with_gender(
+    cultural_group: &str,
+    gender: &str,
+    rng: &mut impl Rng,
+) -> VipName {
+    generate_person_name(cultural_group, gender, rng)
+}
+
+/// Phase 92: Generate a unique VIP name for KEY POLITICAL FIGURES with a
+/// SPECIFIC gender.
+///
+/// This is the gender-aware variant of `generate_key_vip`. It uses the
+/// specified gender for name generation while retaining the 50-iteration
+/// uniqueness cap and duplicate-on-exhaust behavior. Used for royal consorts
+/// and heirs where the gender is predetermined.
+pub fn generate_key_vip_with_gender(
+    cultural_group: &str,
+    gender: &str,
+    rng: &mut impl Rng,
+    used_names: &mut std::collections::HashSet<String>,
+) -> VipName {
+    for _ in 0..50 {
+        let vip = generate_person_name(cultural_group, gender, rng);
+        if !used_names.contains(&vip.full_name) {
+            used_names.insert(vip.full_name.clone());
+            return vip;
+        }
+    }
+    // Pool exhausted — return a duplicate rather than hanging.
+    let vip = generate_person_name(cultural_group, gender, rng);
+    used_names.insert(vip.full_name.clone());
+    vip
+}
+
 /// Phase 33: Convert a generated VipName into a Leader struct.
 ///
 /// Populates name, gender, age, and sensible defaults for views/traits

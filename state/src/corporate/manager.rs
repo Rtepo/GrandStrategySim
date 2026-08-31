@@ -786,12 +786,14 @@ pub fn process_company(
     company.company_capital = company.fixed_capital + company.liquid_capital - company.liabilities;
 
     // 9. Financial history ring buffer.
-    // Phase 90: Accrual accounting — record full wage obligation as expense.
-    // Wages are paid in the labor market phase (labor_market.rs), not here.
-    // The full payroll obligation (fulfilled_fte * offered_wage_per_fte) is
-    // recorded as wage_expense, and operating_costs includes it. This ensures
-    // companies with wage arrears show non-zero expenses and negative net profit.
-    let wage_expense = (company.fulfilled_fte as f64) * company.offered_wage_per_fte;
+    // Phase 90/92: Accrual accounting — record the ACTUAL wage flow from the
+    // labor market phase, not a recomputed estimate. The transient fields
+    // `wages_paid_this_turn` and `arrears_accrued_this_turn` are set by the
+    // labor market and capture the true wage obligation: what was actually paid
+    // plus what was accrued as arrears. The old formula
+    // (fulfilled_fte * offered_wage_per_fte) could be zero if the company was
+    // furloughed after the labor market, hiding millions in arrears.
+    let wage_expense = company.wages_paid_this_turn + company.arrears_accrued_this_turn;
     let record = Value::Object(
         [
             ("year".to_string(), Value::from(year)),
@@ -1362,6 +1364,22 @@ pub fn set_wage_offers(companies: &mut [Company], market_average_wage: f64) {
         // Phase 34: Sanity cap at 3× market average with 5000 floor.
         let sane_max = (market_average_wage * 3.0).max(5000.0);
         let capped_wage = computed_wage.min(sane_max);
+
+        // Phase 92: Revenue-aware wage cap. If the company's recent profit
+        // (from financial history) was below its wage bill (revenue
+        // insufficient to cover payroll), cap the offered wage at 90% of
+        // market average. This prevents unprofitable companies from bidding
+        // above their revenue capacity using loan cash — a rational cost-
+        // cutting response to losses.
+        let last_wage_bill = (company.fulfilled_fte as f64) * company.prev_offered_wage_per_fte;
+        let recent_profit = company.moving_avg_net_profit(3);
+        let revenue_constrained = recent_profit < 0.0
+            || (last_wage_bill > 0.0 && recent_profit < last_wage_bill);
+        let capped_wage = if revenue_constrained && market_average_wage > 0.0 {
+            capped_wage.min(market_average_wage * 0.9)
+        } else {
+            capped_wage
+        };
 
         // Phase 38/39/40: Keynesian Symmetric Wage Rigidity.
         let final_wage = if company.prev_offered_wage_per_fte > 0.0 {

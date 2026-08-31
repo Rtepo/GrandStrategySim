@@ -1417,8 +1417,11 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
         });
 
         // Generate a royal consort (spouse for the monarch).
+        // Phase 92: Use gender-aware key VIP generation to ensure the consort's
+        // name matches their assigned gender (e.g., female consort gets a
+        // female first name, not a male name).
         let consort_gender = if monarch_gender == "M" { "F" } else { "M" };
-        let consort_vip_name = super::names::generate_key_vip(cultural_group, rng, &mut used_names);
+        let consort_vip_name = super::names::generate_key_vip_with_gender(cultural_group, consort_gender, rng, &mut used_names);
         let (consort_traits, consort_main_trait) = assign_core_traits(rng);
         let consort_vip_id = registry.register_new(Vip {
             full_name: consort_vip_name.full_name.clone(),
@@ -1462,8 +1465,10 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
         let num_heirs = if monarch_age >= 25 { 2 } else { 1 };
         let mut children_ids = Vec::new();
         for heir_idx in 0..num_heirs {
-            let heir_vip_name = super::names::generate_key_vip(cultural_group, rng, &mut used_names);
+            // Phase 92: Select heir gender FIRST, then generate name with that
+            // gender to ensure name-gender consistency.
             let heir_gender = if rng.gen::<f64>() < 0.5 { "M" } else { "F" };
+            let heir_vip_name = super::names::generate_key_vip_with_gender(cultural_group, heir_gender, rng, &mut used_names);
             let (heir_traits, heir_main_trait) = assign_core_traits(rng);
             let heir_age = if monarch_age > 30 { rng.gen_range(5..25) } else { rng.gen_range(1..10) };
             let heir_vip_id = registry.register_new(Vip {
@@ -1507,6 +1512,155 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
         }
         if let Some(consort_member) = royal_dynasty.members.iter_mut().find(|m| m.vip_id == consort_vip_id) {
             consort_member.children_vip_ids = children_ids;
+        }
+
+        // Phase 92: Extended royal dynasty — siblings, uncles/aunts, cousins.
+        // This creates a realistic royal court with multiple family members
+        // in the line of succession, not just monarch + consort + children.
+        let mut next_succession_order = (num_heirs + 1) as u32;
+
+        // 1. Generate 1-2 siblings of the monarch (princes/princesses).
+        let num_siblings = 1 + rng.gen_range(0..2); // 1-2 siblings
+        let mut sibling_ids = Vec::new();
+        for _ in 0..num_siblings {
+            let sibling_gender = if rng.gen::<f64>() < 0.5 { "M" } else { "F" };
+            let sibling_name = super::names::generate_key_vip_with_gender(cultural_group, sibling_gender, rng, &mut used_names);
+            let (sib_traits, sib_main_trait) = assign_core_traits(rng);
+            let sibling_age = (monarch_age as i32 + rng.gen_range(-5..6)).max(18) as u32;
+            let sibling_vip_id = registry.register_new(Vip {
+                full_name: sibling_name.full_name.clone(),
+                gender: sibling_gender.to_string(),
+                age: sibling_age.max(18),
+                health: crate::politics::vip_registry::VipHealth { physical_health: 0.9, mental_health: 0.9 },
+                traits: sib_traits,
+                main_trait: sib_main_trait,
+                ideology: String::new(),
+                religion: country.macro_indicators.religion.clone(),
+                nationality: country.name.clone(),
+                dynasty: Some(dynasty_name.clone()),
+                roles: vec![VipRoleExtended::RoyalHeir],
+                base_influence: 10,
+                faction: "Royal Court".to_string(),
+                ..Default::default()
+            });
+            royal_dynasty.members.push(super::succession::RoyalFamilyMember {
+                vip_id: sibling_vip_id.clone(),
+                relation: super::succession::RoyalRelation::Sibling,
+                birth_turn: 0,
+                is_legitimate: true,
+                is_heir_apparent: false,
+                succession_order: next_succession_order,
+                father_vip_id: None, // Siblings share monarch's parents (not tracked)
+                mother_vip_id: None,
+                spouse_vip_id: None,
+                children_vip_ids: Vec::new(),
+                marriage_turn: None,
+                death_turn: None,
+                death_cause: None,
+            });
+            next_succession_order += 1;
+            sibling_ids.push(sibling_vip_id);
+        }
+
+        // 2. Generate 1-2 uncles/aunts (older than monarch).
+        let num_uncles_aunts = 1 + rng.gen_range(0..2); // 1-2 uncles/aunts
+        let mut uncle_aunt_ids = Vec::new();
+        for _ in 0..num_uncles_aunts {
+            let ua_gender = if rng.gen::<f64>() < 0.5 { "M" } else { "F" };
+            let ua_name = super::names::generate_key_vip_with_gender(cultural_group, ua_gender, rng, &mut used_names);
+            let (ua_traits, ua_main_trait) = assign_core_traits(rng);
+            let ua_age = monarch_age + 15 + rng.gen_range(0..11); // 15-25 years older
+            let ua_vip_id = registry.register_new(Vip {
+                full_name: ua_name.full_name.clone(),
+                gender: ua_gender.to_string(),
+                age: ua_age,
+                health: crate::politics::vip_registry::VipHealth { physical_health: 0.8, mental_health: 0.8 },
+                traits: ua_traits,
+                main_trait: ua_main_trait,
+                ideology: String::new(),
+                religion: country.macro_indicators.religion.clone(),
+                nationality: country.name.clone(),
+                dynasty: Some(dynasty_name.clone()),
+                roles: vec![],
+                base_influence: 8,
+                faction: "Royal Court".to_string(),
+                ..Default::default()
+            });
+            let relation = if ua_gender == "M" {
+                super::succession::RoyalRelation::Uncle
+            } else {
+                super::succession::RoyalRelation::Aunt
+            };
+            royal_dynasty.members.push(super::succession::RoyalFamilyMember {
+                vip_id: ua_vip_id.clone(),
+                relation,
+                birth_turn: 0,
+                is_legitimate: true,
+                is_heir_apparent: false,
+                succession_order: next_succession_order,
+                father_vip_id: None,
+                mother_vip_id: None,
+                spouse_vip_id: None,
+                children_vip_ids: Vec::new(),
+                marriage_turn: None,
+                death_turn: None,
+                death_cause: None,
+            });
+            next_succession_order += 1;
+            uncle_aunt_ids.push(ua_vip_id);
+        }
+
+        // 3. Generate 0-2 cousins (children of uncles/aunts).
+        let num_cousins = rng.gen_range(0..3); // 0-2 cousins
+        for _ in 0..num_cousins {
+            let cousin_gender = if rng.gen::<f64>() < 0.5 { "M" } else { "F" };
+            let cousin_name = super::names::generate_key_vip_with_gender(cultural_group, cousin_gender, rng, &mut used_names);
+            let (c_traits, c_main_trait) = assign_core_traits(rng);
+            let cousin_age = if monarch_age > 10 { monarch_age - 10 + rng.gen_range(0..11) } else { rng.gen_range(1..10) };
+            let cousin_vip_id = registry.register_new(Vip {
+                full_name: cousin_name.full_name.clone(),
+                gender: cousin_gender.to_string(),
+                age: cousin_age.max(1),
+                health: crate::politics::vip_registry::VipHealth { physical_health: 0.9, mental_health: 0.9 },
+                traits: c_traits,
+                main_trait: c_main_trait,
+                ideology: String::new(),
+                religion: country.macro_indicators.religion.clone(),
+                nationality: country.name.clone(),
+                dynasty: Some(dynasty_name.clone()),
+                roles: vec![],
+                base_influence: 5,
+                faction: "Royal Court".to_string(),
+                ..Default::default()
+            });
+            // Link cousin to a random uncle/aunt as parent.
+            let parent_id = if uncle_aunt_ids.is_empty() {
+                None
+            } else {
+                Some(uncle_aunt_ids[rng.gen_range(0..uncle_aunt_ids.len())].clone())
+            };
+            royal_dynasty.members.push(super::succession::RoyalFamilyMember {
+                vip_id: cousin_vip_id.clone(),
+                relation: super::succession::RoyalRelation::Cousin,
+                birth_turn: 0,
+                is_legitimate: true,
+                is_heir_apparent: false,
+                succession_order: next_succession_order,
+                father_vip_id: if cousin_gender == "M" { parent_id.clone() } else { None },
+                mother_vip_id: if cousin_gender == "F" { parent_id.clone() } else { None },
+                spouse_vip_id: None,
+                children_vip_ids: Vec::new(),
+                marriage_turn: None,
+                death_turn: None,
+                death_cause: None,
+            });
+            // Link cousin to uncle/aunt's children list.
+            if let Some(pid) = &parent_id {
+                if let Some(parent_member) = royal_dynasty.members.iter_mut().find(|m| &m.vip_id == pid) {
+                    parent_member.children_vip_ids.push(cousin_vip_id);
+                }
+            }
+            next_succession_order += 1;
         }
 
         country.politics.royal_dynasty = Some(royal_dynasty);

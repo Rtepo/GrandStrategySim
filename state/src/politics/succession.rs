@@ -72,6 +72,10 @@ pub enum RoyalRelation {
     Sibling,
     /// Extended royal family (cousin, nephew, etc.).
     Cousin,
+    /// Phase 92: Uncle of the monarch (brother of the monarch's parent).
+    Uncle,
+    /// Phase 92: Aunt of the monarch (sister of the monarch's parent).
+    Aunt,
     /// Acting ruler during minority/incapacity.
     Regent,
 }
@@ -256,13 +260,15 @@ pub fn process_dynasty_turn(
 
         if monarch_unmarried && monarch_age >= 18 && !monarch_is_dead {
             // Generate a spouse VIP.
+            // Phase 92: Select spouse gender FIRST, then generate name with
+            // that gender to ensure name-gender consistency.
             let mut rng = rand::thread_rng();
-            let spouse_name = crate::politics::names::generate_full_vip(culture, &mut rng);
             let spouse_gender = if registry.get(&monarch_id).map(|v| v.gender.as_str()).unwrap_or("M") == "M" {
                 "F"
             } else {
                 "M"
             };
+            let spouse_name = crate::politics::names::generate_full_vip_with_gender(culture, spouse_gender, &mut rng);
 
             let (traits, main_trait) = crate::politics::vip_registry::assign_core_traits(&mut rng);
 
@@ -291,6 +297,7 @@ pub fn process_dynasty_turn(
                 death_cause: None,
                 acting_replacement_id: None,
                 diplomatic_post: None,
+                portrait_seed: String::new(),
             };
 
             let spouse_vip_id = registry.register_new(spouse_vip);
@@ -424,6 +431,7 @@ pub fn process_dynasty_turn(
                 death_cause: None,
                 acting_replacement_id: None,
                 diplomatic_post: None,
+                portrait_seed: String::new(),
             };
 
             let child_vip_id = registry.register_new(child_vip);
@@ -812,8 +820,10 @@ fn select_regent<R: rand::Rng>(
         RoyalRelation::Sibling => 1,
         RoyalRelation::Cousin => 2,
         RoyalRelation::Child => 3, // Adult child could also be regent
-        RoyalRelation::Regent => 4,
-        RoyalRelation::Monarch => 5,
+        RoyalRelation::Uncle => 4,
+        RoyalRelation::Aunt => 5,
+        RoyalRelation::Regent => 6,
+        RoyalRelation::Monarch => 7,
     });
 
     // Find first candidate who is alive and adult.

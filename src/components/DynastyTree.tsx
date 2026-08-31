@@ -77,6 +77,8 @@ export function DynastyTree({ dynasty }: DynastyTreeProps) {
           <span className="text-sm font-medium">
             <VipHoverCard vipId={member.vip_id}>{member.name}</VipHoverCard>
           </span>
+          {member.gender === "F" && <span className="text-pink-500 text-xs" title="Female">♀</span>}
+          {member.gender === "M" && <span className="text-blue-500 text-xs" title="Male">♂</span>}
           <Badge variant="outline" className="text-xs">{member.relation}</Badge>
           {isMonarch && <span title="Monarch">👑</span>}
           {isHeir && <Badge variant="secondary" className="text-xs">Heir #{member.succession_order}</Badge>}
