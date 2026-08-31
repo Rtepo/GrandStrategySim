@@ -54,6 +54,15 @@ pub fn process_companies(
             .push(idx);
     }
 
+    // Index map for O(1) company/bank lookup during interest distribution and M&A.
+    let company_id_to_idx: HashMap<String, usize> = companies
+        .iter()
+        .enumerate()
+        .map(|(i, c)| (c.id.clone(), i))
+        .collect();
+
+    let mut per_company_interest: Vec<f64> = vec![0.0; companies.len()];
+
     for i in 0..companies.len() {
         let company_id = companies[i].id.clone();
         let company_building_ids = companies[i].building_ids.clone();
@@ -93,25 +102,11 @@ pub fn process_companies(
             companies[i].annual_profit_accumulator += total_profit;
         }
 
-        // Phase 24A.3: Route interest to the lending bank (fixes Black Hole #3).
-        // Previously, interest was subtracted from liquid_capital but never credited
-        // to any bank — money was destroyed. Now we credit the lending bank's reserves.
-        if interest_paid > 0.0 {
-            let loan_bank_id = companies[i].outstanding_loan_bank_id.clone();
-            let has_liabilities = companies[i].liabilities > 0.0;
-            if let Some(bank_id) = loan_bank_id {
-                // Credit the lending bank's reserves with the interest payment
-                if let Some(bank) = companies.iter_mut().find(|c| c.id == bank_id) {
-                    if let Some(ref mut bs) = bank.balance_sheet {
-                        bs.reserves_at_central_bank += interest_paid;
-                    }
-                }
-            } else if has_liabilities {
-                // Invalid state: liabilities exist but no lending bank.
-                // Per the plan: wipe liabilities entirely (no short-term patches).
-                companies[i].liabilities = 0.0;
-            }
-        }
+        // Phase 24A.3: Store interest for later distribution across all loans.
+        // Multi-loan interest is distributed pro-rata to each lending bank after
+        // the main loop, preserving index stability and avoiding per-iteration
+        // `iter_mut().find` scans.
+        per_company_interest[i] = interest_paid;
 
         // Phase 24A.3 / Phase 77: If liabilities increased (new loan taken via
         // BankLoan), route through issue_loan() which enforces fractional reserve
@@ -178,7 +173,15 @@ pub fn process_companies(
                 );
 
                 if let Ok(lr) = loan_result {
-                    companies[i].outstanding_loan_bank_id = Some(bank_id);
+                    companies[i].outstanding_loans.push(crate::state::banking::LoanRef {
+                        loan_id: lr.loan.id.clone(),
+                        bank_id,
+                        principal: lr.loan.principal,
+                        outstanding_balance: lr.loan.outstanding_balance,
+                        interest_rate: lr.loan.interest_rate,
+                        term_turns: lr.loan.term_turns,
+                        status: lr.loan.status.clone(),
+                    });
                     // Double-entry: borrower receives principal as cash
                     companies[i].available_cash += lr.principal_amount;
                     if let Some(ref mut ba) = companies[i].brokerage_account {
@@ -253,6 +256,31 @@ pub fn process_companies(
             companies[i].aggregated_stats.total_employment = building.current_employment * scale;
             companies[i].aggregated_stats.total_production = building.last_production.clone();
             companies[i].aggregated_stats.total_dividends = total_profit.max(0.0);
+        }
+    }
+
+    // Phase 24A.3: Distribute interest payments to all lending banks.
+    // Pro-rata by outstanding balance, using the pre-computed index map.
+    let mut bank_interest: HashMap<String, f64> = HashMap::new();
+    for (i, company) in companies.iter().enumerate() {
+        let interest = per_company_interest[i];
+        if interest <= 0.0 {
+            continue;
+        }
+        let loan_balance: f64 = company.outstanding_loans.iter().map(|l| l.outstanding_balance).sum();
+        if loan_balance <= 0.0 {
+            continue;
+        }
+        for loan in &company.outstanding_loans {
+            let share = loan.outstanding_balance / loan_balance;
+            *bank_interest.entry(loan.bank_id.clone()).or_insert(0.0) += interest * share;
+        }
+    }
+    for (bank_id, amount) in bank_interest {
+        if let Some(&idx) = company_id_to_idx.get(&bank_id) {
+            if let Some(ref mut bs) = companies[idx].balance_sheet {
+                bs.reserves_at_central_bank += amount;
+            }
         }
     }
 

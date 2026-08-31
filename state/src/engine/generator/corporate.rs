@@ -8,6 +8,7 @@
 //! companies (1-2 large players, 3-5 medium firms, and many small firms) while
 //! still using `scale_factor` on individual buildings to keep simulation cost low.
 
+use crate::corporate::capital_intensity::{minimum_capital_for_sector, CapitalIntensity, sector_capital_intensity};
 use crate::economy::{update_gdp_shares_from_employment, CountryTurnCtx};
 use crate::economy::fixed_assets::FixedAssetCohort;
 use crate::entities::{
@@ -24,6 +25,7 @@ use crate::registries::Registries;
 use crate::society::geography::{ClimateProfile, Region};
 use crate::society::planet::Planet;
 use crate::state::{Country, Season};
+use crate::state::macro_data::TURNS_PER_YEAR;
 use rand::seq::SliceRandom;
 use rand::Rng;
 use serde_json::{Map, Value};
@@ -279,6 +281,7 @@ pub fn generate_corporate_entities(
                 region_fixed,
                 region_liquid,
                 start_year,
+                base_wage,
                 registries,
                 &mut idgen,
                 &cultural_group,
@@ -930,7 +933,7 @@ fn issue_working_capital_loans(
     _start_year: u32,
 ) -> Result<(), Box<dyn Error>> {
     use crate::io::entity_store::{DiskEntityStore, EntityStore};
-    use crate::state::banking::{Loan, LoanStatus, InterestType, LoanType, BankType};
+    use crate::state::banking::{Loan, LoanRef, LoanStatus, InterestType, LoanType, BankType};
 
     // Load ALL bank companies from disk.
     let bank_store = DiskEntityStore::<Company>::new(data_dir);
@@ -1080,12 +1083,6 @@ fn issue_working_capital_loans(
         let bank_margin = chosen_bank.loan_margin.unwrap_or(0.02);
         let interest_rate = xibor + bank_margin + risk_premium;
 
-        // Double-entry: Company receives cash (asset) and records liability.
-        company.available_cash += principal;
-        company.liabilities += principal;
-        company.primary_bank_id = Some(chosen_bank_id.clone());
-        company.outstanding_loan_bank_id = Some(chosen_bank_id.clone());
-
         // Create the Loan record.
         let loan_id = format!("WCL-{}-{}", code, company.id);
         let loan = Loan {
@@ -1107,11 +1104,19 @@ fn issue_working_capital_loans(
             ..Default::default()
         };
 
-        // Store loan reference in company's extra map.
-        company.extra.insert(
-            "genesis_loan_id".to_string(),
-            serde_json::Value::String(loan_id.clone()),
-        );
+        // Double-entry: Company receives cash (asset) and records liability.
+        company.available_cash += principal;
+        company.liabilities += principal;
+        company.primary_bank_id = Some(chosen_bank_id.clone());
+        company.outstanding_loans.push(LoanRef {
+            loan_id: loan_id.clone(),
+            bank_id: chosen_bank_id.clone(),
+            principal,
+            outstanding_balance: principal,
+            interest_rate,
+            term_turns: 24,
+            status: LoanStatus::Current,
+        });
 
         // Phase 88 CORRECTED Double-entry: Bank's loan asset increases AND
         // deposits (liability) increase. This is fractional-reserve banking:
@@ -1276,89 +1281,16 @@ fn generate_unions(
 /// absurd monopolies. These targets produce a realistic SME-dominated economy
 /// with a few national champions.
 ///
-/// Values represent the AVERAGE company size in each sector. The power-law
-/// distribution in `generate_region_companies` produces variation around this
-/// average — some companies will be smaller, some larger.
-fn target_workers_per_company(sector: Sector, start_year: u32) -> f64 {
-    match start_year {
-        1900 => match sector {
-            Sector::Agriculture => 150.0,       // Small family farms
-            Sector::Mining => 800.0,            // Medium mines
-            Sector::HeavyIndustry => 2500.0,    // Large plants (Krupp-scale)
-            Sector::LightIndustry => 300.0,     // Workshops/small factories
-            Sector::LocalServices => 50.0,      // Small shops/taverns
-            Sector::ExportServices => 150.0,    // Medium trading firms
-            Sector::Construction => 150.0,      // Medium construction firms
-            Sector::Energy => 250.0,            // Medium power plants
-            Sector::PublicServices => 100.0,    // Medium state offices
-            Sector::MedicalServices => 80.0,    // Small clinics/hospitals
-            Sector::EducationalServices => 60.0, // Small schools
-            Sector::TransportLogistics => 200.0, // Medium transport firms
-            Sector::Hospitality => 60.0,        // Small hotels/taverns
-            Sector::MediaAndEntertainment => 50.0, // Small publishers
-            Sector::MaintenanceWorkshops => 40.0,  // Small workshops
-            Sector::ArmamentsIndustry => 1000.0,   // Large arsenals
-            _ => 200.0,
-        },
-        1925 => match sector {
-            Sector::Agriculture => 200.0,
-            Sector::Mining => 1000.0,
-            Sector::HeavyIndustry => 3000.0,
-            Sector::LightIndustry => 400.0,
-            Sector::LocalServices => 60.0,
-            Sector::ExportServices => 200.0,
-            Sector::Construction => 200.0,
-            Sector::Energy => 350.0,
-            Sector::PublicServices => 120.0,
-            Sector::MedicalServices => 100.0,
-            Sector::EducationalServices => 80.0,
-            Sector::TransportLogistics => 250.0,
-            Sector::Hospitality => 80.0,
-            Sector::MediaAndEntertainment => 70.0,
-            Sector::MaintenanceWorkshops => 50.0,
-            Sector::ArmamentsIndustry => 1500.0,
-            _ => 250.0,
-        },
-        1950 => match sector {
-            Sector::Agriculture => 300.0,
-            Sector::Mining => 1200.0,
-            Sector::HeavyIndustry => 4000.0,
-            Sector::LightIndustry => 600.0,
-            Sector::LocalServices => 80.0,
-            Sector::ExportServices => 300.0,
-            Sector::Construction => 300.0,
-            Sector::Energy => 500.0,
-            Sector::PublicServices => 150.0,
-            Sector::MedicalServices => 150.0,
-            Sector::EducationalServices => 100.0,
-            Sector::TransportLogistics => 350.0,
-            Sector::Hospitality => 100.0,
-            Sector::MediaAndEntertainment => 100.0,
-            Sector::MaintenanceWorkshops => 70.0,
-            Sector::ArmamentsIndustry => 2000.0,
-            _ => 350.0,
-        },
-        _ => match sector {
-            // 1975+
-            Sector::Agriculture => 500.0,
-            Sector::Mining => 1500.0,
-            Sector::HeavyIndustry => 5000.0,
-            Sector::LightIndustry => 800.0,
-            Sector::LocalServices => 100.0,
-            Sector::ExportServices => 400.0,
-            Sector::Construction => 400.0,
-            Sector::Energy => 700.0,
-            Sector::PublicServices => 200.0,
-            Sector::MedicalServices => 200.0,
-            Sector::EducationalServices => 150.0,
-            Sector::TransportLogistics => 500.0,
-            Sector::Hospitality => 150.0,
-            Sector::MediaAndEntertainment => 150.0,
-            Sector::MaintenanceWorkshops => 100.0,
-            Sector::ArmamentsIndustry => 3000.0,
-            _ => 500.0,
-        },
-    }
+/// Values represent the AVERAGE company size in each sector, derived from the
+/// existing `capital_intensity` registry and inflation-proof macro indicators.
+/// The power-law distribution in `generate_region_companies` produces variation
+/// around this average — some companies will be smaller, some larger.
+fn target_workers_per_company(sector: Sector, start_year: u32, region: &Region, average_wage: f64) -> f64 {
+    let safe_wage = average_wage.max(1.0);
+    let min_capital = minimum_capital_for_sector(&sector, safe_wage);
+    let era = ((start_year.saturating_sub(1900) as f64) / 75.0).clamp(0.0, 1.0);
+    let development_scaling = 1.0 + 0.5 * region.development_level * era;
+    (min_capital / safe_wage) / TURNS_PER_YEAR as f64 * development_scaling
 }
 
 /// Generate a competitive, power-law distributed set of companies for one
@@ -1380,6 +1312,7 @@ fn generate_region_companies(
     region_fixed: f64,
     region_liquid: f64,
     start_year: u32,
+    average_wage: f64,
     registries: &Registries,
     idgen: &mut IdGen,
     cultural_group: &str,
@@ -1396,17 +1329,31 @@ fn generate_region_companies(
     // absurd 90K-worker monopolies, use sector-and-era-specific target sizes.
     // This produces many small farms/workshops and a few large industrial
     // plants, matching historical reality.
-    let target_size = target_workers_per_company(sector, start_year);
-    let company_count = if sector == Sector::Agriculture {
-        // Agriculture: scale by arable land. More arable land = more farms.
-        let arable_scale = (region.arable_land_max as f64 / 10_000.0).max(1.0);
-        (region_emp / target_size * arable_scale)
-            .round()
-            .max(3.0)
-            .min(200.0) as usize
-    } else {
-        (region_emp / target_size).round().max(3.0).min(200.0) as usize
+    let target_size = target_workers_per_company(sector, start_year, region, average_wage);
+    let raw_count = region_emp / target_size;
+    let ci = sector_capital_intensity(&sector);
+    let ordinal = match ci {
+        CapitalIntensity::Micro => 0,
+        CapitalIntensity::Low => 1,
+        CapitalIntensity::Medium => 2,
+        CapitalIntensity::High => 3,
+        CapitalIntensity::Massive => 4,
     };
+    let concentration_exponent = 0.45 + (ordinal as f64) * 0.11;
+    let base_count = if raw_count <= 1.0 {
+        1.0
+    } else {
+        (raw_count.ln() * concentration_exponent).exp()
+    };
+    let arable_factor = if sector == Sector::Agriculture {
+        (region.arable_land_max as f64 / 10_000.0).max(1.0)
+    } else {
+        1.0
+    };
+    let company_count = (base_count * arable_factor)
+        .round()
+        .max(1.0)
+        .min(raw_count) as usize;
 
     // Phase 44: Compute diversified methods for this sector (one call per region).
     let diversified_methods = {
@@ -1433,11 +1380,12 @@ fn generate_region_companies(
     shares.sort_by(|a, b| b.partial_cmp(a).unwrap());
 
     // First pass: compute rounded actual employment capacities and total.
+    let scale_threshold = (target_size / 2.0).round() as u32;
     let mut plans: Vec<(u32, u32, f64)> = Vec::new();
     for &share in &shares {
         let target = (region_emp * share).max(1.0);
         let actual = target.round() as u32;
-        let (scale_factor, base_capacity) = split_capacity(actual);
+        let (scale_factor, base_capacity) = split_capacity(actual, scale_threshold);
         plans.push((scale_factor, base_capacity, target));
     }
     let total_actual: u32 = plans.iter().map(|p| p.0 * p.1).sum();
@@ -1574,7 +1522,9 @@ fn generate_region_companies(
             balance_sheet: None,
             loan_margin: None,
             brokerage_account: None,
-            primary_bank_id: None, outstanding_loan_bank_id: None,
+            primary_bank_id: None, outstanding_loans: Vec::new(),
+            merged_into: None,
+            is_liquidated: false,
             fund_type: None,
             fund_ledger: None,
             temporary_disruption_modifier: 0.0,
@@ -1704,13 +1654,14 @@ fn generate_region_companies(
 /// `scale_factor` so the building-level simulation stays cheap.
 ///
 /// # Rules
-/// * Small companies (<100 workers) keep a single building (`scale_factor = 1`).
-/// * Larger companies use `scale_factor = actual / 100` and a base of ~100 workers.
-fn split_capacity(actual_capacity: u32) -> (u32, u32) {
-    if actual_capacity < 100 {
+/// * Small companies (< `scale_threshold`) keep a single building (`scale_factor = 1`).
+/// * Larger companies use `scale_factor = actual / scale_threshold`.
+fn split_capacity(actual_capacity: u32, scale_threshold: u32) -> (u32, u32) {
+    let threshold = scale_threshold.max(1);
+    if actual_capacity < threshold {
         (1, actual_capacity.max(1))
     } else {
-        let scale_factor = (actual_capacity / 100).max(1);
+        let scale_factor = (actual_capacity / threshold).max(1);
         let base_capacity = actual_capacity / scale_factor;
         (scale_factor, base_capacity)
     }
@@ -2347,8 +2298,6 @@ fn seed_minimum_viable_supply_chain(
     ];
 
     for region in country_regions {
-        let region_pop = region.population.max(1000) as f64;
-
         for &sector in &critical_sectors {
             if sector == Sector::Mining {
                 // Phase 27: Geology-respecting mining generation.
@@ -2382,7 +2331,7 @@ fn seed_minimum_viable_supply_chain(
                 continue;
             }
 
-            let min_workers = min_workers_for_sector(sector, region_pop);
+            let seed_workers = target_workers_per_company(sector, start_year, region, base_wage).round() as u32;
             let (company, building) = if sector == Sector::Energy {
                 // Phase 27: Ensure era-appropriate fallback energy methods.
                 // Not all energy plants should use the highest-year method
@@ -2392,7 +2341,7 @@ fn seed_minimum_viable_supply_chain(
                 // instead of the hardcoded 500.0 fallback.
                 create_seed_energy_company(
                     region,
-                    min_workers,
+                    seed_workers,
                     start_year,
                     base_wage,
                     registries,
@@ -2403,8 +2352,9 @@ fn seed_minimum_viable_supply_chain(
                 create_seed_company(
                     sector,
                     region,
-                    min_workers,
+                    seed_workers,
                     start_year,
+                    base_wage,
                     registries,
                     idgen,
                     rng,
@@ -2730,7 +2680,8 @@ fn create_seed_company_with_explicit_method(
     method: &ActiveProductionMethod,
 ) -> (Company, Building) {
     let sector_name = sector_json_name(sector);
-    let (scale_factor, base_capacity) = split_capacity(target_workers.max(1));
+    let scale_threshold = (target_workers / 2).max(1);
+    let (scale_factor, base_capacity) = split_capacity(target_workers.max(1), scale_threshold);
     let actual_capacity = base_capacity * scale_factor;
 
     let company_id = idgen.next_company();
@@ -2781,7 +2732,9 @@ fn create_seed_company_with_explicit_method(
         balance_sheet: None,
         loan_margin: None,
         brokerage_account: None,
-        primary_bank_id: None, outstanding_loan_bank_id: None,
+        primary_bank_id: None, outstanding_loans: Vec::new(),
+            merged_into: None,
+            is_liquidated: false,
         fund_type: None,
         fund_ledger: None,
         temporary_disruption_modifier: 0.0,
@@ -3116,6 +3069,7 @@ fn create_specialized_power_plant(
                 region,
                 target_workers,
                 start_year,
+                average_wage,
                 registries,
                 idgen,
                 rng,
@@ -3144,47 +3098,28 @@ fn create_specialized_power_plant(
     (company, building)
 }
 
-/// Phase 20: Minimum workers for a seed building in a sector, scaled by region population.
-fn min_workers_for_sector(sector: Sector, region_pop: f64) -> u32 {
-    let base: u32 = match sector {
-        Sector::Mining => 200,
-        Sector::Energy => 150,
-        Sector::Agriculture => 300,
-        Sector::HeavyIndustry => 250,
-        Sector::LightIndustry => 200,
-        Sector::Construction => 100,
-        Sector::MaintenanceWorkshops => 50,
-        Sector::TransportLogistics => 80,
-        Sector::MedicalServices => 60,
-        Sector::EducationalServices => 50,
-        Sector::PublicServices => 40,
-        Sector::ArmamentsIndustry => 100,
-        Sector::MediaAndEntertainment => 40,
-        Sector::LocalServices => 80,
-        Sector::ExportServices => 50,
-        Sector::Hospitality => 50,
-        _ => 50,
-    };
-    ((base as f64) * (region_pop / 100_000.0).max(0.5).min(5.0)) as u32
-}
-
 /// Phase 20A: Create a single seed company + building for a critical sector.
 fn create_seed_company(
     sector: Sector,
     region: &Region,
     target_workers: u32,
     start_year: u32,
+    average_wage: f64,
     registries: &Registries,
     idgen: &mut IdGen,
     rng: &mut impl Rng,
 ) -> (Company, Building) {
     let sector_name = sector_json_name(sector);
-    let (scale_factor, base_capacity) = split_capacity(target_workers.max(1));
+    let scale_threshold = (target_workers / 2).max(1);
+    let (scale_factor, base_capacity) = split_capacity(target_workers.max(1), scale_threshold);
     let actual_capacity = base_capacity * scale_factor;
 
     let company_id = idgen.next_company();
     let company_name = format!("Seed {} ({}) #1", sector_display(sector), region.id);
-    let company_capital = (actual_capacity as f64) * 1000.0;
+    let safe_wage = average_wage.max(1.0);
+    let min_capital = minimum_capital_for_sector(&sector, safe_wage);
+    let capital_per_worker = min_capital / (target_workers as f64).max(1.0);
+    let company_capital = (actual_capacity as f64) * capital_per_worker;
     let company_fixed = company_capital * 0.6;
     let company_liquid = company_capital * 0.4;
 
@@ -3230,7 +3165,9 @@ fn create_seed_company(
         balance_sheet: None,
         loan_margin: None,
         brokerage_account: None,
-        primary_bank_id: None, outstanding_loan_bank_id: None,
+        primary_bank_id: None, outstanding_loans: Vec::new(),
+            merged_into: None,
+            is_liquidated: false,
         fund_type: None,
         fund_ledger: None,
         temporary_disruption_modifier: 0.0,
@@ -4071,7 +4008,9 @@ fn create_strategic_reserve_agency(
         balance_sheet: None,
         loan_margin: None,
         brokerage_account: None,
-        primary_bank_id: None, outstanding_loan_bank_id: None,
+        primary_bank_id: None, outstanding_loans: Vec::new(),
+            merged_into: None,
+            is_liquidated: false,
         fund_type: None,
         fund_ledger: None,
         temporary_disruption_modifier: 0.0,
@@ -4394,7 +4333,9 @@ fn generate_retail_stores(
             loan_margin: None,
             brokerage_account: None,
             primary_bank_id: None,
-            outstanding_loan_bank_id: None,
+            outstanding_loans: Vec::new(),
+            merged_into: None,
+            is_liquidated: false,
             fund_type: None,
             fund_ledger: None,
             temporary_disruption_modifier: 0.0,
@@ -4775,7 +4716,9 @@ fn generate_tourism_entities(
                 balance_sheet: None,
                 loan_margin: None,
                 brokerage_account: None,
-                primary_bank_id: None, outstanding_loan_bank_id: None,
+                primary_bank_id: None, outstanding_loans: Vec::new(),
+            merged_into: None,
+            is_liquidated: false,
                 fund_type: None,
                 fund_ledger: None,
                 temporary_disruption_modifier: 0.0,
@@ -5295,7 +5238,9 @@ fn create_charity_company(
             cash: 0.0, // Phase 33: Empty account exists so labor market doesn't clamp to 0.
             ..Default::default()
         }), // Funded organically by donations (Phase 28 rule: NO seed grants)
-        primary_bank_id: None, outstanding_loan_bank_id: None,
+        primary_bank_id: None, outstanding_loans: Vec::new(),
+            merged_into: None,
+            is_liquidated: false,
         fund_type: None,
         fund_ledger: None,
         temporary_disruption_modifier: 0.0,
@@ -5531,7 +5476,9 @@ pub fn generate_investment_funds(
                 ..Default::default()
             }),
             primary_bank_id: None,
-            outstanding_loan_bank_id: None,
+            outstanding_loans: Vec::new(),
+            merged_into: None,
+            is_liquidated: false,
             fund_type: Some(chosen_type),
             fund_ledger: Some(ledger),
             temporary_disruption_modifier: 0.0,

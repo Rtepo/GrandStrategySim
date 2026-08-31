@@ -101,6 +101,8 @@ pub enum LoanStatus {
     Default,
     /// Loan fully repaid.
     Repaid,
+    /// Loan re-titled to another entity through a merger or acquisition.
+    Merged,
 }
 
 
@@ -732,6 +734,26 @@ pub struct LoanResult {
     pub principal_amount: f64,
     /// Required debt-to-equity swap percentage (if applicable).
     pub required_equity_swap: Option<f64>,
+}
+
+/// Borrower-side reference to a loan on a bank's balance sheet.
+/// Source of truth remains the bank's `loans_issued`; this is an auditable index.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+pub struct LoanRef {
+    /// Unique loan identifier.
+    pub loan_id: String,
+    /// ID of the lending bank.
+    pub bank_id: String,
+    /// Original principal amount.
+    pub principal: f64,
+    /// Current outstanding balance.
+    pub outstanding_balance: f64,
+    /// Current interest rate.
+    pub interest_rate: f64,
+    /// Remaining / original term in turns.
+    pub term_turns: u32,
+    /// Current payment status.
+    pub status: LoanStatus,
 }
 
 /// Issues a new loan with fractional reserve credit creation.
@@ -2336,8 +2358,8 @@ pub fn process_banking_turn(
     let xibor = country.interbank_market.xibor;
     // Collect pending debits to avoid borrow checker conflicts (can't mutate
     // companies for borrower debit while iterating banks).
-    // Tuple: (borrower_id, lending_bank_idx, total_payment, principal_portion)
-    let mut pending_loan_debits: Vec<(String, usize, f64, f64)> = Vec::new();
+    // Tuple: (borrower_id, loan_id, lending_bank_idx, total_payment, principal_portion)
+    let mut pending_loan_debits: Vec<(String, String, usize, f64, f64)> = Vec::new();
     for (bi, bank) in companies.iter_mut().enumerate() {
         if let (Some(_), Some(ref mut bs)) = (&bank.bank_type, &mut bank.balance_sheet) {
             let mut repaid_total = 0.0;
@@ -2377,6 +2399,7 @@ pub fn process_banking_turn(
                     // Phase 24A.2: Queue borrower debit for later execution
                     pending_loan_debits.push((
                         loan.borrower_id.clone(),
+                        loan.id.clone(),
                         bi,
                         actual_payment,
                         principal_portion.min(actual_payment),
@@ -2408,7 +2431,7 @@ pub fn process_banking_turn(
     // Phase 24A.2: Execute borrower debits (deferred to avoid double-borrow).
     // Three cases: (A) company borrower, (B) state/treasury borrower, (C) vanished borrower.
     const STATE_BORROWER_ID: &str = "STATE";
-    for (borrower_id, bank_idx, amount, principal_portion) in pending_loan_debits {
+    for (borrower_id, loan_id, bank_idx, amount, _principal_portion) in pending_loan_debits {
         if borrower_id == STATE_BORROWER_ID {
             // CASE B: State/Treasury borrower — debit liquid_reserves, never Default.
             // The lending bank's reserves were already credited in the loan loop.
@@ -2452,9 +2475,15 @@ pub fn process_banking_turn(
                 }
             }
 
-            // Reduce borrower's liabilities by the principal portion
+            // Reduce the matching LoanRef and recompute total liabilities.
             if let Some(borrower) = companies.get_mut(borrower_idx) {
-                borrower.liabilities = (borrower.liabilities - principal_portion).max(0.0);
+                if let Some(loan_ref) = borrower.outstanding_loans.iter_mut().find(|l| l.loan_id == loan_id) {
+                    loan_ref.outstanding_balance = (loan_ref.outstanding_balance - amount).max(0.0);
+                    if loan_ref.outstanding_balance <= 0.01 {
+                        loan_ref.status = LoanStatus::Repaid;
+                    }
+                }
+                borrower.liabilities = borrower.outstanding_loans.iter().map(|l| l.outstanding_balance).sum();
             }
         } else {
             // CASE C: Borrower vanished — mark loan as Default (cleaned in bankruptcy)
@@ -2548,6 +2577,16 @@ pub fn process_banking_turn(
 
             if let Ok(lr) = loan_result {
                 // Double-entry: borrower receives principal
+                companies[borrower_idx].outstanding_loans.push(LoanRef {
+                    loan_id: lr.loan.id.clone(),
+                    bank_id: companies[bi].id.clone(),
+                    principal: lr.loan.principal,
+                    outstanding_balance: lr.loan.outstanding_balance,
+                    interest_rate: lr.loan.interest_rate,
+                    term_turns: lr.loan.term_turns,
+                    status: lr.loan.status.clone(),
+                });
+                companies[borrower_idx].liabilities = companies[borrower_idx].outstanding_loans.iter().map(|l| l.outstanding_balance).sum();
                 companies[borrower_idx].available_cash += lr.principal_amount;
                 if let Some(ref mut ba) = companies[borrower_idx].brokerage_account {
                     ba.cash += lr.principal_amount;

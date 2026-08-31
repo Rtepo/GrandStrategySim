@@ -14,6 +14,7 @@ pub mod bounded_rationality;
 pub mod capital_intensity;
 pub mod bankruptcy;
 pub mod market_behavior;
+pub mod mergers;
 
 pub use lifecycle::CompanyLifecycle;
 pub use manager::{apply_seasonal_furlough_all, process_companies, process_company, set_wage_offers, process_furlough_reinstatement, process_furlough_attrition};

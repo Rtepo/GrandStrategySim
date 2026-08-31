@@ -8,7 +8,7 @@
 
 use crate::registries::enums::{Commodity, Sector};
 use crate::registries::tech_tree::TechId;
-use crate::state::banking::{BankBalanceSheet, BankType, Borrower};
+use crate::state::banking::{BankBalanceSheet, BankType, Borrower, LoanRef};
 use crate::state::treasury::ProductionMethodChoice;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -448,12 +448,18 @@ pub struct Company {
     /// None for companies without a brokerage account or using cash-only.
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub primary_bank_id: Option<String>,
-    /// Phase 24A.3: ID of the commercial bank that issued this company's working-capital loan.
-    /// Used to route corporate interest payments to the correct lending bank via
-    /// double-entry accounting. None for companies with no bank loans.
-    /// If liabilities > 0 but this is None, the liabilities are invalid (wiped in process_companies).
+    /// Phase 24A.3: Multi-loan register. Each `LoanRef` points to a `Loan` on a
+    /// bank's `BankBalanceSheet.loans_issued`. This is the auditable index; the
+    /// bank's record is the source of truth.
+    #[serde(default)]
+    pub outstanding_loans: Vec<LoanRef>,
+    /// Set to the surviving company `id` when this company is merged into another.
+    /// Used for safe end-of-turn tombstoning instead of `swap_remove`.
     #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub outstanding_loan_bank_id: Option<String>,
+    pub merged_into: Option<String>,
+    /// Marked by liquidation or M&A failure. Filtered once at end-of-turn.
+    #[serde(default)]
+    pub is_liquidated: bool,
     /// Phase D.4: Fund type for institutional investors.
     /// None for non-institutional companies.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -745,7 +751,9 @@ impl Company {
             loan_margin: None,
             brokerage_account,
             primary_bank_id: None,
-            outstanding_loan_bank_id: None,
+            outstanding_loans: Vec::new(),
+            merged_into: None,
+            is_liquidated: false,
             fund_type: None,
             fund_ledger: None,
             temporary_disruption_modifier: 0.0,

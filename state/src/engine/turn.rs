@@ -3329,6 +3329,16 @@ pub fn run_turn_in_memory(
             );
         });
         tasks.par_iter_mut().for_each(|task| {
+            crate::corporate::mergers::process_mergers_and_acquisitions(
+                &mut task.companies,
+                &mut task.ctx.buildings,
+                task.ctx.country,
+                task.ctx.year,
+                &task.market_signal,
+                task.ctx.turn,
+            );
+        });
+        tasks.par_iter_mut().for_each(|task| {
             CompanyLifecycle::process_lifecycle(
                 &mut task.companies,
                 &mut task.ctx.buildings,
@@ -3336,6 +3346,9 @@ pub fn run_turn_in_memory(
                 task.ctx.year,
                 &task.market_signal,
             );
+
+            // Phase D: remove tombstoned companies (liquidated/merged) once per turn.
+            task.companies.retain(|c| !c.is_liquidated);
         });
         // ═══════════════════════════════════════════════════════════
         // RESURRECTION PHASE 2: SECURITIES MARKET SEQUENCE (SEC-1 to SEC-8)
