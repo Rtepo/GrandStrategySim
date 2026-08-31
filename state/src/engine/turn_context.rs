@@ -789,15 +789,15 @@ fn save_housing_buildings(data_dir: &Path, country: &str, housing_buildings: &[H
         let sector = match housing_type {
             HousingType::Hut => "hut",
             HousingType::Slum => "slum",
-            HousingType::Familok => "familok",
-            HousingType::Beamciok => "beamciok",
+            HousingType::WorkersHousing => "workers_housing",
+            HousingType::SkilledHousing => "skilled_housing",
             HousingType::Tenement => "tenement",
             HousingType::CityPalace => "city_palace",
             HousingType::Palace => "palace",
             HousingType::Rectory => "rectory",
             HousingType::Monastery => "monastery",
             HousingType::SocialHousing => "social_housing",
-            HousingType::FolwarkHousing => "folwark_housing",
+            HousingType::EstateHousing => "estate_housing",
         };
         store.save_sector(country, sector, None, &buildings)?;
     }

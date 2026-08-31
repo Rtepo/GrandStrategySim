@@ -279,13 +279,13 @@ pub fn generate_person_name(cultural_group: &str, gender: &str, rng: &mut impl R
     let first_name = first_names
         .choose(rng)
         .copied()
-        .unwrap_or("Jan")
+        .unwrap_or("John")
         .to_string();
     let surname = pool
         .surnames
         .choose(rng)
         .copied()
-        .unwrap_or("Kowalski")
+        .unwrap_or("Smith")
         .to_string();
 
     let full_name = format!("{} {}", first_name, surname);

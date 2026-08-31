@@ -31,44 +31,44 @@ impl RegimeType {
     }
 }
 
-/// Conscription policy (`obowiazkowa_sluzba` in `prawo_wojskowe`).
+/// Conscription policy (`obligatory_service` in `military_law`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ConscriptionLaw {
-    /// Mandatory training only (`"obowiazkowe_szkolenia"`).
+    /// Mandatory training only (`"mandatory_training"`).
 
     MandatoryTraining,
     /// Full active service (`"full_service"`).
 
     FullService,
-    /// No mandatory service (`"brak"`).
+    /// No mandatory service (`"none"`).
 
     None_,
 }
 
-/// Policy on women serving in the armed forces (`kobiety_w_armii`).
+/// Policy on women serving in the armed forces (`women_in_army`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum WomenInArmy {
-    /// Reserve duty only (`"jedynie_w_rezerwie"`).
+    /// Reserve duty only (`"reserve_only"`).
 
     ReserveOnly,
     /// Full access to all roles (`"full_access"`).
 
     FullAccess,
-    /// Barred from service (`"zakaz"`).
+    /// Barred from service (`"banned"`).
 
     Banned,
 }
 
-/// Scope of military draft (`zakres_poboru`).
+/// Scope of military draft (`draft_scope`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum DraftScope {
-    /// Voluntary enlistment only (`"dobrowolna"`).
+    /// Voluntary enlistment only (`"voluntary"`).
 
     Voluntary,
-    /// Selective draft (`"selektywny"`).
+    /// Selective draft (`"selective"`).
 
     Selective,
-    /// Universal conscription (`"powszechny_pobor"`).
+    /// Universal conscription (`"universal_draft"`).
 
     UniversalDraft,
 }
@@ -76,7 +76,7 @@ pub enum DraftScope {
 /// Workforce skill tier used by the labor market.
 ///
 /// # Rules
-/// * The Python engine uses the keys `eksperci`, `sredni`, and `szeregowi`
+/// * The Python engine uses the keys `experts`, `skilled`, and `unskilled`
 ///   inside building production methods and labor-market calculations.
 /// * The variants are ordered so they can be used as `Map` keys.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
@@ -1164,7 +1164,7 @@ pub enum FuelType {
     /// `"crops"`.
 
     AgriculturalProduce,
-    /// `"brak"` â€” no fuel (renewables).
+    /// `"none"` â€” no fuel (renewables).
 
     None_,
 }

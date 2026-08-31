@@ -3,8 +3,8 @@
 //!
 //! Every struct here mirrors the Python save schema key-for-key via
 //! `#[serde(rename)]`. Because the live Python engine attaches many
-//! runtime-computed fields beyond the world-gen baseline (e.g. `zasoby`,
-//! `magazyny`, per-sector `pmi`/`placa`), each struct carries a
+//! runtime-computed fields beyond the world-gen baseline (e.g. `resources`,
+//! `warehouses`, per-sector `pmi`/`wage`), each struct carries a
 //! `#[serde(flatten)] extra` catch-all so **no data is dropped** on a
 //! load/save round-trip.
 
@@ -199,7 +199,7 @@ pub struct ProductionMethodChoice {
 /// # Rules
 /// * Only `gdp_share` is guaranteed present across all sectors; other fields
 ///   are optional because service/state sectors (e.g. `transport_i_logistyka`,
-///   `public_services`) omit them. Runtime fields (`pmi`, `placa`,
+///   `public_services`) omit them. Runtime fields (`pmi`, `wage`,
 ///   `employment`, ...) are preserved through `extra`.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct SectorShare {
@@ -214,7 +214,7 @@ pub struct SectorShare {
     /// some service sectors.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub active_method: Option<ProductionMethodChoice>,
-    /// Runtime-computed fields (`pmi`, `placa`, `oferta`, `employment`,
+    /// Runtime-computed fields (`pmi`, `wage`, `oferta`, `employment`,
     /// `srednia_placa`, `wykorzystanie_mocy`, ...).
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -256,7 +256,7 @@ impl Default for ScienceState {
 ///
 /// # Rules
 /// * Schema-guaranteed scalars are strictly typed; everything the live engine
-///   adds at runtime (`zasoby`, `magazyny`, `exports`, `energy_stats`, ...) is
+///   adds at runtime (`resources`, `warehouses`, `exports`, `energy_stats`, ...) is
 ///   preserved verbatim in [`Treasury::extra`], guaranteeing a lossless
 ///   round-trip against Python saves.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -288,7 +288,7 @@ pub struct Treasury {
     pub black_ops_budget: f64,
     /// Per-sector shares and economics.
     /// Phase 43: Default for legacy Polish fixtures — Polish sector names
-    /// (sektor_wydobywczy, etc.) don't match the Sector enum, so the
+    /// (mining_sector, etc.) don't match the Sector enum, so the
     /// 'sektory' key stays in extra and sectors defaults to empty.
     #[serde(default)]
     pub sectors: HashMap<Sector, SectorShare>,
@@ -388,7 +388,7 @@ mod tests {
         "science": { "innovation_points": 0.0, "researching": null, "discovered": ["tech_001","tech_002"], "base_innovativeness": 0.0 },
         "last_balance_log": "",
         "resources": {"coal": 999},
-        "magazyny": {"zboze": 42.0}
+        "warehouses": {"grain": 42.0}
     }"#;
 
     #[test]
@@ -400,7 +400,7 @@ mod tests {
         assert!((t.allocations.industry - 0.18).abs() < 1e-9);
         // Runtime-only top-level keys land in `extra`.
         assert!(t.extra.contains_key("resources"));
-        assert!(t.extra.contains_key("magazyny"));
+        assert!(t.extra.contains_key("warehouses"));
     }
 
     #[test]

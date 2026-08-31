@@ -607,10 +607,10 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
     // VoluntaryLabor and StatePenalColony produce goods via building inventory.
     // PrivateLaborCamps and IsolationCamp produce nothing — they operate
     // through the labor market phase instead (see economy/prison_labor.rs).
-    let mut wiezienie = BuildingMethods::default();
+    let mut prison_methods = BuildingMethods::default();
 
     // VoluntaryLabor: workshop production
-    wiezienie.insert(MethodSlot::Production, "Workshop".to_string(),
+    prison_methods.insert(MethodSlot::Production, "Workshop".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -630,7 +630,7 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
     );
 
     // StatePenalColony: forced heavy labor producing raw materials
-    wiezienie.insert(MethodSlot::Production, "Quarry".to_string(),
+    prison_methods.insert(MethodSlot::Production, "Quarry".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -651,7 +651,7 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
     );
 
     // PrivateLaborCamps: no building output — FTEs injected into labor market
-    wiezienie.insert(MethodSlot::Production, "Private Labor Camp".to_string(),
+    prison_methods.insert(MethodSlot::Production, "Private Labor Camp".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -668,7 +668,7 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
     );
 
     // IsolationCamp: no production — prisoners removed from workforce
-    wiezienie.insert(MethodSlot::Production, "Detention Camp".to_string(),
+    prison_methods.insert(MethodSlot::Production, "Detention Camp".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -684,11 +684,11 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
         },
     );
 
-    registry.insert("prison".to_string(), wiezienie);
+    registry.insert("prison".to_string(), prison_methods);
 
     // -- fire_station (Professional State Fire Brigade) --
-    let mut straz = BuildingMethods::default();
-    straz.insert(MethodSlot::Production, "Basic".to_string(),
+    let mut fire_brigade_methods = BuildingMethods::default();
+    fire_brigade_methods.insert(MethodSlot::Production, "Basic".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -707,7 +707,7 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    straz.insert(MethodSlot::Production, "Motorized".to_string(),
+    fire_brigade_methods.insert(MethodSlot::Production, "Motorized".to_string(),
         ProductionMethod {
             year: 1920,
             required_tech: None,
@@ -726,7 +726,7 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    straz.insert(MethodSlot::Production, "Professional".to_string(),
+    fire_brigade_methods.insert(MethodSlot::Production, "Professional".to_string(),
         ProductionMethod {
             year: 1980,
             required_tech: None,
@@ -745,11 +745,11 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    registry.insert("fire_station".to_string(), straz);
+    registry.insert("fire_station".to_string(), fire_brigade_methods);
 
     // -- flood_shelter (Flood Shelter / Levee) --
-    let mut schron = BuildingMethods::default();
-    schron.insert(MethodSlot::Production, "Flood Embankment".to_string(),
+    let mut flood_shelter_methods = BuildingMethods::default();
+    flood_shelter_methods.insert(MethodSlot::Production, "Flood Embankment".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -766,7 +766,7 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    schron.insert(MethodSlot::Production, "Upgraded Embankment".to_string(),
+    flood_shelter_methods.insert(MethodSlot::Production, "Upgraded Embankment".to_string(),
         ProductionMethod {
             year: 1950,
             required_tech: None,
@@ -784,11 +784,11 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    registry.insert("flood_shelter".to_string(), schron);
+    registry.insert("flood_shelter".to_string(), flood_shelter_methods);
 
     // -- border_guard (Border Guard) --
-    let mut straz_gran = BuildingMethods::default();
-    straz_gran.insert(MethodSlot::Production, "Border Patrol".to_string(),
+    let mut border_guard_methods = BuildingMethods::default();
+    border_guard_methods.insert(MethodSlot::Production, "Border Patrol".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -806,7 +806,7 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    straz_gran.insert(MethodSlot::Production, "Motorized Patrol".to_string(),
+    border_guard_methods.insert(MethodSlot::Production, "Motorized Patrol".to_string(),
         ProductionMethod {
             year: 1920,
             required_tech: None,
@@ -825,7 +825,7 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    straz_gran.insert(MethodSlot::Production, "Modern Border Guard".to_string(),
+    border_guard_methods.insert(MethodSlot::Production, "Modern Border Guard".to_string(),
         ProductionMethod {
             year: 1990,
             required_tech: None,
@@ -844,11 +844,11 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    registry.insert("border_guard".to_string(), straz_gran);
+    registry.insert("border_guard".to_string(), border_guard_methods);
 
     // -- customs_office (Customs House) --
-    let mut urzad_cel = BuildingMethods::default();
-    urzad_cel.insert(MethodSlot::Production, "Customs Post".to_string(),
+    let mut customs_office_methods = BuildingMethods::default();
+    customs_office_methods.insert(MethodSlot::Production, "Customs Post".to_string(),
         ProductionMethod {
             year: 1850,
             required_tech: None,
@@ -866,7 +866,7 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    urzad_cel.insert(MethodSlot::Production, "Upgraded Customs Office".to_string(),
+    customs_office_methods.insert(MethodSlot::Production, "Upgraded Customs Office".to_string(),
         ProductionMethod {
             year: 1950,
             required_tech: None,
@@ -885,7 +885,7 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    urzad_cel.insert(MethodSlot::Production, "e-Toll Customs System".to_string(),
+    customs_office_methods.insert(MethodSlot::Production, "e-Toll Customs System".to_string(),
         ProductionMethod {
             year: 2000,
             required_tech: None,
@@ -904,7 +904,7 @@ pub fn state_building_methods() -> HashMap<String, BuildingMethods> {
             ..Default::default()
         },
     );
-    registry.insert("customs_office".to_string(), urzad_cel);
+    registry.insert("customs_office".to_string(), customs_office_methods);
 
     // -- sanepid (Sanitary Inspectorate) --
     let mut sanepid = BuildingMethods::default();

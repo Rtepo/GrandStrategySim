@@ -533,7 +533,7 @@ fn build_unpopular_rider(faction: &str) -> BillProvision {
             vat: None,
             corporate_tax: Some(0.35),
         },
-        "Trade Unions" | "Robotnicy" => BillProvision::Deregulation {
+        "Trade Unions" | "Worker" => BillProvision::Deregulation {
             sector: "HeavyIndustry".to_string(),
             scope: "labor_protections".to_string(),
         },

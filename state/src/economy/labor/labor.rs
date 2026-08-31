@@ -50,7 +50,7 @@ fn emancipation_modifiers(emancipation_law: &str) -> (f64, f64, f64) {
 }
 
 /// Returns the minimum-wage coefficient implied by labor law.
-fn wsk_min(labor_law: &str) -> f64 {
+fn minimum_wage_multiplier(labor_law: &str) -> f64 {
     match labor_law {
         "Rigid Minimum Wage" => 0.70,
         "Worker Protection" => 0.45,
@@ -230,34 +230,34 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
         demographics.effective_immigrant_remittances = immigrant_remittances;
 
         // Age groups.
-        let dzieci = demographics.age_groups.children;
-        let dorosli = demographics.age_groups.adults;
-        let starsi = demographics.age_groups.elderly;
+        let children = demographics.age_groups.children;
+        let adults = demographics.age_groups.adults;
+        let elderly = demographics.age_groups.elderly;
 
-        let dzieci_dorastajace = dzieci / 15.0;
-        let dzieci_wchodzace_w_doroslosc_liczba = dzieci_dorastajace * population;
-        let wrodzone_aktywni = dzieci_wchodzace_w_doroslosc_liczba * 0.0010;
-        let wrodzone_niezdolni = dzieci_wchodzace_w_doroslosc_liczba * 0.0005;
+        let children_aging_out = children / 15.0;
+        let children_entering_adulthood_count = children_aging_out * population;
+        let inborn_working_disabled = children_entering_adulthood_count * 0.0010;
+        let inborn_unable_to_work = children_entering_adulthood_count * 0.0005;
 
-        labor_market.active_disabled = (labor_market.active_disabled * (1.0 - reduced_death_rate)) + wrodzone_aktywni;
-        labor_market.unable_to_work = (labor_market.unable_to_work * (1.0 - reduced_death_rate)) + wrodzone_niezdolni;
+        labor_market.active_disabled = (labor_market.active_disabled * (1.0 - reduced_death_rate)) + inborn_working_disabled;
+        labor_market.unable_to_work = (labor_market.unable_to_work * (1.0 - reduced_death_rate)) + inborn_unable_to_work;
 
-        let okres_produkcyjny = (healthy_life_expectancy - 16.0).max(20.0);
-        let dorosli_starzejacy_sie = dorosli / okres_produkcyjny;
+        let productive_period_years = (healthy_life_expectancy - 16.0).max(20.0);
+        let adults_aging_to_elderly = adults / productive_period_years;
 
-        let zgony_starsi = reduced_death_rate.min(starsi + dorosli_starzejacy_sie - 0.01);
-        let zgony_reszta = (reduced_death_rate - zgony_starsi).max(0.0);
+        let elderly_deaths = reduced_death_rate.min(elderly + adults_aging_to_elderly - 0.01);
+        let remaining_deaths = (reduced_death_rate - elderly_deaths).max(0.0);
 
-        let nowe_dzieci = (dzieci - dzieci_dorastajace + birth_rate_index).max(0.01);
+        let new_children_share = (children - children_aging_out + birth_rate_index).max(0.01);
         let work_deaths_fraction = work_deaths / population.max(1.0);
-        let nowi_dorosli = (dorosli + dzieci_dorastajace - dorosli_starzejacy_sie - zgony_reszta - work_deaths_fraction + migration_rate).max(0.01);
-        let nowi_starsi = (starsi + dorosli_starzejacy_sie - zgony_starsi).max(0.01);
+        let new_adults_share = (adults + children_aging_out - adults_aging_to_elderly - remaining_deaths - work_deaths_fraction + migration_rate).max(0.01);
+        let new_elderly_share = (elderly + adults_aging_to_elderly - elderly_deaths).max(0.01);
 
-        let suma = nowe_dzieci + nowi_dorosli + nowi_starsi;
-        if suma > 0.0 {
-            demographics.age_groups.children = nowe_dzieci / suma;
-            demographics.age_groups.adults = nowi_dorosli / suma;
-            demographics.age_groups.elderly = nowi_starsi / suma;
+        let total_share = new_children_share + new_adults_share + new_elderly_share;
+        if total_share > 0.0 {
+            demographics.age_groups.children = new_children_share / total_share;
+            demographics.age_groups.adults = new_adults_share / total_share;
+            demographics.age_groups.elderly = new_elderly_share / total_share;
         }
 
         // Ethnic assimilation is now handled by Phase 17B process_assimilation_turn
@@ -266,34 +266,34 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
         // The old placeholder code has been removed.
 
         // Labor supply and wages.
-        let sila_robocza = (population * labor_market.labor_force_participation / 100.0).max(1.0);
-        let wyzsze = demographics.education.higher_share();
-        let podstawowe = demographics.education.basic;
-        let analfabeci = demographics.education.none;
+        let labor_force = (population * labor_market.labor_force_participation / 100.0).max(1.0);
+        let higher_edu_share = demographics.education.higher_share();
+        let basic_edu_share = demographics.education.basic;
+        let illiterate_share = demographics.education.none;
 
-        // Python workforce.py uses wyzsze for experts, podstawowe for the
-        // sredni tier, and brak (no education) for the szeregowi tier.
-        let ekspert_share = wyzsze;
-        let sredni_share = podstawowe;
-        let szeregowi_share = analfabeci;
+        // Python workforce.py uses higher_edu_share for experts, basic_edu_share for the
+        // skilled tier, and brak (no education) for the unskilled tier.
+        let expert_share = higher_edu_share;
+        let skilled_share = basic_edu_share;
+        let unskilled_share = illiterate_share;
 
         let (mod_eksperci, mod_sredni, mod_szeregowi) = emancipation_modifiers(&emancipation_law);
 
-        let eksperci_dostepni = sila_robocza * ekspert_share * mod_eksperci;
-        let sredni_dostepni = sila_robocza * sredni_share * mod_sredni;
-        let szeregowi_dostepni = sila_robocza * szeregowi_share * mod_szeregowi;
+        let eksperci_dostepni = labor_force * expert_share * mod_eksperci;
+        let skilled_available = labor_force * skilled_share * mod_sredni;
+        let unskilled_available = labor_force * unskilled_share * mod_szeregowi;
 
         // Wage base.
-        // Phase 25: Removed the `minimum_egzystencjalne` subsistence floor.
+        // Phase 25: Removed the `subsistence_wage` subsistence floor.
         // Wages are now set purely by labor market clearing (supply and demand).
         // If companies have no money, wages drop to 0, and workers starve,
         // riot, or emigrate. We do not prop up the simulation with phantom floors.
-        // `placa_minimalna` is a labor-law multiplier on the previous average
+        // `minimum_wage` is a labor-law multiplier on the previous average
         // wage — this is policy (set by Politics/LaborLaw), not a floor.
-        // Phase 25 fix: when there is no statutory minimum wage (wsk_min = 0),
+        // Phase 25 fix: when there is no statutory minimum wage (minimum_wage_multiplier = 0),
         // the base wage is the previous average wage (market-clearing reference).
         // The statutory minimum only applies when explicitly set by labor law.
-        let statutory_multiplier = wsk_min(&labor_law);
+        let statutory_multiplier = minimum_wage_multiplier(&labor_law);
         let base_wage = if statutory_multiplier > 0.0 {
             prev_avg * statutory_multiplier
         } else {
@@ -301,52 +301,52 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
         };
 
         // Unemployment structure.
-        let bezrobotni = (sila_robocza - labor_market.employed_total).max(0.0);
-        let mut stopa_bezrobocia_surowa = (bezrobotni / sila_robocza) * 100.0;
+        let unemployed = (labor_force - labor_market.employed_total).max(0.0);
+        let mut raw_unemployment_rate = (unemployed / labor_force) * 100.0;
         if job_agency_active {
-            stopa_bezrobocia_surowa = (stopa_bezrobocia_surowa - 2.0).max(0.0);
+            raw_unemployment_rate = (raw_unemployment_rate - 2.0).max(0.0);
         }
-        let frykcyjne_bazowe = if job_agency_active { 1.5 } else { 3.0 };
-        let stopa_bezrobocia = stopa_bezrobocia_surowa.max(frykcyjne_bazowe);
-        let pozostalo = (stopa_bezrobocia - frykcyjne_bazowe).max(0.0);
+        let frictional_unemployment_floor = if job_agency_active { 1.5 } else { 3.0 };
+        let unemployment_rate = raw_unemployment_rate.max(frictional_unemployment_floor);
+        let excess_unemployment = (unemployment_rate - frictional_unemployment_floor).max(0.0);
 
-        labor_market.unemployment_rate = stopa_bezrobocia;
-        labor_market.unemployment_structure.friction = frykcyjne_bazowe / 100.0;
-        labor_market.unemployment_structure.cyclical = (pozostalo * 0.6) / 100.0;
-        labor_market.unemployment_structure.structural = (pozostalo * 0.4) / 100.0;
+        labor_market.unemployment_rate = unemployment_rate;
+        labor_market.unemployment_structure.friction = frictional_unemployment_floor / 100.0;
+        labor_market.unemployment_structure.cyclical = (excess_unemployment * 0.6) / 100.0;
+        labor_market.unemployment_structure.structural = (excess_unemployment * 0.4) / 100.0;
         labor_market.poverty_pool_percent = labor_market.unemployment_structure.cyclical * 0.2
             + labor_market.unemployment_structure.structural * 0.3;
-        labor_market.unemployed = bezrobotni;
+        labor_market.unemployed = unemployed;
 
         // Dynamic wage pressure when unemployment exceeds the frictional floor.
-        let wage_pressure = 0.002 * (stopa_bezrobocia - frykcyjne_bazowe).max(0.0);
+        let wage_pressure = 0.002 * (unemployment_rate - frictional_unemployment_floor).max(0.0);
         let wage_friction = (1.0 - wage_pressure).clamp(0.0, 1.0);
         let adjusted_base_wage = base_wage * wage_friction;
 
         let brain_drain = demographics.brain_drain_index;
-        let ekspert_premium = (3.0 + brain_drain * 5.0) * (1.0 + (0.2 - ekspert_share).max(0.0));
-        let sredni_premium = 1.5 + brain_drain * 2.0;
+        let expert_premium = (3.0 + brain_drain * 5.0) * (1.0 + (0.2 - expert_share).max(0.0));
+        let skilled_premium = 1.5 + brain_drain * 2.0;
 
-        let ekspert_wage = adjusted_base_wage * ekspert_premium;
-        let sredni_wage = adjusted_base_wage * sredni_premium;
-        let szeregowi_wage = adjusted_base_wage;
+        let expert_wage = adjusted_base_wage * expert_premium;
+        let skilled_wage = adjusted_base_wage * skilled_premium;
+        let unskilled_wage = adjusted_base_wage;
 
-        let employment_factor = 1.0 - (stopa_bezrobocia / 100.0);
+        let employment_factor = 1.0 - (unemployment_rate / 100.0);
 
         labor_market.expert_tier.supply = eksperci_dostepni;
-        labor_market.expert_tier.wage = ekspert_wage;
+        labor_market.expert_tier.wage = expert_wage;
         labor_market.expert_tier.employed = eksperci_dostepni * employment_factor;
         labor_market.expert_tier.unemployed = eksperci_dostepni - labor_market.expert_tier.employed;
 
-        labor_market.skilled_tier.supply = sredni_dostepni;
-        labor_market.skilled_tier.wage = sredni_wage;
-        labor_market.skilled_tier.employed = sredni_dostepni * employment_factor;
-        labor_market.skilled_tier.unemployed = sredni_dostepni - labor_market.skilled_tier.employed;
+        labor_market.skilled_tier.supply = skilled_available;
+        labor_market.skilled_tier.wage = skilled_wage;
+        labor_market.skilled_tier.employed = skilled_available * employment_factor;
+        labor_market.skilled_tier.unemployed = skilled_available - labor_market.skilled_tier.employed;
 
-        labor_market.unskilled_tier.supply = szeregowi_dostepni;
-        labor_market.unskilled_tier.wage = szeregowi_wage;
-        labor_market.unskilled_tier.employed = szeregowi_dostepni * employment_factor;
-        labor_market.unskilled_tier.unemployed = szeregowi_dostepni - labor_market.unskilled_tier.employed;
+        labor_market.unskilled_tier.supply = unskilled_available;
+        labor_market.unskilled_tier.wage = unskilled_wage;
+        labor_market.unskilled_tier.employed = unskilled_available * employment_factor;
+        labor_market.unskilled_tier.unemployed = unskilled_available - labor_market.unskilled_tier.employed;
 
         let total_employed = labor_market.expert_tier.employed
             + labor_market.skilled_tier.employed
@@ -356,27 +356,27 @@ pub fn process_demographics_and_labor(ctx: &mut CountryTurnCtx) {
         // Recompute the headline unemployment figures from the actual tier
         // employment so that `employed_total`, `unemployed` and `unemployment_rate`
         // are mutually consistent at the end of the turn.
-        let bezrobotni_aktualni = (sila_robocza - total_employed).max(0.0);
-        let mut stopa_bezrobocia_aktualna = (bezrobotni_aktualni / sila_robocza) * 100.0;
+        let actual_unemployed = (labor_force - total_employed).max(0.0);
+        let mut actual_unemployment_rate = (actual_unemployed / labor_force) * 100.0;
         if job_agency_active {
-            stopa_bezrobocia_aktualna = (stopa_bezrobocia_aktualna - 2.0).max(0.0);
+            actual_unemployment_rate = (actual_unemployment_rate - 2.0).max(0.0);
         }
-        let stopa_bezrobocia_aktualna = stopa_bezrobocia_aktualna.max(frykcyjne_bazowe);
-        let pozostalo_aktualne = (stopa_bezrobocia_aktualna - frykcyjne_bazowe).max(0.0);
+        let actual_unemployment_rate = actual_unemployment_rate.max(frictional_unemployment_floor);
+        let actual_excess_unemployment = (actual_unemployment_rate - frictional_unemployment_floor).max(0.0);
 
-        labor_market.unemployed = bezrobotni_aktualni;
-        labor_market.unemployment_rate = stopa_bezrobocia_aktualna;
-        labor_market.unemployment_structure.friction = frykcyjne_bazowe / 100.0;
-        labor_market.unemployment_structure.cyclical = (pozostalo_aktualne * 0.6) / 100.0;
-        labor_market.unemployment_structure.structural = (pozostalo_aktualne * 0.4) / 100.0;
+        labor_market.unemployed = actual_unemployed;
+        labor_market.unemployment_rate = actual_unemployment_rate;
+        labor_market.unemployment_structure.friction = frictional_unemployment_floor / 100.0;
+        labor_market.unemployment_structure.cyclical = (actual_excess_unemployment * 0.6) / 100.0;
+        labor_market.unemployment_structure.structural = (actual_excess_unemployment * 0.4) / 100.0;
         labor_market.poverty_pool_percent = labor_market.unemployment_structure.cyclical * 0.2
             + labor_market.unemployment_structure.structural * 0.3;
 
         let new_avg = if total_employed > 0.0 {
-            let fundusz_ekspert = labor_market.expert_tier.employed * ekspert_wage;
-            let fundusz_sredni = labor_market.skilled_tier.employed * sredni_wage;
-            let fundusz_szeregowi = labor_market.unskilled_tier.employed * szeregowi_wage;
-            (fundusz_ekspert + fundusz_sredni + fundusz_szeregowi) / total_employed
+            let expert_wage_fund = labor_market.expert_tier.employed * expert_wage;
+            let skilled_wage_fund = labor_market.skilled_tier.employed * skilled_wage;
+            let unskilled_wage_fund = labor_market.unskilled_tier.employed * unskilled_wage;
+            (expert_wage_fund + skilled_wage_fund + unskilled_wage_fund) / total_employed
         } else {
             // Phase 25: No artificial wage floor. If nobody is employed,
             // the average wage is 0. Workers with no income starve, riot,

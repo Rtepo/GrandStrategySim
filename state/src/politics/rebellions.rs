@@ -179,7 +179,7 @@ pub fn spawn_rebel_proto_state(
     rebellion_type: RebellionType,
     goals: Vec<String>,
 ) -> crate::state::Country {
-    let rebel_name = format!("Powstanie w {}", rebel_region.id);
+    let rebel_name = format!("Uprising in {}", rebel_region.id);
     
     // Create rebel proto-state with inherited systems
     let mut rebel_country = crate::state::Country {
@@ -378,11 +378,11 @@ pub fn process_rebellion_spawning(
             let rebellion_type = trigger.determine_rebellion_type(&region, &country.politics);
             let goals = vec![
                 match rebellion_type {
-                    RebellionType::PeasantUprising => "Reforma rolna".to_string(),
+                    RebellionType::PeasantUprising => "Agrarian Reform".to_string(),
                     RebellionType::Separatist => "Independence".to_string(),
-                    RebellionType::IdeologicalRevolution => "Zmiana ustroju".to_string(),
-                    RebellionType::MilitaryCoup => "Stabilizacja".to_string(),
-                    RebellionType::ReligiousFundamentalist => "Prawo boskie".to_string(),
+                    RebellionType::IdeologicalRevolution => "Regime Change".to_string(),
+                    RebellionType::MilitaryCoup => "Stabilization".to_string(),
+                    RebellionType::ReligiousFundamentalist => "Divine Law".to_string(),
                 }
             ];
             

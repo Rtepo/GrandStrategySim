@@ -102,7 +102,7 @@ impl CreditRating {
 /// Type of wholesale treasury security.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
 pub enum TreasurySecurityType {
-    /// Short-term, zero-coupon, discount (Bony skarbowe).
+    /// Short-term, zero-coupon, discount (Treasury bills).
     #[default]
     TreasuryBill,
     /// Long-term, coupon-bearing (Obligacje).

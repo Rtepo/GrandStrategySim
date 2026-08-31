@@ -229,7 +229,7 @@ fn pay_strike_benefits(union: &mut Union, companies: &mut [Company], country: &m
             // Phase 41: We need to credit the savings of the workers' class.
             // For simplicity, credit to the urban working class in the company's region.
             // The actual class is tracked by the labor market; we use a reasonable default.
-            striking_company_regions.push((company.region_id.clone(), "Robotnicy".to_string(), striking_fte as f64));
+            striking_company_regions.push((company.region_id.clone(), "Worker".to_string(), striking_fte as f64));
         }
     }
 
@@ -261,7 +261,7 @@ fn pay_strike_benefits(union: &mut Union, companies: &mut [Company], country: &m
 /// Phase 41: Credit strike pay to the appropriate ClassDemographics.savings.
 ///
 /// This is a simplified approach: we credit the total strike pay to the
-/// urban working class ("Robotnicy") in each company's region.
+/// urban working class ("Worker") in each company's region.
 /// The labor market tracks actual class assignments, but for double-entry
 /// purposes we need a valid savings account to credit.
 fn credit_strike_pay_to_savings(

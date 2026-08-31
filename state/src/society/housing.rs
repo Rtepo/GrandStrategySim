@@ -18,10 +18,10 @@ pub enum HousingType {
     Hut,
     /// Slum (informal settlement)
     Slum,
-    /// Familok (workers' housing, industrial era)
-    Familok,
-    /// Beamciok (higher standard Familok for specialists/skilled workers)
-    Beamciok,
+    /// WorkersHousing (workers' housing, industrial era)
+    WorkersHousing,
+    /// SkilledHousing (higher standard WorkersHousing for specialists/skilled workers)
+    SkilledHousing,
     /// Tenement (Kamienica - multi-story urban)
     Tenement,
     /// City palace (aristocratic urban residence)
@@ -34,8 +34,8 @@ pub enum HousingType {
     Monastery,
     /// Social housing (state-funded)
     SocialHousing,
-    /// FolwarkHousing (Czworaki - Latifundium housing for serfs/landless laborers)
-    FolwarkHousing,
+    /// EstateHousing (Latifundium housing for serfs/landless laborers)
+    EstateHousing,
 }
 
 /// Housing slots for a building
@@ -994,11 +994,11 @@ impl CommercialBuilding {
         }
         
         // No landfill or landfill full - convert to pollution directly
-        // Store pollution in the region's zasoby (resources) field as a fallback
+        // Store pollution in the region's resources (resources) field as a fallback
         if let Some(region) = region {
             // This is a placeholder - actual pollution tracking would be in a dedicated field
-            // For now, we store it in the zasoby map under "zanieczyszczenie" (pollution)
-            let pollution_key = "zanieczyszczenie".to_string();
+            // For now, we store it in the resources map under "pollution" (pollution)
+            let pollution_key = "pollution".to_string();
             let current_pollution = region.resources.get(&pollution_key)
                 .and_then(|v| v.as_f64())
                 .unwrap_or(0.0);

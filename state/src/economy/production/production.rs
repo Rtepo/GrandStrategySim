@@ -156,7 +156,7 @@ fn price_for(good: Commodity, market_prices: &HashMap<Commodity, f64>, base_wage
 /// * Production scale is `clamped_employment / 1000.0` per the Python logic.
 /// * Inputs are consumed and outputs are produced at the per-1000 rates from
 ///   the active method, multiplied by production scale.
-/// * Wages are `base_wage * (3*eksperci + 2*sredni + 1*szeregowi) * employment`.
+/// * Wages are `base_wage * (3*experts + 2*skilled + 1*unskilled) * employment`.
 /// * `market_orders` is updated for every input (buy) and output (sell).
 /// * `building.last_production` and `building.last_profit` are overwritten.
 pub fn process_building_cycle(

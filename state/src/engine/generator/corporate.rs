@@ -4859,9 +4859,9 @@ fn generate_tourism_entities(
 /// * Each building has 10,000-50,000+ slots.
 ///* occupied_slots set to ~80-90% of total_capacity.
 /// * Owner assigned by housing type:
-///   - Palace/FolwarkHousing/SocialHousing → "STATE:<country_id>"
+///   - Palace/EstateHousing/SocialHousing → "STATE:<country_id>"
 ///   - Hut → "CLASS:Aristocracy:<region_id>"
-///   - Tenement/CityPalace/Familok/Beamciok → "CLASS:Bourgeoisie:<region_id>"
+///   - Tenement/CityPalace/WorkersHousing/SkilledHousing → "CLASS:Bourgeoisie:<region_id>"
 /// * Housing types distributed by era and class demographics.
 /// * Saved to `entities/<country>/housing/`.
 fn generate_housing(
@@ -4959,23 +4959,23 @@ fn generate_housing(
             // Rural housing
             for i in 0..rural_buildings {
                 let (ht, owner, target, ls, rent) = if start_year <= 1925 {
-                    // 1900/1925 rural: Huts for peasants, FolwarkHousing for serfs, Palace for aristocracy
+                    // 1900/1925 rural: Huts for peasants, EstateHousing for serfs, Palace for aristocracy
                     match i % 10 {
                         0 => (HousingType::Palace, state_owner.clone(), Some(RuralClass::Aristocracy), 0.90, 50.0),
-                        1..=3 => (HousingType::FolwarkHousing, state_owner.clone(), Some(RuralClass::Serf), 0.40, 5.0),
+                        1..=3 => (HousingType::EstateHousing, state_owner.clone(), Some(RuralClass::Serf), 0.40, 5.0),
                         _ => (HousingType::Hut, aristocracy_owner.clone(), Some(RuralClass::FreePeasant), 0.35, 10.0),
                     }
                 } else if start_year <= 1950 {
-                    // 1950 rural: Familok for workers, Huts modernized
+                    // 1950 rural: WorkersHousing for workers, Huts modernized
                     match i % 5 {
                         0 => (HousingType::Palace, state_owner.clone(), Some(RuralClass::Aristocracy), 0.90, 50.0),
-                        _ => (HousingType::Familok, bourgeoisie_owner.clone(), None, 0.50, 15.0),
+                        _ => (HousingType::WorkersHousing, bourgeoisie_owner.clone(), None, 0.50, 15.0),
                     }
                 } else {
                     // 1975 rural: Modernized housing
                     match i % 5 {
                         0 => (HousingType::SocialHousing, state_owner.clone(), None, 0.70, 20.0),
-                        _ => (HousingType::Familok, bourgeoisie_owner.clone(), None, 0.55, 15.0),
+                        _ => (HousingType::WorkersHousing, bourgeoisie_owner.clone(), None, 0.55, 15.0),
                     }
                 };
                 configs.push((ht, owner, target, ls, rent));
@@ -4996,10 +4996,10 @@ fn generate_housing(
                         _ => (HousingType::Tenement, bourgeoisie_owner.clone(), None, 0.60, 25.0),
                     }
                 } else {
-                    // 1975 urban: SocialHousing + Beamciok
+                    // 1975 urban: SocialHousing + SkilledHousing
                     match i % 4 {
                         0..=1 => (HousingType::SocialHousing, state_owner.clone(), None, 0.70, 20.0),
-                        _ => (HousingType::Beamciok, bourgeoisie_owner.clone(), None, 0.65, 30.0),
+                        _ => (HousingType::SkilledHousing, bourgeoisie_owner.clone(), None, 0.65, 30.0),
                     }
                 };
                 configs.push((ht, owner, target, ls, rent));

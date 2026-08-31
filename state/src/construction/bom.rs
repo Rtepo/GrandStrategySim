@@ -82,30 +82,30 @@ pub fn get_construction_bom_for_kind(building_kind: &str, start_year: u32) -> BT
 /// Used only by the legacy compatibility wrapper.
 fn sector_from_building_kind(kind: &str) -> Sector {
     let k = kind.to_lowercase();
-    if k.contains("huta") || k.contains("stal") || k.contains("odlewn")
+    if k.contains("steelworks") || k.contains("steel") || k.contains("foundry")
         || k.contains("heavy") || k.contains("heavy")
     {
         Sector::HeavyIndustry
-    } else if k.contains("kopaln") || k.contains("mine") || k.contains("coal")
-        || k.contains("rud") || k.contains("boksyt")
+    } else if k.contains("mine") || k.contains("mine") || k.contains("coal")
+        || k.contains("ore") || k.contains("bauxite")
     {
         Sector::Mining
-    } else if k.contains("roln") || k.contains("farma") || k.contains("folwark")
-        || k.contains("gospodarstw") || k.contains("farm")
+    } else if k.contains("agricultural") || k.contains("farm") || k.contains("estate")
+        || k.contains("farmstead") || k.contains("farm")
     {
         Sector::Agriculture
     } else if k.contains("warehouse") || k.contains("warehouse") || k.contains("storage")
     {
         Sector::TransportLogistics
-    } else if k.contains("sklep") || k.contains("biuro") || k.contains("handel")
-        || k.contains("komercyj") || k.contains("commercial") || k.contains("office")
+    } else if k.contains("shop") || k.contains("office") || k.contains("trade")
+        || k.contains("commercial") || k.contains("commercial") || k.contains("office")
     {
         Sector::PublicServices
     } else if k.contains("cement") {
         Sector::HeavyIndustry
-    } else if k.contains("chem") || k.contains("rafiner") || k.contains("petrochem") {
+    } else if k.contains("chem") || k.contains("refinery") || k.contains("petrochemical") {
         Sector::HeavyIndustry
-    } else if k.contains("energ") || k.contains("power") || k.contains("elektrown") {
+    } else if k.contains("energ") || k.contains("power") || k.contains("powerplant") {
         Sector::Energy
     } else {
         Sector::LightIndustry

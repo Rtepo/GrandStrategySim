@@ -192,12 +192,12 @@ pub fn balance_global_trade(
             dipl_bonus += 0.05 * tp_treaty_count as f64;
         }
 
-        // Apply the trade doctrine from `makro.policy.doktryna_handlowa`.
+        // Apply the trade doctrine from `macro.policy.trade_doctrine`.
         if let Some(Value::Object(pol)) = country.macro_indicators.extra.get("policy") {
-            if let Some(Value::String(d)) = pol.get("doktryna_handlowa") {
+            if let Some(Value::String(d)) = pol.get("trade_doctrine") {
                 match d.as_str() {
-                    "Merkantylizm" => comp *= 1.3,
-                    "Wolny handel" => comp *= 1.1,
+                    "Mercantilism" => comp *= 1.3,
+                    "Free Trade" => comp *= 1.1,
                     "Autarky" => comp *= 0.7,
                     _ => {}
                 }

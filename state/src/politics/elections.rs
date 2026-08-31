@@ -657,12 +657,12 @@ mod tests {
 
         let mut p2 = Party::default();
         p2.support = 35.0;
-        p2.base = vec!["Kapitalisci".to_string()];
+        p2.base = vec!["Bourgeoisie".to_string()];
         parties.insert("Liberal".to_string(), p2);
 
         let mut p3 = Party::default();
         p3.support = 20.0;
-        p3.base = vec!["Chlopi".to_string(), "Robotnicy".to_string()];
+        p3.base = vec!["FreePeasant".to_string(), "Worker".to_string()];
         parties.insert("Labor".to_string(), p3);
         parties
     }
@@ -709,12 +709,12 @@ mod tests {
             ..Default::default()
         });
         mapping.rural_class_mapping.insert("LandlessLaborer".to_string(), RuralClassConfig {
-            interest_group: "Chlopi".to_string(),
+            interest_group: "FreePeasant".to_string(),
             ..Default::default()
         });
-        mapping.urban_class_mapping.insert("Bourgeoisie".to_string(), "Kapitalisci".to_string());
-        mapping.urban_class_mapping.insert("Worker".to_string(), "Robotnicy".to_string());
-        mapping.default_group = "Chlopi".to_string();
+        mapping.urban_class_mapping.insert("Bourgeoisie".to_string(), "Bourgeoisie".to_string());
+        mapping.urban_class_mapping.insert("Worker".to_string(), "Worker".to_string());
+        mapping.default_group = "FreePeasant".to_string();
         mapping
     }
 

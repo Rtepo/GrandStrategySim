@@ -253,15 +253,15 @@ impl PropertyDeveloper {
                 match s.as_str() {
                     "Hut" => Some(HousingType::Hut),
                     "Slum" => Some(HousingType::Slum),
-                    "Familok" => Some(HousingType::Familok),
-                    "Beamciok" => Some(HousingType::Beamciok),
+                    "WorkersHousing" => Some(HousingType::WorkersHousing),
+                    "SkilledHousing" => Some(HousingType::SkilledHousing),
                     "Tenement" => Some(HousingType::Tenement),
                     "CityPalace" => Some(HousingType::CityPalace),
                     "Palace" => Some(HousingType::Palace),
                     "Rectory" => Some(HousingType::Rectory),
                     "Monastery" => Some(HousingType::Monastery),
                     "SocialHousing" => Some(HousingType::SocialHousing),
-                    "FolwarkHousing" => Some(HousingType::FolwarkHousing),
+                    "EstateHousing" => Some(HousingType::EstateHousing),
                     _ => None,
                 }
             });
@@ -321,8 +321,8 @@ impl PropertyDeveloper {
             match t.as_str() {
                 "Palace" | "CityPalace" => 3.0,
                 "Monastery" | "Rectory" => 2.0,
-                "Tenement" | "Beamciok" => 1.5,
-                "Familok" => 1.2,
+                "Tenement" | "SkilledHousing" => 1.5,
+                "WorkersHousing" => 1.2,
                 "SocialHousing" => 0.8,
                 _ => 1.0,
             }
@@ -541,7 +541,7 @@ impl PropertyDeveloper {
             match t.as_str() {
                 "Palace" | "CityPalace" => 2.0,
                 "Monastery" | "Rectory" => 1.5,
-                "Tenement" | "Beamciok" => 1.3,
+                "Tenement" | "SkilledHousing" => 1.3,
                 _ => 1.0,
             }
         }).unwrap_or(1.0);

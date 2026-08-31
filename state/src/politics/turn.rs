@@ -219,22 +219,22 @@ pub fn process_political_year(country: &mut Country, companies: &mut Vec<crate::
         let mut no_edu = std::collections::HashMap::new();
         no_edu.insert("Trade Unions".to_string(), 0.7);
         no_edu.insert("Agrarians".to_string(), 0.3);
-        mapping.education_mapping.insert("brak".to_string(), no_edu);
+        mapping.education_mapping.insert("none".to_string(), no_edu);
         let mut basic_edu = std::collections::HashMap::new();
         basic_edu.insert("Trade Unions".to_string(), 0.5);
         basic_edu.insert("Petty Bourgeoisie".to_string(), 0.3);
         basic_edu.insert("Agrarians".to_string(), 0.2);
-        mapping.education_mapping.insert("podstawowe".to_string(), basic_edu);
+        mapping.education_mapping.insert("basic".to_string(), basic_edu);
         let mut sec_edu = std::collections::HashMap::new();
         sec_edu.insert("Petty Bourgeoisie".to_string(), 0.4);
         sec_edu.insert("Trade Unions".to_string(), 0.3);
         sec_edu.insert("Artisans".to_string(), 0.3);
-        mapping.education_mapping.insert("srednie".to_string(), sec_edu);
+        mapping.education_mapping.insert("secondary".to_string(), sec_edu);
         let mut higher_edu = std::collections::HashMap::new();
         higher_edu.insert("Specialists".to_string(), 0.4);
         higher_edu.insert("Intelligentsia".to_string(), 0.3);
         higher_edu.insert("Petty Bourgeoisie".to_string(), 0.3);
-        mapping.education_mapping.insert("wyzsze".to_string(), higher_edu);
+        mapping.education_mapping.insert("higher".to_string(), higher_edu);
         // Company form mappings
         mapping.company_form_mapping.insert("JointStockCompany".to_string(), "Capitalists".to_string());
         mapping.company_form_mapping.insert("SoleProprietorship".to_string(), "Petty Bourgeoisie".to_string());

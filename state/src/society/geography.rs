@@ -752,7 +752,7 @@ pub enum RuralClass {
     FreePeasant,
     /// Serfs/Tied Peasants - tied to latifundia, unpaid labor
     Serf,
-    /// Landless Laborers/Komornicy - work for wages, no land
+    /// Landless Laborers - work for wages, no land
     LandlessLaborer,
 }
 

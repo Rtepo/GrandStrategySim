@@ -1,10 +1,10 @@
-//! Macroeconomic and social indicators — the `MacroData` (Python `makro`,
-//! i.e. `ctx.makro[country]`).
+//! Macroeconomic and social indicators — the `MacroData` (Python `macro`,
+//! i.e. `ctx.macro[country]`).
 //!
 //! Stable scalar indicators, the energy mix, the labor market, and national
 //! demographics are now strictly typed. Remaining political and runtime
-//! sub-trees (`polityka`, `statystyki_zdrowotne`, `statystyki_edukacyjne`,
-//! `przestepczosc`, ...) are preserved in [`MacroData::extra`] until they are
+//! sub-trees (`politics`, `health_statistics`, `education_statistics`,
+//! `crime_statistics`, ...) are preserved in [`MacroData::extra`] until they are
 //! individually ported.
 
 use crate::registries::enums::WealthBracket;
@@ -110,7 +110,7 @@ impl Default for Gender {
 ///   (e.g. `"Techniczne": 0.105`).
 /// * `basic` and `none` are scalar shares.
 /// * The Python `workforce.py` uses `higher` for experts, `basic` for the
-///   `sredni` tier, and `none` for the `szeregowi` tier.
+///   `skilled` tier, and `none` for the `unskilled` tier.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct Education {
     /// No formal education.
@@ -819,7 +819,7 @@ pub struct MoneySupplySnapshot {
 }
 
 /// Macroeconomic and social indicators for a nation (Python
-/// `ctx.makro[country]`).
+/// `ctx.macro[country]`).
 ///
 /// # Rules
 /// * Schema-guaranteed scalars, the wealth bracket, the energy mix, the labor
@@ -882,8 +882,8 @@ pub struct MacroData {
     /// Phase 24F: Rolling telemetry history for ToT/YoY delta computation.
     #[serde(default)]
     pub telemetry_history: TelemetryHistory,
-    /// Remaining political and runtime sub-trees (`polityka`,
-    /// `statystyki_zdrowotne`, `statystyki_edukacyjne`, `przestepczosc`,
+    /// Remaining political and runtime sub-trees (`politics`,
+    /// `health_statistics`, `education_statistics`, `crime_statistics`,
     /// ...), preserved losslessly.
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
@@ -935,7 +935,7 @@ mod tests {
         "education_statistics": {"infrastructure_base": 59.5},
         "average_wage": 660.6, "culture": "Illyria", "cultural_group": "germanic",
         "religion": "Protestantism", "demographics": {"birth_rate": 18.2},
-        "crime_rate": {"korupcja": 20.0}
+        "crime_rate": {"corruption": 20.0}
     }"#;
 
     #[test]
@@ -956,7 +956,7 @@ mod tests {
     #[test]
     fn complex_subtrees_land_in_extra() {
         let m: MacroData = serde_json::from_str(FIXTURE).unwrap();
-        // statystyki_zdrowotne and statystyki_edukacyjne are now explicit fields, not in extra
+        // health_statistics and education_statistics are now explicit fields, not in extra
         for key in ["policy", "crime_rate"] {
             assert!(m.extra.contains_key(key), "missing {key}");
         }

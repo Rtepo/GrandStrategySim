@@ -613,14 +613,14 @@ pub fn calculate_black_ops_budget(country: &Country, registries: &Registries) ->
 
         let shadow = crime
             .as_ref()
-            .and_then(|m| m.get("szara_strefa_wartosc"))
+            .and_then(|m| m.get("shadow_economy_value"))
             .and_then(Value::as_f64)
             .unwrap_or(0.0)
             * 0.05;
 
         let corruption = crime
             .as_ref()
-            .and_then(|m| m.get("korupcja"))
+            .and_then(|m| m.get("corruption"))
             .and_then(Value::as_f64)
             .unwrap_or(0.0);
         let corruption_funding = gdp * (corruption / 100.0) * 0.03;

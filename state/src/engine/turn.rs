@@ -2580,12 +2580,12 @@ pub fn run_turn_in_memory(
                 task.ctx.country.macro_indicators.average_wage
             };
             let labor_market = &mut task.ctx.country.macro_indicators.labor_market;
-            let sila_robocza = (task.ctx.country.budget.population as f64
+            let labor_force = (task.ctx.country.budget.population as f64
                 * labor_market.labor_force_participation / 100.0).max(1.0);
             labor_market.employed_total = total_fulfilled;
-            let bezrobotni = (sila_robocza - total_fulfilled).max(0.0);
-            labor_market.unemployed = bezrobotni;
-            labor_market.unemployment_rate = (bezrobotni / sila_robocza * 100.0).max(0.0);
+            let unemployed = (labor_force - total_fulfilled).max(0.0);
+            labor_market.unemployed = unemployed;
+            labor_market.unemployment_rate = (unemployed / labor_force * 100.0).max(0.0);
             // Emergency Stabilization: Aggregate total furloughed workers
             // across all companies for the macro dashboard.
             labor_market.furloughed_total = task.companies

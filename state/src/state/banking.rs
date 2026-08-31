@@ -41,7 +41,7 @@ fn default_reserve_requirement_ratio() -> f64 {
 
 /// Default bank condition string.
 fn default_condition() -> String {
-    "Stabilna".to_string()
+    "Stable".to_string()
 }
 
 // ============================================================================

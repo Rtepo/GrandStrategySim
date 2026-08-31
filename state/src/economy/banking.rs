@@ -18,20 +18,20 @@ const BASE_RATE: f64 = 0.05;
 /// Maximum leverage a bank is allowed before it is considered distressed.
 ///
 /// # Rules
-/// * Mirrors the `max_lewar` default in the Python banking turn; KNF regulatory
+/// * Mirrors the `max_leverage` default in the Python banking turn; KNF regulatory
 ///   adjustments will be added when the regulator module is ported.
 const MAX_LEVERAGE: f64 = 15.0;
 
 /// Risk spread added to the base rate based on the bank's type.
 ///
 /// # Arguments
-/// * `bank_type` - The `typ` field from the Python bank dictionary.
+/// * `bank_type` - The `type` field from the Python bank dictionary.
 ///
 /// # Returns
 /// The spread in percentage points, e.g. `0.02` for a commercial bank.
 ///
 /// # Rules
-/// * Matches the `wib_marza` logic in `corporate/markets/banking/core.py`:
+/// * Matches the `risk_margin` logic in `corporate/markets/banking/core.py`:
 ///   Investment = 0.05, Cooperative = 0.01, Commercial = 0.02.
 fn risk_spread(bank_type: &str) -> f64 {
     match bank_type {
@@ -110,7 +110,7 @@ pub fn process_banking_system(ctx: &mut CountryTurnCtx<'_>) {
             if leverage < MAX_LEVERAGE * 0.5 {
                 "Excellent".to_string()
             } else {
-                "Dobra".to_string()
+                "Good".to_string()
             }
         } else {
             "Endangered".to_string()

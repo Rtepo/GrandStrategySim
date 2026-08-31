@@ -114,7 +114,7 @@ pub struct GeneratedWorld {
 /// `Ok(GeneratedWorld)` on success, or a boxed error on failure.
 ///
 /// # Rules
-/// * Overwrites any existing `budgets.json`, `makro.json`, `tax_rates.json`,
+/// * Overwrites any existing `budgets.json`, `macro.json`, `tax_rates.json`,
 ///   `waluty.json`, `banks.json`, `storage.json`, `diplomacy.json`,
 ///   `regions.json`, `megaregions.json` and `cadastres.json` in `data_dir`.
 /// * Leaves `entities/` and `spatial_registry/` empty so the lazy loader returns
@@ -1038,26 +1038,26 @@ fn weighted_wealth(rng: &mut impl Rng) -> WealthBracket {
 }
 
 fn build_demographics(cultural: &CulturalBackground, _population: u64, gdp_pc: f64) -> Demographics {
-    let analfabetyzm = (0.4 - (gdp_pc * 0.15)).max(0.01);
-    let srednie_total = (gdp_pc * 0.15).min(0.45);
-    let wyzsze_total = (gdp_pc * 0.08).min(0.35);
-    let podstawowe = (1.0 - wyzsze_total - srednie_total - analfabetyzm).max(0.0);
+    let illiteracy_rate = (0.4 - (gdp_pc * 0.15)).max(0.01);
+    let secondary_edu_total = (gdp_pc * 0.15).min(0.45);
+    let higher_edu_total = (gdp_pc * 0.08).min(0.35);
+    let basic_edu_total = (1.0 - higher_edu_total - secondary_edu_total - illiteracy_rate).max(0.0);
 
-    let mut srednie = BTreeMap::new();
-    srednie.insert("Zawodowe".to_string(), srednie_total * 0.4);
-    srednie.insert("Techniczne".to_string(), srednie_total * 0.3);
-    srednie.insert("Humanistyczne".to_string(), srednie_total * 0.3);
+    let mut secondary_map = BTreeMap::new();
+    secondary_map.insert("Vocational".to_string(), secondary_edu_total * 0.4);
+    secondary_map.insert("Technical".to_string(), secondary_edu_total * 0.3);
+    secondary_map.insert("Humanities".to_string(), secondary_edu_total * 0.3);
 
-    let mut wyzsze = BTreeMap::new();
-    wyzsze.insert("Techniczne".to_string(), wyzsze_total * 0.4);
-    wyzsze.insert("Humanistyczne".to_string(), wyzsze_total * 0.4);
-    wyzsze.insert("Medyczne".to_string(), wyzsze_total * 0.2);
+    let mut higher_map = BTreeMap::new();
+    higher_map.insert("Technical".to_string(), higher_edu_total * 0.4);
+    higher_map.insert("Humanities".to_string(), higher_edu_total * 0.4);
+    higher_map.insert("Medical".to_string(), higher_edu_total * 0.2);
 
     let education = Education {
-        none: analfabetyzm,
-        basic: podstawowe,
-        secondary: srednie,
-        higher: wyzsze,
+        none: illiteracy_rate,
+        basic: basic_edu_total,
+        secondary: secondary_map,
+        higher: higher_map,
         extra: Map::new(),
     };
 
@@ -1133,48 +1133,48 @@ fn build_treasury(
         StartYear::Y1975 => ((0.02..0.08), 1.3, 1.5),
     };
 
-    let wydobycie = if is_petrostate { rng.gen_range(0.15..0.4) } else { rng.gen_range(0.01..0.05) };
-    let roln = if gdp_pc < 1.5 {
+    let mining_share = if is_petrostate { rng.gen_range(0.15..0.4) } else { rng.gen_range(0.01..0.05) };
+    let agriculture_share = if gdp_pc < 1.5 {
         rng.gen_range(agri_range.start..agri_range.end)
     } else {
         rng.gen_range(0.01..0.05)
     };
-    let p_ciezki = rng.gen_range(0.05..0.25) * industry_mult;
-    let p_lekki = rng.gen_range(0.1..0.3) * industry_mult;
-    let u_lokalne = rng.gen_range(0.2..0.4) * services_mult;
-    let u_eksportowe = if gdp_pc > 2.0 { rng.gen_range(0.05..0.3) * services_mult } else { rng.gen_range(0.01..0.05) };
-    let bud = rng.gen_range(0.05..0.15);
-    let energetyka = rng.gen_range(0.05..0.12);
-    let u_medyczne = rng.gen_range(0.04..0.10) * services_mult;
-    let u_edukacyjne = rng.gen_range(0.03..0.08) * services_mult;
+    let heavy_industry_share = rng.gen_range(0.05..0.25) * industry_mult;
+    let light_industry_share = rng.gen_range(0.1..0.3) * industry_mult;
+    let local_services_share = rng.gen_range(0.2..0.4) * services_mult;
+    let export_services_share = if gdp_pc > 2.0 { rng.gen_range(0.05..0.3) * services_mult } else { rng.gen_range(0.01..0.05) };
+    let construction_share = rng.gen_range(0.05..0.15);
+    let energy_share = rng.gen_range(0.05..0.12);
+    let healthcare_services_share = rng.gen_range(0.04..0.10) * services_mult;
+    let education_services_share = rng.gen_range(0.03..0.08) * services_mult;
 
-    let sum = wydobycie + roln + p_ciezki + p_lekki + u_lokalne + u_eksportowe + bud + energetyka + u_medyczne + u_edukacyjne;
+    let sum = mining_share + agriculture_share + heavy_industry_share + light_industry_share + local_services_share + export_services_share + construction_share + energy_share + healthcare_services_share + education_services_share;
 
-    let wegiel_mix = rng.gen_range(0.3..0.8);
-    let gaz_mix = rng.gen_range(0.1..0.6);
-    let oze_mix = rng.gen_range(0.05..0.2);
-    let mix_sum = wegiel_mix + gaz_mix + oze_mix;
+    let coal_mix_raw = rng.gen_range(0.3..0.8);
+    let gas_mix_raw = rng.gen_range(0.1..0.6);
+    let renewables_mix_raw = rng.gen_range(0.05..0.2);
+    let mix_sum = coal_mix_raw + gas_mix_raw + renewables_mix_raw;
 
     let energy_mix = EnergyMix {
-        coal: wegiel_mix / mix_sum,
-        natural_gas: gaz_mix / mix_sum,
+        coal: coal_mix_raw / mix_sum,
+        natural_gas: gas_mix_raw / mix_sum,
         uranium: 0.0,
-        renewables: oze_mix / mix_sum,
+        renewables: renewables_mix_raw / mix_sum,
         extra: Map::new(),
     };
 
     let average_wage = gdp_pc * 800.0;
 
     let mut sectors = HashMap::new();
-    sectors.insert(Sector::Mining, sector_share(wydobycie / sum, 0.5, tech_limit));
-    sectors.insert(Sector::Agriculture, sector_share(roln / sum, 0.2, tech_limit));
-    sectors.insert(Sector::HeavyIndustry, sector_share(p_ciezki / sum, 0.6, tech_limit));
-    sectors.insert(Sector::LightIndustry, sector_share(p_lekki / sum, 0.4, tech_limit));
-    sectors.insert(Sector::LocalServices, sector_share(u_lokalne / sum, 0.3, tech_limit));
-    sectors.insert(Sector::ExportServices, sector_share(u_eksportowe / sum, 0.7, tech_limit));
-    sectors.insert(Sector::Construction, sector_share(bud / sum, 0.8, tech_limit));
-    sectors.insert(Sector::Energy, sector_share(energetyka / sum, 0.3, tech_limit));
-    sectors.insert(Sector::PublicServices, sector_share((u_medyczne + u_edukacyjne) / sum, 0.2, tech_limit));
+    sectors.insert(Sector::Mining, sector_share(mining_share / sum, 0.5, tech_limit));
+    sectors.insert(Sector::Agriculture, sector_share(agriculture_share / sum, 0.2, tech_limit));
+    sectors.insert(Sector::HeavyIndustry, sector_share(heavy_industry_share / sum, 0.6, tech_limit));
+    sectors.insert(Sector::LightIndustry, sector_share(light_industry_share / sum, 0.4, tech_limit));
+    sectors.insert(Sector::LocalServices, sector_share(local_services_share / sum, 0.3, tech_limit));
+    sectors.insert(Sector::ExportServices, sector_share(export_services_share / sum, 0.7, tech_limit));
+    sectors.insert(Sector::Construction, sector_share(construction_share / sum, 0.8, tech_limit));
+    sectors.insert(Sector::Energy, sector_share(energy_share / sum, 0.3, tech_limit));
+    sectors.insert(Sector::PublicServices, sector_share((healthcare_services_share + education_services_share) / sum, 0.2, tech_limit));
 
     let mut allocations = HashMap::new();
     allocations.insert("Industry".to_string(), Value::from(rng.gen_range(0.02..0.15)));
@@ -1607,13 +1607,13 @@ fn build_currency(name: &str, _treasury: &Treasury) -> Currency {
 fn build_central_bank(name: &str, treasury: &Treasury) -> crate::state::CentralBank {
     let mut rng = rand::thread_rng();
     let prefix = name[..3.min(name.len())].to_uppercase();
-    let rezerwy = treasury.gdp * rng.gen_range(0.05..0.20);
+    let fx_reserve_value = treasury.gdp * rng.gen_range(0.05..0.20);
     
     // Initialize FX reserves with some foreign currencies
     let mut fx_reserves = std::collections::HashMap::new();
-    fx_reserves.insert("USD".to_string(), rezerwy * 0.5);
-    fx_reserves.insert("EUR".to_string(), rezerwy * 0.3);
-    fx_reserves.insert("GBP".to_string(), rezerwy * 0.2);
+    fx_reserves.insert("USD".to_string(), fx_reserve_value * 0.5);
+    fx_reserves.insert("EUR".to_string(), fx_reserve_value * 0.3);
+    fx_reserves.insert("GBP".to_string(), fx_reserve_value * 0.2);
     
     // Phase 38: Initialize interest rates anchored to the neutral rate (2%)
     // rather than a random 1-10% range. This ensures the first turn's sovereign
@@ -1626,7 +1626,7 @@ fn build_central_bank(name: &str, treasury: &Treasury) -> crate::state::CentralB
     
     crate::state::CentralBank {
         id: format!("BC-{}", prefix),
-        name: format!("Bank Centralny {}", name),
+        name: format!("Central Bank of {}", name),
         independence_model: crate::state::CentralBankIndependence::CentralIndependent,
         mandate: crate::state::MonetaryMandate::Mixed,
         governor_id: format!("GOV-{}-001", prefix),

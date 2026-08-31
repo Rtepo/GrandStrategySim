@@ -75,7 +75,7 @@ impl UtilityDemand {
                 waste_generation: 0.3 * total_occupied,
                 recyclable_fraction: 0.05, // Very low recycling in slums
             },
-            HousingType::Familok => UtilityDemand {
+            HousingType::WorkersHousing => UtilityDemand {
                 surface_water_demand: 150.0 * total_occupied,
                 groundwater_demand: 0.0,
                 sewage_generation: 120.0 * total_occupied,
@@ -84,7 +84,7 @@ impl UtilityDemand {
                 waste_generation: 0.8 * total_occupied,
                 recyclable_fraction: 0.2,
             },
-            HousingType::Beamciok => UtilityDemand {
+            HousingType::SkilledHousing => UtilityDemand {
                 surface_water_demand: 200.0 * total_occupied,
                 groundwater_demand: 0.0,
                 sewage_generation: 160.0 * total_occupied,
@@ -147,7 +147,7 @@ impl UtilityDemand {
                 waste_generation: 0.6 * total_occupied,
                 recyclable_fraction: 0.2,
             },
-            HousingType::FolwarkHousing => UtilityDemand {
+            HousingType::EstateHousing => UtilityDemand {
                 surface_water_demand: 80.0 * total_occupied,
                 groundwater_demand: 20.0 * total_occupied,
                 sewage_generation: 60.0 * total_occupied,

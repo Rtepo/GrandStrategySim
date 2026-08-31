@@ -2,7 +2,7 @@
 //!
 //! This module holds the typed replacements for Python's dynamic per-country
 //! dictionaries. The Python engine splits state across several JSON files
-//! (`budgets.json`, `makro.json`, `tax_rates.json`, ...), each keyed by country
+//! (`budgets.json`, `macro.json`, `tax_rates.json`, ...), each keyed by country
 //! name; [`Country`] joins the per-country slices, and [`GameState`] is the
 //! root that owns every nation plus (in later targets) the shared global
 //! systems.
@@ -226,7 +226,7 @@ pub struct IntelligenceBudget {
     pub spent: f64,
 }
 
-/// A single nation — the join of its `budgets`, `makro`, and `tax_rates`
+/// A single nation — the join of its `budgets`, `macro`, and `tax_rates`
 /// slices.
 ///
 /// # Rules
@@ -240,14 +240,14 @@ pub struct Country {
     pub name: String,
     /// Financial and structural state (from `budgets.json`).
     pub budget: Treasury,
-    /// Macroeconomic and social indicators (from `makro.json`).
+    /// Macroeconomic and social indicators (from `macro.json`).
     pub macro_indicators: MacroData,
     /// Taxation state (from `tax_rates.json`).
     pub tax_rates: TaxRates,
     /// Trade-policy state (defaulted when missing from the save).
     #[serde(default)]
     pub trade_policy: TradePolicy,
-    /// Political state (from `polityka` inside `makro.json`).
+    /// Political state (from `politics` inside `macro.json`).
     #[serde(default)]
     pub politics: Politics,
     /// Regional geography and governance

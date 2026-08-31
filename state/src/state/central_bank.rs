@@ -1,4 +1,4 @@
-//! Central Bank (Bank Centralny) and Monetary Policy Council (RPP) structures.
+//! Central Bank and Monetary Policy Council (RPP) structures.
 //!
 //! This module defines the supreme monetary authority for Stage D, including
 //! institutional independence models, macroeconomic mandates, and the full suite
@@ -104,13 +104,13 @@ pub struct MonetaryPolicyCouncil {
 // CENTRAL BANK STRUCTURE
 // ============================================================================
 
-/// Central Bank (Bank Centralny) - supreme monetary authority.
+/// Central Bank - supreme monetary authority.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct CentralBank {
     /// Central Bank identifier (e.g., "BC_Illyria").
     #[serde(default)]
     pub id: String,
-    /// Display name (e.g., "Bank Centralny Ilirii").
+    /// Display name (e.g., "Central Bank of Illyria").
     #[serde(default)]
     pub name: String,
     /// Institutional independence model.

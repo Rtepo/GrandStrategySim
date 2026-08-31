@@ -411,18 +411,18 @@ pub fn calculate_interest_groups_power(
 #[deprecated(note = "Use calculate_interest_groups_power with full parameters instead")]
 pub fn calculate_interest_groups_power_legacy(country: &Country) -> HashMap<String, f64> {
     let budget = &country.budget;
-    let makro = &country.macro_indicators;
+    let macro_data = &country.macro_indicators;
     let politics = &country.politics;
 
     let gdp = budget.gdp.max(1.0);
     let population = budget.population.max(1) as f64;
     let sectors = &budget.sectors;
     let allocations = &budget.allocations;
-    let education = &makro.demographics.education;
-    let unemployment = makro.labor_market.unemployment_rate;
+    let education = &macro_data.demographics.education;
+    let unemployment = macro_data.labor_market.unemployment_rate;
     let private_capital = budget.private_capital;
     let stock_confidence = budget.stock_market.confidence;
-    let gini = makro.gini;
+    let gini = macro_data.gini;
 
     let illiteracy_rate = education.none;
     let higher_education_total = education.higher.values().sum::<f64>();
@@ -639,7 +639,7 @@ pub fn allocation_share_from_ministries(
 /// # Rules
 /// * Explicitly build pool from available classes - DO NOT subtract serfs
 /// * Serfs are completely invisible to cash labor market (tied to latifundia)
-/// * Landless Laborers (Komornicy): Fully included in available unskilled labor pool
+/// * Landless Laborers: Fully included in available unskilled labor pool
 /// * Free Peasants: Partially included (fraction may seek secondary employment)
 /// * Aristocracy: Excluded (capital owners, not laborers)
 /// * Urban unemployed: Included
