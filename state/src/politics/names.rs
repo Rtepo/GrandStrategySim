@@ -340,6 +340,45 @@ pub fn generate_unique_vip(
     vip
 }
 
+/// Phase 91: Generate a unique VIP name for KEY POLITICAL FIGURES only.
+///
+/// This is a hardened version of `generate_unique_vip` with:
+/// - 50 iterations (up from 20) for more retries before exhaustion.
+/// - Hard force-break on exhaustion: returns a duplicate rather than hanging.
+/// - Clear documentation that duplicate-on-exhaust is acceptable.
+///
+/// # When to use this vs `generate_full_vip`
+/// - **Key Political Figures** (Head of State, PM, Royal Consort, Royal Heirs,
+///   Party Leaders, Advisory Council): Use `generate_key_vip` with a shared
+///   `used_names` set. ~10-20 per country, well within the ~2500 combination
+///   pool.
+/// - **Generic VIPs** (CEOs, mayors, board members, ministers): Use
+///   `generate_full_vip` directly. Duplicates are permitted and realistic
+///   (e.g., "John Smith" exists multiple times in the real world).
+///
+/// # Exhaustion behavior
+/// If the cultural name pool is exhausted for key figures (extremely unlikely
+/// with only 10-20 key figures per country), a duplicate name is returned.
+/// This is acceptable; the simulation continues rather than hanging.
+pub fn generate_key_vip(
+    cultural_group: &str,
+    rng: &mut impl Rng,
+    used_names: &mut std::collections::HashSet<String>,
+) -> VipName {
+    for _ in 0..50 {
+        let vip = generate_full_vip(cultural_group, rng);
+        if !used_names.contains(&vip.full_name) {
+            used_names.insert(vip.full_name.clone());
+            return vip;
+        }
+    }
+    // Pool exhausted — return a duplicate rather than hanging.
+    // Stability is more important than avoiding a duplicate name.
+    let vip = generate_full_vip(cultural_group, rng);
+    used_names.insert(vip.full_name.clone());
+    vip
+}
+
 /// Phase 33: Convert a generated VipName into a Leader struct.
 ///
 /// Populates name, gender, age, and sensible defaults for views/traits

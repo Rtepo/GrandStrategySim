@@ -63,15 +63,17 @@ pub async fn get_paginated_vips(
     .map_err(|e| format!("Task join error: {e}"))?
 }
 
-/// Phase 54: Returns all valid VIP roles from the authoritative Rust enum.
+/// Phase 54/91: Returns all valid VIP roles from the authoritative Rust enum.
 /// The frontend uses this to populate the role filter dropdown dynamically.
+/// Phase 91: value = canonical_name() (e.g., "PrimeMinister") for filtering,
+/// label = as_str() (e.g., "Prime Minister") for display.
 #[tauri::command]
 pub async fn get_available_roles() -> Result<Vec<RoleOption>, String> {
     let roles = VipRoleExtended::all();
     let result = roles
         .iter()
         .map(|r| RoleOption {
-            value: r.as_str().to_string(),
+            value: r.canonical_name().to_string(),
             label: r.as_str().to_string(),
         })
         .collect();

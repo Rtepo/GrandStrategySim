@@ -64,15 +64,26 @@ fn ceo_ideology_from_traits(traits: &[String], main_trait: &str, rng: &mut impl 
     }
 }
 
-/// Phase 89: Check if a sector is eligible for Working Capital Loans.
+/// Phase 89/91: Check if a sector is eligible for Working Capital Loans.
 ///
-/// Heavy CAPEX and physical production sectors receive 6-turn Working Capital
-/// Loans during world generation instead of the free 3-turn Genesis Payroll
-/// Grant. This ensures double-entry consistency (Rule 1) — the loan is a
-/// legitimate bank liability, not money created from thin air.
+/// All wage-paying sectors receive 6-turn Working Capital Loans during world
+/// generation instead of the free 3-turn Genesis Payroll Grant. This ensures
+/// double-entry consistency (Rule 1) — the loan is a legitimate bank
+/// liability, not money created from thin air.
+///
+/// Phase 91: Extended to include service sectors. All sectors with wage
+/// obligations need working-capital coverage. The 3-turn free grant was
+/// insufficient and created a command-economy double standard (Rule 5).
 ///
 /// Eligible sectors: Agriculture, Mining, HeavyIndustry, LightIndustry,
-/// Energy, Construction.
+/// Energy, Construction, LocalServices, ExportServices, PublicServices,
+/// MedicalServices, EducationalServices, TransportLogistics, Hospitality,
+/// MediaAndEntertainment, MaintenanceWorkshops, ArmamentsIndustry.
+///
+/// Excluded sectors:
+/// - Banking (banks have their own capital structure)
+/// - NGO/Religion (donation-funded, not loan-eligible)
+/// - PublicAdministration/Government (treasury-funded)
 fn is_working_capital_loan_eligible(sector: Sector) -> bool {
     matches!(
         sector,
@@ -82,6 +93,16 @@ fn is_working_capital_loan_eligible(sector: Sector) -> bool {
             | Sector::LightIndustry
             | Sector::Energy
             | Sector::Construction
+            | Sector::LocalServices
+            | Sector::ExportServices
+            | Sector::PublicServices
+            | Sector::MedicalServices
+            | Sector::EducationalServices
+            | Sector::TransportLogistics
+            | Sector::Hospitality
+            | Sector::MediaAndEntertainment
+            | Sector::MaintenanceWorkshops
+            | Sector::ArmamentsIndustry
     )
 }
 
@@ -859,7 +880,7 @@ pub fn generate_corporate_entities(
 /// * `start_year` - Start year (for loan issuance turn)
 fn issue_working_capital_loans(
     data_dir: &Path,
-    country: &Country,
+    country: &mut Country,
     all_companies: &mut [Company],
     code: &str,
     _start_year: u32,
@@ -901,7 +922,7 @@ fn issue_working_capital_loans(
     let mut total_loaned = 0.0;
 
     for company in all_companies.iter_mut() {
-        // Phase 89: Determine per-sector risk premium.
+        // Phase 89/91: Determine per-sector risk premium.
         // Sectors not in this map are not eligible for Working Capital Loans.
         let risk_premium = match company.sector {
             // 100 bps — longest cash cycle (harvest delay), but established sector
@@ -916,6 +937,27 @@ fn issue_working_capital_loans(
             Sector::Energy => 0.02,
             // 100 bps — project-based, tranche-funded but needs startup cash
             Sector::Construction => 0.01,
+            // Phase 91: Service sectors — lower CAPEX, faster cash cycle
+            // 80 bps — retail/local services, fast turnover
+            Sector::LocalServices => 0.008,
+            // 120 bps — export services, trade credit risk
+            Sector::ExportServices => 0.012,
+            // 100 bps — public services, stable but regulated
+            Sector::PublicServices => 0.01,
+            // 100 bps — medical services, stable demand
+            Sector::MedicalServices => 0.01,
+            // 100 bps — educational services, stable demand
+            Sector::EducationalServices => 0.01,
+            // 120 bps — transport, fuel price volatility
+            Sector::TransportLogistics => 0.012,
+            // 150 bps — hospitality, seasonal demand
+            Sector::Hospitality => 0.015,
+            // 120 bps — media, advertising revenue volatility
+            Sector::MediaAndEntertainment => 0.012,
+            // 100 bps — maintenance workshops, steady demand
+            Sector::MaintenanceWorkshops => 0.01,
+            // 150 bps — armaments, political demand risk
+            Sector::ArmamentsIndustry => 0.015,
             // Not eligible for Working Capital Loans
             _ => continue,
         };
@@ -923,17 +965,38 @@ fn issue_working_capital_loans(
             continue; // State-owned companies don't need loans
         }
 
-        // Compute loan principal: 6 turns of payroll for the initial workforce
-        // PLUS the seed inventory cost (Phase 90). The seed inventory was
-        // already deducted from company cash during generation; the loan must
-        // cover both the inventory purchase and the payroll runway so the
-        // company starts with healthy available_cash after the loan is applied.
+        // Phase 90/91: Compute loan principal covering ALL first-turn obligations.
+        // The old formula (payroll * 6 + seed_cost) was insufficient because it
+        // ignored debt service (amortization + interest) and operating overhead.
+        // Companies furloughed on Turn 1 because the runway was effectively 4-5
+        // turns, not 6.
+        //
+        // New formula:
+        //   payroll_principal = initial_fte * initial_wage * 6 turns
+        //   seed_cost = deducted seed inventory cost
+        //   debt_service_reserve = 3 turns of (interest + 1/24 principal)
+        //   overhead_reserve = 3 turns of 5% of payroll (proxy for overhead)
         let initial_fte = company.fulfilled_fte as f64;
         let initial_wage = company.offered_wage_per_fte.max(50.0);
         let seed_cost = company.extra.get("seed_inventory_cost")
             .and_then(|v| v.as_f64())
             .unwrap_or(0.0);
-        let principal = initial_fte * initial_wage * 6.0 + seed_cost;
+
+        // Estimate debt service: 24-turn amortization, annual rate = xibor + margin + premium
+        // We need the bank's margin to compute this, but bank assignment hasn't
+        // happened yet. Use a conservative estimate (margin = 2%, premium from sector).
+        let estimated_bank_margin = 0.02;
+        let estimated_annual_rate = xibor + estimated_bank_margin + risk_premium;
+        let payroll_principal = initial_fte * initial_wage * 6.0;
+        // First estimate principal without debt service reserve to compute
+        // the debt service itself (avoid circular dependency).
+        let base_principal = payroll_principal + seed_cost;
+        let per_turn_debt_service = base_principal * (estimated_annual_rate / 24.0 + 1.0 / 24.0);
+        let debt_service_reserve = per_turn_debt_service * 3.0;
+        // Overhead is 5% of revenue in process_company; use payroll as proxy
+        // since revenue hasn't materialized yet.
+        let overhead_reserve = payroll_principal * 0.05 * 3.0;
+        let principal = base_principal + debt_service_reserve + overhead_reserve;
 
         if principal <= 0.0 {
             continue;
@@ -992,8 +1055,61 @@ fn issue_working_capital_loans(
         total_loaned += principal;
     }
 
+    // Phase 91: Tier 1 Capital Safety Net — after all loans are issued,
+    // verify each bank's Tier 1 ratio is >= 1.5x the KNF minimum (12%).
+    // If the pre-computed estimate in build_bank_companies was insufficient,
+    // inject additional equity from the treasury (double-entry).
+    // Counterparty: treasury subscribes to additional bank shares.
+    // Double-entry:
+    //   treasury.liquid_reserves -= equity_injection (state pays)
+    //   bank.tier_1_capital += equity_injection (equity increases)
+    //   bank.reserves_at_central_bank += equity_injection (cash received)
+    // Cap total injection at 30% of treasury liquid_reserves to prevent
+    // state bankruptcy — if insufficient, banks get what's available.
+    const TARGET_TIER_1_RATIO: f64 = 0.12; // 1.5x the 8% KNF minimum
+    let max_total_injection = country.budget.liquid_reserves * 0.30;
+    let mut total_injected: f64 = 0.0;
+
+    for bank in &mut bank_companies {
+        if total_injected >= max_total_injection {
+            break; // Treasury cannot afford more equity injection
+        }
+        if let Some(ref mut bs) = bank.balance_sheet {
+            let total_assets = bs.total_assets();
+            if total_assets <= 0.0 {
+                continue;
+            }
+            let current_ratio = bs.tier_1_capital / total_assets;
+            if current_ratio < TARGET_TIER_1_RATIO {
+                let required_capital = total_assets * TARGET_TIER_1_RATIO;
+                let mut injection = required_capital - bs.tier_1_capital;
+                // Clamp to remaining treasury budget
+                injection = injection.min(max_total_injection - total_injected);
+                if injection > 0.0 {
+                    bs.tier_1_capital += injection;
+                    bs.reserves_at_central_bank += injection;
+                    total_injected += injection;
+                    // Record shareholder entry in bank's extra map
+                    let key = "state_treasury_equity";
+                    let current = bs.extra.get(key)
+                        .and_then(|v| v.as_f64())
+                        .unwrap_or(0.0);
+                    bs.extra.insert(
+                        key.to_string(),
+                        serde_json::Value::from(current + injection),
+                    );
+                }
+            }
+        }
+    }
+
+    // Debit treasury for the total equity injection (double-entry counterparty).
+    if total_injected > 0.0 {
+        country.budget.liquid_reserves -= total_injected;
+    }
+
     // Save ALL banks back to disk (multiple banks may have been modified).
-    if total_loaned > 0.0 {
+    if total_loaned > 0.0 || total_injected > 0.0 {
         let _ = bank_store.save_sector(&country.name, &banking_sector_name, None, &bank_companies);
     }
 

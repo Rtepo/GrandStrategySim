@@ -1796,6 +1796,9 @@ pub struct CompanyFinancialRecord {
     /// Phase 90: Wage expense (paid + accrued arrears) for transparency.
     /// This is a subset of `expenses`, not an additional deduction.
     pub wage_expense: f64,
+    /// Phase 91: Wage arrears (unpaid portion of payroll obligation).
+    /// Accumulates when company cannot afford full payroll.
+    pub wage_arrears: f64,
 }
 
 /// Phase 87+: Financial summary aggregating last turn, quarter (3 turns), and year (24 turns).
@@ -3046,9 +3049,11 @@ fn build_vip_page(country: &Country, companies: &[Company], view: &ViewQuery) ->
         if !search_lower.is_empty() && !v.full_name.to_lowercase().contains(&search_lower) {
             return false;
         }
-        // Phase 54: Role filter — check if any role's as_str() matches.
+        // Phase 54/91: Role filter — check if any role's canonical_name() matches.
+        // Phase 91: Use canonical_name() (e.g., "PrimeMinister") instead of
+        // as_str() (e.g., "Prime Minister") for consistent filtering.
         if !role_filter.is_empty() {
-            let has_role = v.roles.iter().any(|r| r.as_str() == role_filter.as_str());
+            let has_role = v.roles.iter().any(|r| r.canonical_name() == role_filter.as_str());
             if !has_role {
                 return false;
             }
@@ -3116,9 +3121,9 @@ fn count_vips(country: &Country, view: &ViewQuery) -> usize {
         if !search_lower.is_empty() && !v.full_name.to_lowercase().contains(&search_lower) {
             return false;
         }
-        // Phase 54: Role filter.
+        // Phase 54/91: Role filter — use canonical_name() for consistent filtering.
         if !view.vip_filter.role_filter.is_empty() {
-            let has_role = v.roles.iter().any(|r| r.as_str() == view.vip_filter.role_filter.as_str());
+            let has_role = v.roles.iter().any(|r| r.canonical_name() == view.vip_filter.role_filter.as_str());
             if !has_role {
                 return false;
             }
@@ -3300,6 +3305,7 @@ fn compute_financial_summary(history: &[serde_json::Value]) -> CompanyFinancialS
         let interest = v.get("interest").and_then(|e| e.as_f64()).unwrap_or(0.0);
         let taxes = v.get("taxes").and_then(|e| e.as_f64()).unwrap_or(0.0);
         let wage_expense = v.get("wage_expense").and_then(|w| w.as_f64()).unwrap_or(0.0);
+        let wage_arrears = v.get("wage_arrears").and_then(|w| w.as_f64()).unwrap_or(0.0);
         let expenses = operating + interest + taxes;
         let net_profit = v.get("net_profit").and_then(|n| n.as_f64()).unwrap_or(income - expenses);
         CompanyFinancialRecord {
@@ -3307,6 +3313,7 @@ fn compute_financial_summary(history: &[serde_json::Value]) -> CompanyFinancialS
             expenses,
             net_profit,
             wage_expense,
+            wage_arrears,
         }
     };
 
@@ -3314,9 +3321,9 @@ fn compute_financial_summary(history: &[serde_json::Value]) -> CompanyFinancialS
         if records.is_empty() {
             return CompanyFinancialRecord::default();
         }
-        let (income, expenses, wage_expense) = records.iter().fold((0.0, 0.0, 0.0), |(acc_i, acc_e, acc_w), v| {
+        let (income, expenses, wage_expense, wage_arrears) = records.iter().fold((0.0, 0.0, 0.0, 0.0), |(acc_i, acc_e, acc_w, acc_a), v| {
             let r = parse_record(v);
-            (acc_i + r.income, acc_e + r.expenses, acc_w + r.wage_expense)
+            (acc_i + r.income, acc_e + r.expenses, acc_w + r.wage_expense, acc_a + r.wage_arrears)
         });
         let n = records.len() as f64;
         CompanyFinancialRecord {
@@ -3324,6 +3331,7 @@ fn compute_financial_summary(history: &[serde_json::Value]) -> CompanyFinancialS
             expenses: expenses / n,
             net_profit: (income - expenses) / n,
             wage_expense: wage_expense / n,
+            wage_arrears: wage_arrears / n,
         }
     };
 

@@ -69,7 +69,7 @@ pub use ministries::{GovernmentCompetency, BudgetPriorities, IdeologyBudgetPrior
 pub use budget_lifecycle::{BudgetBill, BudgetAmendment, BudgetBillStage, process_budget_lifecycle, process_budget_amendments, draft_budget_bill, apply_budget_failure_consequence, BudgetFailureConsequence};
 pub use laws::{HealthcareLaw, EducationLaw, LawType, enact_law, MigrationLaw, DeportationPolicy, BorderState, CustomsState, MigrationFlow, MigrationReason, InspectorateState, Violation, ViolationType};
 pub use free_speech::{FreeSpeechLaw, FreeSpeechLevel, AssemblyRights, PressFreedom};
-pub use names::{NamePool, VipName, generate_person_name, generate_full_vip, name_pool_for_culture, vip_to_leader};
+pub use names::{NamePool, VipName, generate_person_name, generate_full_vip, generate_unique_vip, generate_key_vip, name_pool_for_culture, vip_to_leader};
 pub use parliament::{Parliament, Chamber, ChamberPresidium, NamedVip, VipRole, ParliamentaryClub, VoteRecord, SplinterEvent, StateOfEmergency, initialize_parliament, check_faction_splintering, assign_club_chairpersons};
 pub use vip_registry::{Vip, VipRegistry, VipRoleExtended, IncapacityStatus, DeathCause, PendingDeath, age_health_degradation, death_probability, assign_core_traits, CORE_TRAITS, DiplomaticPost, DiplomaticPostType};
 pub use succession::{RoyalDynasty, RoyalFamilyMember, RoyalRelation, SuccessionOutcome, RegentBehavior, regent_behavior, RoyalMarriage, RoyalBirth, MarriageSignificance, process_dynasty_turn as process_dynasty_turn_succession};

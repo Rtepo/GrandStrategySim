@@ -180,8 +180,8 @@ impl VipRoleExtended {
             VipRoleExtended::DeputySpeaker => "Deputy Speaker",
             VipRoleExtended::Whip => "Whip",
             VipRoleExtended::RegionalGovernor => "Regional Governor",
-            VipRoleExtended::Mayor => "Mayor",
             VipRoleExtended::RegionalCouncilor => "Regional Councilor",
+            VipRoleExtended::Mayor => "Mayor",
             VipRoleExtended::Ceo => "CEO",
             VipRoleExtended::UnionBoss => "Union Boss",
             VipRoleExtended::ReligiousLeader => "Religious Leader",
@@ -192,6 +192,39 @@ impl VipRoleExtended {
             VipRoleExtended::Regent => "Regent",
             VipRoleExtended::BoardMember => "Board Member",
             VipRoleExtended::BoardChair => "Board Chair",
+            VipRoleExtended::Heir => "Heir",
+            VipRoleExtended::Ambassador => "Ambassador",
+            VipRoleExtended::Consul => "Consul",
+            VipRoleExtended::Spy => "Spy",
+        }
+    }
+
+    /// Phase 91: Returns the canonical enum string for this role.
+    /// Used for serialization and filtering — distinct from `as_str()` which
+    /// returns a human-readable label. This ensures `RoyalHeir` (royal) and
+    /// `Heir` (business) are distinct filter values.
+    pub fn canonical_name(&self) -> &'static str {
+        match self {
+            VipRoleExtended::None => "None",
+            VipRoleExtended::HeadOfState => "HeadOfState",
+            VipRoleExtended::PrimeMinister => "PrimeMinister",
+            VipRoleExtended::Minister => "Minister",
+            VipRoleExtended::Speaker => "Speaker",
+            VipRoleExtended::DeputySpeaker => "DeputySpeaker",
+            VipRoleExtended::Whip => "Whip",
+            VipRoleExtended::RegionalGovernor => "RegionalGovernor",
+            VipRoleExtended::RegionalCouncilor => "RegionalCouncilor",
+            VipRoleExtended::Mayor => "Mayor",
+            VipRoleExtended::Ceo => "Ceo",
+            VipRoleExtended::UnionBoss => "UnionBoss",
+            VipRoleExtended::ReligiousLeader => "ReligiousLeader",
+            VipRoleExtended::MilitaryCommander => "MilitaryCommander",
+            VipRoleExtended::Monarch => "Monarch",
+            VipRoleExtended::RoyalConsort => "RoyalConsort",
+            VipRoleExtended::RoyalHeir => "RoyalHeir",
+            VipRoleExtended::Regent => "Regent",
+            VipRoleExtended::BoardMember => "BoardMember",
+            VipRoleExtended::BoardChair => "BoardChair",
             VipRoleExtended::Heir => "Heir",
             VipRoleExtended::Ambassador => "Ambassador",
             VipRoleExtended::Consul => "Consul",

@@ -1567,12 +1567,15 @@ fn build_bank_companies(
     let mut rng = rand::thread_rng();
     let prefix = &name[..3.min(name.len())].to_uppercase();
 
-    // Phase 36/37: Generate multiple banks based on population size.
-    // Formula: max(1, population / 2M), capped at 5.
-    // The first bank is the main state bank (Universal/Commercial).
-    // Additional banks are regional banks with smaller balance sheets.
-    // Phase 37: Designate up to 3 DSPW primary dealers (was just 1).
-    let num_banks = ((treasury.population / 2_000_000) as usize).max(1).min(5);
+    // Phase 91: Generate multiple banks based on GDP, not population.
+    // Each bank serves an economy of ~500K average-wage-years of GDP.
+    // This is dynamic, inflation-proof, and scales with development level.
+    // A high-GDP small-population country gets enough banks; a low-GDP
+    // large-population country doesn't get undercapitalized banks.
+    // Cap at 8 to avoid excessive fragmentation in huge economies.
+    let avg_wage = (treasury.gdp / treasury.population.max(1) as f64).max(1000.0);
+    let gdp_per_bank_threshold = avg_wage * 500_000.0;
+    let num_banks = ((treasury.gdp / gdp_per_bank_threshold).round() as usize).max(1).min(8);
     let num_dspw = num_banks.div_ceil(2).min(3); // Half of banks, max 3
 
     let mut banks = Vec::new();
@@ -1630,11 +1633,28 @@ fn build_bank_companies(
             }
             _ => 0.0,
         };
-        let tier_1_capital = treasury.gdp * 0.05 * size_factor / num_banks as f64;
         // Phase 88: Scale reserves to at least 2% of GDP (scaled by bank size)
         // to ensure healthy initial liquidity for Working Capital Loans.
         let reserves = (total_deposits * central_bank.reserve_requirement_ratio)
             .max(treasury.gdp * 0.02 * size_factor / num_banks as f64);
+
+        // Phase 91: Size Tier 1 capital to survive Working Capital Loan
+        // issuance. After loans are issued, total_assets = reserves + deposits
+        // + loans_issued. The old formula (gdp * 0.05) was too small — loans
+        // expanded assets without expanding equity, causing KNF to liquidate
+        // every bank on Turn 0.
+        // New approach: Tier 1 must cover (deposits + reserves + estimated_loan_exposure)
+        // at 1.5x the KNF minimum ratio (12% if minimum is 8%).
+        // Estimated loan exposure per bank ≈ 15% of GDP / num_banks (working
+        // capital loans typically total ~15% of GDP for seed companies).
+        // The safety net in issue_working_capital_loans tops up if this
+        // estimate is still insufficient.
+        const TARGET_TIER_1_RATIO: f64 = 0.12; // 1.5x the 8% KNF minimum
+        let estimated_loan_exposure = treasury.gdp * 0.15 * size_factor / num_banks as f64;
+        let estimated_total_assets = total_deposits + reserves + estimated_loan_exposure;
+        let tier_1_from_ratio = estimated_total_assets * TARGET_TIER_1_RATIO;
+        let tier_1_from_gdp = treasury.gdp * 0.05 * size_factor / num_banks as f64;
+        let tier_1_capital = tier_1_from_ratio.max(tier_1_from_gdp);
 
         let balance_sheet = BankBalanceSheet {
             reserves_at_central_bank: reserves,

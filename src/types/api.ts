@@ -336,7 +336,12 @@ export type CompanyFinancialRecord = { income: number, expenses: number, net_pro
  * Phase 90: Wage expense (paid + accrued arrears) for transparency.
  * This is a subset of `expenses`, not an additional deduction.
  */
-wage_expense: number, };
+wage_expense: number, 
+/**
+ * Phase 91: Wage arrears (unpaid portion of payroll obligation).
+ * Accumulates when company cannot afford full payroll.
+ */
+wage_arrears: number, };
 
 /**
  * Phase 87+: Financial summary aggregating last turn, quarter (3 turns), and year (24 turns).

@@ -1315,9 +1315,42 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
     } else {
         None
     };
-    country.politics.head_of_state = random_head_of_state(country, form, rng);
+    // Phase 91: Shared used_names set for key political figure uniqueness.
+    let mut used_names: std::collections::HashSet<String> = std::collections::HashSet::new();
+    country.politics.head_of_state = random_head_of_state(country, form, rng, &mut used_names);
 
     process_political_year(country, companies, &mut [], year);
+
+    // Phase 91: Deduplicate party leader names against the Head of State.
+    // Party leaders were generated inside process_political_year using
+    // generate_full_vip (generic, allows duplicates). If any party leader
+    // has the same name as the Head of State, regenerate their name using
+    // generate_key_vip for uniqueness among key political figures.
+    {
+        let cultural_group = if country.macro_indicators.cultural_group.is_empty() {
+            "slavic".to_string()
+        } else {
+            country.macro_indicators.cultural_group.clone()
+        };
+        let mut rng_dedup = rand::thread_rng();
+        for party in country.politics.active_parties.values_mut() {
+            // Check if the leader name (without title prefix) collides.
+            let leader_name = &party.leader.name;
+            // Strip title prefix (e.g., "King John Smith" -> "John Smith")
+            let base_name = leader_name.split_whitespace()
+                .skip_while(|w| w == &"King" || w == &"Queen" || w == &"President" || w == &"Leader")
+                .collect::<Vec<_>>()
+                .join(" ");
+            if used_names.contains(&base_name) {
+                // Regenerate with a unique name
+                let new_vip = super::names::generate_key_vip(&cultural_group, &mut rng_dedup, &mut used_names);
+                party.leader.name = new_vip.full_name;
+                party.leader.gender = new_vip.gender;
+            } else {
+                used_names.insert(base_name);
+            }
+        }
+    }
 
     // Phase 51: Initialize VIP registry and register all key political figures.
     if country.politics.vip_registry.is_none() {
@@ -1337,7 +1370,7 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
     } else {
         VipRoleExtended::HeadOfState
     };
-    registry.register_new(Vip {
+    let monarch_vip_id = registry.register_new(Vip {
         full_name: hos.name.clone(),
         gender: hos.gender.clone(),
         age: hos.age,
@@ -1353,6 +1386,131 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
         faction: hos.faction.clone(),
         ..Default::default()
     });
+
+    // Phase 91: Initialize royal_dynasty for monarchies with monarch, consort,
+    // and 1-2 royal heirs. Previously, only `politics.dynasty` (a string) was
+    // set, but `politics.royal_dynasty` (the RoyalDynasty struct) was never
+    // initialized, so process_dynasty_turn early-returned and no consorts or
+    // heirs were ever generated.
+    if is_monarchy(form) {
+        let dynasty_name = country.politics.dynasty.clone().unwrap_or_else(|| "Royal".to_string());
+        let monarch_gender = hos.gender.clone();
+        let monarch_age = hos.age;
+
+        // Create the dynasty with the monarch as the first member.
+        let mut royal_dynasty = super::succession::RoyalDynasty::new(dynasty_name.clone());
+        royal_dynasty.current_monarch_id = Some(monarch_vip_id.clone());
+        royal_dynasty.members.push(super::succession::RoyalFamilyMember {
+            vip_id: monarch_vip_id.clone(),
+            relation: super::succession::RoyalRelation::Monarch,
+            birth_turn: 0, // Genesis — birth turn not tracked for initial monarch
+            is_legitimate: true,
+            is_heir_apparent: false,
+            succession_order: 0,
+            father_vip_id: None,
+            mother_vip_id: None,
+            spouse_vip_id: None, // Will be set below after consort generation
+            children_vip_ids: Vec::new(),
+            marriage_turn: None,
+            death_turn: None,
+            death_cause: None,
+        });
+
+        // Generate a royal consort (spouse for the monarch).
+        let consort_gender = if monarch_gender == "M" { "F" } else { "M" };
+        let consort_vip_name = super::names::generate_key_vip(cultural_group, rng, &mut used_names);
+        let (consort_traits, consort_main_trait) = assign_core_traits(rng);
+        let consort_vip_id = registry.register_new(Vip {
+            full_name: consort_vip_name.full_name.clone(),
+            gender: consort_gender.to_string(),
+            age: 18 + rng.gen_range(0..15), // Consort aged 18-32
+            health: crate::politics::vip_registry::VipHealth { physical_health: 0.9, mental_health: 0.9 },
+            traits: consort_traits,
+            main_trait: consort_main_trait,
+            ideology: String::new(),
+            religion: country.macro_indicators.religion.clone(),
+            nationality: country.name.clone(),
+            dynasty: Some(dynasty_name.clone()),
+            roles: vec![VipRoleExtended::RoyalConsort],
+            base_influence: 20,
+            faction: "Royal Court".to_string(),
+            ..Default::default()
+        });
+
+        // Link consort to monarch in the dynasty.
+        if let Some(monarch_member) = royal_dynasty.members.iter_mut().find(|m| m.vip_id == monarch_vip_id) {
+            monarch_member.spouse_vip_id = Some(consort_vip_id.clone());
+            monarch_member.marriage_turn = Some(0); // Genesis marriage
+        }
+        royal_dynasty.members.push(super::succession::RoyalFamilyMember {
+            vip_id: consort_vip_id.clone(),
+            relation: super::succession::RoyalRelation::Consort,
+            birth_turn: 0,
+            is_legitimate: true,
+            is_heir_apparent: false,
+            succession_order: 999, // Consorts are not in succession line
+            father_vip_id: None,
+            mother_vip_id: None,
+            spouse_vip_id: Some(monarch_vip_id.clone()),
+            children_vip_ids: Vec::new(),
+            marriage_turn: Some(0),
+            death_turn: None,
+            death_cause: None,
+        });
+
+        // Generate 1-2 royal heirs (children of monarch and consort).
+        let num_heirs = if monarch_age >= 25 { 2 } else { 1 };
+        let mut children_ids = Vec::new();
+        for heir_idx in 0..num_heirs {
+            let heir_vip_name = super::names::generate_key_vip(cultural_group, rng, &mut used_names);
+            let heir_gender = if rng.gen::<f64>() < 0.5 { "M" } else { "F" };
+            let (heir_traits, heir_main_trait) = assign_core_traits(rng);
+            let heir_age = if monarch_age > 30 { rng.gen_range(5..25) } else { rng.gen_range(1..10) };
+            let heir_vip_id = registry.register_new(Vip {
+                full_name: heir_vip_name.full_name.clone(),
+                gender: heir_gender.to_string(),
+                age: heir_age,
+                health: crate::politics::vip_registry::VipHealth { physical_health: 1.0, mental_health: 1.0 },
+                traits: heir_traits,
+                main_trait: heir_main_trait,
+                ideology: String::new(),
+                religion: country.macro_indicators.religion.clone(),
+                nationality: country.name.clone(),
+                dynasty: Some(dynasty_name.clone()),
+                roles: vec![VipRoleExtended::RoyalHeir],
+                base_influence: 15,
+                faction: "Royal Court".to_string(),
+                ..Default::default()
+            });
+            let is_heir_apparent = heir_idx == 0;
+            royal_dynasty.members.push(super::succession::RoyalFamilyMember {
+                vip_id: heir_vip_id.clone(),
+                relation: super::succession::RoyalRelation::Child,
+                birth_turn: 0,
+                is_legitimate: true,
+                is_heir_apparent,
+                succession_order: (heir_idx + 1) as u32,
+                father_vip_id: if monarch_gender == "M" { Some(monarch_vip_id.clone()) } else { None },
+                mother_vip_id: if monarch_gender == "F" { Some(monarch_vip_id.clone()) } else { None },
+                spouse_vip_id: None,
+                children_vip_ids: Vec::new(),
+                marriage_turn: None,
+                death_turn: None,
+                death_cause: None,
+            });
+            children_ids.push(heir_vip_id);
+        }
+
+        // Link children to both monarch and consort.
+        if let Some(monarch_member) = royal_dynasty.members.iter_mut().find(|m| m.vip_id == monarch_vip_id) {
+            monarch_member.children_vip_ids = children_ids.clone();
+        }
+        if let Some(consort_member) = royal_dynasty.members.iter_mut().find(|m| m.vip_id == consort_vip_id) {
+            consort_member.children_vip_ids = children_ids;
+        }
+
+        country.politics.royal_dynasty = Some(royal_dynasty);
+    }
 
     // Register party leaders as VIPs.
     for (party_id, party) in &country.politics.active_parties {
@@ -1385,7 +1543,8 @@ pub fn bootstrap_politics(country: &mut Country, companies: &mut Vec<crate::enti
     if !form.is_democratic() {
         let mut rng2 = rand::thread_rng();
         for _ in 0..3 {
-            let vip_name = names::generate_full_vip(cultural_group, &mut rng2);
+            // Phase 91: Use generate_key_vip for advisory council (key political appointees).
+            let vip_name = names::generate_key_vip(cultural_group, &mut rng2, &mut used_names);
             // Phase 53: Use diverse traits from the core pool instead of
             // hardcoded "Loyalist"/"Loyalty".
             let (traits, main_trait) = assign_core_traits(&mut rng2);
@@ -1666,14 +1825,15 @@ fn random_dynasty(rng: &mut impl Rng) -> String {
     DYNASTIES[rng.gen_range(0..DYNASTIES.len())].to_string()
 }
 
-fn random_head_of_state(country: &Country, form: GovernmentForm, rng: &mut impl Rng) -> Leader {
-    // Phase 49: Use the country's cultural group for culturally-appropriate names.
+fn random_head_of_state(country: &Country, form: GovernmentForm, rng: &mut impl Rng, used_names: &mut std::collections::HashSet<String>) -> Leader {
+    // Phase 49/91: Use the country's cultural group for culturally-appropriate names.
+    // Phase 91: Use generate_key_vip for uniqueness among key political figures.
     let cultural_group = if country.macro_indicators.cultural_group.is_empty() {
         "slavic"
     } else {
         &country.macro_indicators.cultural_group
     };
-    let vip_name = super::names::generate_full_vip(cultural_group, rng);
+    let vip_name = super::names::generate_key_vip(cultural_group, rng, used_names);
     let male = vip_name.gender == "M";
     let name = vip_name.full_name;
 

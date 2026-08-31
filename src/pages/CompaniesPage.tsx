@@ -191,6 +191,7 @@ export function CompaniesPage() {
                           <th className="text-right py-1">Income</th>
                           <th className="text-right py-1">Expenses</th>
                           <th className="text-right py-1">Wages</th>
+                          <th className="text-right py-1">Arrears</th>
                           <th className="text-right py-1">Net</th>
                         </tr>
                       </thead>
@@ -200,6 +201,7 @@ export function CompaniesPage() {
                           <td className="text-right">{fmt(detail.financial_summary.last_turn.income)}</td>
                           <td className="text-right">{fmt(detail.financial_summary.last_turn.expenses)}</td>
                           <td className="text-right">{fmt(detail.financial_summary.last_turn.wage_expense)}</td>
+                          <td className="text-right">{fmt(detail.financial_summary.last_turn.wage_arrears)}</td>
                           <td className="text-right font-medium">{fmt(detail.financial_summary.last_turn.net_profit)}</td>
                         </tr>
                         <tr className="border-t">
@@ -207,6 +209,7 @@ export function CompaniesPage() {
                           <td className="text-right">{fmt(detail.financial_summary.last_quarter.income)}</td>
                           <td className="text-right">{fmt(detail.financial_summary.last_quarter.expenses)}</td>
                           <td className="text-right">{fmt(detail.financial_summary.last_quarter.wage_expense)}</td>
+                          <td className="text-right">{fmt(detail.financial_summary.last_quarter.wage_arrears)}</td>
                           <td className="text-right font-medium">{fmt(detail.financial_summary.last_quarter.net_profit)}</td>
                         </tr>
                         <tr className="border-t">
@@ -214,6 +217,7 @@ export function CompaniesPage() {
                           <td className="text-right">{fmt(detail.financial_summary.last_year.income)}</td>
                           <td className="text-right">{fmt(detail.financial_summary.last_year.expenses)}</td>
                           <td className="text-right">{fmt(detail.financial_summary.last_year.wage_expense)}</td>
+                          <td className="text-right">{fmt(detail.financial_summary.last_year.wage_arrears)}</td>
                           <td className="text-right font-medium">{fmt(detail.financial_summary.last_year.net_profit)}</td>
                         </tr>
                       </tbody>
