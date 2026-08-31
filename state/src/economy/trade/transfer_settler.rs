@@ -21,6 +21,7 @@
 use crate::entities::Company;
 use crate::state::Country;
 use crate::society::geography::Region;
+use std::collections::HashMap;
 
 /// What kind of recipient receives the transfer.
 #[derive(Debug, Clone)]
@@ -90,7 +91,28 @@ pub struct TransferResult {
 ///
 /// Phase 46: Silent clamping of negative reserves removed. Callers must use
 /// `would_cause_negative_reserves` to pre-check before calling this function.
-fn adjust_bank_balance(
+/// Internal helper: find a bank company by ID and adjust its balance sheet.
+/// Mapped version: uses a pre-computed `id -> idx` table for O(1) lookup.
+fn adjust_bank_balance<S: std::hash::BuildHasher>(
+    companies: &mut [Company],
+    id_to_idx: &HashMap<String, usize, S>,
+    bank_id: &str,
+    deposit_delta: f64,
+    reserve_delta: f64,
+) -> bool {
+    if let Some(&idx) = id_to_idx.get(bank_id) {
+        if let Some(ref mut bs) = companies[idx].balance_sheet {
+            bs.deposits += deposit_delta;
+            bs.reserves_at_central_bank += reserve_delta;
+            return true;
+        }
+    }
+    false
+}
+
+/// Unmapped fallback for helper functions that are called without an index map.
+/// Searches linearly for the bank; prefer `adjust_bank_balance` when a map exists.
+fn adjust_bank_balance_unmapped(
     companies: &mut [Company],
     bank_id: &str,
     deposit_delta: f64,
@@ -107,19 +129,18 @@ fn adjust_bank_balance(
 }
 
 /// Phase 46: Pre-check whether a bank balance adjustment would cause negative reserves.
-///
-/// # Returns
-/// `true` if the adjustment would cause `reserves_at_central_bank < 0.0`, `false` otherwise.
-fn would_cause_negative_reserves(
+/// Mapped version: uses a pre-computed `id -> idx` table for O(1) lookup.
+fn would_cause_negative_reserves<S: std::hash::BuildHasher>(
     companies: &[Company],
+    id_to_idx: &HashMap<String, usize, S>,
     bank_id: &str,
     reserve_delta: f64,
 ) -> bool {
     if reserve_delta >= 0.0 {
         return false;
     }
-    if let Some(bank) = companies.iter().find(|c| c.id == bank_id) {
-        if let Some(ref bs) = bank.balance_sheet {
+    if let Some(&idx) = id_to_idx.get(bank_id) {
+        if let Some(ref bs) = companies[idx].balance_sheet {
             return bs.reserves_at_central_bank + reserve_delta < 0.0;
         }
     }
@@ -148,6 +169,23 @@ fn would_cause_negative_reserves(
 /// - For `CentralBank`: money is extinguished (deposit destroyed, reserves returned to CB).
 pub fn settle_transfer(
     companies: &mut [Company],
+    payer_idx: usize,
+    amount: f64,
+    recipient: &TransferRecipient,
+    country: &mut Country,
+) -> Result<TransferResult, TransferError> {
+    let id_to_idx: HashMap<String, usize> = companies
+        .iter()
+        .enumerate()
+        .map(|(i, c)| (c.id.clone(), i))
+        .collect();
+    settle_transfer_mapped(companies, &id_to_idx, payer_idx, amount, recipient, country)
+}
+
+/// O(1) mapped variant of `settle_transfer` for callers that already have an `id -> idx` map.
+pub fn settle_transfer_mapped<S: std::hash::BuildHasher>(
+    companies: &mut [Company],
+    id_to_idx: &HashMap<String, usize, S>,
     payer_idx: usize,
     amount: f64,
     recipient: &TransferRecipient,
@@ -190,7 +228,7 @@ pub fn settle_transfer(
     // This replaces the old silent clamping behavior.
     if !is_intra_bank {
         if let Some(ref bank_id) = payer_bank_id {
-            if would_cause_negative_reserves(companies, bank_id, -amount) {
+            if would_cause_negative_reserves(companies, id_to_idx, bank_id, -amount) {
                 return Err(TransferError::InsufficientReserves);
             }
         }
@@ -214,7 +252,7 @@ pub fn settle_transfer(
     // Debit payer's bank only if money leaves the bank (not intra-bank)
     if !is_intra_bank {
         if let Some(ref bank_id) = payer_bank_id {
-            adjust_bank_balance(companies, bank_id, -amount, -amount);
+            adjust_bank_balance(companies, id_to_idx, bank_id, -amount, -amount);
         }
     }
 
@@ -256,7 +294,7 @@ pub fn settle_transfer(
             if !is_intra_bank {
                 if let Some(ref r_bank_id) = recipient_bank_id {
                     result.inter_bank = true;
-                    adjust_bank_balance(companies, r_bank_id, amount, amount);
+                    adjust_bank_balance(companies, id_to_idx, r_bank_id, amount, amount);
                 }
             }
         }
@@ -362,7 +400,7 @@ pub fn settle_b2c_purchase(
     // (VAT goes to treasury, not bank deposits)
     let recipient_bank_id = companies[recipient_company_idx].primary_bank_id.clone();
     if let Some(ref bank_id) = recipient_bank_id {
-        adjust_bank_balance(companies, bank_id, actual_base, actual_base);
+        adjust_bank_balance_unmapped(companies, bank_id, actual_base, actual_base);
     }
 
     Ok(TransferResult {
@@ -497,7 +535,7 @@ pub fn settle_treasury_to_company(
     // Sync recipient's bank: deposits and reserves increase
     let recipient_bank_id = companies[recipient_idx].primary_bank_id.clone();
     if let Some(ref bank_id) = recipient_bank_id {
-        adjust_bank_balance(companies, bank_id, amount, amount);
+        adjust_bank_balance_unmapped(companies, bank_id, amount, amount);
     }
 
     Ok(TransferResult {
@@ -624,7 +662,7 @@ pub fn credit_company_by_id(
     };
 
     if let Some(ref bank_id) = bank_id {
-        adjust_bank_balance(companies, bank_id, amount, amount);
+        adjust_bank_balance_unmapped(companies, bank_id, amount, amount);
     }
     true
 }
@@ -657,7 +695,7 @@ pub fn debit_company_by_id(
 
     if actual > 0.0 {
         if let Some(ref bank_id) = bank_id {
-            adjust_bank_balance(companies, bank_id, -actual, -actual);
+            adjust_bank_balance_unmapped(companies, bank_id, -actual, -actual);
         }
     }
     actual
@@ -683,7 +721,7 @@ pub fn sync_bank_credit_by_company_id(
         .and_then(|c| c.primary_bank_id.clone());
 
     if let Some(ref bank_id) = bank_id {
-        adjust_bank_balance(companies, bank_id, amount, amount);
+        adjust_bank_balance_unmapped(companies, bank_id, amount, amount);
         true
     } else {
         false

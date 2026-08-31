@@ -566,96 +566,106 @@ pub fn settle_trades(
 ) -> Vec<String> {
     let mut messages = Vec::new();
 
+    // Phase C: O(1) lookup maps. Built once per batch instead of O(N*M) scans.
+    let company_id_to_idx: HashMap<String, usize> = companies
+        .iter()
+        .enumerate()
+        .map(|(i, c)| (c.id.clone(), i))
+        .collect();
+    let mut owner_to_buildings: HashMap<String, Vec<usize>> = HashMap::default();
+    for (i, b) in buildings.iter().enumerate() {
+        owner_to_buildings
+            .entry(b.owner_id.clone())
+            .or_default()
+            .push(i);
+    }
+
     for trade in trades {
         let trade_value = trade.quantity * trade.execution_price;
 
         // --- Cash Settlement (Phase 24A.4: via TransferSettler) ---
-        // Debit buyer: release encumbered cash and debit actual cash via transfer
-        // Credit seller: add received cash via transfer
-        // Skip for defense trades (buyer_id == "MIN-DEF") — cash is credited by
-        // settle_defense_trades via TransferSettler's credit_company_by_id to
-        // ensure proper bank balance sheet synchronization (Black Hole 1.19).
         if trade.buyer_id != "MIN-DEF" {
-            // Find buyer and seller indices
-            let buyer_idx = companies.iter().position(|c| c.id == trade.buyer_id);
-            let seller_idx = companies.iter().position(|c| c.id == trade.seller_id);
-
-            if let (Some(bi), Some(si)) = (buyer_idx, seller_idx) {
-                // Use TransferSettler for proper double-entry settlement
-                // This handles: buyer cash debit, seller cash credit, bank balance sheet sync
-                let dummy_country = &mut crate::state::Country::default();
-                let _ = crate::economy::transfer_settler::settle_transfer(
+            if let (Some(&bi), Some(&si)) = (
+                company_id_to_idx.get(&trade.buyer_id),
+                company_id_to_idx.get(&trade.seller_id),
+            ) {
+                let mut dummy_country = crate::state::Country::default();
+                let _ = crate::economy::transfer_settler::settle_transfer_mapped(
                     companies,
+                    &company_id_to_idx,
                     bi,
                     trade_value,
                     &crate::economy::transfer_settler::TransferRecipient::OtherCompany { recipient_idx: si },
-                    dummy_country,
+                    &mut dummy_country,
                 );
-                // Also release the buyer's encumbered debit_cash
                 companies[bi].debit_cash -= trade_value;
-                // Phase 45: Clear unfilled bid tracking for this commodity
-                // since the bid was successfully filled.
                 companies[bi].unfilled_bid_prices.remove(&trade.commodity);
             } else {
-                // Fallback: manual settlement if indices not found
-                if let Some(buyer) = companies.iter_mut().find(|c| c.id == trade.buyer_id) {
-                    buyer.debit_cash -= trade_value;
+                if let Some(&bi) = company_id_to_idx.get(&trade.buyer_id) {
+                    companies[bi].debit_cash -= trade_value;
                 }
-                if let Some(seller) = companies.iter_mut().find(|c| c.id == trade.seller_id) {
-                    seller.available_cash += trade_value;
-                    if let Some(ba) = &mut seller.brokerage_account {
+                if let Some(&si) = company_id_to_idx.get(&trade.seller_id) {
+                    companies[si].available_cash += trade_value;
+                    if let Some(ba) = &mut companies[si].brokerage_account {
                         ba.cash += trade_value;
                     }
                 }
             }
-        } else {
-            // Defense trade: just release buyer's encumbered cash
-            if let Some(buyer) = companies.iter_mut().find(|c| c.id == trade.buyer_id) {
-                buyer.debit_cash -= trade_value;
-            }
+        } else if let Some(&bi) = company_id_to_idx.get(&trade.buyer_id) {
+            companies[bi].debit_cash -= trade_value;
         }
 
         // --- Physical Inventory Routing ---
-        // Find buyer's building that needs this commodity (has it in BOM inputs
-        // or in an active construction project's required materials)
-        let buyer_building_idx = buildings.iter().position(|b| {
-            b.owner_id == trade.buyer_id
-                && (
-                    // Normal production: commodity is in BOM inputs
-                    b.active_method.inputs.contains_key(&trade.commodity)
-                    // Construction: commodity is in active project's required materials
-                    || b.active_project.as_ref()
-                        .map(|p| p.required_materials.contains_key(&trade.commodity))
-                        .unwrap_or(false)
-                )
-        });
-
-        if let Some(idx) = buyer_building_idx {
+        let buyer_buildings = owner_to_buildings
+            .get(&trade.buyer_id)
+            .map(|v| v.as_slice())
+            .unwrap_or(&[]);
+        let mut buyer_b_idx = None;
+        for &i in buyer_buildings {
+            let b = &buildings[i];
+            if b.active_method.inputs.contains_key(&trade.commodity)
+                || b.active_project.as_ref()
+                    .map(|p| p.required_materials.contains_key(&trade.commodity))
+                    .unwrap_or(false)
+            {
+                buyer_b_idx = Some(i);
+                break;
+            }
+        }
+        if buyer_b_idx.is_none() {
+            buyer_b_idx = buyer_buildings.first().copied();
+        }
+        if let Some(idx) = buyer_b_idx {
             let building = &mut buildings[idx];
             *building
                 .inventory
                 .entry(trade.commodity)
                 .or_insert(0.0) += trade.quantity;
-        } else {
-            // Buyer has no building that consumes this commodity — deposit to first building
-            if let Some(idx) = buildings.iter().position(|b| b.owner_id == trade.buyer_id) {
-                let building = &mut buildings[idx];
-                *building
-                    .inventory
-                    .entry(trade.commodity)
-                    .or_insert(0.0) += trade.quantity;
-            }
         }
 
-        // Find seller's building that produces this commodity (has it in BOM outputs)
-        // and has sufficient inventory
-        let seller_building_idx = buildings.iter().position(|b| {
-            b.owner_id == trade.seller_id
-                && b.active_method.outputs.contains_key(&trade.commodity)
+        let seller_buildings = owner_to_buildings
+            .get(&trade.seller_id)
+            .map(|v| v.as_slice())
+            .unwrap_or(&[]);
+        let mut seller_b_idx = None;
+        for &i in seller_buildings {
+            let b = &buildings[i];
+            if b.active_method.outputs.contains_key(&trade.commodity)
                 && b.inventory.get(&trade.commodity).copied().unwrap_or(0.0) >= trade.quantity
-        });
-
-        if let Some(idx) = seller_building_idx {
+            {
+                seller_b_idx = Some(i);
+                break;
+            }
+        }
+        if seller_b_idx.is_none() {
+            for &i in seller_buildings {
+                if buildings[i].inventory.get(&trade.commodity).copied().unwrap_or(0.0) >= trade.quantity {
+                    seller_b_idx = Some(i);
+                    break;
+                }
+            }
+        }
+        if let Some(idx) = seller_b_idx {
             let building = &mut buildings[idx];
             let current = building.inventory.get(&trade.commodity).copied().unwrap_or(0.0);
             let new_qty = (current - trade.quantity).max(0.0);
@@ -665,29 +675,10 @@ pub fn settle_trades(
                 building.inventory.remove(&trade.commodity);
             }
         } else {
-            // Fallback: find any building of the seller with this commodity
-            let fallback_idx = buildings.iter().position(|b| {
-                b.owner_id == trade.seller_id
-                    && b.inventory.get(&trade.commodity).copied().unwrap_or(0.0) >= trade.quantity
-            });
-
-            if let Some(idx) = fallback_idx {
-                let building = &mut buildings[idx];
-                let current = building.inventory.get(&trade.commodity).copied().unwrap_or(0.0);
-                let new_qty = (current - trade.quantity).max(0.0);
-                if new_qty > 0.0 {
-                    building.inventory.insert(trade.commodity, new_qty);
-                } else {
-                    building.inventory.remove(&trade.commodity);
-                }
-            } else {
-                // Seller doesn't have the inventory — this is a phantom trade
-                // The trade still settled in cash, but no goods were delivered
-                messages.push(format!(
-                    "WARNING: Seller {} has no building with {:?} inventory for trade of {}",
-                    trade.seller_id, trade.commodity, trade.quantity
-                ));
-            }
+            messages.push(format!(
+                "WARNING: Seller {} has no building with {:?} inventory for trade of {}",
+                trade.seller_id, trade.commodity, trade.quantity
+            ));
         }
     }
 
